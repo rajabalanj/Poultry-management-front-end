@@ -6,7 +6,8 @@ import Sidebar from "./Components/Slidebar";
 import PageHeader from "./Components/PageHeader";
 import BatchTable from "./Components/BatchTable";
 import AddBatch from "./Components/AddBatch";
-import batchesData from './data/batches.json';
+import BatchDetails from "./Components/BatchDetails";
+import EditBatch from "./Components/EditBatch";
 
 const Layout: React.FC = () => {
   const navigate = useNavigate();
@@ -30,6 +31,8 @@ const Layout: React.FC = () => {
             }
           />
           <Route path="/add-batch" element={<AddBatch />} />
+          <Route path="/batch/:batchId/details" element={<BatchDetails />} />
+          <Route path="/batch/:batchId/edit" element={<EditBatch />} />
         </Routes>
       </div>
     </div>

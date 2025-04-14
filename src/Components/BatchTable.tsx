@@ -1,54 +1,36 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import "bootstrap-icons/font/bootstrap-icons.css";
-interface Batch {
-  batchNo: string;
-  shedNo: number;
-  age: string;
-  openingCount: number;
-  mortality: number;
-  culls: number;
-  closingCount: number;
-  table: number;
-  jumbo: number;
-  cr: number;
-  totalEggs: number;
-  date: string;
-}
-
-
-const mockData: Batch[] = [
-    {
-      batchNo: "B-0001",
-      shedNo: 1,
-      age: "Week 1, Day 1",
-      openingCount: 18652,
-      mortality: 2,
-      culls: 3,
-      closingCount: 18647,
-      table: 500,
-      jumbo: 1,
-      cr: 30,
-      totalEggs: 531,
-      date: "3/17/2025",
-    },
-    {
-      batchNo: "B-0002",
-      shedNo: 2,
-      age: "Week 50, Day 6",
-      openingCount: 22356,
-      mortality: 0,
-      culls: 0,
-      closingCount: 22356,
-      table: 0,
-      jumbo: 0,
-      cr: 0,
-      totalEggs: 0,
-      date: "3/17/2025",
-    },
-  ];
+import { mockBatches } from "../mocks/batchData";
 
 
 const BatchTable: React.FC = () => {
+  const navigate = useNavigate();
+
+  const handleViewDetails = (batchNo: string) => {
+    try {
+      console.log('Attempting to view details for batch:', batchNo);
+      
+      // Validate batch number
+      if (!batchNo) {
+        console.error('Batch number is required');
+        return;
+      }
+
+      // Construct the URL
+      const detailsUrl = `/batch/${batchNo}/details`;
+      console.log('Navigating to:', detailsUrl);
+
+      // Navigate to the details page
+      navigate(detailsUrl);
+      
+      console.log('Navigation successful');
+    } catch (error) {
+      console.error('Error in handleViewDetails:', error);
+      // You could add a toast notification here
+    }
+  };
+
   return (
     <div className="table-responsive">
       <table className="table table-striped table-bordered align-middle">
@@ -57,18 +39,25 @@ const BatchTable: React.FC = () => {
             <th>Batch No.</th>
             <th>Shed No.</th>
             <th>Age</th>
-            <th></th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {mockData.map((batch) => (
-            <tr key={batch.batchNo}>
+          {mockBatches.map((batch) => (
+            <tr key={batch.id}>
               <td>{batch.batchNo}</td>
               <td>{batch.shedNo}</td>
               <td>{batch.age}</td>
-              <td><a href="/batch/B-0001/details" title="View Details" aria-label="View Details for Batch B-0001">
-              <i className="bi bi-eye"></i>
-        </a></td>
+              <td>
+                <button
+                  className="btn btn-link p-0"
+                  onClick={() => batch.id && handleViewDetails(batch.id)}
+                  title="View Details"
+                  aria-label={`View Details for Batch ${batch.batchNo}`}
+                >
+                  <i className="bi bi-eye"></i>
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>
