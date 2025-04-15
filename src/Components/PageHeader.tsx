@@ -1,4 +1,5 @@
 import React from "react";
+import '../styles/global.css';
 
 interface PageHeaderProps {
   title: string;
@@ -8,9 +9,9 @@ interface PageHeaderProps {
 
 const PageHeader: React.FC<PageHeaderProps> = ({ title, buttonLabel, onButtonClick }) => {
   return (
-    <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-      <h3 className="mb-0">{title}</h3>
-      <button className="btn btn-primary" onClick={onButtonClick}>
+    <div className="d-flex justify-content-between align-items-center mb-4" style={{ marginLeft: '60px' }}>
+      <h3 className="mb-0 text-md">{title}</h3>
+      <button className="btn btn-primary text-xs" onClick={onButtonClick}>
         {buttonLabel}
       </button>
     </div>

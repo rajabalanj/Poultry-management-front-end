@@ -1,208 +1,214 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { batchApi, Batch } from '../services/api';
+import { batchApi } from '../services/api';
+import { Batch } from '../services/api';
+import { toast } from 'react-toastify';
+
 
 const BatchDetails: React.FC = () => {
-  const { batchId } = useParams<{ batchId: string }>();
+  const { batchNo } = useParams<{ batchNo: string }>();
   const navigate = useNavigate();
   const [batch, setBatch] = useState<Batch | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedBatch, setEditedBatch] = useState<Batch | null>(null);
 
   useEffect(() => {
-    console.log('BatchDetails mounted with batchId:', batchId);
-
-    const fetchBatchDetails = async () => {
+    const fetchBatch = async () => {
       try {
-        if (!batchId) {
-          console.error('No batchId provided');
-          setError('No batch ID provided');
-          return;
+        if (batchNo) {
+          const response = await batchApi.getBatch(batchNo);
+          setBatch(response.data);
+          setEditedBatch(response.data);
         }
-
-        console.log('Fetching batch details for ID:', batchId);
-        const response = await batchApi.getBatch(batchId);
-        console.log('Received batch data:', response.data);
-        
-        setBatch(response.data);
-      } catch (err) {
-        console.error('Error fetching batch details:', err);
-        setError('Failed to load batch details');
+      } catch (error) {
+        console.error('Error fetching batch:', error);
+        toast.error('Failed to load batch details');
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
-    fetchBatchDetails();
-  }, [batchId]);
+    fetchBatch();
+  }, [batchNo]);
 
-  if (loading) {
-    console.log('Rendering loading state');
-    return (
-      <div className="d-flex justify-content-center align-items-center vh-100">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
-      </div>
-    );
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    if (editedBatch) {
+      setEditedBatch({
+        ...editedBatch,
+        [name]: name === 'age' ? value : parseInt(value)
+      });
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      if (editedBatch && batchNo) {
+        await batchApi.updateBatch(batchNo, editedBatch);
+        setBatch(editedBatch);
+        setIsEditing(false);
+        toast.success('Batch updated successfully!');
+      }
+    } catch (error) {
+      console.error('Error updating batch:', error);
+      toast.error('Failed to update batch');
+    }
+  };
+
+  if (isLoading) {
+    return <div className="text-center text-md">Loading...</div>;
   }
 
-  if (error) {
-    console.log('Rendering error state:', error);
-    return (
-      <div className="alert alert-danger" role="alert">
-        {error}
-      </div>
-    );
+  if (!batch || !editedBatch) {
+    return <div className="text-center text-md">Batch not found</div>;
   }
-
-  if (!batch) {
-    console.log('Rendering no batch found state');
-    return (
-      <div className="alert alert-warning" role="alert">
-        Batch not found
-      </div>
-    );
-  }
-
-  console.log('Rendering batch details for:', batch);
 
   return (
     <div className="container mt-4">
-      <div className="card">
-        <div className="card-header d-flex justify-content-between align-items-center">
-          <h4 className="mb-0">Batch Details</h4>
-          <button
-            className="btn btn-outline-secondary"
-            onClick={() => navigate('/')}
-          >
-            Back to List
-          </button>
-        </div>
-        <div className="card-body">
-          {/* Basic Information */}
-          <div className="card mb-4">
-            <div className="card-header">
-              <h5 className="mb-0">Basic Information</h5>
-            </div>
-            <div className="card-body">
-              <div className="row g-3">
-                <div className="col-12 col-md-6">
-                  <div className="d-flex justify-content-between border-bottom pb-2">
-                    <span className="fw-bold">Batch Number:</span>
-                    <span>{batch.batchNo}</span>
-                  </div>
+      <div className="row g-3">
+        <div className="col-6">
+          <div className="card shadow-sm">
+            <div className="card-body p-2">
+              <h4 className="text-sm mb-2">Batch Details - {batch.batchNo}</h4>
+              
+              <div className="row g-2">
+                <div className="col-12">
+                  <label className="form-label text-xs">Shed No.</label>
+                  <input
+                    type="number"
+                    className="form-control form-control-sm text-sm"
+                    name="shedNo"
+                    value={isEditing ? editedBatch.shedNo : batch.shedNo}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
                 </div>
-                <div className="col-12 col-md-6">
-                  <div className="d-flex justify-content-between border-bottom pb-2">
-                    <span className="fw-bold">Shed Number:</span>
-                    <span>{batch.shedNo}</span>
-                  </div>
+                
+                <div className="col-12">
+                  <label className="form-label text-xs">Age</label>
+                  <input
+                    type="text"
+                    className="form-control form-control-sm text-sm"
+                    name="age"
+                    value={isEditing ? editedBatch.age : batch.age}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
                 </div>
-                <div className="col-12 col-md-6">
-                  <div className="d-flex justify-content-between border-bottom pb-2">
-                    <span className="fw-bold">Age:</span>
-                    <span>{batch.age}</span>
-                  </div>
+
+                <div className="col-12">
+                  <label className="form-label text-xs">Opening Count</label>
+                  <input
+                    type="number"
+                    className="form-control form-control-sm text-sm"
+                    name="openingCount"
+                    value={isEditing ? editedBatch.openingCount : batch.openingCount}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
                 </div>
-                <div className="col-12 col-md-6">
-                  <div className="d-flex justify-content-between border-bottom pb-2">
-                    <span className="fw-bold">Date:</span>
-                    <span>{batch.date}</span>
-                  </div>
+
+                <div className="col-12">
+                  <label className="form-label text-xs">Mortality</label>
+                  <input
+                    type="number"
+                    className="form-control form-control-sm text-sm"
+                    name="mortality"
+                    value={isEditing ? editedBatch.mortality : batch.mortality}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
+                </div>
+
+                <div className="col-12">
+                  <label className="form-label text-xs">Culls</label>
+                  <input
+                    type="number"
+                    className="form-control form-control-sm text-sm"
+                    name="culls"
+                    value={isEditing ? editedBatch.culls : batch.culls}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
+                </div>
+
+                <div className="col-12">
+                  <label className="form-label text-xs">Table Eggs</label>
+                  <input
+                    type="number"
+                    className="form-control form-control-sm text-sm"
+                    name="table"
+                    value={isEditing ? editedBatch.table : batch.table}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
+                </div>
+
+                <div className="col-12">
+                  <label className="form-label text-xs">Jumbo Eggs</label>
+                  <input
+                    type="number"
+                    className="form-control form-control-sm text-sm"
+                    name="jumbo"
+                    value={isEditing ? editedBatch.jumbo : batch.jumbo}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
+                </div>
+
+                <div className="col-12">
+                  <label className="form-label text-xs">CR</label>
+                  <input
+                    type="number"
+                    className="form-control form-control-sm text-sm"
+                    name="cr"
+                    value={isEditing ? editedBatch.cr : batch.cr}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                  />
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Count Information */}
-          <div className="card mb-4">
-            <div className="card-header">
-              <h5 className="mb-0">Count Information</h5>
-            </div>
-            <div className="card-body">
-              <div className="row g-3">
-                <div className="col-12 col-md-6">
-                  <div className="d-flex justify-content-between border-bottom pb-2">
-                    <span className="fw-bold">Opening Count:</span>
-                    <span>{batch.openingCount}</span>
-                  </div>
-                </div>
-                <div className="col-12 col-md-6">
-                  <div className="d-flex justify-content-between border-bottom pb-2">
-                    <span className="fw-bold">Mortality:</span>
-                    <span>{batch.mortality}</span>
-                  </div>
-                </div>
-                <div className="col-12 col-md-6">
-                  <div className="d-flex justify-content-between border-bottom pb-2">
-                    <span className="fw-bold">Culls:</span>
-                    <span>{batch.culls}</span>
-                  </div>
-                </div>
-                <div className="col-12 col-md-6">
-                  <div className="d-flex justify-content-between border-bottom pb-2">
-                    <span className="fw-bold">Closing Count:</span>
-                    <span>{batch.closingCount}</span>
-                  </div>
-                </div>
+              <div className="mt-3 d-flex justify-content-end gap-2">
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary btn-sm text-xs"
+                  onClick={() => navigate('/')}
+                >
+                  Back
+                </button>
+                {!isEditing ? (
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-sm text-xs"
+                    onClick={() => setIsEditing(true)}
+                  >
+                    Edit
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary btn-sm text-xs"
+                      onClick={() => {
+                        setIsEditing(false);
+                        setEditedBatch(batch);
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-sm text-xs"
+                      onClick={handleSave}
+                    >
+                      Save
+                    </button>
+                  </>
+                )}
               </div>
             </div>
-          </div>
-
-          {/* Egg Production */}
-          <div className="card mb-4">
-            <div className="card-header">
-              <h5 className="mb-0">Egg Production</h5>
-            </div>
-            <div className="card-body">
-              <div className="row g-3">
-                <div className="col-12 col-md-6">
-                  <div className="d-flex justify-content-between border-bottom pb-2">
-                    <span className="fw-bold">Table Eggs:</span>
-                    <span>{batch.table}</span>
-                  </div>
-                </div>
-                <div className="col-12 col-md-6">
-                  <div className="d-flex justify-content-between border-bottom pb-2">
-                    <span className="fw-bold">Jumbo Eggs:</span>
-                    <span>{batch.jumbo}</span>
-                  </div>
-                </div>
-                <div className="col-12 col-md-6">
-                  <div className="d-flex justify-content-between border-bottom pb-2">
-                    <span className="fw-bold">CR:</span>
-                    <span>{batch.cr}</span>
-                  </div>
-                </div>
-                <div className="col-12 col-md-6">
-                  <div className="d-flex justify-content-between border-bottom pb-2">
-                    <span className="fw-bold">Total Eggs:</span>
-                    <span>{batch.totalEggs}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="d-flex justify-content-end gap-2">
-            <button
-              className="btn btn-primary"
-              onClick={() => navigate(`/batch/${batchId}/edit`)}
-            >
-              Edit Batch
-            </button>
-            <button
-              className="btn btn-danger"
-              onClick={() => {
-                if (window.confirm('Are you sure you want to delete this batch?')) {
-                  // Handle delete
-                }
-              }}
-            >
-              Delete Batch
-            </button>
           </div>
         </div>
       </div>

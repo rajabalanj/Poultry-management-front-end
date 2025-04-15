@@ -2,12 +2,13 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import './styles/global.css';
 import Sidebar from "./Components/Slidebar";
 import PageHeader from "./Components/PageHeader";
-import BatchTable from "./Components/BatchTable";
 import AddBatch from "./Components/AddBatch";
 import BatchDetails from "./Components/BatchDetails";
 import EditBatch from "./Components/EditBatch";
+import Dashboard from "./Components/Dashboard";
 
 const Layout: React.FC = () => {
   const navigate = useNavigate();
@@ -26,7 +27,7 @@ const Layout: React.FC = () => {
                   buttonLabel="Add New Batch"
                   onButtonClick={() => navigate("/add-batch")}
                 />
-                <BatchTable />
+                <Dashboard />
               </>
             }
           />

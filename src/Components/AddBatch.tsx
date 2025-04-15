@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { batchApi } from '../services/api';
 import { toast } from 'react-toastify';
+import '../styles/global.css';
 
 const AddBatch: React.FC = () => {
   const [shedNo, setShedNo] = useState('1');
@@ -17,10 +18,18 @@ const AddBatch: React.FC = () => {
 
     try {
       const batchData = {
-        shedNo,
-        openingCount,
-        week,
-        day,
+        batchNo: `B-${shedNo}`,
+        shedNo: parseInt(shedNo),
+        age: `Week ${week}, Day ${day}`,
+        openingCount: parseInt(openingCount),
+        mortality: 0,
+        culls: 0,
+        closingCount: parseInt(openingCount),
+        table: 0,
+        jumbo: 0,
+        cr: 0,
+        totalEggs: 0,
+        date: new Date().toLocaleDateString()
       };
 
       await batchApi.createBatch(batchData);

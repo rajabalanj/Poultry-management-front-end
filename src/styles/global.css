@@ -1,0 +1,84 @@
+/* Base font sizes for mobile */
+:root {
+  --font-xs: 0.65rem;    /* Extra small text */
+  --font-sm: 0.7rem;     /* Small text */
+  --font-base: 0.875rem; /* Base text */
+  --font-md: 1.1rem;     /* Medium text */
+  --font-lg: 1.25rem;    /* Large text */
+  --font-xl: 1.5rem;     /* Extra large text */
+}
+
+/* Typography classes for mobile */
+.text-xs {
+  font-size: var(--font-xs);
+}
+
+.text-sm {
+  font-size: var(--font-sm);
+}
+
+.text-base {
+  font-size: var(--font-base);
+}
+
+.text-md {
+  font-size: var(--font-md);
+}
+
+.text-lg {
+  font-size: var(--font-lg);
+}
+
+.text-xl {
+  font-size: var(--font-xl);
+}
+
+/* Desktop font sizes */
+@media (min-width: 576px) {
+  :root {
+    --font-xs: 0.875rem;   /* Extra small text */
+    --font-sm: 1rem;       /* Small text */
+    --font-base: 1.125rem; /* Base text */
+    --font-md: 1.5rem;     /* Medium text */
+    --font-lg: 1.75rem;    /* Large text */
+    --font-xl: 2rem;       /* Extra large text */
+  }
+}
+
+/* Common spacing utilities */
+.gap-mobile {
+  gap: 0.25rem;
+}
+
+.gap-desktop {
+  gap: 0.5rem;
+}
+
+@media (min-width: 576px) {
+  .gap-mobile {
+    gap: 0.5rem;
+  }
+  
+  .gap-desktop {
+    gap: 1rem;
+  }
+}
+
+/* Icon sizes */
+.icon-sm {
+  font-size: var(--font-base);
+}
+
+.icon-md {
+  font-size: var(--font-md);
+}
+
+@media (min-width: 576px) {
+  .icon-sm {
+    font-size: var(--font-md);
+  }
+  
+  .icon-md {
+    font-size: var(--font-lg);
+  }
+} 
