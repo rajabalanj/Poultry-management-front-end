@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import Plot from 'react-plotly.js';
+import React, { useState, useEffect, useRef } from 'react';
+import * as FrappeCharts from 'frappe-charts/dist/frappe-charts.min.esm';
 import '../../styles/global.css';
 
 interface ChartContainerProps {
@@ -9,15 +9,17 @@ interface ChartContainerProps {
 
 const ChartContainer: React.FC<ChartContainerProps> = ({ title, children }) => (
   <div className="card shadow-sm h-100">
-    <div className="card-body p-2 p-sm-3">
-      <h6 className="card-title mb-2 text-sm">{title}</h6>
-      {children}
+    <div className="card-body p-0">
+      <h6 className="card-title mb-2 text-sm px-2 pt-2">{title}</h6>
+      <div className="chart-container p-0">{children}</div>
     </div>
   </div>
 );
 
 const GraphsSection: React.FC = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const dailyChartRef = useRef<HTMLDivElement>(null);
+  const monthlyChartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -28,106 +30,99 @@ const GraphsSection: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const dailyData = {
-    labels: ['Today', 'Yesterday'],
-    values: [14000, 14500]
-  };
+  useEffect(() => {
+    if (dailyChartRef.current && monthlyChartRef.current) {
+      // Daily Chart
+      new FrappeCharts.Chart(dailyChartRef.current, {
+        data: {
+          labels: ['Today', "Yesterday"],
+          datasets: [
+            {
+              name: 'Eggs Count',
+              values: [14000, 14500]
+            }
+          ]
+        },
+        type: 'bar',
+        height: isMobile ? 150 : 400,
+        colors: ['#4CAF50', '#2196F3'],
+        barOptions: {
+          spaceRatio: isMobile ? 0.2 : 0.5
+        },
+        axisOptions: {
+          xAxisMode: 'tick',
+          yAxisMode: 'tick',
+          xIsSeries: false
+        },
+        tooltipOptions: {
+          formatTooltipX: (d: string) => d || '',
+          formatTooltipY: (d: number) => d ? d.toLocaleString() : '0'
+        },
+        valuesOverPoints: 1,
+        isNavigable: false,
+        animate: false,
+        maxSlices: 2,
+        truncateLegends: true,
+        yMarkers: [],
+        yRegions: [],
+        marginLeft: 30,
+        marginRight: 10,
+        marginTop: 20,
+        marginBottom: 30
+      });
 
-  const monthlyData = {
-    labels: ['Sep', 'Oct'],
-    values: [240000, 250000]
-  };
-
-  // Common layout settings for both charts
-  const commonLayout = {
-    height: 200,
-    margin: { t: 10, r: 10, l: 40, b: 30 },
-    paper_bgcolor: 'transparent',
-    plot_bgcolor: 'transparent',
-    font: {
-      size: isMobile ? 10 : 12,
-      family: 'Arial, sans-serif'
-    },
-    yaxis: {
-      title: {
-        font: {
-          size: isMobile ? 10 : 14
-        }
-      },
-      tickfont: {
-        size: isMobile ? 9 : 12
-      },
-      gridcolor: '#eee'
-    },
-    xaxis: {
-      tickfont: {
-        size: isMobile ? 9 : 12
-      },
-      gridcolor: '#eee'
+      // Monthly Chart
+      new FrappeCharts.Chart(monthlyChartRef.current, {
+        data: {
+          labels: ['Sep', 'Oct'],
+          datasets: [
+            {
+              name: 'Monthly Production',
+              values: [240000, 250000]
+            }
+          ]
+        },
+        type: 'bar',
+        height: isMobile ? 150 : 400,
+        colors: ['#4CAF50', '#2196F3'],
+        barOptions: {
+          spaceRatio: isMobile ? 0.2 : 0.5
+        },
+        axisOptions: {
+          xAxisMode: 'tick',
+          yAxisMode: 'tick',
+          xIsSeries: false
+        },
+        tooltipOptions: {
+          formatTooltipX: (d: string) => d || '',
+          formatTooltipY: (d: number) => d ? d.toLocaleString() : '0'
+        },
+        valuesOverPoints: 1,
+        isNavigable: false,
+        animate: false,
+        maxSlices: 2,
+        truncateLegends: true,
+        yMarkers: [],
+        yRegions: [],
+        marginLeft: 30,
+        marginRight: 10,
+        marginTop: 20,
+        marginBottom: 30
+      });
     }
-  };
+  }, [isMobile]);
 
   return (
     <div className="row g-2 mb-2">
       <div className="col-6">
         <ChartContainer title="Eggs (Today vs. Yesterday)">
-          <Plot
-            data={[
-              {
-                type: 'bar',
-                x: dailyData.labels,
-                y: dailyData.values,
-                marker: {
-                  color: ['#4CAF50', '#2196F3']
-                },
-                text: dailyData.values.map(String),
-                textposition: 'auto',
-                textfont: {
-                  size: isMobile ? 9 : 12
-                }
-              }
-            ]}
-            layout={{
-              ...commonLayout,
-              yaxis: {
-                ...commonLayout.yaxis,
-                title: 'Eggs Count'
-              }
-            }}
-            config={{ responsive: true, displayModeBar: false }}
-            style={{ width: '100%' }}
-          />
+          <div ref={dailyChartRef} style={{ width: '100%' }} />
         </ChartContainer>
       </div>
 
       <div className="col-6">
         <ChartContainer title="Egg Production">
-          <Plot
-            data={[
-              {
-                type: 'bar',
-                x: monthlyData.labels,
-                y: monthlyData.values,
-                marker: {
-                  color: ['#4CAF50', '#2196F3']
-                },
-                text: monthlyData.values.map(String),
-                textposition: 'auto',
-                textfont: {
-                  size: isMobile ? 9 : 12
-                }
-              }
-            ]}
-            layout={{
-              ...commonLayout,
-              yaxis: {
-                ...commonLayout.yaxis,
-                title: 'Monthly Production'
-              }
-            }}
-            config={{ responsive: true, displayModeBar: false }}
-            style={{ width: '100%' }}
-          />
+          <div ref={monthlyChartRef} style={{ width: '100%' }} />
         </ChartContainer>
       </div>
     </div>

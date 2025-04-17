@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { batchApi, Batch } from '../services/api';
 
 const BatchForm: React.FC = () => {
-  const { batchId } = useParams<{ batchId: string }>();
+  const { batchNo } = useParams<{ batchNo: string }>();
   const navigate = useNavigate();
   const [batch, setBatch] = useState<Batch | null>(null);
   const [loading, setLoading] = useState(true);
@@ -12,8 +12,8 @@ const BatchForm: React.FC = () => {
   useEffect(() => {
     const fetchBatch = async () => {
       try {
-        if (!batchId) return;
-        const response = await batchApi.getBatch(batchId);
+        if (!batchNo) return;
+        const response = await batchApi.getBatch(batchNo);
         setBatch(response.data);
       } catch (err) {
         setError('Failed to load batch');
@@ -23,15 +23,15 @@ const BatchForm: React.FC = () => {
     };
 
     fetchBatch();
-  }, [batchId]);
+  }, [batchNo]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!batch) return;
+    if (!batch || !batchNo) return;
 
     try {
-      await batchApi.updateBatch(batchId!, batch);
-      navigate(`/batch/${batchId}/details`);
+      await batchApi.updateBatch(batchNo, batch);
+      navigate(`/batch/${batchNo}/details`);
     } catch (err) {
       setError('Failed to update batch');
     }
@@ -50,8 +50,8 @@ const BatchForm: React.FC = () => {
           <input
             type="text"
             className="form-control"
-            value={batch.batchNo}
-            onChange={(e) => setBatch({ ...batch, batchNo: e.target.value })}
+            value={batch.batch_no}
+            onChange={(e) => setBatch({ ...batch, batch_no: e.target.value })}
           />
         </div>
         <div className="mb-3">
@@ -59,8 +59,8 @@ const BatchForm: React.FC = () => {
           <input
             type="number"
             className="form-control"
-            value={batch.shedNo}
-            onChange={(e) => setBatch({ ...batch, shedNo: parseInt(e.target.value) })}
+            value={batch.shed_no}
+            onChange={(e) => setBatch({ ...batch, shed_no: parseInt(e.target.value) })}
           />
         </div>
         <div className="mb-3">
@@ -77,8 +77,8 @@ const BatchForm: React.FC = () => {
           <input
             type="number"
             className="form-control"
-            value={batch.openingCount}
-            onChange={(e) => setBatch({ ...batch, openingCount: parseInt(e.target.value) })}
+            value={batch.opening_count}
+            onChange={(e) => setBatch({ ...batch, opening_count: parseInt(e.target.value) })}
           />
         </div>
         <div className="mb-3">
@@ -104,8 +104,8 @@ const BatchForm: React.FC = () => {
           <input
             type="number"
             className="form-control"
-            value={batch.closingCount}
-            onChange={(e) => setBatch({ ...batch, closingCount: parseInt(e.target.value) })}
+            value={batch.closing_count}
+            onChange={(e) => setBatch({ ...batch, closing_count: parseInt(e.target.value) })}
           />
         </div>
         <div className="mb-3">
@@ -133,15 +133,6 @@ const BatchForm: React.FC = () => {
             className="form-control"
             value={batch.cr}
             onChange={(e) => setBatch({ ...batch, cr: parseInt(e.target.value) })}
-          />
-        </div>
-        <div className="mb-3">
-          <label className="form-label">Total Eggs</label>
-          <input
-            type="number"
-            className="form-control"
-            value={batch.totalEggs}
-            onChange={(e) => setBatch({ ...batch, totalEggs: parseInt(e.target.value) })}
           />
         </div>
         <div className="mb-3">

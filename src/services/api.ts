@@ -1,23 +1,21 @@
 import axios, { AxiosError } from 'axios';
-import { mockApi } from '../mocks/mockApi';
 
 // Define types for our data
 export interface Batch {
-  id?: string;
-  batchNo: string;
-  shedNo: number;
-  age: string;
-  openingCount: number;
+  id: number;
+  shed_no: number;
+  batch_no: string;
+  age: string;  // Format: "week.day" (e.g., "1.1" for 8 days)
+  opening_count: number;
   mortality: number;
   culls: number;
-  closingCount: number;
+  closing_count: number;
   table: number;
   jumbo: number;
   cr: number;
-  totalEggs: number;
   date: string;
-  createdAt?: string;
-  updatedAt?: string;
+  calculated_closing_count: number;  // Computed field from backend
+  total_eggs: number;  // Computed field from backend
 }
 
 // Define API response types
@@ -27,23 +25,29 @@ export interface ApiResponse<T> {
   status: number;
 }
 
-// Check if we're in development mode
-const isDevelopment = import.meta.env.MODE === 'development';
-
 // Create axios instance with base URL
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000',
   headers: {
     'Content-Type': 'application/json',
   },
   timeout: 10000, // 10 seconds timeout
 });
 
-// Add request interceptor for logging
+// Add user ID header handling
+let currentUserId: string | null = null;
+
+export const setUserId = (userId: string) => {
+  currentUserId = userId;
+};
+
+// Update api instance to include user ID header when available
 api.interceptors.request.use(
   (config) => {
-    // You can add auth token here if needed
-    // config.headers.Authorization = `Bearer ${token}`;
+    console.log('Request URL:', config.url);
+    if (currentUserId) {
+      config.headers['x-user-id'] = currentUserId;
+    }
     return config;
   },
   (error) => {
@@ -54,100 +58,230 @@ api.interceptors.request.use(
 
 // Add response interceptor for error handling
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('Raw API Response:', response); // Debug log
+    return response;
+  },
   (error: AxiosError) => {
     if (error.response) {
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx
       console.error('Error response:', error.response.data);
+      console.error('Error status:', error.response.status);
+      console.error('Error headers:', error.response.headers);
     } else if (error.request) {
-      // The request was made but no response was received
       console.error('No response received:', error.request);
     } else {
-      // Something happened in setting up the request that triggered an Error
       console.error('Error setting up request:', error.message);
     }
     return Promise.reject(error);
   }
 );
 
-// Batch related API calls
-export const batchApi = {
-  // Create a new batch
-  createBatch: async (batchData: Omit<Batch, 'id' | 'createdAt' | 'updatedAt'>): Promise<ApiResponse<Batch>> => {
-    if (isDevelopment) {
-      return mockApi.createBatch(batchData);
+// Validation utilities
+export const validateBatchData = {
+  age: (value: string): string | null => {
+    if (!value.match(/^\d+\.\d+$/)) {
+      return 'Age must be in the format week.day (e.g., "1.1")';
     }
+    const [week, day] = value.split('.').map(Number);
+    if (day < 1 || day > 7) {
+      return 'Day must be between 1 and 7';
+    }
+    if (week < 1) {
+      return 'Week must be greater than 0';
+    }
+    return null;
+  },
+  
+  nonNegative: (value: number, fieldName: string): string | null => {
+    if (value < 0) {
+      return `${fieldName} must be greater than or equal to 0`;
+    }
+    return null;
+  }
+};
+
+export interface BatchBase {
+  /** Age in format "week.day" (e.g., "1.1") */
+  age: string;
+  /** Number of birds at the start of the day */
+  opening_count: number;
+  /** Number of birds that died */
+  mortality: number;
+  /** Number of birds culled */
+  culls: number;
+  /** Number of table eggs */
+  table: number;
+  /** Number of jumbo eggs */
+  jumbo: number;
+  /** Number of crack eggs */
+  cr: number;
+}
+
+// Default values for new batches
+export const DEFAULT_BATCH_VALUES: Partial<BatchCreate> = {
+  mortality: 0,
+  culls: 0,
+  table: 0,
+  jumbo: 0,
+  cr: 0
+};
+
+/** Fields that can be updated in a batch */
+export type BatchUpdateFields = Partial<{
+  age: string;
+  opening_count: number;
+  mortality: number;
+  culls: number;
+  table: number;
+  jumbo: number;
+  cr: number;
+  shed_no: number;
+}>;
+
+// Remove closing_count from BatchCreate as it's computed
+export interface BatchCreate extends Omit<BatchBase, 'closing_count'> {
+  /** Shed number where the batch is located */
+  shed_no: number;
+}
+
+export interface Batch extends BatchBase {
+  /** Unique identifier for the batch */
+  id: number;
+  /** Shed number where the batch is located */
+  shed_no: number;
+  /** Auto-generated batch number in format "B-XXXX" */
+  batch_no: string;
+  /** Date of the record (auto-set to creation date) */
+  date: string;
+  /** Automatically calculated as opening_count - (mortality + culls) */
+  closing_count: number;
+  /** Automatically calculated as opening_count - (mortality + culls) */
+  calculated_closing_count: number;
+  /** Total eggs (table + jumbo + cr) */
+  total_eggs: number;
+}
+
+// Helper function to calculate closing count
+export const calculateClosingCount = (
+  opening_count: number,
+  mortality: number = 0,
+  culls: number = 0
+): number => {
+  return opening_count - (mortality + culls);
+};
+
+// Helper function to calculate total eggs
+export const calculateTotalEggs = (
+  table: number = 0,
+  jumbo: number = 0,
+  cr: number = 0
+): number => {
+  return table + jumbo + cr;
+};
+
+// Helper function to validate a new batch before sending to API
+export const validateBatch = (batch: BatchCreate): string[] => {
+  const errors: string[] = [];
+  
+  // Validate age format
+  const ageError = validateBatchData.age(batch.age);
+  if (ageError) errors.push(ageError);
+  
+  // Validate non-negative values
+  const fields: Array<[keyof BatchCreate, string]> = [
+    ['opening_count', 'Opening count'],
+    ['mortality', 'Mortality'],
+    ['culls', 'Culls'],
+    ['table', 'Table eggs'],
+    ['jumbo', 'Jumbo eggs'],
+    ['cr', 'Crack eggs']
+  ];
+  
+  fields.forEach(([field, label]) => {
+    const error = validateBatchData.nonNegative(batch[field] as number, label);
+    if (error) errors.push(error);
+  });
+  
+  return errors;
+};
+
+// Helper function to create a new batch with defaults
+export const createNewBatch = (data: Partial<BatchCreate>): BatchCreate => {
+  return {
+    ...DEFAULT_BATCH_VALUES,
+    ...data,
+  } as BatchCreate;
+};
+
+// Update batchApi to handle computed fields
+export const batchApi = {
+  // Create a new batch with validation
+  createBatch: async (batchData: BatchCreate): Promise<Batch> => {
+    const errors = validateBatch(batchData);
+    if (errors.length > 0) {
+      throw new Error(`Validation failed: ${errors.join(', ')}`);
+    }
+    
     try {
-      const response = await api.post<ApiResponse<Batch>>('/batches', batchData);
+      const response = await api.post<Batch>('/batches/', batchData);
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || 'Failed to create batch');
+        throw new Error(error.response?.data?.detail || 'Failed to create batch');
       }
       throw error;
     }
   },
 
-  // Get all batches
-  getBatches: async (): Promise<ApiResponse<Batch[]>> => {
-    if (isDevelopment) {
-      return mockApi.getBatches();
-    }
+  // Get all batches with pagination
+  getBatches: async (skip: number = 0, limit: number = 100): Promise<Batch[]> => {
     try {
-      const response = await api.get<ApiResponse<Batch[]>>('/batches');
+      const response = await api.get<Batch[]>(`/batches/?skip=${skip}&limit=${limit}`);
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || 'Failed to fetch batches');
+        throw new Error(error.response?.data?.detail || 'Failed to fetch batches');
       }
       throw error;
     }
   },
 
   // Get a single batch by ID
-  getBatch: async (id: string): Promise<ApiResponse<Batch>> => {
-    if (isDevelopment) {
-      return mockApi.getBatch(id);
-    }
+  getBatch: async (id: number): Promise<Batch> => {
     try {
-      const response = await api.get<ApiResponse<Batch>>(`/batches/${id}`);
+      const response = await api.get<Batch>(`/batches/${id}`);
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || 'Failed to fetch batch');
+        throw new Error(error.response?.data?.detail || 'Failed to fetch batch');
       }
       throw error;
     }
   },
 
-  // Update a batch
-  updateBatch: async (id: string, batchData: Partial<Batch>): Promise<ApiResponse<Batch>> => {
-    if (isDevelopment) {
-      return mockApi.updateBatch(id, batchData);
-    }
+  // Update a batch (using PATCH instead of PUT)
+  updateBatch: async (id: number, batchData: BatchUpdateFields): Promise<Batch> => {
     try {
-      const response = await api.put<ApiResponse<Batch>>(`/batches/${id}`, batchData);
+      // Remove any attempt to update computed fields
+      const { closing_count, ...updateData } = batchData as any;
+      
+      const response = await api.patch<Batch>(`/batches/${id}`, updateData);
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || 'Failed to update batch');
+        throw new Error(error.response?.data?.detail || 'Failed to update batch');
       }
       throw error;
     }
   },
 
   // Delete a batch
-  deleteBatch: async (id: string): Promise<ApiResponse<void>> => {
-    if (isDevelopment) {
-      return mockApi.deleteBatch(id);
-    }
+  deleteBatch: async (id: number): Promise<void> => {
     try {
-      const response = await api.delete<ApiResponse<void>>(`/batches/${id}`);
-      return response.data;
+      await api.delete(`/batches/${id}`);
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || 'Failed to delete batch');
+        throw new Error(error.response?.data?.detail || 'Failed to delete batch');
       }
       throw error;
     }

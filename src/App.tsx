@@ -1,22 +1,19 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './styles/global.css';
-import Sidebar from "./Components/Slidebar";
+import Layout from './Components/Layout';
 import PageHeader from "./Components/PageHeader";
 import AddBatch from "./Components/AddBatch";
 import BatchDetails from "./Components/BatchDetails";
 import EditBatch from "./Components/EditBatch";
 import Dashboard from "./Components/Dashboard";
 
-const Layout: React.FC = () => {
-  const navigate = useNavigate();
-
+const App: React.FC = () => {
   return (
-    <div className="d-flex flex-column flex-md-row vh-100">
-      <Sidebar />
-      <div className="flex-grow-1 p-3">
+    <Router>
+      <Layout>
         <Routes>
           <Route
             path="/"
@@ -25,7 +22,7 @@ const Layout: React.FC = () => {
                 <PageHeader
                   title="Batch Management"
                   buttonLabel="Add New Batch"
-                  onButtonClick={() => navigate("/add-batch")}
+                  buttonLink="/add-batch"
                 />
                 <Dashboard />
               </>
@@ -35,15 +32,7 @@ const Layout: React.FC = () => {
           <Route path="/batch/:batchId/details" element={<BatchDetails />} />
           <Route path="/batch/:batchId/edit" element={<EditBatch />} />
         </Routes>
-      </div>
-    </div>
-  );
-};
-
-const App: React.FC = () => {
-  return (
-    <Router>
-      <Layout />
+      </Layout>
       <ToastContainer position="top-right" autoClose={3000} />
     </Router>
   );

@@ -1,17 +1,23 @@
 import React from "react";
+import { useNavigate } from 'react-router-dom';
 import '../styles/global.css';
 
 interface PageHeaderProps {
   title: string;
   buttonLabel: string;
-  onButtonClick: () => void;
+  buttonLink: string;
 }
 
-const PageHeader: React.FC<PageHeaderProps> = ({ title, buttonLabel, onButtonClick }) => {
+const PageHeader: React.FC<PageHeaderProps> = ({ title, buttonLabel, buttonLink }) => {
+  const navigate = useNavigate();
+
   return (
-    <div className="d-flex justify-content-between align-items-center mb-4" style={{ marginLeft: '60px' }}>
-      <h3 className="mb-0 text-md">{title}</h3>
-      <button className="btn btn-primary text-xs" onClick={onButtonClick}>
+    <div className="d-flex justify-content-between align-items-center p-4">
+      <h3 className="mb-0">{title}</h3>
+      <button 
+        className="btn btn-primary" 
+        onClick={() => navigate(buttonLink)}
+      >
         {buttonLabel}
       </button>
     </div>

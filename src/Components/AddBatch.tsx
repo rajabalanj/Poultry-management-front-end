@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { batchApi } from '../services/api';
 import { toast } from 'react-toastify';
 import '../styles/global.css';
+import PageHeader from './PageHeader';
 
 const AddBatch: React.FC = () => {
-  const [shedNo, setShedNo] = useState('1');
-  const [openingCount, setOpeningCount] = useState('0');
+  const [shed_no, setShedNo] = useState('1');
+  const [opening_count, setOpeningCount] = useState('0');
   const [week, setWeek] = useState('1');
   const [day, setDay] = useState('1');
   const [isLoading, setIsLoading] = useState(false);
@@ -18,17 +19,16 @@ const AddBatch: React.FC = () => {
 
     try {
       const batchData = {
-        batchNo: `B-${shedNo}`,
-        shedNo: parseInt(shedNo),
-        age: `Week ${week}, Day ${day}`,
-        openingCount: parseInt(openingCount),
+        batch_no: `B-${shed_no}`,
+        shed_no: parseInt(shed_no),
+        age: `${week}.${day}`,
+        opening_count: parseInt(opening_count),
         mortality: 0,
         culls: 0,
-        closingCount: parseInt(openingCount),
+        closing_count: parseInt(opening_count),
         table: 0,
         jumbo: 0,
         cr: 0,
-        totalEggs: 0,
         date: new Date().toLocaleDateString()
       };
 
@@ -36,97 +36,114 @@ const AddBatch: React.FC = () => {
       toast.success('Batch added successfully!');
       navigate('/');
     } catch (error) {
-      toast.error('Failed to add batch. Please try again.');
       console.error('Error adding batch:', error);
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error('Failed to add batch. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleWeekChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value === '' || parseInt(value) > 0) {
+      setWeek(value);
+    }
+  };
+
+  const handleDayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value === '' || (parseInt(value) > 0 && parseInt(value) <= 7)) {
+      setDay(value);
+    }
+  };
+
   return (
-    <div className="container mt-4">
-      <h4 className="text-center mb-4">Add New Batch</h4>
-      <form onSubmit={handleSubmit} className="mx-auto" style={{ maxWidth: '500px' }}>
-        <div className="mb-3">
-          <label className="form-label">Shed No.</label>
-          <select
-            className="form-select"
-            value={shedNo}
-            onChange={(e) => setShedNo(e.target.value)}
-            disabled={isLoading}
-          >
-            <option value="1">1</option>
-            <option value="2">2</option>
-          </select>
-        </div>
+    <div className="container-fluid">
+      <PageHeader 
+        title="Add New Batch"
+        buttonLabel="Back to Dashboard"
+        buttonLink="/"
+      />
+      <div className="p-4">
+        <form onSubmit={handleSubmit}>
+          <div className="row g-3">
+            <div className="col-md-6">
+              <label className="form-label">Shed Number</label>
+              <input
+                type="number"
+                className="form-control"
+                value={shed_no}
+                onChange={(e) => setShedNo(e.target.value)}
+                required
+                min="1"
+              />
+            </div>
 
-        <div className="mb-3">
-          <label className="form-label">Opening Count</label>
-          <input
-            type="number"
-            className="form-control"
-            value={openingCount}
-            onChange={(e) => setOpeningCount(e.target.value)}
-            disabled={isLoading}
-          />
-        </div>
+            <div className="col-md-6">
+              <label className="form-label">Opening Count</label>
+              <input
+                type="number"
+                className="form-control"
+                value={opening_count}
+                onChange={(e) => setOpeningCount(e.target.value)}
+                required
+                min="0"
+              />
+            </div>
 
-        <div className="row mb-3">
-          <div className="col">
-            <label className="form-label">Week</label>
-            <input
-              type="number"
-              className="form-control"
-              value={week}
-              onChange={(e) => setWeek(e.target.value)}
-              disabled={isLoading}
-            />
+            <div className="col-md-6">
+              <label className="form-label">Week</label>
+              <input
+                type="number"
+                className="form-control"
+                value={week}
+                onChange={handleWeekChange}
+                required
+                min="1"
+                placeholder="Enter week number"
+              />
+            </div>
+
+            <div className="col-md-6">
+              <label className="form-label">Day (1-7)</label>
+              <input
+                type="number"
+                className="form-control"
+                value={day}
+                onChange={handleDayChange}
+                required
+                min="1"
+                max="7"
+                placeholder="Enter day (1-7)"
+              />
+            </div>
+
+            <div className="col-12">
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Adding...' : 'Add Batch'}
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary ms-2"
+                onClick={() => navigate('/')}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
-          <div className="col">
-            <label className="form-label">Day</label>
-            <input
-              type="number"
-              className="form-control"
-              value={day}
-              onChange={(e) => setDay(e.target.value)}
-              disabled={isLoading}
-            />
-          </div>
-        </div>
-
-        <div className="d-flex justify-content-end">
-          <button
-            type="button"
-            className="btn btn-outline-secondary me-2"
-            onClick={() => navigate('/')}
-            disabled={isLoading}
-          >
-            Back
-          </button>
-          <button
-            type="button"
-            className="btn btn-outline-secondary me-2"
-            onClick={() => {
-              setShedNo('1');
-              setOpeningCount('0');
-              setWeek('1');
-              setDay('1');
-            }}
-            disabled={isLoading}
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="btn btn-primary"
-            disabled={isLoading}
-          >
-            {isLoading ? 'Adding...' : 'Add Batch'}
-          </button>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   );
 };
 
 export default AddBatch;
+

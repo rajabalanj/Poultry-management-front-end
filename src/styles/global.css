@@ -81,4 +81,33 @@
   .icon-md {
     font-size: var(--font-lg);
   }
-} 
+}
+
+/* Chart Styles */
+.chart-container {
+  font-size: 12px;
+}
+
+@media (max-width: 768px) {
+  .chart-container {
+    font-size: 8px;
+  }
+  
+  /* Target specific chart elements */
+  .chart-container svg text {
+    font-size: 8px !important;
+  }
+  
+  .chart-container .axis-label {
+    font-size: 8px !important;
+  }
+  
+  .chart-container .value-text {
+    font-size: 8px !important;
+  }
+  
+  .chart-container .legend {
+    font-size: 8px !important;
+  }
+}
+

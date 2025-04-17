@@ -4,3 +4,7 @@
     width: 100%;
     border-radius: 10px;
 } */
+
+.frappe-charts svg text {
+    font-size: 10px !important;
+  }
