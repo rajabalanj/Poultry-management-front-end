@@ -28,12 +28,12 @@ const HeaderCardGroup: React.FC<HeaderCardGroupProps> = ({ batches, loading, err
         <div className="col-4">
           <HeaderCard
             title="Total Eggs"
-            mainValue={15971}
+            mainValue={batches.reduce((sum, batch) => sum + batch.total_eggs, 0)}
             icon="bi-egg"
             subValues={[
-              { label: 'Normal', value: 14316, subValue: 856 },
-              { label: 'Jumbo', value: 856, subValue: 799 },
-              { label: 'Crack', value: 799, subValue: 66 }
+              { label: 'Normal', value: batches.reduce((sum, batch) => sum + batch.table, 0) },
+              { label: 'Jumbo', value: batches.reduce((sum, batch) => sum + batch.jumbo, 0) },
+              { label: 'Crack', value: batches.reduce((sum, batch) => sum + batch.cr, 0) }
             ]}
           />
         </div>
