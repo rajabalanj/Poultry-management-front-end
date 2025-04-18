@@ -111,3 +111,24 @@
   }
 }
 
+/* Fix for hamburger icon overlapping with titles in mobile view */
+.page-header {
+  position: relative;
+  z-index: 1;
+}
+
+.page-header-title {
+  margin-left: 50px; /* Adjust this value based on the size of the hamburger icon */
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    padding: 10px;
+  }
+
+  .page-header-title {
+    font-size: 1.2rem;
+    margin-left: 40px; /* Ensure enough space for the hamburger icon */
+  }
+}
+

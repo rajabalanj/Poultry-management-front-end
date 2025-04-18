@@ -13,8 +13,8 @@ const BatchForm: React.FC = () => {
     const fetchBatch = async () => {
       try {
         if (!batchNo) return;
-        const response = await batchApi.getBatch(batchNo);
-        setBatch(response.data);
+        const response = await batchApi.getBatch(Number(batchNo)); // Ensure batchNo is a number
+        setBatch(response); // Directly set the Batch object
       } catch (err) {
         setError('Failed to load batch');
       } finally {
@@ -30,7 +30,7 @@ const BatchForm: React.FC = () => {
     if (!batch || !batchNo) return;
 
     try {
-      await batchApi.updateBatch(batchNo, batch);
+      await batchApi.updateBatch(Number(batchNo), batch); // Ensure batchNo is a number
       navigate(`/batch/${batchNo}/details`);
     } catch (err) {
       setError('Failed to update batch');
@@ -60,7 +60,7 @@ const BatchForm: React.FC = () => {
             type="number"
             className="form-control"
             value={batch.shed_no}
-            onChange={(e) => setBatch({ ...batch, shed_no: parseInt(e.target.value) })}
+            onChange={(e) => setBatch({ ...batch, shed_no: Number(e.target.value) })}
           />
         </div>
         <div className="mb-3">
@@ -78,7 +78,7 @@ const BatchForm: React.FC = () => {
             type="number"
             className="form-control"
             value={batch.opening_count}
-            onChange={(e) => setBatch({ ...batch, opening_count: parseInt(e.target.value) })}
+            onChange={(e) => setBatch({ ...batch, opening_count: Number(e.target.value) })}
           />
         </div>
         <div className="mb-3">
@@ -151,4 +151,4 @@ const BatchForm: React.FC = () => {
   );
 };
 
-export default BatchForm; 
+export default BatchForm;

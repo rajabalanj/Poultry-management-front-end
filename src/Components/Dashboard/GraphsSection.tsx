@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as FrappeCharts from 'frappe-charts/dist/frappe-charts.min.esm';
 import '../../styles/global.css';
+//import { batchApi, Batch } from "../services/api";
 
 interface ChartContainerProps {
   title: string;

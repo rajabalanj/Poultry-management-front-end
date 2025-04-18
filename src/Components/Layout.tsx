@@ -1,13 +1,11 @@
 import React from 'react';
 import Slidebar from './Slidebar';
-import { useLocation } from 'react-router-dom';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const location = useLocation();
   const isDesktop = window.innerWidth >= 992; // lg breakpoint
 
   return (

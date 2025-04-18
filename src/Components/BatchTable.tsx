@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import { batchApi, Batch } from "../services/api";
-import '../styles/global.css';
+import { Batch } from "../services/api";
+import "../styles/global.css";
 
-// Separate components for better performance
 const BatchTableRow: React.FC<{
   batch: Batch;
   onView: (id: number) => void;
@@ -78,89 +77,57 @@ const BatchCard: React.FC<{
   </div>
 ));
 
-const BatchTable: React.FC = () => {
+interface BatchTableProps {
+  batches: Batch[];
+  loading: boolean;
+  error: string | null;
+}
+
+const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
   const navigate = useNavigate();
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [batches, setBatches] = useState<Batch[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  // Memoize handlers
-  const handleViewDetails = useCallback((id: number) => {
-    if (!id) {
-      console.error('Batch ID is required');
-      return;
-    }
-    navigate(`/batch/${id}/details`);
-  }, [navigate]);
-
-  const handleEdit = useCallback((id: number) => {
-    if (!id) {
-      console.error('Batch ID is required');
-      return;
-    }
-    navigate(`/batch/${id}/edit`);
-  }, [navigate]);
-
-  // Debounced resize handler
-  useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-    const handleResize = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        setIsMobile(window.innerWidth < 768);
-      }, 150);
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      clearTimeout(timeoutId);
-    };
-  }, []);
-
-  // Data fetching
-  useEffect(() => {
-    let mounted = true;
-    
-    const fetchBatches = async () => {
-      try {
-        const data = await batchApi.getBatches();
-        if (mounted) {
-          setBatches(Array.isArray(data) ? data : []);
-        }
-      } catch (err) {
-        if (mounted) {
-          console.error('Error fetching batches:', err);
-          setError('Failed to load batches');
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
+  const handleViewDetails = useCallback(
+    (id: number) => {
+      if (!id) {
+        console.error("Batch ID is required");
+        return;
       }
-    };
+      navigate(`/batch/${id}/details`);
+    },
+    [navigate]
+  );
 
-    fetchBatches();
-    return () => { mounted = false; };
-  }, []);
+  const handleEdit = useCallback(
+    (id: number) => {
+      if (!id) {
+        console.error("Batch ID is required");
+        return;
+      }
+      navigate(`/batch/${id}/edit`);
+    },
+    [navigate]
+  );
 
-  // Memoize table headers
-  const tableHeaders = useMemo(() => (
-    <tr>
-      <th>Batch No</th>
-      <th>Shed No</th>
-      <th>Age</th>
-      <th>Opening Count</th>
-      <th>Mortality</th>
-      <th>Culls</th>
-      <th>Actions</th>
-    </tr>
-  ), []);
+  const tableHeaders = useMemo(
+    () => (
+      <tr>
+        <th>Batch No</th>
+        <th>Shed No</th>
+        <th>Age</th>
+        <th>Opening Count</th>
+        <th>Mortality</th>
+        <th>Culls</th>
+        <th>Actions</th>
+      </tr>
+    ),
+    []
+  );
 
   if (loading) return <div className="text-center">Loading...</div>;
   if (error) return <div className="text-center text-danger">{error}</div>;
   if (batches.length === 0) return <div className="text-center">No batches found</div>;
+
+  const isMobile = window.innerWidth < 768;
 
   if (isMobile) {
     return (

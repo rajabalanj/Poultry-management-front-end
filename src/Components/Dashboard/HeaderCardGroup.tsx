@@ -1,14 +1,26 @@
 import React from 'react';
 import HeaderCard from './HeaderCard';
+import { Batch } from '../../services/api';
 
-const HeaderCardGroup: React.FC = () => {
+interface HeaderCardGroupProps {
+  batches: Batch[];
+  loading: boolean;
+  error: string | null;
+}
+
+const HeaderCardGroup: React.FC<HeaderCardGroupProps> = ({ batches, loading, error }) => {
+    
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
+  if (!batches || batches.length === 0) return <div>No data available</div>;
+
   return (
     <div className="mb-4">
       <div className="row g-2">
         <div className="col-4">
           <HeaderCard
             title="Total Birds"
-            mainValue={27733}
+            mainValue= {batches.reduce((sum, batch) => sum + batch.calculated_closing_count, 0)}
             icon="bi bi-feather"
           />
         </div>
@@ -43,4 +55,4 @@ const HeaderCardGroup: React.FC = () => {
   );
 };
 
-export default HeaderCardGroup; 
+export default HeaderCardGroup;

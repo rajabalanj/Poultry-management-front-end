@@ -100,16 +100,6 @@ const Slidebar: React.FC = () => {
                   Dashboard
                 </Link>
               </li>
-              <li className="mb-3">
-                <Link 
-                  to="/add-batch" 
-                  className="text-decoration-none text-dark d-block py-2"
-                  onClick={() => !isDesktop && setIsOpen(false)}
-                >
-                  <i className="bi bi-plus-circle me-2"></i>
-                  Add Batch
-                </Link>
-              </li>
             </ul>
           </div>
         </div>

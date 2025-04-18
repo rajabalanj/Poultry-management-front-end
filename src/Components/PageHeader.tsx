@@ -12,8 +12,8 @@ const PageHeader: React.FC<PageHeaderProps> = ({ title, buttonLabel, buttonLink 
   const navigate = useNavigate();
 
   return (
-    <div className="d-flex justify-content-between align-items-center p-4">
-      <h3 className="mb-0">{title}</h3>
+    <div className="page-header d-flex justify-content-between align-items-center p-4">
+      <h3 className="mb-0 page-header-title">{title}</h3>
       <button 
         className="btn btn-primary" 
         onClick={() => navigate(buttonLink)}
@@ -25,4 +25,3 @@ const PageHeader: React.FC<PageHeaderProps> = ({ title, buttonLabel, buttonLink 
 };
 
 export default PageHeader;
-    
