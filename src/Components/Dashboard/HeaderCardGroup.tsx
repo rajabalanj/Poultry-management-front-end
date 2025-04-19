@@ -21,6 +21,10 @@ const HeaderCardGroup: React.FC<HeaderCardGroupProps> = ({ batches, loading, err
           <HeaderCard
             title="Total Birds"
             mainValue= {batches.reduce((sum, batch) => sum + batch.calculated_closing_count, 0)}
+            subValues={[
+              { label: 'Opening Count', value: batches.reduce((sum, batch) => sum + batch.opening_count, 0) },
+              { label: 'Mortality', value: batches.reduce((sum, batch) => sum + batch.mortality, 0) },
+              { label: 'Culls', value: batches.reduce((sum, batch) => sum + batch.culls, 0) }]}
             icon="bi bi-feather"
           />
         </div>
@@ -28,7 +32,7 @@ const HeaderCardGroup: React.FC<HeaderCardGroupProps> = ({ batches, loading, err
         <div className="col-4">
           <HeaderCard
             title="Total Eggs"
-            mainValue={batches.reduce((sum, batch) => sum + batch.total_eggs, 0)}
+            mainValue={batches.reduce((sum, batch) => sum + batch.total_eggs  , 0)}
             icon="bi-egg"
             subValues={[
               { label: 'Normal', value: batches.reduce((sum, batch) => sum + batch.table, 0) },
