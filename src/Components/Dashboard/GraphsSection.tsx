@@ -36,11 +36,11 @@ const GraphsSection: React.FC = () => {
       // Daily Chart
       new FrappeCharts.Chart(dailyChartRef.current, {
         data: {
-          labels: ['Today', "Yesterday"],
+          labels: ['Actual', "Standard"],
           datasets: [
             {
               name: 'Eggs Count',
-              values: [14000, 14500]
+              values: [80.6, 80.9]
             }
           ]
         },
@@ -116,7 +116,7 @@ const GraphsSection: React.FC = () => {
   return (
     <div className="row g-2 mb-2">
       <div className="col-6">
-        <ChartContainer title="Eggs (Today vs. Yesterday)">
+        <ChartContainer title="Eggs (Actual vs. Standard)">
           <div ref={dailyChartRef} style={{ width: '100%' }} />
         </ChartContainer>
       </div>
