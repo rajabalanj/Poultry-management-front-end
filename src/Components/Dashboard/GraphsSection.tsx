@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import * as FrappeCharts from 'frappe-charts/dist/frappe-charts.min.esm';
+import { Chart, ChartConfiguration } from 'chart.js/auto';
 import '../../styles/global.css';
-//import { batchApi, Batch } from "../services/api";
 
 interface ChartContainerProps {
   title: string;
@@ -19,115 +18,162 @@ const ChartContainer: React.FC<ChartContainerProps> = ({ title, children }) => (
 
 const GraphsSection: React.FC = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const dailyChartRef = useRef<HTMLDivElement>(null);
-  const monthlyChartRef = useRef<HTMLDivElement>(null);
+
+  const dailyChartRef = useRef<HTMLCanvasElement>(null);
+  const monthlyChartRef = useRef<HTMLCanvasElement>(null);
+
+  // ✅ Chart instances (persisted between renders)
+  const dailyChartInstanceRef = useRef<Chart | null>(null);
+  const monthlyChartInstanceRef = useRef<Chart | null>(null);
+
+  const actual = 79.9;
+  const standard = 80.9;
+  const diffPercent = actual - standard; // Difference in percentage
+
+  let barColor = '';
+  if (diffPercent >= -1.4) {
+    barColor = 'green'; // Greater than or equal to -1.4 (includes positive values)
+  } else if (diffPercent < -1.4 && diffPercent >= -1.9) {
+    barColor = 'yellow'; // Less than -1.4 and greater than or equal to -1.9
+  } else {
+    barColor = 'red'; // Less than -1.9
+  }
 
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
-
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   useEffect(() => {
-    if (dailyChartRef.current && monthlyChartRef.current) {
-      // Daily Chart
-      new FrappeCharts.Chart(dailyChartRef.current, {
-        data: {
-          labels: ['Actual', "Standard"],
-          datasets: [
-            {
-              name: 'Eggs Count',
-              values: [80.6, 80.9]
-            }
-          ]
-        },
-        type: 'bar',
-        height: isMobile ? 150 : 400,
-        colors: ['#4CAF50', '#2196F3'],
-        barOptions: {
-          spaceRatio: isMobile ? 0.2 : 0.5
-        },
-        axisOptions: {
-          xAxisMode: 'tick',
-          yAxisMode: 'tick',
-          xIsSeries: false
-        },
-        tooltipOptions: {
-          formatTooltipX: (d: string) => d || '',
-          formatTooltipY: (d: number) => d ? d.toLocaleString() : '0'
-        },
-        valuesOverPoints: 1,
-        isNavigable: false,
-        animate: false,
-        maxSlices: 2,
-        truncateLegends: true,
-        yMarkers: [],
-        yRegions: [],
-        marginLeft: 30,
-        marginRight: 10,
-        marginTop: 20,
-        marginBottom: 30
-      });
+    // ✅ Destroy previous daily chart if exists
+    if (dailyChartInstanceRef.current) {
+      dailyChartInstanceRef.current.destroy();
+    }
 
-      // Monthly Chart
-      new FrappeCharts.Chart(monthlyChartRef.current, {
-        data: {
-          labels: ['Sep', 'Oct'],
-          datasets: [
-            {
-              name: 'Monthly Production',
-              values: [240000, 250000]
-            }
-          ]
+    const dailyCanvas = dailyChartRef.current;
+    if (dailyCanvas) {
+      const dailyChartData = {
+        labels: ['Actual', 'Standard'],
+        datasets: [
+          {
+            label: 'Eggs Count',
+            data: [actual, standard],
+            backgroundColor: [barColor, '#2196F3'],
+          },
+        ],
+      };
+
+      const dailyChartOptions: ChartConfiguration['options'] = {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: 'x',
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Eggs Count',
+            },
+          },
         },
+        plugins: {
+          legend: {
+            display: false,
+          },
+          tooltip: {
+            callbacks: {
+              label: (context) => `${context.label}: ${context.formattedValue}`,
+            },
+          },
+        },
+      };
+
+      dailyChartInstanceRef.current = new Chart(dailyCanvas, {
         type: 'bar',
-        height: isMobile ? 150 : 400,
-        colors: ['#4CAF50', '#2196F3'],
-        barOptions: {
-          spaceRatio: isMobile ? 0.2 : 0.5
-        },
-        axisOptions: {
-          xAxisMode: 'tick',
-          yAxisMode: 'tick',
-          xIsSeries: false
-        },
-        tooltipOptions: {
-          formatTooltipX: (d: string) => d || '',
-          formatTooltipY: (d: number) => d ? d.toLocaleString() : '0'
-        },
-        valuesOverPoints: 1,
-        isNavigable: false,
-        animate: false,
-        maxSlices: 2,
-        truncateLegends: true,
-        yMarkers: [],
-        yRegions: [],
-        marginLeft: 30,
-        marginRight: 10,
-        marginTop: 20,
-        marginBottom: 30
+        data: dailyChartData,
+        options: dailyChartOptions,
       });
     }
-  }, [isMobile]);
+
+    // ✅ Destroy previous monthly chart if exists
+    if (monthlyChartInstanceRef.current) {
+      monthlyChartInstanceRef.current.destroy();
+    }
+
+    const monthlyCanvas = monthlyChartRef.current;
+    if (monthlyCanvas) {
+      const monthlyChartData = {
+        labels: ['Sep', 'Oct'],
+        datasets: [
+          {
+            label: 'Production',
+            data: [240000, 250000],
+            backgroundColor: ['#4CAF50', '#2196F3'],
+          },
+        ],
+      };
+
+      const monthlyChartOptions: ChartConfiguration['options'] = {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: 'x',
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Production',
+            },
+          },
+        },
+        plugins: {
+          legend: {
+            display: false,
+          },
+          tooltip: {
+            callbacks: {
+              label: (context) => `${context.dataset.label}: ${context.formattedValue}`,
+            },
+          },
+        },
+      };
+
+      monthlyChartInstanceRef.current = new Chart(monthlyCanvas, {
+        type: 'bar',
+        data: monthlyChartData,
+        options: monthlyChartOptions,
+      });
+    }
+
+    // ✅ Optional: Cleanup charts on component unmount
+    return () => {
+      if (dailyChartInstanceRef.current) {
+        dailyChartInstanceRef.current.destroy();
+      }
+      if (monthlyChartInstanceRef.current) {
+        monthlyChartInstanceRef.current.destroy();
+      }
+    };
+  }, [isMobile, actual, standard, barColor]);
 
   return (
     <div className="row g-2 mb-2">
-      <div className="col-6">
+      <div className={isMobile ? 'col-12' : 'col-6'}>
         <ChartContainer title="Eggs (Actual vs. Standard)">
-          <div ref={dailyChartRef} style={{ width: '100%' }} />
+          <canvas ref={dailyChartRef} style={{ width: '100%', height: isMobile ? '250px' : '200px' }} />
         </ChartContainer>
       </div>
 
-      <div className="col-6">
+      <div className={isMobile ? 'col-12' : 'col-6'}>
         <ChartContainer title="Egg Production">
-          <div ref={monthlyChartRef} style={{ width: '100%' }} />
+          <canvas ref={monthlyChartRef} style={{ width: '100%', height: isMobile ? '250px' : '200px' }} />
         </ChartContainer>
       </div>
     </div>
   );
 };
 
-export default GraphsSection; 
+export default GraphsSection;

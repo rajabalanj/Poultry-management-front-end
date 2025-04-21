@@ -25,6 +25,46 @@ const Dashboard: React.FC = () => {
     fetchBatches();
   }, []);
 
+  const totalBirds = batches.reduce((sum, b) => sum + (b.calculated_closing_count || 0), 0);
+  const totalEggs = batches.reduce((sum, b) => sum + ((b.table || 0) + (b.jumbo || 0) + (b.cr || 0)), 0);
+  const openingCount = batches.reduce((sum, b) => sum + (b.opening_count || 0), 0);
+  const mortality = batches.reduce((sum, b) => sum + (b.mortality || 0), 0);
+  const culls = batches.reduce((sum, b) => sum + (b.culls || 0), 0);
+
+  const cards = [
+    {
+      title: "Total Birds",
+      mainValue: totalBirds,
+      icon: "bi bi-feather",
+      subValues: [
+        { label: "Opening Count", value: openingCount },
+        { label: "Mortality", value: mortality },
+        { label: "Culls", value: culls }
+      ]
+    },
+    {
+      title: "Total Eggs",
+      mainValue: totalEggs,
+      icon: "bi bi-egg",
+      subValues: [
+        { label: "Normal", value: batches.reduce((sum, b) => sum + (b.table || 0), 0) },
+        { label: "Jumbo", value: batches.reduce((sum, b) => sum + (b.jumbo || 0), 0) },
+        { label: "Crack", value: batches.reduce((sum, b) => sum + (b.cr || 0), 0) }
+      ]
+    },
+    {
+      title: "Total Feed",
+      mainValue: 0, // Placeholder value
+      icon: "bi bi-basket",
+      subValues: [
+        { label: "Chick Feed", value: 620 }, // Placeholder value
+        { label: "Layer Feed", value: 470 },
+        { label: "Grower Feed", value: 170 } // Placeholder value       
+      ] // Placeholder values
+    }
+  ];
+
+
   return (
     <div className="container-fluid">
       <div className="row">
@@ -33,7 +73,7 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
       
-      <HeaderCardGroup batches={batches} loading={loading} error={error} />
+      <HeaderCardGroup cards={cards} loading={loading} error={error} />
       <div className="row mb-4">
         <div className="col">
           <div className="card shadow-sm">

@@ -4,7 +4,14 @@ import { batchApi } from '../services/api';
 import { Batch } from '../services/api';
 import { toast } from 'react-toastify';
 import PageHeader from './PageHeader';
+import HeaderCardGroup from './Dashboard/HeaderCardGroup';
 
+
+/**
+ * Component to display the details of a single batch.
+ *
+ * @returns The JSX element to render.
+ */
 const BatchDetails: React.FC = () => {
   const { batchId } = useParams<{ batchId: string }>();
   const navigate = useNavigate();
@@ -46,7 +53,43 @@ const BatchDetails: React.FC = () => {
         buttonLabel="Back"
         buttonLink="/"
       />
-
+      <HeaderCardGroup
+  cards={[
+    {
+      title: 'Total Birds',
+      mainValue: batch.calculated_closing_count,
+      subValues: [
+        { label: 'Opening Count', value: batch.opening_count },
+        { label: 'Mortality', value: batch.mortality },
+        { label: 'Culls', value: batch.culls },
+      ],
+      icon: 'bi bi-feather',
+    },
+    {
+      title: 'Total Eggs',
+      mainValue: totalEggs,
+      subValues: [
+        { label: 'Normal', value: batch.table || 0 },
+        { label: 'Jumbo', value: batch.jumbo || 0 },
+        { label: 'Crack', value: batch.cr || 0 },
+      ],
+      icon: 'bi-egg',
+    },
+    {
+      title: 'Total Feed',
+      mainValue: totalEggs,
+      subValues: [
+        { label: 'Chick Feed', value: 620 }, // Placeholder value
+        { label: 'Layer Feed', value: 470 }, // Placeholder value
+        { label: 'Grower Feed', value: 170 }, // Placeholder value
+        // Placeholder values
+      ],
+      icon: 'bi-egg',
+    },
+  ]}
+  loading={false}
+  error={null}
+/>
       <div className="p-4">
         <div className="row">
           <div className="col-12 col-md-6">
@@ -68,76 +111,6 @@ const BatchDetails: React.FC = () => {
                 value={batch.age}
                 disabled
               />
-            </div>
-
-            <div className="mb-4">
-              <label className="form-label">Opening Count</label>
-              <input
-                type="number"
-                className="form-control"
-                value={batch.opening_count}
-                disabled
-              />
-            </div>
-
-            <div className="mb-4">
-              <label className="form-label">Mortality</label>
-              <input
-                type="number"
-                className="form-control"
-                value={batch.mortality}
-                disabled
-              />
-            </div>
-
-            <div className="mb-4">
-              <label className="form-label">Culls</label>
-              <input
-                type="number"
-                className="form-control"
-                value={batch.culls}
-                disabled
-              />
-            </div>
-          </div>
-
-          <div className="col-12 col-md-6">
-            <div className="row g-3 mb-4">
-              <div className="col-6">
-                <label className="form-label">Table</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  value={batch.table}
-                  disabled
-                />
-              </div>
-              <div className="col-6">
-                <label className="form-label">Jumbo</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  value={batch.jumbo}
-                  disabled
-                />
-              </div>
-            </div>
-
-            <div className="mb-4">
-              <label className="form-label">CR</label>
-              <input
-                type="number"
-                className="form-control"
-                value={batch.cr}
-                disabled
-              />
-            </div>
-
-            <div className="bg-light p-4 rounded">
-              <div className="d-flex justify-content-between align-items-center">
-                <h5 className="mb-0">Total Eggs</h5>
-                <span className="h4 text-primary mb-0">{totalEggs}</span>
-              </div>
             </div>
           </div>
         </div>
