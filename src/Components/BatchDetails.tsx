@@ -84,7 +84,7 @@ const BatchDetails: React.FC = () => {
         { label: 'Grower Feed', value: 170 }, // Placeholder value
         // Placeholder values
       ],
-      icon: 'bi-egg',
+      icon:'bi-basket',
     },
   ]}
   loading={false}

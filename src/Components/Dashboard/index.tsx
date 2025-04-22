@@ -54,7 +54,7 @@ const Dashboard: React.FC = () => {
     },
     {
       title: "Total Feed",
-      mainValue: 0, // Placeholder value
+      mainValue: 1250, // Placeholder value
       icon: "bi bi-basket",
       subValues: [
         { label: "Chick Feed", value: 620 }, // Placeholder value
@@ -69,7 +69,11 @@ const Dashboard: React.FC = () => {
     <div className="container-fluid">
       <div className="row">
         <div className="col">
-          <h4 className="mb-4">April 19, 2024</h4>
+          <h4 className="mb-4">{new Date(new Date().setDate(new Date().getDate() - 1)).toLocaleDateString('en-US', {
+  month: 'long',
+  day: 'numeric',
+  year: 'numeric'
+})}</h4>
         </div>
       </div>
       
