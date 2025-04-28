@@ -1,11 +1,11 @@
-import axios, { AxiosError } from 'axios';
+import axios, { AxiosError, AxiosResponse } from 'axios';
 
 // Define types for our data
 export interface Batch {
   id: number;
   shed_no: number;
   batch_no: string;
-  age: string;  // Format: "week.day" (e.g., "1.1" for 8 days)
+  age: string;   // Format: "week.day" (e.g., "1.1" for 8 days)
   opening_count: number;
   mortality: number;
   culls: number;
@@ -14,8 +14,8 @@ export interface Batch {
   jumbo: number;
   cr: number;
   date: string;
-  calculated_closing_count: number;  // Computed field from backend
-  total_eggs: number;  // Computed field from backend
+  calculated_closing_count: number;   // Computed field from backend
+  total_eggs: number;   // Computed field from backend
 }
 
 // Define API response types
@@ -91,7 +91,7 @@ export const validateBatchData = {
     }
     return null;
   },
-  
+
   nonNegative: (value: number, fieldName: string): string | null => {
     if (value < 0) {
       return `${fieldName} must be greater than or equal to 0`;
@@ -136,6 +136,7 @@ export type BatchUpdateFields = Partial<{
   jumbo: number;
   cr: number;
   shed_no: number;
+  date: string;
 }>;
 
 // Remove closing_count from BatchCreate as it's computed
@@ -182,11 +183,11 @@ export const calculateTotalEggs = (
 // Helper function to validate a new batch before sending to API
 export const validateBatch = (batch: BatchCreate): string[] => {
   const errors: string[] = [];
-  
+
   // Validate age format
   const ageError = validateBatchData.age(batch.age);
   if (ageError) errors.push(ageError);
-  
+
   // Validate non-negative values
   const fields: Array<[keyof BatchCreate, string]> = [
     ['opening_count', 'Opening count'],
@@ -196,12 +197,12 @@ export const validateBatch = (batch: BatchCreate): string[] => {
     ['jumbo', 'Jumbo eggs'],
     ['cr', 'Crack eggs']
   ];
-  
+
   fields.forEach(([field, label]) => {
     const error = validateBatchData.nonNegative(batch[field] as number, label);
     if (error) errors.push(error);
   });
-  
+
   return errors;
 };
 
@@ -213,7 +214,7 @@ export const createNewBatch = (data: Partial<BatchCreate>): BatchCreate => {
   } as BatchCreate;
 };
 
-// Update batchApi to handle computed fields
+// Define and export API functions
 export const batchApi = {
   // Create a new batch with validation
   createBatch: async (batchData: BatchCreate): Promise<Batch> => {
@@ -221,7 +222,7 @@ export const batchApi = {
     if (errors.length > 0) {
       throw new Error(`Validation failed: ${errors.join(', ')}`);
     }
-    
+
     try {
       const response = await api.post<Batch>('/batches/', batchData);
       return response.data;
@@ -264,7 +265,7 @@ export const batchApi = {
     try {
       // Remove any attempt to update computed fields
       const { closing_count, ...updateData } = batchData as any;
-      
+
       const response = await api.patch<Batch>(`/batches/${id}`, updateData);
       return response.data;
     } catch (error) {
@@ -286,6 +287,37 @@ export const batchApi = {
       throw error;
     }
   },
+
+  // Fetch daily report as Excel file
+  getDailyReportExcel: async (startDate: string, endDate: string): Promise<void> => {
+    try {
+      const response: AxiosResponse<Blob> = await api.get(
+        `reports/daily-report?start_date=${startDate}&end_date=${endDate}`,
+        {
+          responseType: 'blob', // Important: Tell Axios to expect a Blob
+        }
+      );
+
+      // Create a Blob URL for the downloaded file
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+
+      // Create a temporary link element to trigger the download
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `daily_report_${startDate}_to_${endDate}.xlsx`); // Set the filename
+      document.body.appendChild(link);
+      link.click();
+
+      // Clean up the Blob URL
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(link);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.detail || 'Failed to fetch daily report');
+      }
+      throw error;
+    }
+  },
 };
 
-export default api; 
+export default api;

@@ -28,7 +28,10 @@ function FeedMillStock() {
     fetchCompositions().then(setCompositions);
   }, []);
 
-  const filteredFeeds = feeds.filter((f) => !BASIC_FEEDS.includes(f.name));
+  const filteredFeeds = feeds.filter((f) =>
+    !BASIC_FEEDS.includes(f.name) &&
+    f.name.toLowerCase().includes(search.toLowerCase())
+  );
 
   const selectedComposition = compositions.find(
     (c) => c.id === selectedCompositionId

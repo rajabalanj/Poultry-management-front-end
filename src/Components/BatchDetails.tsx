@@ -66,16 +66,6 @@ const BatchDetails: React.FC = () => {
       icon: 'bi bi-feather',
     },
     {
-      title: 'Total Eggs',
-      mainValue: totalEggs,
-      subValues: [
-        { label: 'Normal', value: batch.table || 0 },
-        { label: 'Jumbo', value: batch.jumbo || 0 },
-        { label: 'Crack', value: batch.cr || 0 },
-      ],
-      icon: 'bi-egg',
-    },
-    {
       title: 'Total Feed',
       mainValue: totalEggs,
       subValues: [
@@ -86,12 +76,22 @@ const BatchDetails: React.FC = () => {
       ],
       icon:'bi-basket',
     },
+    {
+      title: 'Total Eggs',
+      mainValue: totalEggs,
+      subValues: [
+        { label: 'Normal', value: batch.table || 0 },
+        { label: 'Jumbo', value: batch.jumbo || 0 },
+        { label: 'Crack', value: batch.cr || 0 },
+      ],
+      icon: 'bi-egg',
+    },
   ]}
   loading={false}
   error={null}
 />
       <div className="p-4">
-        <div className="row">
+        <div className="row justify-content-center">
           <div className="col-12 col-md-6">
             <div className="mb-4">
               <label className="form-label">Shed No.</label>

@@ -14,14 +14,6 @@ const PageHeader: React.FC<PageHeaderProps> = ({ title, buttonLabel, buttonLink 
   return (
     <div className="page-header d-flex justify-content-between align-items-center p-4">
       <h3 className="mb-0 page-header-title">{title}</h3>
-      {buttonLabel && buttonLink && (
-        <button 
-          className="btn btn-outline-secondary" 
-          onClick={() => navigate(buttonLink)}
-        >
-          {buttonLabel}
-        </button>
-      )}
       
       {buttonLabel && buttonLink && (
         <button 

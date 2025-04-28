@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { batchApi, Batch } from '../services/api';
-import { toast } from 'react-toastify';
-import PageHeader from './PageHeader';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { batchApi, Batch } from "../services/api";
+import { toast } from "react-toastify";
+import PageHeader from "./PageHeader";
 
 const EditBatch: React.FC = () => {
   const { batchId } = useParams<{ batchId: string }>();
@@ -18,9 +18,9 @@ const EditBatch: React.FC = () => {
         const data = await batchApi.getBatch(Number(batchId));
         setBatch(data);
       } catch (err) {
-        console.error('Error fetching batch:', err);
-        setError('Failed to load batch');
-        toast.error('Failed to load batch details');
+        console.error("Error fetching batch:", err);
+        setError("Failed to load batch");
+        toast.error("Failed to load batch details");
       } finally {
         setLoading(false);
       }
@@ -39,20 +39,22 @@ const EditBatch: React.FC = () => {
         culls: batch.culls,
         table: batch.table,
         jumbo: batch.jumbo,
-        cr: batch.cr
+        cr: batch.cr,
+        date: new Date().toISOString().split('T')[0],
+        //date: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       });
-      toast.success('Batch updated successfully');
+      toast.success("Batch updated successfully");
       navigate(-1);
     } catch (err) {
-      console.error('Error updating batch:', err);
-      setError('Failed to update batch');
-      toast.error('Failed to update batch');
+      console.error("Error updating batch:", err);
+      setError("Failed to update batch");
+      toast.error("Failed to update batch");
     }
   };
 
   const handleNumberInput = (value: string, field: keyof Batch) => {
-    if (value === '') {
-      setBatch(prev => prev ? { ...prev, [field]: '' } : null);
+    if (value === "") {
+      setBatch((prev) => (prev ? { ...prev, [field]: "" } : null));
       return;
     }
 
@@ -62,11 +64,13 @@ const EditBatch: React.FC = () => {
     }
 
     if (num < 0) {
-      toast.error(`${field.charAt(0).toUpperCase() + field.slice(1)} cannot be negative`);
+      toast.error(
+        `${field.charAt(0).toUpperCase() + field.slice(1)} cannot be negative`
+      );
       return;
     }
 
-    setBatch(prev => prev ? { ...prev, [field]: num } : null);
+    setBatch((prev) => (prev ? { ...prev, [field]: num } : null));
   };
 
   if (loading) return <div>Loading...</div>;
@@ -77,8 +81,8 @@ const EditBatch: React.FC = () => {
 
   return (
     <div className="container-fluid">
-      <PageHeader 
-        title={`Update Batch ${batch.batch_no}`}
+      <PageHeader
+        title={`Update Data ${batch.batch_no}`}
         buttonLabel="Back"
         buttonLink={`/batch/${batchId}/details`}
       />
@@ -86,6 +90,9 @@ const EditBatch: React.FC = () => {
       <div className="p-4">
         <form onSubmit={handleSubmit}>
           <div className="row">
+            <h4 className="fw-semibold mb-3 border-bottom pb-1 text-primary">
+              Birds
+            </h4>
             <div className="col-12 col-md-6">
               <div className="mb-4">
                 <label className="form-label">Mortality</label>
@@ -94,7 +101,9 @@ const EditBatch: React.FC = () => {
                   className="form-control"
                   value={batch.mortality}
                   min="0"
-                  onChange={(e) => handleNumberInput(e.target.value, 'mortality')}
+                  onChange={(e) =>
+                    handleNumberInput(e.target.value, "mortality")
+                  }
                 />
               </div>
 
@@ -105,10 +114,13 @@ const EditBatch: React.FC = () => {
                   className="form-control"
                   value={batch.culls}
                   min="0"
-                  onChange={(e) => handleNumberInput(e.target.value, 'culls')}
+                  onChange={(e) => handleNumberInput(e.target.value, "culls")}
                 />
               </div>
             </div>
+            <h4 className="fw-semibold mb-3 border-bottom pb-1 text-primary">
+              Eggs
+            </h4>
 
             <div className="col-12 col-md-6">
               <div className="row g-3 mb-4">
@@ -119,7 +131,7 @@ const EditBatch: React.FC = () => {
                     className="form-control"
                     value={batch.table}
                     min="0"
-                    onChange={(e) => handleNumberInput(e.target.value, 'table')}
+                    onChange={(e) => handleNumberInput(e.target.value, "table")}
                   />
                 </div>
                 <div className="col-6">
@@ -129,7 +141,7 @@ const EditBatch: React.FC = () => {
                     className="form-control"
                     value={batch.jumbo}
                     min="0"
-                    onChange={(e) => handleNumberInput(e.target.value, 'jumbo')}
+                    onChange={(e) => handleNumberInput(e.target.value, "jumbo")}
                   />
                 </div>
               </div>
@@ -141,7 +153,7 @@ const EditBatch: React.FC = () => {
                   className="form-control"
                   value={batch.cr}
                   min="0"
-                  onChange={(e) => handleNumberInput(e.target.value, 'cr')}
+                  onChange={(e) => handleNumberInput(e.target.value, "cr")}
                 />
               </div>
 
@@ -158,7 +170,11 @@ const EditBatch: React.FC = () => {
             <button type="submit" className="btn btn-primary me-2">
               Save Changes
             </button>
-            <button type="button" className="btn btn-secondary" onClick={() => navigate(-1)}>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => navigate(-1)}
+            >
               Cancel
             </button>
           </div>
@@ -168,4 +184,4 @@ const EditBatch: React.FC = () => {
   );
 };
 
-export default EditBatch; 
+export default EditBatch;
