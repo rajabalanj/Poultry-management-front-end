@@ -27,12 +27,13 @@ export interface ApiResponse<T> {
 
 // Create axios instance with base URL
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000',
+  baseURL: (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, ''),
   headers: {
     'Content-Type': 'application/json',
   },
   timeout: 10000, // 10 seconds timeout
 });
+
 
 // Add user ID header handling
 let currentUserId: string | null = null;
@@ -160,6 +161,24 @@ export interface Batch extends BatchBase {
   calculated_closing_count: number;
   /** Total eggs (table + jumbo + cr) */
   total_eggs: number;
+}
+
+// Define the DailyBatch interface to match the backend model
+export interface DailyBatch {
+  batch_id: number; // Foreign key to Batch
+  shed_no: number;
+  batch_no: string;
+  uploaded_date: string; // ISO date string
+  batch_date: string; // ISO date string
+  age: string; // Format: "week.day" (e.g., "1.1")
+  opening_count: number;
+  mortality: number;
+  culls: number;
+  closing_count: number;
+  table: number;
+  jumbo: number;
+  cr: number;
+  total_eggs: number; // Computed field
 }
 
 // Helper function to calculate closing count
@@ -292,7 +311,7 @@ export const batchApi = {
   getDailyReportExcel: async (startDate: string, endDate: string): Promise<void> => {
     try {
       const response: AxiosResponse<Blob> = await api.get(
-        `reports/daily-report?start_date=${startDate}&end_date=${endDate}`,
+        `/reports/daily-report?start_date=${startDate}&end_date=${endDate}`,
         {
           responseType: 'blob', // Important: Tell Axios to expect a Blob
         }
@@ -314,6 +333,27 @@ export const batchApi = {
     } catch (error) {
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.detail || 'Failed to fetch daily report');
+      }
+      throw error;
+    }
+  },
+};
+
+// Move the `getSnapshot` function to a new `dailyBatchApi` object
+export const dailyBatchApi = {
+  getSnapshot: async (startDate: string, endDate: string, batchId?: number): Promise<DailyBatch[]> => {
+    try {
+      const response = await api.get<DailyBatch[]>(`/reports/snapshot`, {
+        params: {
+          start_date: startDate,
+          end_date: endDate,
+          batch_id: batchId || undefined,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.detail || 'Failed to fetch snapshot data');
       }
       throw error;
     }
