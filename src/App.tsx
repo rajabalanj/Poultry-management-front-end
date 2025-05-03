@@ -10,6 +10,10 @@ import BatchDetails from "./Components/BatchDetails";
 import EditBatch from "./Components/EditBatch";
 import Dashboard from "./Components/Dashboard";
 import FeedMillStock from "./Components/FeedMillStock";
+// import CreateFeedForm from './Components/CreateFeedForm';
+// import { FeedItem, FeedItemList } from './Components/FeedItem';
+// import FeedListPage from './Components/FeedIndex';
+import PreviousDayReport from './Components/PreviousDayReport';
 // import NewFeedComposition from './Components/NewFeedComposition';
 // import EggRoomStock from './Components/EggRoomStock';
 
@@ -34,6 +38,7 @@ const App: React.FC = () => {
           <Route path="/add-batch" element={<AddBatch />} />
           <Route path="/batch/:batchId/details" element={<BatchDetails />} />
           <Route path="/batch/:batchId/edit" element={<EditBatch />} />
+          {/* <Route path="/batch/:batchId/report" element={<PreviousDayReport />} /> */}
           <Route path="/feed-mill-stock" element={
             <>
               <PageHeader
@@ -41,6 +46,11 @@ const App: React.FC = () => {
               />
             <FeedMillStock />
             </>} />
+          {/* <Route path="/add-feed" element={<CreateFeedForm />} />
+          <Route path="/feed-list" element={<FeedItemList />} />
+          <Route path="/feed" element={<FeedListPage />} /> */}
+          <Route path="/previous-day-report" element={<PreviousDayReport />} />
+<Route path="/previous-day-report/:batchId" element={<PreviousDayReport />} />
           {/* <Route path="/new-feed-composition" element={<NewFeedComposition />} />
           <Route path="/egg-room-stock" element={<EggRoomStock />} /> */}
         </Routes>

@@ -1,16 +1,25 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import HeaderCardGroup from './HeaderCardGroup';
 import GraphsSection from './GraphsSection';
 import BatchTable from '../BatchTable';
 import { batchApi, Batch } from '../../services/api';
-
-const Dashboard: React.FC = () => {
+import { toast } from 'react-toastify';
+import PreviousDayReport from '../PreviousDayReport';
+const Dashboard = () => {
+  const navigate = useNavigate();
+  const [startDate, setStartDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [batches, setBatches] = useState<Batch[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [startDate, setStartDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [endDate, setEndDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [showReport, setShowReport] = useState(false);
 
+  const handleDownloadReport = () => {
+    // Navigate with date range as query params
+    navigate(`/previous-day-report?start=${startDate}&end=${endDate}`);
+  };
+  
   useEffect(() => {
     const fetchBatches = async () => {
       try {
@@ -27,15 +36,6 @@ const Dashboard: React.FC = () => {
     fetchBatches();
   }, []);
 
-  const handleDownload = async () => {
-    try {
-      await batchApi.getDailyReportExcel(startDate, endDate);
-      alert('Report downloaded successfully!');
-    } catch (err) {
-      console.error('Error downloading report:', err);
-      alert('Failed to download report.');
-    }
-  };
 
   const totalBirds = batches.reduce((sum, b) => sum + (b.calculated_closing_count || 0), 0);
   const totalEggs = batches.reduce((sum, b) => sum + ((b.table || 0) + (b.jumbo || 0) + (b.cr || 0)), 0);
@@ -76,33 +76,38 @@ const Dashboard: React.FC = () => {
     },
   ];
 
+  const handleShowReport = () => setShowReport(true);
+  const handleHideReport = () => setShowReport(false);
+
   return (
     <div className="container-fluid">
-      <div className="row">
-        <div className="col">
-          <div className="d-flex align-items-center gap-3 mb-4">
-            <div>
-              <label htmlFor="start-date" className="form-label">Start Date:</label>
-              <input
-                type="date"
-                id="start-date"
-                className="form-control"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-              />
-            </div>
-            <div>
-              <label htmlFor="end-date" className="form-label">End Date:</label>
-              <input
-                type="date"
-                id="end-date"
-                className="form-control"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-              />
-            </div>
-            <button className="btn btn-primary mt-4" onClick={handleDownload}>Download</button>
-          </div>
+      {/* Date controls and buttons */}
+      <div className="row mb-4">
+        <div className="col-12 col-md-3 mb-2">
+          <label className="form-label">Start Date:</label>
+          <input
+            type="date"
+            className="form-control"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+          />
+        </div>
+        <div className="col-12 col-md-3 mb-2">
+          <label className="form-label">End Date:</label>
+          <input
+            type="date"
+            className="form-control"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+          />
+        </div>
+        <div className="col-12 col-md-3 mb-2">
+          <button 
+            className="btn btn-primary w-100"
+            onClick={handleDownloadReport}
+          >
+            Download Report
+          </button>
         </div>
       </div>
       <HeaderCardGroup cards={cards} loading={loading} error={error} />
