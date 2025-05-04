@@ -26,7 +26,7 @@ const GraphsSection: React.FC = () => {
   const dailyChartInstanceRef = useRef<Chart | null>(null);
   const monthlyChartInstanceRef = useRef<Chart | null>(null);
 
-  const actual = 79.9;
+  const actual = 79.0;
   const standard = 80.9;
   const diffPercent = actual - standard; // Difference in percentage
 

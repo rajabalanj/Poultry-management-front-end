@@ -91,6 +91,27 @@ const Slidebar: React.FC = () => {
                   Feed Compositions
                 </Link>
                 {/* <Link
+                  to="/add-feed"
+                  className="text-decoration-none text-dark d-block py-2"
+                  onClick={closeSidebarMobile}
+                >
+                  <i className="bi bi-basket me-2"></i>
+                  Feed Create
+                </Link>
+                <Link
+                  to="/feed-list"
+                  className="text-decoration-none text-dark d-block py-2"
+                  onClick={closeSidebarMobile}> 
+                  <i className="bi bi-basket me-2"></i>
+                  Feed List
+                  </Link>
+                <Link
+                  to="/feed"
+                  className="text-decoration-none text-dark d-block py-2"
+                  onClick={closeSidebarMobile}>
+                    <i className="bi bi-basket me-2"></i>
+                  Feed Index </Link> */}
+                                {/* <Link
                   to="/egg-room-stock"
                   className="text-decoration-none text-dark d-block py-2"
                   onClick={closeSidebarMobile}
