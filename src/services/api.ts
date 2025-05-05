@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosResponse } from 'axios';
+import axios, { AxiosError } from 'axios';
 
 // Define types for our data
 export interface Batch {
@@ -302,37 +302,6 @@ export const batchApi = {
     } catch (error) {
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.detail || 'Failed to delete batch');
-      }
-      throw error;
-    }
-  },
-
-  // Fetch daily report as Excel file
-  getDailyReportExcel: async (startDate: string, endDate: string): Promise<void> => {
-    try {
-      const response: AxiosResponse<Blob> = await api.get(
-        `/reports/daily-report?start_date=${startDate}&end_date=${endDate}`,
-        {
-          responseType: 'blob', // Important: Tell Axios to expect a Blob
-        }
-      );
-
-      // Create a Blob URL for the downloaded file
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-
-      // Create a temporary link element to trigger the download
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `daily_report_${startDate}_to_${endDate}.xlsx`); // Set the filename
-      document.body.appendChild(link);
-      link.click();
-
-      // Clean up the Blob URL
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(link);
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.detail || 'Failed to fetch daily report');
       }
       throw error;
     }

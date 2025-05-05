@@ -1,11 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import HeaderCardGroup from './HeaderCardGroup';
 import GraphsSection from './GraphsSection';
 import BatchTable from '../BatchTable';
 import { batchApi, Batch } from '../../services/api';
-import { toast } from 'react-toastify';
-import PreviousDayReport from '../PreviousDayReport';
 const Dashboard = () => {
   const navigate = useNavigate();
   const [startDate, setStartDate] = useState<string>(new Date().toISOString().split('T')[0]);
@@ -13,7 +11,6 @@ const Dashboard = () => {
   const [batches, setBatches] = useState<Batch[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showReport, setShowReport] = useState(false);
 
   const handleDownloadReport = () => {
     // Navigate with date range as query params
@@ -75,9 +72,6 @@ const Dashboard = () => {
       ]
     },
   ];
-
-  const handleShowReport = () => setShowReport(true);
-  const handleHideReport = () => setShowReport(false);
 
   return (
     <div className="container-fluid">
