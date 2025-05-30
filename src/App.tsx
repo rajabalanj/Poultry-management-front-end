@@ -2,20 +2,19 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import './styles/global.css';
-import Layout from './Components/Layout';
-import PageHeader from "./Components/PageHeader";
-import AddBatch from "./Components/AddBatch";
-import BatchDetails from "./Components/BatchDetails";
-import EditBatch from "./Components/EditBatch";
+import Layout from './Components/Layout/Layout';
+import PageHeader from "./Components/Layout/PageHeader";
+import AddBatch from "./Components/Forms/Create/AddBatch";
+import BatchDetails from "./Components/Forms/Read/BatchDetails";
+import EditBatch from "./Components/Forms/Update/EditBatch";
 import Dashboard from "./Components/Dashboard";
 import FeedMillStock from "./Components/FeedMillStock";
-// import CreateFeedForm from './Components/CreateFeedForm';
-// import { FeedItem, FeedItemList } from './Components/FeedItem';
-// import FeedListPage from './Components/FeedIndex';
+import CreateFeedForm from './Components/Forms/Create/CreateFeedForm';
+import FeedListPage from './Components/FeedIndex';
 import PreviousDayReport from './Components/PreviousDayReport';
-// import NewFeedComposition from './Components/NewFeedComposition';
-// import EggRoomStock from './Components/EggRoomStock';
+import FeedDetails from './Components/Forms/Read/FeedDetails';
+import EditFeed from './Components/Forms/Update/EditFeed';
+import CompositionUsageHistory from "./Components/CompositionUsageHistory";
 
 const App: React.FC = () => {
   return (
@@ -28,8 +27,6 @@ const App: React.FC = () => {
               <>
                 <PageHeader
                   title="Batch Management"
-                  buttonLabel="Add New Batch"
-                  buttonLink="/add-batch"
                 />
                 <Dashboard />
               </>
@@ -46,13 +43,16 @@ const App: React.FC = () => {
               />
             <FeedMillStock />
             </>} />
-          {/* <Route path="/add-feed" element={<CreateFeedForm />} />
-          <Route path="/feed-list" element={<FeedItemList />} />
-          <Route path="/feed" element={<FeedListPage />} /> */}
+          <Route path="/create-feed" element={<CreateFeedForm />} />
+          <Route path="/feed/:feedId/details" element={<FeedDetails />} />
+          <Route path="/feed/:feedId/edit" element={<EditFeed />} />
+          {/* <Route path="/feed-list" element={<FeedItemList />} /> */}
+          <Route path="/feed" element={<FeedListPage />} />
           <Route path="/previous-day-report" element={<PreviousDayReport />} />
 <Route path="/previous-day-report/:batchId" element={<PreviousDayReport />} />
           {/* <Route path="/new-feed-composition" element={<NewFeedComposition />} />
           <Route path="/egg-room-stock" element={<EggRoomStock />} /> */}
+          <Route path="/compositions/:compositionId/usage-history" element={<CompositionUsageHistory />} />
         </Routes>
       </Layout>
       <ToastContainer position="top-right" autoClose={3000} />

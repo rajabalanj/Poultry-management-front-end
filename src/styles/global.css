@@ -121,6 +121,21 @@
   margin-left: 50px; /* Adjust this value based on the size of the hamburger icon */
 }
 
+.bg-accessible-success {
+  background-color: #145c3a !important;
+  color: #ffffff !important;
+}
+
+.bg-accessible-warning {
+  background-color: #946200 !important;
+  color: #ffffff !important;
+}
+
+.bg-accessible-danger {
+  background-color: #8b1a1a !important;
+  color: #ffffff !important;
+}
+
 @media (max-width: 768px) {
   .page-header {
     padding: 10px;

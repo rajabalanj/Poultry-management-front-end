@@ -1,5 +1,6 @@
 import React from 'react';
-import { Feed, FeedInComposition } from '../services/feedMillMock';
+import { Feed, FeedResponse } from '../types/Feed'; 
+import { FeedInComposition } from '../types/compositon';
 
 interface CompositionFormProps {
   title: string;
@@ -7,9 +8,9 @@ interface CompositionFormProps {
   onCompNameChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   search: string;
   handleFeedSearch: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  filteredFeeds: Feed[];
+  filteredFeeds: FeedResponse[];
   editFeeds: FeedInComposition[];
-  feeds: Feed[];
+  feeds: FeedResponse[];
   handleAddFeed: (feed: Feed) => void;
   handleRemoveFeed: (feedId: number) => void;
   handleFeedWeightChange: (feedId: number, weight: number) => void;
@@ -57,7 +58,7 @@ function CompositionForm({
                   key={f.feedId}
                   className="list-group-item d-flex justify-content-between align-items-center"
                 >
-                  <span>{feed.name}</span>
+                  <span>{feed.title}</span>
                   <div className="d-flex align-items-center gap-2">
                     <input
                       type="number"
@@ -105,7 +106,7 @@ function CompositionForm({
                   }`}
                   disabled={editFeeds.some((ef) => ef.feedId === feed.id)}
                 >
-                  {feed.name}
+                  {feed.title}
                   <i className="bi bi-plus-circle-fill text-success"></i>
                 </button>
               ))}

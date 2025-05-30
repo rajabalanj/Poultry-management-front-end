@@ -2,25 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 // import { apiService } from '../services/apiService'; //  Use your actual apiService
-import '../styles/global.css';
-import PageHeader from './PageHeader';
+import PageHeader from '../../Layout/PageHeader';
+import { Feed } from '../../../types/Feed';
+import {feedApi} from "../../../services/api";
 
-// Mock apiService (replace with your actual implementation)
-const apiService = {
-    createFeed: async (feedData: any) => {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        console.log("Creating feed:", feedData);
-        return { ...feedData, id: Math.floor(Math.random() * 1000), lastUsedAt: null };
-    },
-};
-
-interface Feed {
-    title: string;
-    quantity: number;
-    unit: string;
-    id?: number;  //  Optional because the backend generates it
-    lastUsedAt?: string | null;
-}
 
 const CreateFeedForm: React.FC = () => {
     const [title, setTitle] = useState('');
@@ -50,13 +35,15 @@ const CreateFeedForm: React.FC = () => {
         }
 
         const feedData: Feed = {
-            title,
-            quantity: quantityNum,
-            unit,
+        title: title,
+        quantity: quantityNum,
+        unit: unit,
+        createdDate: new Date().toISOString().split('T')[0], // Assuming this is optional and can be null
         };
 
         try {
-            const createdFeed = await apiService.createFeed(feedData); //  Use your apiService
+            const createdFeed = await feedApi.createFeed(feedData); //  Use your apiService
+            console.log("Created feed:", createdFeed);
             toast.success(`Feed "${createdFeed.title}" created!`);
             navigate('/'); //  Go back
         } catch (error: any) {
@@ -79,7 +66,7 @@ const CreateFeedForm: React.FC = () => {
             <PageHeader
                 title="Add New Feed"
                 buttonLabel="Back to Feeds"
-                buttonLink="/"
+                buttonLink="/feed"
             />
             <div className="p-4">
                 <form onSubmit={handleSubmit}>
@@ -123,13 +110,14 @@ const CreateFeedForm: React.FC = () => {
                                 type="submit"
                                 className="btn btn-primary"
                                 disabled={isLoading}
+                                onClick={() => navigate('/feed')}
                             >
                                 {isLoading ? 'Adding...' : 'Add Feed'}
                             </button>
                             <button
                                 type="button"
                                 className="btn btn-secondary ms-2"
-                                onClick={() => navigate('/')}
+                                onClick={() => navigate('/feed')}
                             >
                                 Cancel
                             </button>

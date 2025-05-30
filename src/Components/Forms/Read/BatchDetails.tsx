@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { batchApi } from '../services/api';
-import { Batch } from '../services/api';
+import { batchApi } from '../../../services/api';
+import { BatchResponse } from '../../../types/batch'; // Adjust the import path as necessary
 import { toast } from 'react-toastify';
-import PageHeader from './PageHeader';
-import HeaderCardGroup from './Dashboard/HeaderCardGroup';
+import PageHeader from '../../Layout/PageHeader';
+import HeaderCardGroup from '../../Dashboard/HeaderCardGroup';
+import GraphsSection from '../../Dashboard/GraphsSection';
 
 
 const BatchDetails: React.FC = () => {
   const { batchId } = useParams<{ batchId: string }>();
   const navigate = useNavigate();
-  const [batch, setBatch] = useState<Batch | null>(null);
+  const [batch, setBatch] = useState<BatchResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [startDate, setStartDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState<string>(new Date().toISOString().split('T')[0]);
@@ -55,34 +56,7 @@ const BatchDetails: React.FC = () => {
         buttonLabel="Back"
         buttonLink="/"
       />
-      <div className="row mb-4">
-        <div className="col-12 col-md-3 mb-2">
-          <label className="form-label">Start Date</label>
-          <input
-            type="date"
-            className="form-control"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          />
-        </div>
-        <div className="col-12 col-md-3 mb-2">
-          <label className="form-label">End Date</label>
-          <input
-            type="date"
-            className="form-control"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          />
-        </div>
-        <div className="col-12 col-md-3 mb-2">
-          <button 
-            className="btn btn-primary w-100"
-            onClick={handleDownloadReport}
-            >
-            Download Report
-          </button>
-          </div>
-      </div>
+      
       <HeaderCardGroup
         cards={[
           {
@@ -119,6 +93,7 @@ const BatchDetails: React.FC = () => {
         loading={false}
         error={null}
       />
+      <GraphsSection henDayValue={Number((batch.HD *100).toFixed(2))} loading={false} error={null} />
       <div className="p-4">
         <div className="row justify-content-center">
           <div className="col-12 col-md-6">
@@ -143,7 +118,6 @@ const BatchDetails: React.FC = () => {
             </div>
           </div>
         </div>
-
         <div className="mt-4 d-flex justify-content-center">
           <button type="button" className="btn btn-primary me-2" onClick={() => navigate(`/batch/${batchId}/edit`)}>
             Update
@@ -151,6 +125,34 @@ const BatchDetails: React.FC = () => {
           <button type="button" className="btn btn-secondary me-2" onClick={() => navigate('/')}>Back to Dashboard</button>
           
         </div>
+      </div>
+      <div className="row mb-4">
+        <div className="col-12 col-md-3 mb-2">
+          <label className="form-label">Start Date</label>
+          <input
+            type="date"
+            className="form-control"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+          />
+        </div>
+        <div className="col-12 col-md-3 mb-2">
+          <label className="form-label">End Date</label>
+          <input
+            type="date"
+            className="form-control"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+          />
+        </div>
+        <div className="col-12 col-md-3 mb-2">
+          <button 
+            className="btn btn-primary w-100"
+            onClick={handleDownloadReport}
+            >
+            Download Report
+          </button>
+          </div>
       </div>
     </div>
   );

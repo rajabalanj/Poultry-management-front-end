@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { useLocation, useParams, useSearchParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import PageHeader from './PageHeader';
+import PageHeader from './Layout/PageHeader';
 import { GridRow } from '../types/GridRow';
 import { fetchBatchData, exportBatchDataToExcel } from '../utility/api-utils';
-
 
 
 const PreviousDayReport = () => {
@@ -16,6 +15,7 @@ const PreviousDayReport = () => {
   const [gridData, setGridData] = useState<GridRow[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const rowsPerPage = 10;
+  const [error, setError] = useState<string | null>(null);
 
   const validGridData = gridData.filter(row => row && Object.keys(row).length > 0);
   const totalPages = validGridData.length > 0 ? Math.ceil(validGridData.length / rowsPerPage) : 0;
@@ -28,8 +28,10 @@ const PreviousDayReport = () => {
         batchId // Pass undefined if batchId doesn't exist
       );
       setGridData(data);
-    } catch (error) {
-      toast.error('Failed to fetch data');
+      setError(null);
+    } catch (error: any) {
+      setError(error?.message || 'Failed to fetch data');
+      toast.error(error?.message || 'Failed to fetch data');
     }
   };
 
@@ -44,6 +46,8 @@ const PreviousDayReport = () => {
   return (
     <div className="container-fluid">
       <PageHeader title="Batch Report"></PageHeader>
+      {/* Error message */}
+      {error && <div className="alert alert-danger text-center">{error}</div>}
       <div className="row mb-4">
         <div className="d-flex justify-content-between mb-4">
           <div>

@@ -1,6 +1,5 @@
 import React from "react";
 import { useNavigate } from 'react-router-dom';
-import '../styles/global.css';
 
 interface PageHeaderProps {
   title: string;

@@ -1,22 +1,8 @@
 import axios, { AxiosError, AxiosResponse } from 'axios';
-
+import { Feed, FeedResponse } from '../types/Feed';
+import { BatchResponse, Batch, BatchUpdate } from '../types/batch';
+import { CompositionResponse } from '../types/compositon';
 // Define types for our data
-export interface Batch {
-  id: number;
-  shed_no: number;
-  batch_no: string;
-  age: string;   // Format: "week.day" (e.g., "1.1" for 8 days)
-  opening_count: number;
-  mortality: number;
-  culls: number;
-  closing_count: number;
-  table: number;
-  jumbo: number;
-  cr: number;
-  date: string;
-  calculated_closing_count: number;   // Computed field from backend
-  total_eggs: number;   // Computed field from backend
-}
 
 // Define API response types
 export interface ApiResponse<T> {
@@ -101,67 +87,18 @@ export const validateBatchData = {
   }
 };
 
-export interface BatchBase {
-  /** Age in format "week.day" (e.g., "1.1") */
-  age: string;
-  /** Number of birds at the start of the day */
-  opening_count: number;
-  /** Number of birds that died */
-  mortality: number;
-  /** Number of birds culled */
-  culls: number;
-  /** Number of table eggs */
-  table: number;
-  /** Number of jumbo eggs */
-  jumbo: number;
-  /** Number of crack eggs */
-  cr: number;
-}
-
 // Default values for new batches
-export const DEFAULT_BATCH_VALUES: Partial<BatchCreate> = {
+export const DEFAULT_BATCH_VALUES: Partial<Batch> = {
   mortality: 0,
   culls: 0,
   table: 0,
   jumbo: 0,
-  cr: 0
+  cr: 0,
+  date: new Date().toISOString().split('T')[0], // Set to today's date
 };
 
 /** Fields that can be updated in a batch */
-export type BatchUpdateFields = Partial<{
-  age: string;
-  opening_count: number;
-  mortality: number;
-  culls: number;
-  table: number;
-  jumbo: number;
-  cr: number;
-  shed_no: number;
-  date: string;
-}>;
-
-// Remove closing_count from BatchCreate as it's computed
-export interface BatchCreate extends Omit<BatchBase, 'closing_count'> {
-  /** Shed number where the batch is located */
-  shed_no: number;
-}
-
-export interface Batch extends BatchBase {
-  /** Unique identifier for the batch */
-  id: number;
-  /** Shed number where the batch is located */
-  shed_no: number;
-  /** Auto-generated batch number in format "B-XXXX" */
-  batch_no: string;
-  /** Date of the record (auto-set to creation date) */
-  date: string;
-  /** Automatically calculated as opening_count - (mortality + culls) */
-  closing_count: number;
-  /** Automatically calculated as opening_count - (mortality + culls) */
-  calculated_closing_count: number;
-  /** Total eggs (table + jumbo + cr) */
-  total_eggs: number;
-}
+export type BatchUpdateFields = Partial<BatchUpdate>;
 
 // Define the DailyBatch interface to match the backend model
 export interface DailyBatch {
@@ -200,7 +137,7 @@ export const calculateTotalEggs = (
 };
 
 // Helper function to validate a new batch before sending to API
-export const validateBatch = (batch: BatchCreate): string[] => {
+export const validateBatch = (batch: Batch): string[] => {
   const errors: string[] = [];
 
   // Validate age format
@@ -208,7 +145,7 @@ export const validateBatch = (batch: BatchCreate): string[] => {
   if (ageError) errors.push(ageError);
 
   // Validate non-negative values
-  const fields: Array<[keyof BatchCreate, string]> = [
+  const fields: Array<[keyof Batch, string]> = [
     ['opening_count', 'Opening count'],
     ['mortality', 'Mortality'],
     ['culls', 'Culls'],
@@ -226,72 +163,70 @@ export const validateBatch = (batch: BatchCreate): string[] => {
 };
 
 // Helper function to create a new batch with defaults
-export const createNewBatch = (data: Partial<BatchCreate>): BatchCreate => {
+export const createNewBatch = (data: Partial<Batch>): Batch => {
   return {
     ...DEFAULT_BATCH_VALUES,
     ...data,
-  } as BatchCreate;
+  } as Batch;
 };
+
+// Helper to extract error message
+function getApiErrorMessage(error: unknown, fallback: string) {
+  if (axios.isAxiosError(error)) {
+    return error.response?.data?.detail || error.message || fallback;
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return fallback;
+}
 
 // Define and export API functions
 export const batchApi = {
   // Create a new batch with validation
-  createBatch: async (batchData: BatchCreate): Promise<Batch> => {
+  createBatch: async (batchData: Batch): Promise<Batch> => {
     const errors = validateBatch(batchData);
     if (errors.length > 0) {
       throw new Error(`Validation failed: ${errors.join(', ')}`);
     }
-
     try {
       const response = await api.post<Batch>('/batches/', batchData);
       return response.data;
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.detail || 'Failed to create batch');
-      }
-      throw error;
+      throw new Error(getApiErrorMessage(error, 'Failed to create batch'));
     }
   },
 
   // Get all batches with pagination
-  getBatches: async (skip: number = 0, limit: number = 100): Promise<Batch[]> => {
+  getBatches: async (skip: number = 0, limit: number = 100): Promise<BatchResponse[]> => {
     try {
-      const response = await api.get<Batch[]>(`/batches/?skip=${skip}&limit=${limit}`);
+      const response = await api.get<BatchResponse[]>(`/batches/?skip=${skip}&limit=${limit}`);
       return response.data;
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.detail || 'Failed to fetch batches');
-      }
-      throw error;
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch batches'));
     }
   },
 
   // Get a single batch by ID
-  getBatch: async (id: number): Promise<Batch> => {
+  getBatch: async (id: number): Promise<BatchResponse> => {
     try {
-      const response = await api.get<Batch>(`/batches/${id}`);
+      const response = await api.get<BatchResponse>(`/batches/${id}`);
       return response.data;
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.detail || 'Failed to fetch batch');
-      }
-      throw error;
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch batch'));
     }
   },
 
   // Update a batch (using PATCH instead of PUT)
-  updateBatch: async (id: number, batchData: BatchUpdateFields): Promise<Batch> => {
+  updateBatch: async (id: number, batchData: BatchUpdateFields): Promise<BatchUpdateFields> => {
     try {
       // Remove any attempt to update computed fields
       const { closing_count, ...updateData } = batchData as any;
 
-      const response = await api.patch<Batch>(`/batches/${id}`, updateData);
+      const response = await api.patch<BatchUpdateFields>(`/batches/${id}`, updateData);
       return response.data;
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.detail || 'Failed to update batch');
-      }
-      throw error;
+      throw new Error(getApiErrorMessage(error, 'Failed to update batch'));
     }
   },
 
@@ -300,10 +235,7 @@ export const batchApi = {
     try {
       await api.delete(`/batches/${id}`);
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.detail || 'Failed to delete batch');
-      }
-      throw error;
+      throw new Error(getApiErrorMessage(error, 'Failed to delete batch'));
     }
   },
 
@@ -331,10 +263,7 @@ export const batchApi = {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(link);
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.detail || 'Failed to fetch daily report');
-      }
-      throw error;
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch daily report'));
     }
   },
 };
@@ -352,10 +281,131 @@ export const dailyBatchApi = {
       });
       return response.data;
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.detail || 'Failed to fetch snapshot data');
-      }
-      throw error;
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch snapshot data'));
+    }
+  },
+};
+
+export const feedApi = {
+  createFeed: async (feedData: Feed): Promise<Feed> => {
+    console.log('Request body:', feedData);
+    try {
+      const response = await api.post<Feed>("/feed/", feedData);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to create feed'));
+    }
+  },
+
+  getFeeds: async (skip: number = 0, limit: number = 100): Promise<FeedResponse[]> => {
+    try {
+      const response = await api.get<FeedResponse[]>(`/feed/all/?skip=${skip}&limit=${limit}`);
+      console.log('Response data:', response.data); // Debug log
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch feeds'));
+    }
+  },
+
+  getFeed: async (id: number): Promise<FeedResponse> => {
+    try {
+      const response = await api.get<FeedResponse>(`/feed/${id}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch feed'));
+    }
+  },
+
+  updateFeed: async (id: number, feedData: FeedResponse): Promise<FeedResponse> => {
+    try {
+      const response = await api.patch<FeedResponse>(`/feed/${id}`, feedData);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to update feed'));
+    }
+  },
+
+  deleteFeed: async (id: number): Promise<void> => {
+    try {
+      await api.delete(`/feed/${id}`);
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to delete feed'));
+    }
+  },
+};
+
+// Composition API for create, read, update, delete
+
+export const compositionApi = {
+  createComposition: async (composition: Omit<CompositionResponse, 'id'>): Promise<CompositionResponse> => {
+    try {
+      const response = await api.post<CompositionResponse>('/compositions/', composition);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to create composition'));
+    }
+  },
+  getCompositions: async (): Promise<CompositionResponse[]> => {
+    try {
+      const response = await api.get<CompositionResponse[]>('/compositions/');
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch compositions'));
+    }
+  },
+  getComposition: async (id: number): Promise<CompositionResponse> => {
+    try {
+      const response = await api.get<CompositionResponse>(`/compositions/${id}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch composition'));
+    }
+  },
+  updateComposition: async (id: number, composition: Omit<CompositionResponse, 'id'>): Promise<CompositionResponse> => {
+    try {
+      const response = await api.patch<CompositionResponse>(`/compositions/${id}`, composition);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to update composition'));
+    }
+  },
+  deleteComposition: async (id: number): Promise<void> => {
+    try {
+      await api.delete(`/compositions/${id}`);
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to delete composition'));
+    }
+  },
+
+  useComposition: async ({ compositionId, times, usedAt }: { compositionId: number, times: number, usedAt: string }) => {
+    try {
+      await api.post('/compositions/use-composition', {
+        compositionId,
+        times,
+        usedAt,
+      });
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to use composition'));
+    }
+  },
+
+  getCompositionUsageHistory: async (compositionId?: number) => {
+    try {
+      const response = await api.get('/compositions/usage-history', {
+        params: compositionId ? { composition_id: compositionId } : {},
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch composition usage history'));
+    }
+  },
+
+  getCompositionUsageHistoryById: async (compositionId: number) => {
+    try {
+      const response = await api.get(`/compositions/${compositionId}/usage-history`);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch composition usage history'));
     }
   },
 };

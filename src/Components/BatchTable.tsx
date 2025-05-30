@@ -1,11 +1,10 @@
 import React, { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import { Batch } from "../services/api";
-import "../styles/global.css";
+import { BatchResponse } from "../types/batch"; // Adjust the import path as necessary
 
 const BatchCard: React.FC<{
-  batch: Batch;
+  batch: BatchResponse;
   onView: (id: number) => void;
   onEdit: (id: number) => void;
 }> = React.memo(({ batch, onView, onEdit }) => (
@@ -45,7 +44,7 @@ const BatchCard: React.FC<{
 ));
 
 interface BatchTableProps {
-  batches: Batch[];
+  batches: BatchResponse[];
   loading: boolean;
   error: string | null;
 }

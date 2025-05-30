@@ -1,36 +1,43 @@
 import { useEffect, useState } from "react";
-import {
-  fetchFeeds,
-  fetchCompositions,
-  updateComposition,
-  addComposition,
-  Feed,
-  Composition,
-  FeedInComposition,
-} from "../services/feedMillMock";
+import { compositionApi } from "../services/api";
+import { FeedResponse } from "../types/Feed";
 import CompositionForm from "./CompositionForm";
-const BASIC_FEEDS = ["Maize", "Corn", "DORB", "Rice"];
+import { toast } from "react-toastify";
 
 function FeedMillStock() {
-  type ViewState = "view" | "edit" | "add";
+  type ViewState = "view" | "edit" | "add" | "use-composition";
   const [viewState, setViewState] = useState<ViewState>("view");
-  const [feeds, setFeeds] = useState<Feed[]>([]);
-  const [compositions, setCompositions] = useState<Composition[]>([]);
-  const [selectedCompositionId, setSelectedCompositionId] = useState<
-    number | null
-  >(null);
-  const [editFeeds, setEditFeeds] = useState<FeedInComposition[]>([]);
+  const [feeds, setFeeds] = useState<FeedResponse[]>([]);
+  const [compositions, setCompositions] = useState<any[]>([]);
+  const [selectedCompositionId, setSelectedCompositionId] = useState<number | null>(null);
+  const [editFeeds, setEditFeeds] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [newCompName, setNewCompName] = useState("");
+  const [timesToUse, setTimesToUse] = useState(1);
 
   useEffect(() => {
-    fetchFeeds().then(setFeeds);
-    fetchCompositions().then(setCompositions);
+    // Fetch feeds from API
+    // Use FeedResponse type
+    import("../services/api").then(({ feedApi }) => {
+      feedApi.getFeeds().then((feedResponses: FeedResponse[]) => {
+        setFeeds(feedResponses);
+      });
+    });
+    compositionApi.getCompositions().then((comps) => {
+      // Map feed_id to feedId for each feed in each composition
+      const mappedComps = comps.map((comp) => ({
+        ...comp,
+        feeds: comp.feeds.map((f: any) => ({
+          ...f,
+          feedId: f.feed_id ?? f.feedId, // support both possible keys
+        })),
+      }));
+      setCompositions(mappedComps);
+    });
   }, []);
 
   const filteredFeeds = feeds.filter((f) =>
-    !BASIC_FEEDS.includes(f.name) &&
-    f.name.toLowerCase().includes(search.toLowerCase())
+    f.title.toLowerCase().includes(search.toLowerCase())
   );
 
   const selectedComposition = compositions.find(
@@ -39,76 +46,72 @@ function FeedMillStock() {
 
   const handleCompositionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedCompositionId(Number(e.target.value));
-    // setEditing(false);
   };
 
   const handleEdit = () => {
     if (!selectedComposition) return;
-    setEditFeeds(selectedComposition.feeds.map((f) => ({ ...f })));
-    // setEditing(true);
+    setEditFeeds(selectedComposition.feeds.map((f: any) => ({ ...f })));
     setViewState("edit");
   };
 
   const handleFeedWeightChange = (feedId: number, weight: number) => {
     setEditFeeds(
-      editFeeds.map((f) => (f.feedId === feedId ? { ...f, weight } : f))
+      editFeeds.map((f: any) => (f.feedId === feedId ? { ...f, weight } : f))
     );
   };
 
   const handleFeedSearch = (e: React.ChangeEvent<HTMLInputElement>) =>
     setSearch(e.target.value);
 
-  const handleAddFeed = (feed: Feed) => {
-    if (!editFeeds.some((f) => f.feedId === feed.id)) {
+  // Accept both Feed and FeedResponse for compatibility
+  const handleAddFeed = (feed: { id?: number; title?: string }) => {
+    if (!feed.id) return;
+    if (!editFeeds.some((f: any) => f.feedId === feed.id)) {
       setEditFeeds([...editFeeds, { feedId: feed.id, weight: 0 }]);
     }
   };
 
   const handleRemoveFeed = (feedId: number) => {
-    setEditFeeds(editFeeds.filter((f) => f.feedId !== feedId));
+    setEditFeeds(editFeeds.filter((f: any) => f.feedId !== feedId));
   };
 
   const handleSave = async () => {
     if (!selectedComposition) return;
-    await updateComposition(
-      new Composition(
-        selectedComposition.id,
-        selectedComposition.name,
-        editFeeds
-      )
+    await compositionApi.updateComposition(
+      selectedComposition.id,
+      {
+        name: selectedComposition.name,
+        feeds: editFeeds,
+      }
     );
-    fetchCompositions().then(setCompositions);
-    // setEditing(false);
+    const updated = await compositionApi.getCompositions();
+    setCompositions(updated);
     setViewState("view");
   };
 
   const handleAddComposition = async () => {
-    //setShowAdd(true);
     setViewState("add");
     setEditFeeds([]);
     setNewCompName("");
-    // setEditing(false);
   };
 
   const handleConfirmAddComposition = async () => {
-    if (!newCompName.trim()) return;
-
-    const newId = compositions.length
-      ? Math.max(...compositions.map((c) => c.id)) + 1
-      : 1;
-
-    const newComp = new Composition(newId, newCompName, editFeeds);
-
-    await addComposition(newComp);
-
-    const updatedCompositions = await fetchCompositions();
-    setCompositions(updatedCompositions);
-    setSelectedCompositionId(newId);
-    // setEditing(false);
+    if (!newCompName.trim()) {
+      toast.error("Composition name cannot be empty");
+      return;
+    }
+    await compositionApi.createComposition({
+      name: newCompName,
+      feeds: editFeeds,
+    });
+    const updated = await compositionApi.getCompositions();
+    setCompositions(updated);
+    setSelectedCompositionId(updated[updated.length - 1]?.id || null);
     setNewCompName("");
     setEditFeeds([]);
     setViewState("view");
   };
+
   return (
     <div className="container py-3">
       <div className="mb-3 d-flex align-items-center gap-2">
@@ -137,7 +140,6 @@ function FeedMillStock() {
             <i className="bi bi-pencil me-1"></i>Edit
           </button>
         )}
-        
 
         {viewState !== "add" && (
           <button
@@ -152,15 +154,15 @@ function FeedMillStock() {
         <div className="mt-3">
           <h4>Feeds in Composition</h4>
           <ul className="list-group">
-            {selectedComposition.feeds.map((f) => {
+            {selectedComposition.feeds.map((f: any) => {
               const feed = feeds.find((fd) => fd.id === f.feedId);
-              if (!feed || BASIC_FEEDS.includes(feed.name)) return null;
+              if (!feed) return null;
               return (
                 <li
                   key={f.feedId}
                   className="list-group-item d-flex justify-content-between align-items-center"
                 >
-                  {feed.name}
+                  <span>{feed.title}</span>
                   <span className="badge bg-secondary rounded-pill">
                     {f.weight} kg
                   </span>
@@ -170,15 +172,82 @@ function FeedMillStock() {
             <li className="list-group-item d-flex justify-content-between align-items-center">
               <strong>Total Weight</strong>
               <span className="badge bg-primary rounded-pill">
-                {selectedComposition.totalWeight} kg
+                {selectedComposition.feeds.reduce((sum: number, f: any) => sum + f.weight, 0)} kg
               </span>
             </li>
           </ul>
+          {/* Use Composition Controls */}
+          <div className="mt-3 d-flex align-items-center gap-2">
+            <button
+              className="btn btn-info btn-sm"
+              onClick={() => setViewState("use-composition")}
+            >
+              Use Composition
+            </button>
+            <button
+              className="btn btn-outline-secondary btn-sm"
+              onClick={() => {
+                if (selectedCompositionId) {
+                  window.location.href = `/compositions/${selectedCompositionId}/usage-history`;
+                }
+              }}
+            >
+              View Usage History
+            </button>
+          </div>
         </div>
       )}
 
-{viewState === "add" && (
-          <CompositionForm
+      {/* Use Composition Modal/Controls */}
+      {viewState === "use-composition" && selectedComposition && (
+        <div className="card p-3 mt-3">
+          <h5>Use Composition</h5>
+          <div className="d-flex align-items-center gap-2 mb-2">
+            <span>Times:</span>
+            <button
+              className="btn btn-outline-secondary btn-sm"
+              onClick={() => setTimesToUse((prev) => Math.max(1, prev - 1))}
+            >
+              -
+            </button>
+            <span>{timesToUse}</span>
+            <button
+              className="btn btn-outline-secondary btn-sm"
+              onClick={() => setTimesToUse((prev) => prev + 1)}
+            >
+              +
+            </button>
+          </div>
+          <div className="d-flex gap-2">
+            <button
+              className="btn btn-success btn-sm"
+              onClick={async () => {
+                const usedAt = new Date().toISOString().split('T')[0];
+                try {
+                  await compositionApi.useComposition({
+                    compositionId: selectedComposition.id,
+                    times: timesToUse,
+                    usedAt,
+                  });
+                  toast.success(`Used composition ${selectedComposition.name} ${timesToUse} time(s)`);
+                  // Optionally update local state/UI
+                  const updated = await compositionApi.getCompositions();
+                  setCompositions(updated);
+                  setViewState("view");
+                } catch (err) {
+                  toast.error("Failed to use composition");
+                }
+              }}
+            >
+              Confirm
+            </button>
+            <button className="btn btn-outline-secondary btn-sm" onClick={() => setViewState("view")}>Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {viewState === "add" && (
+        <CompositionForm
           title="Create Composition"
           initialCompName={newCompName}
           onCompNameChange={(e) => setNewCompName(e.target.value)}
@@ -194,25 +263,25 @@ function FeedMillStock() {
           saveButtonLabel="Save Composition"
           onCancel={() => setViewState("view")}
         />
-        )}
+      )}
 
       {viewState === "edit" && (
         <CompositionForm
-        title="Edit Composition"
-        initialCompName={selectedComposition?.name || ""} // You might want to handle name editing differently
-        onCompNameChange={() => {}} // Or a function to handle name changes if needed
-        search={search}
-        handleFeedSearch={handleFeedSearch}
-        filteredFeeds={filteredFeeds}
-        editFeeds={editFeeds}
-        feeds={feeds}
-        handleAddFeed={handleAddFeed}
-        handleRemoveFeed={handleRemoveFeed}
-        handleFeedWeightChange={handleFeedWeightChange}
-        onSave={handleSave}
-        saveButtonLabel="Save Changes"
-        onCancel={() => setViewState("view")}
-      />
+          title="Edit Composition"
+          initialCompName={selectedComposition?.name || ""}
+          onCompNameChange={() => {}}
+          search={search}
+          handleFeedSearch={handleFeedSearch}
+          filteredFeeds={filteredFeeds}
+          editFeeds={editFeeds}
+          feeds={feeds}
+          handleAddFeed={handleAddFeed}
+          handleRemoveFeed={handleRemoveFeed}
+          handleFeedWeightChange={handleFeedWeightChange}
+          onSave={handleSave}
+          saveButtonLabel="Save Changes"
+          onCancel={() => setViewState("view")}
+        />
       )}
     </div>
   );
