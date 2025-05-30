@@ -83,11 +83,20 @@ const Slidebar: React.FC = () => {
                   Dashboard
                 </Link>
                 <Link
+                  to="/add-batch"
+                  className="text-decoration-none text-dark d-block py-2"
+                  onClick={closeSidebarMobile}
+                >
+                  <i className="bi bi-plus-circle me-2"></i>
+                  Add Batch
+                </Link>
+                
+                <Link
                   to="/feed-mill-stock"
                   className="text-decoration-none text-dark d-block py-2"
                   onClick={closeSidebarMobile}
                 >
-                  <i className="bi bi-basket me-2"></i>
+                  <i className="bi bi-calculator me-2"></i>
                   Feed Compositions
                 </Link>
                 {/* <Link
@@ -104,13 +113,13 @@ const Slidebar: React.FC = () => {
                   onClick={closeSidebarMobile}> 
                   <i className="bi bi-basket me-2"></i>
                   Feed List
-                  </Link>
+                  </Link> */}
                 <Link
                   to="/feed"
                   className="text-decoration-none text-dark d-block py-2"
                   onClick={closeSidebarMobile}>
                     <i className="bi bi-basket me-2"></i>
-                  Feed Index </Link> */}
+                  Feed Management </Link>
                                 {/* <Link
                   to="/egg-room-stock"
                   className="text-decoration-none text-dark d-block py-2"

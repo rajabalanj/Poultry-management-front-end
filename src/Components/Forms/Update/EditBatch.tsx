@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { batchApi, Batch } from "../services/api";
+import { batchApi } from "../../../services/api";
+import { BatchResponse } from "../../../types/batch"; // Adjust the import path as necessary
 import { toast } from "react-toastify";
-import PageHeader from "./PageHeader";
+import PageHeader from "../../Layout/PageHeader";
 
 const EditBatch: React.FC = () => {
   const { batchId } = useParams<{ batchId: string }>();
   const navigate = useNavigate();
-  const [batch, setBatch] = useState<Batch | null>(null);
+  const [batch, setBatch] = useState<BatchResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,7 +53,7 @@ const EditBatch: React.FC = () => {
     }
   };
 
-  const handleNumberInput = (value: string, field: keyof Batch) => {
+  const handleNumberInput = (value: string, field: keyof BatchResponse) => {
     if (value === "") {
       setBatch((prev) => (prev ? { ...prev, [field]: "" } : null));
       return;

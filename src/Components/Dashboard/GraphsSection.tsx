@@ -1,6 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Chart, ChartConfiguration } from 'chart.js/auto';
-import '../../styles/global.css';
+import React, { useState, useEffect } from "react";
 
 interface ChartContainerProps {
   title: string;
@@ -11,165 +9,64 @@ const ChartContainer: React.FC<ChartContainerProps> = ({ title, children }) => (
   <div className="card shadow-sm h-100">
     <div className="card-body p-0">
       <h6 className="card-title mb-2 text-sm px-2 pt-2">{title}</h6>
-      <div className="chart-container p-0">{children}</div>
+      <div className="chart-container p-2">{children}</div>
     </div>
   </div>
 );
 
-const GraphsSection: React.FC = () => {
+// Define the props interface for GraphsSection
+interface GraphsSectionProps {
+  henDayValue: number; // Expecting a number for HD
+  loading: boolean;
+  error: string | null;
+}
+
+const GraphsSection: React.FC<GraphsSectionProps> = ({ henDayValue }) => { // Destructure henDayValue from props
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const HD = henDayValue; // Use the prop instead of hardcoding
 
-  const dailyChartRef = useRef<HTMLCanvasElement>(null);
-  const monthlyChartRef = useRef<HTMLCanvasElement>(null);
-
-  // ✅ Chart instances (persisted between renders)
-  const dailyChartInstanceRef = useRef<Chart | null>(null);
-  const monthlyChartInstanceRef = useRef<Chart | null>(null);
-
-  const actual = 79.0;
-  const standard = 80.9;
-  const diffPercent = actual - standard; // Difference in percentage
-
-  let barColor = '';
-  if (diffPercent >= -1.4) {
-    barColor = 'green'; // Greater than or equal to -1.4 (includes positive values)
-  } else if (diffPercent < -1.4 && diffPercent >= -1.9) {
-    barColor = 'yellow'; // Less than -1.4 and greater than or equal to -1.9
+  let barColor = "";
+  if (HD >= 80 && HD <= 100) {
+    barColor = "bg-success"; // green
+  } else if (HD < 80 && HD >= 50) {
+    barColor = "bg-warning"; // yellow
   } else {
-    barColor = 'red'; // Less than -1.9
+    barColor = "bg-danger"; // red
   }
+
+  const getTextColor = (bgColor: string): string => {
+  switch (bgColor) {
+    case "bg-warning":
+      return "text-dark";  // ensures readable contrast
+    default:
+      return "text-white"; // works for bg-success, bg-danger
+  }
+};
 
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
-
-  useEffect(() => {
-    // ✅ Destroy previous daily chart if exists
-    if (dailyChartInstanceRef.current) {
-      dailyChartInstanceRef.current.destroy();
-    }
-
-    const dailyCanvas = dailyChartRef.current;
-    if (dailyCanvas) {
-      const dailyChartData = {
-        labels: ['Actual', 'Standard'],
-        datasets: [
-          {
-            label: 'Eggs Count',
-            data: [actual, standard],
-            backgroundColor: [barColor, '#2196F3'],
-          },
-        ],
-      };
-
-      const dailyChartOptions: ChartConfiguration['options'] = {
-        responsive: true,
-        maintainAspectRatio: false,
-        indexAxis: 'x',
-        scales: {
-          y: {
-            beginAtZero: true,
-            title: {
-              display: true,
-              text: 'Eggs Count',
-            },
-          },
-        },
-        plugins: {
-          legend: {
-            display: false,
-          },
-          tooltip: {
-            callbacks: {
-              label: (context) => `${context.label}: ${context.formattedValue}`,
-            },
-          },
-        },
-      };
-
-      dailyChartInstanceRef.current = new Chart(dailyCanvas, {
-        type: 'bar',
-        data: dailyChartData,
-        options: dailyChartOptions,
-      });
-    }
-
-    // ✅ Destroy previous monthly chart if exists
-    if (monthlyChartInstanceRef.current) {
-      monthlyChartInstanceRef.current.destroy();
-    }
-
-    const monthlyCanvas = monthlyChartRef.current;
-    if (monthlyCanvas) {
-      const monthlyChartData = {
-        labels: ['Sep', 'Oct'],
-        datasets: [
-          {
-            label: 'Production',
-            data: [240000, 250000],
-            backgroundColor: ['#4CAF50', '#2196F3'],
-          },
-        ],
-      };
-
-      const monthlyChartOptions: ChartConfiguration['options'] = {
-        responsive: true,
-        maintainAspectRatio: false,
-        indexAxis: 'x',
-        scales: {
-          y: {
-            beginAtZero: true,
-            title: {
-              display: true,
-              text: 'Production',
-            },
-          },
-        },
-        plugins: {
-          legend: {
-            display: false,
-          },
-          tooltip: {
-            callbacks: {
-              label: (context) => `${context.dataset.label}: ${context.formattedValue}`,
-            },
-          },
-        },
-      };
-
-      monthlyChartInstanceRef.current = new Chart(monthlyCanvas, {
-        type: 'bar',
-        data: monthlyChartData,
-        options: monthlyChartOptions,
-      });
-    }
-
-    // ✅ Optional: Cleanup charts on component unmount
-    return () => {
-      if (dailyChartInstanceRef.current) {
-        dailyChartInstanceRef.current.destroy();
-      }
-      if (monthlyChartInstanceRef.current) {
-        monthlyChartInstanceRef.current.destroy();
-      }
-    };
-  }, [isMobile, actual, standard, barColor]);
 
   return (
     <div className="row g-2 mb-2">
-      <div className={isMobile ? 'col-12' : 'col-6'}>
-        <ChartContainer title="Eggs (Actual vs. Standard)">
-          <canvas ref={dailyChartRef} style={{ width: '100%', height: isMobile ? '250px' : '200px' }} />
-        </ChartContainer>
-      </div>
-
-      <div className={isMobile ? 'col-12' : 'col-6'}>
-        <ChartContainer title="Egg Production">
-          <canvas ref={monthlyChartRef} style={{ width: '100%', height: isMobile ? '250px' : '200px' }} />
+      <div className="col-12">
+        <ChartContainer title="Hen Day (HD) %">
+          <div className="progress" style={{ height: isMobile ? "30px" : "20px" }}>
+            <div
+              className={`progress-bar ${barColor} ${getTextColor(barColor)}`}
+              role="progressbar"
+              style={{ width: `${HD}%` }}
+              aria-valuenow={HD}
+              aria-valuemin={0}
+              aria-valuemax={100}
+            >
+              {HD}
+            </div>
+          </div>
         </ChartContainer>
       </div>
     </div>

@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import HeaderCardGroup from './HeaderCardGroup';
 import GraphsSection from './GraphsSection';
 import BatchTable from '../BatchTable';
-import { batchApi, Batch } from '../../services/api';
+import { batchApi } from '../../services/api';
+import { BatchResponse } from '../../types/batch'; // Adjust the import path as necessary
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const [startDate, setStartDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [batches, setBatches] = useState<Batch[]>([]);
+  const [batches, setBatches] = useState<BatchResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,6 +41,7 @@ const Dashboard = () => {
   const openingCount = batches.reduce((sum, b) => sum + (b.opening_count || 0), 0);
   const mortality = batches.reduce((sum, b) => sum + (b.mortality || 0), 0);
   const culls = batches.reduce((sum, b) => sum + (b.culls || 0), 0);
+  const avgHD = batches.length > 0 ? Number(((batches.reduce((sum, b) => sum + (b.HD || 0), 0) / batches.length) * 100).toFixed(2)) : 0;
 
   const cards = [
     {
@@ -76,6 +79,19 @@ const Dashboard = () => {
   return (
     <div className="container-fluid">
       {/* Date controls and buttons */}
+      
+      <HeaderCardGroup cards={cards} loading={loading} error={error} />
+      <GraphsSection henDayValue={avgHD} loading={loading} error={error} />
+      <div className="row mb-4">
+        <div className="col">
+          <div className="card shadow-sm">
+            <div className="card-body">
+              <h6 className="card-title mb-3">Batch Data</h6>
+              <BatchTable batches={batches} loading={loading} error={error} />
+            </div>
+          </div>
+        </div>
+      </div>
       <div className="row mb-4">
         <div className="col-12 col-md-3 mb-2">
           <label className="form-label">Start Date:</label>
@@ -104,18 +120,6 @@ const Dashboard = () => {
           </button>
         </div>
       </div>
-      <HeaderCardGroup cards={cards} loading={loading} error={error} />
-      <div className="row mb-4">
-        <div className="col">
-          <div className="card shadow-sm">
-            <div className="card-body">
-              <h6 className="card-title mb-3">Batch Data</h6>
-              <BatchTable batches={batches} loading={loading} error={error} />
-            </div>
-          </div>
-        </div>
-      </div>
-      <GraphsSection />
     </div>
   );
 };

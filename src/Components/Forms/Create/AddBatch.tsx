@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { batchApi } from '../services/api';
+import { batchApi } from '../../../services/api';
 import { toast } from 'react-toastify';
-import '../styles/global.css';
-import PageHeader from './PageHeader';
+import PageHeader from '../../Layout/PageHeader';
 
 const AddBatch: React.FC = () => {
   const [shed_no, setShedNo] = useState('1');
