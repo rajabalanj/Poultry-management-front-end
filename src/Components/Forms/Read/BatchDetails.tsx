@@ -52,7 +52,8 @@ const BatchDetails: React.FC = () => {
   return (
     <div className="container-fluid">
       <PageHeader 
-        title={`Batch Details - ${batch.batch_no}`}
+        title={new Intl.DateTimeFormat('en-GB').format(new Date()).replace(/\//g, '-')}
+        subtitle={`Batch Details - ${batch.batch_no}`}
         buttonLabel="Back"
         buttonLink="/"
       />

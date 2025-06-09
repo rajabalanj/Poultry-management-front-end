@@ -34,7 +34,7 @@ const CompositionUsageHistory = () => {
   return (
     <div className="container py-3">
       <div className="mb-3 d-flex align-items-center gap-2">
-        <button className="btn btn-secondary btn-sm" onClick={() => navigate(-1)}>
+        <button className="btn btn-secondary btn-sm" onClick={() => navigate("/feed-mill-stock")}>
           Back
         </button>
         <h4 className="mb-0 ms-3">Composition Usage History</h4>
