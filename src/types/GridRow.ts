@@ -1,6 +1,6 @@
 export interface GridRow {
     batch_id: number;
-    shed_no: number;
+    shed_no: string;
     batch_no: string;
     batch_date: string;
     age: string;
@@ -8,7 +8,7 @@ export interface GridRow {
     mortality: number;
     culls: number;
     closing_count: number;
-    table: number;
+    table_eggs: number;
     jumbo: number;
     cr: number;
     total_eggs: number;

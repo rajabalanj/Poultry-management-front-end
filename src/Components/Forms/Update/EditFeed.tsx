@@ -6,7 +6,7 @@ import PageHeader from "../../Layout/PageHeader";
 import { FeedResponse } from "../../../types/Feed"; // Adjust the import path as necessary
 
 const EditFeed: React.FC = () => {
-  const { feedId } = useParams<{ feedId: string }>();
+  const { feed_id } = useParams<{ feed_id: string }>();
   const navigate = useNavigate();
   const [feed, setFeed] = useState<FeedResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -15,8 +15,8 @@ const EditFeed: React.FC = () => {
   useEffect(() => {
     const fetchFeed = async () => {
       try {
-        if (!feedId) return;
-        const data = await feedApi.getFeed(Number(feedId));
+        if (!feed_id) return;
+        const data = await feedApi.getFeed(Number(feed_id));
         setFeed(data);
       } catch (err) {
         console.error("Error fetching feed:", err);
@@ -28,15 +28,15 @@ const EditFeed: React.FC = () => {
     };
 
     fetchFeed();
-  }, [feedId]);
+  }, [feed_id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!feed || !feedId) return;
+    if (!feed || !feed_id) return;
 
     try {
-      await feedApi.updateFeed(Number(feedId), {
-      id: Number(feedId),
+      await feedApi.updateFeed(Number(feed_id), {
+      id: Number(feed_id),
       title: feed.title,
       quantity: feed.quantity,
       unit: feed.unit,
@@ -63,7 +63,7 @@ const EditFeed: React.FC = () => {
       <PageHeader
         title={`Update Feed ${feed.title}`}
         buttonLabel="Back"
-        buttonLink={`/feed/${feedId}/details`}
+        buttonLink={`/feed/${feed_id}/details`}
       />
 
       <div className="p-4">

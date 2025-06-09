@@ -47,7 +47,7 @@ const BatchDetails: React.FC = () => {
     return <div className="text-center">Batch not found</div>;
   }
 
-  const totalEggs = (batch.table || 0) + (batch.jumbo || 0) + (batch.cr || 0);
+  const totalEggs = (batch.table_eggs || 0) + (batch.jumbo || 0) + (batch.cr || 0);
 
   return (
     <div className="container-fluid">
@@ -83,7 +83,7 @@ const BatchDetails: React.FC = () => {
             title: 'Total Eggs',
             mainValue: totalEggs,
             subValues: [
-              { label: 'Normal', value: batch.table || 0 },
+              { label: 'Normal', value: batch.table_eggs || 0 },
               { label: 'Jumbo', value: batch.jumbo || 0 },
               { label: 'Crack', value: batch.cr || 0 },
             ],
@@ -100,7 +100,7 @@ const BatchDetails: React.FC = () => {
             <div className="mb-4">
               <label className="form-label">Shed No.</label>
               <input
-                type="number"
+                type="string"
                 className="form-control"
                 value={batch.shed_no}
                 disabled

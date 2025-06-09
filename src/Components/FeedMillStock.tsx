@@ -24,12 +24,12 @@ function FeedMillStock() {
       });
     });
     compositionApi.getCompositions().then((comps) => {
-      // Map feed_id to feedId for each feed in each composition
+      // Map feed_id to feed_id for each feed in each composition
       const mappedComps = comps.map((comp) => ({
         ...comp,
         feeds: comp.feeds.map((f: any) => ({
           ...f,
-          feedId: f.feed_id ?? f.feedId, // support both possible keys
+          feed_id: f.feed_id ?? f.feed_id, // support both possible keys
         })),
       }));
       setCompositions(mappedComps);
@@ -54,9 +54,9 @@ function FeedMillStock() {
     setViewState("edit");
   };
 
-  const handleFeedWeightChange = (feedId: number, weight: number) => {
+  const handleFeedWeightChange = (feed_id: number, weight: number) => {
     setEditFeeds(
-      editFeeds.map((f: any) => (f.feedId === feedId ? { ...f, weight } : f))
+      editFeeds.map((f: any) => (f.feed_id === feed_id ? { ...f, weight } : f))
     );
   };
 
@@ -66,13 +66,13 @@ function FeedMillStock() {
   // Accept both Feed and FeedResponse for compatibility
   const handleAddFeed = (feed: { id?: number; title?: string }) => {
     if (!feed.id) return;
-    if (!editFeeds.some((f: any) => f.feedId === feed.id)) {
-      setEditFeeds([...editFeeds, { feedId: feed.id, weight: 0 }]);
+    if (!editFeeds.some((f: any) => f.feed_id === feed.id)) {
+      setEditFeeds([...editFeeds, { feed_id: feed.id, weight: 0 }]);
     }
   };
 
-  const handleRemoveFeed = (feedId: number) => {
-    setEditFeeds(editFeeds.filter((f: any) => f.feedId !== feedId));
+  const handleRemoveFeed = (feed_id: number) => {
+    setEditFeeds(editFeeds.filter((f: any) => f.feed_id !== feed_id));
   };
 
   const handleSave = async () => {
@@ -155,11 +155,11 @@ function FeedMillStock() {
           <h4>Feeds in Composition</h4>
           <ul className="list-group">
             {selectedComposition.feeds.map((f: any) => {
-              const feed = feeds.find((fd) => fd.id === f.feedId);
+              const feed = feeds.find((fd) => fd.id === f.feed_id);
               if (!feed) return null;
               return (
                 <li
-                  key={f.feedId}
+                  key={f.feed_id}
                   className="list-group-item d-flex justify-content-between align-items-center"
                 >
                   <span>{feed.title}</span>

@@ -11,6 +11,7 @@ const EditBatch: React.FC = () => {
   const [batch, setBatch] = useState<BatchResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isChickBatch, setIsChickBatch] = useState(batch?.isChickBatch ?? false);
 
   useEffect(() => {
     const fetchBatch = async () => {
@@ -18,6 +19,7 @@ const EditBatch: React.FC = () => {
         if (!batchId) return;
         const data = await batchApi.getBatch(Number(batchId));
         setBatch(data);
+        setIsChickBatch(data.isChickBatch ?? false);
       } catch (err) {
         console.error("Error fetching batch:", err);
         setError("Failed to load batch");
@@ -38,11 +40,11 @@ const EditBatch: React.FC = () => {
       await batchApi.updateBatch(Number(batchId), {
         mortality: batch.mortality,
         culls: batch.culls,
-        table: batch.table,
-        jumbo: batch.jumbo,
-        cr: batch.cr,
+        table_eggs: isChickBatch ? 0 : batch.table_eggs,
+        jumbo: isChickBatch ? 0 : batch.jumbo,
+        cr: isChickBatch ? 0 : batch.cr,
         date: new Date().toISOString().split('T')[0],
-        //date: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        isChickBatch: isChickBatch,
       });
       toast.success("Batch updated successfully");
       navigate(-1);
@@ -78,15 +80,17 @@ const EditBatch: React.FC = () => {
   if (error) return <div>{error}</div>;
   if (!batch) return <div>Batch not found</div>;
 
-  const totalEggs = (batch.table || 0) + (batch.jumbo || 0) + (batch.cr || 0);
+  const totalEggs = (batch.table_eggs || 0) + (batch.jumbo || 0) + (batch.cr || 0);
 
   return (
     <div className="container-fluid">
       <PageHeader
-        title={`Update Data ${batch.batch_no}`}
-        buttonLabel="Back"
-        buttonLink={`/batch/${batchId}/details`}
-      />
+  title={new Intl.DateTimeFormat('en-GB').format(new Date()).replace(/\//g, '-')}
+  subtitle={`Update Data ${batch.batch_no}`}
+  buttonLabel="Back"
+  buttonLink={`/batch/${batchId}/details`}
+/>
+
 
       <div className="p-4">
         <form onSubmit={handleSubmit}>
@@ -130,9 +134,9 @@ const EditBatch: React.FC = () => {
                   <input
                     type="number"
                     className="form-control"
-                    value={batch.table}
+                    value={batch.table_eggs}
                     min="0"
-                    onChange={(e) => handleNumberInput(e.target.value, "table")}
+                    onChange={(e) => handleNumberInput(e.target.value, "table_eggs")}
                   />
                 </div>
                 <div className="col-6">
@@ -166,6 +170,8 @@ const EditBatch: React.FC = () => {
               </div>
             </div>
           </div>
+
+          
 
           <div className="mt-4 d-flex justify-content-center">
             <button type="submit" className="btn btn-primary me-2">

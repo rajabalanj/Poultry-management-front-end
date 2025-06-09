@@ -1,8 +1,8 @@
-
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import { Feed, FeedResponse } from '../types/Feed';
 import { BatchResponse, Batch, BatchUpdate } from '../types/batch';
 import { CompositionResponse } from '../types/compositon';
+import { DailyBatch } from '../types/daily_batch';
 
 // Define types for our data
 
@@ -93,7 +93,7 @@ export const validateBatchData = {
 export const DEFAULT_BATCH_VALUES: Partial<Batch> = {
   mortality: 0,
   culls: 0,
-  table: 0,
+  table_eggs: 0,
   jumbo: 0,
   cr: 0,
   date: new Date().toISOString().split('T')[0], // Set to today's date
@@ -103,22 +103,7 @@ export const DEFAULT_BATCH_VALUES: Partial<Batch> = {
 export type BatchUpdateFields = Partial<BatchUpdate>;
 
 // Define the DailyBatch interface to match the backend model
-export interface DailyBatch {
-  batch_id: number; // Foreign key to Batch
-  shed_no: number;
-  batch_no: string;
-  uploaded_date: string; // ISO date string
-  batch_date: string; // ISO date string
-  age: string; // Format: "week.day" (e.g., "1.1")
-  opening_count: number;
-  mortality: number;
-  culls: number;
-  closing_count: number;
-  table: number;
-  jumbo: number;
-  cr: number;
-  total_eggs: number; // Computed field
-}
+
 
 // Helper function to calculate closing count
 export const calculateClosingCount = (
@@ -131,11 +116,11 @@ export const calculateClosingCount = (
 
 // Helper function to calculate total eggs
 export const calculateTotalEggs = (
-  table: number = 0,
+  table_eggs: number = 0,
   jumbo: number = 0,
   cr: number = 0
 ): number => {
-  return table + jumbo + cr;
+  return table_eggs + jumbo + cr;
 };
 
 // Helper function to validate a new batch before sending to API
@@ -151,7 +136,7 @@ export const validateBatch = (batch: Batch): string[] => {
     ['opening_count', 'Opening count'],
     ['mortality', 'Mortality'],
     ['culls', 'Culls'],
-    ['table', 'Table eggs'],
+    ['table_eggs', 'Table eggs'],
     ['jumbo', 'Jumbo eggs'],
     ['cr', 'Crack eggs']
   ];
@@ -284,6 +269,27 @@ export const dailyBatchApi = {
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch snapshot data'));
+    }
+  },
+
+  // Create a new daily batch record
+  createDailyBatch: async (batchData: Omit<DailyBatch, 'batch_id' | 'total_eggs' | 'HD'>): Promise<DailyBatch> => {
+    try {
+      const response = await api.post<DailyBatch>(`/daily-batch/`, batchData);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to create daily batch'));
+    }
+  },
+
+  // Upload Excel file for daily batches
+  uploadExcel: async (formData: FormData): Promise<void> => {
+    try {
+      await api.post('/daily-batch/upload-excel/', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to upload Excel file'));
     }
   },
 };

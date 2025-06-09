@@ -45,7 +45,7 @@ const PreviousDayReport = () => {
 
   return (
     <div className="container-fluid">
-      <PageHeader title="Batch Report"></PageHeader>
+      <PageHeader title="Batch Overview"></PageHeader>
       {/* Error message */}
       {error && <div className="alert alert-danger text-center">{error}</div>}
       <div className="row mb-4">
@@ -89,15 +89,17 @@ const PreviousDayReport = () => {
                   (currentPage - 1) * rowsPerPage,
                   currentPage * rowsPerPage
                 )
-                .map((row, index) => (
-                  <tr key={index}>
+                .map((row) => (
+                  <tr key={`${row.batch_id}-${row.batch_date}`}>
+                    {" "}
+                    {/* Unique key */}
                     <td>{row.batch_date}</td>
                     <td>{row.age}</td>
                     <td>{row.opening_count}</td>
                     <td>{row.mortality}</td>
                     <td>{row.culls}</td>
                     <td>{row.closing_count}</td>
-                    <td>{row.table}</td>
+                    <td>{row.table_eggs}</td>
                     <td>{row.jumbo}</td>
                     <td>{row.cr}</td>
                     <td>{row.total_eggs}</td>

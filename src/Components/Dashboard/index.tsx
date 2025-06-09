@@ -37,7 +37,7 @@ const Dashboard = () => {
 
 
   const totalBirds = batches.reduce((sum, b) => sum + (b.calculated_closing_count || 0), 0);
-  const totalEggs = batches.reduce((sum, b) => sum + ((b.table || 0) + (b.jumbo || 0) + (b.cr || 0)), 0);
+  const totalEggs = batches.reduce((sum, b) => sum + ((b.table_eggs || 0) + (b.jumbo || 0) + (b.cr || 0)), 0);
   const openingCount = batches.reduce((sum, b) => sum + (b.opening_count || 0), 0);
   const mortality = batches.reduce((sum, b) => sum + (b.mortality || 0), 0);
   const culls = batches.reduce((sum, b) => sum + (b.culls || 0), 0);
@@ -69,7 +69,7 @@ const Dashboard = () => {
       mainValue: totalEggs,
       icon: "bi bi-egg",
       subValues: [
-        { label: "Normal", value: batches.reduce((sum, b) => sum + (b.table || 0), 0) },
+        { label: "Normal", value: batches.reduce((sum, b) => sum + (b.table_eggs || 0), 0) },
         { label: "Jumbo", value: batches.reduce((sum, b) => sum + (b.jumbo || 0), 0) },
         { label: "Crack", value: batches.reduce((sum, b) => sum + (b.cr || 0), 0) }
       ]

@@ -120,7 +120,14 @@ const Slidebar: React.FC = () => {
                   onClick={closeSidebarMobile}>
                     <i className="bi bi-basket me-2"></i>
                   Feed Management </Link>
-                                {/* <Link
+                  <Link
+                  to="/upload-batch"
+                  className="text-decoration-none text-dark d-block py-2"                          
+                  onClick={closeSidebarMobile}>
+                  <i className="bi bi-upload me-2"></i>
+                  Upload Batch
+                  </Link>
+{/* <Link
                   to="/egg-room-stock"
                   className="text-decoration-none text-dark d-block py-2"
                   onClick={closeSidebarMobile}

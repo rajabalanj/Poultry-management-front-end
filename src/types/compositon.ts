@@ -1,5 +1,5 @@
 export interface FeedInComposition {
-  feedId: number;
+  feed_id: number;
   weight: number;
 }
 

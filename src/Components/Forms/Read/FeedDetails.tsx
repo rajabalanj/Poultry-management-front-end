@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import PageHeader from "../../Layout/PageHeader";
 
 const FeedDetails: React.FC = () => {
-  const { feedId } = useParams<{ feedId: string }>();
+  const { feed_id } = useParams<{ feed_id: string }>();
   const navigate = useNavigate();
   const [feed, setFeed] = useState<Feed | null>(null);
   const [loading, setLoading] = useState(true);
@@ -15,8 +15,8 @@ const FeedDetails: React.FC = () => {
   useEffect(() => {
     const fetchFeed = async () => {
       try {
-        if (!feedId) return;
-        const data = await feedApi.getFeed(Number(feedId));
+        if (!feed_id) return;
+        const data = await feedApi.getFeed(Number(feed_id));
         setFeed(data);
       } catch (err) {
         console.error("Error fetching feed:", err);
@@ -28,7 +28,7 @@ const FeedDetails: React.FC = () => {
     };
 
     fetchFeed();
-  }, [feedId]);
+  }, [feed_id]);
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;

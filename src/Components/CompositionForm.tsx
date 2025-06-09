@@ -12,8 +12,8 @@ interface CompositionFormProps {
   editFeeds: FeedInComposition[];
   feeds: FeedResponse[];
   handleAddFeed: (feed: Feed) => void;
-  handleRemoveFeed: (feedId: number) => void;
-  handleFeedWeightChange: (feedId: number, weight: number) => void;
+  handleRemoveFeed: (feed_id: number) => void;
+  handleFeedWeightChange: (feed_id: number, weight: number) => void;
   onSave: () => void;
   saveButtonLabel: string;
   onCancel: () => void;
@@ -51,11 +51,11 @@ function CompositionForm({
           )}
           <ul className="list-group mb-3">
             {editFeeds.map((f) => {
-              const feed = feeds.find((fd) => fd.id === f.feedId);
+              const feed = feeds.find((fd) => fd.id === f.feed_id);
               if (!feed) return null;
               return (
                 <li
-                  key={f.feedId}
+                  key={f.feed_id}
                   className="list-group-item d-flex justify-content-between align-items-center"
                 >
                   <span>{feed.title}</span>
@@ -66,13 +66,13 @@ function CompositionForm({
                       value={f.weight}
                       min={0}
                       onChange={(e) =>
-                        handleFeedWeightChange(f.feedId, Number(e.target.value))
+                        handleFeedWeightChange(f.feed_id, Number(e.target.value))
                       }
                       style={{ width: '70px' }}
                     />
                     <span className="text-muted">kg</span>
                     <button
-                      onClick={() => handleRemoveFeed(f.feedId)}
+                      onClick={() => handleRemoveFeed(f.feed_id)}
                       className="btn btn-sm btn-outline-danger"
                     >
                       <i className="bi bi-trash"></i>
@@ -96,15 +96,15 @@ function CompositionForm({
             style={{ maxHeight: '150px', overflowY: 'auto' }}
           >
             {filteredFeeds
-              .filter((f) => !editFeeds.some((ef) => ef.feedId === f.id))
+              .filter((f) => !editFeeds.some((ef) => ef.feed_id === f.id))
               .map((feed) => (
                 <button
                   key={feed.id}
                   onClick={() => handleAddFeed(feed)}
                   className={`list-group-item list-group-item-action d-flex justify-content-between align-items-center ${
-                    editFeeds.some((ef) => ef.feedId === feed.id) ? 'disabled' : ''
+                    editFeeds.some((ef) => ef.feed_id === feed.id) ? 'disabled' : ''
                   }`}
-                  disabled={editFeeds.some((ef) => ef.feedId === feed.id)}
+                  disabled={editFeeds.some((ef) => ef.feed_id === feed.id)}
                 >
                   {feed.title}
                   <i className="bi bi-plus-circle-fill text-success"></i>

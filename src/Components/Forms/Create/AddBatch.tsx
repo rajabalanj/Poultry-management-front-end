@@ -10,6 +10,7 @@ const AddBatch: React.FC = () => {
   const [week, setWeek] = useState('1');
   const [day, setDay] = useState('1');
   const [isLoading, setIsLoading] = useState(false);
+  const [isChickBatch, setIsChickBatch] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -19,16 +20,17 @@ const AddBatch: React.FC = () => {
     try {
       const batchData = {
         batch_no: `B-${shed_no}`,
-        shed_no: parseInt(shed_no),
+        shed_no: (shed_no),
         age: `${week}.${day}`,
         opening_count: parseInt(opening_count),
         mortality: 0,
         culls: 0,
         closing_count: parseInt(opening_count),
-        table: 0,
-        jumbo: 0,
-        cr: 0,
-        date: new Date().toLocaleDateString()
+        table_eggs: isChickBatch ? 0 : 0,
+        jumbo: isChickBatch ? 0 : 0,
+        cr: isChickBatch ? 0 : 0,
+        date: new Date().toLocaleDateString(),
+        isChickBatch: isChickBatch,
       };
 
       await batchApi.createBatch(batchData);
@@ -73,7 +75,7 @@ const AddBatch: React.FC = () => {
             <div className="col-md-6">
               <label className="form-label">Shed Number</label>
               <input
-                type="number"
+                type="string"
                 className="form-control"
                 value={shed_no}
                 onChange={(e) => setShedNo(e.target.value)}
@@ -119,6 +121,21 @@ const AddBatch: React.FC = () => {
                 max="7"
                 placeholder="Enter day (1-7)"
               />
+            </div>
+
+            <div className="col-12">
+              <div className="form-check mb-3">
+                <input
+                  className="form-check-input border border-dark"
+                  type="checkbox"
+                  id="chickBatchCheckbox"
+                  checked={isChickBatch}
+                  onChange={e => setIsChickBatch(e.target.checked)}
+                />
+                <label className="form-check-label" htmlFor="chickBatchCheckbox">
+                  Chick Batch (no eggs)
+                </label>
+              </div>
             </div>
 
             <div className="col-12">
