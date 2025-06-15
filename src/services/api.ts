@@ -204,6 +204,15 @@ export const batchApi = {
     }
   },
 
+  getBatchFallback: async (id: number): Promise<BatchResponse> => {
+  try {
+    const response = await api.get<BatchResponse>(`/batches/${id}/fallback`);
+    return response.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Failed to fetch batch fallback'));
+  }
+},
+
   // Update a batch (using PATCH instead of PUT)
   updateBatch: async (id: number, batchData: BatchUpdateFields): Promise<BatchUpdateFields> => {
     try {
