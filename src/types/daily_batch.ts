@@ -13,5 +13,5 @@ export interface DailyBatch {
   jumbo: number;
   cr: number;
   total_eggs: number; // Computed field
-  HD: number; // Computed field
+  hd: number; // Computed field
 }

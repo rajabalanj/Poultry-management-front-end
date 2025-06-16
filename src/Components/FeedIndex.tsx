@@ -13,7 +13,7 @@ const FeedCard: React.FC<{
   onEdit: (id: number) => void;
   onDelete: (id: number) => void;
 }> = React.memo(({ feed, onView, onEdit, onDelete }) => {
-  const isLow = (feed.unit === 'kg' && Number(feed.quantity) < 100);
+  const isLow = (feed.unit === 'kg' && Number(feed.quantity) < 3000) || (feed.unit === 'ton' && Number(feed.quantity) < 3);
   return (
     <div className={`card mb-2 border shadow-sm ${isLow ? 'border-danger' : ''}`} style={isLow ? { background: '#fff0f0' } : {}}>
       <div className="card-body p-2">

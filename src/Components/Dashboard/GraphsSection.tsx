@@ -23,12 +23,12 @@ interface GraphsSectionProps {
 
 const GraphsSection: React.FC<GraphsSectionProps> = ({ henDayValue }) => { // Destructure henDayValue from props
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const HD = henDayValue; // Use the prop instead of hardcoding
+  const hd = henDayValue; // Use the prop instead of hardcoding
 
   let barColor = "";
-  if (HD >= 80 && HD <= 100) {
+  if (hd >= 80 && hd <= 100) {
     barColor = "bg-success"; // green
-  } else if (HD < 80 && HD >= 50) {
+  } else if (hd < 80 && hd >= 50) {
     barColor = "bg-warning"; // yellow
   } else {
     barColor = "bg-danger"; // red
@@ -59,12 +59,12 @@ const GraphsSection: React.FC<GraphsSectionProps> = ({ henDayValue }) => { // De
             <div
               className={`progress-bar ${barColor} ${getTextColor(barColor)}`}
               role="progressbar"
-              style={{ width: `${HD}%` }}
-              aria-valuenow={HD}
+              style={{ width: `${hd}%` }}
+              aria-valuenow={hd}
               aria-valuemin={0}
               aria-valuemax={100}
             >
-              {HD}
+              {hd.toFixed(2)}%
             </div>
           </div>
         </ChartContainer>

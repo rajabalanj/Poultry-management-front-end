@@ -187,7 +187,7 @@ export const batchApi = {
   // Get all batches with pagination
   getBatches: async (skip: number = 0, limit: number = 100): Promise<BatchResponse[]> => {
     try {
-      const response = await api.get<BatchResponse[]>(`/batches/?skip=${skip}&limit=${limit}`);
+      const response = await api.get<BatchResponse[]>(`/batches/fallback/?skip=${skip}&limit=${limit}`);
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch batches'));
@@ -282,7 +282,7 @@ export const dailyBatchApi = {
   },
 
   // Create a new daily batch record
-  createDailyBatch: async (batchData: Omit<DailyBatch, 'batch_id' | 'total_eggs' | 'HD'>): Promise<DailyBatch> => {
+  createDailyBatch: async (batchData: Omit<DailyBatch, 'batch_id' | 'total_eggs' | 'hd'>): Promise<DailyBatch> => {
     try {
       const response = await api.post<DailyBatch>(`/daily-batch/`, batchData);
       return response.data;

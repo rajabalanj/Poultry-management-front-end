@@ -29,7 +29,7 @@ export interface BatchResponse {
   date: string;
   calculated_closing_count: number;   // Computed field from backend
   total_eggs: number;   // Computed field from backend
-  HD: number;   // Computed field from backend
+  hd: number;   // Computed field from backend
   isChickBatch?: boolean;
 }
 

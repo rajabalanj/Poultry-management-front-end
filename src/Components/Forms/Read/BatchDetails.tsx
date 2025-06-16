@@ -98,7 +98,7 @@ const BatchDetails: React.FC = () => {
         loading={false}
         error={null}
       />
-      <GraphsSection henDayValue={Number((batch.HD *100).toFixed(2))} loading={false} error={null} />
+      <GraphsSection henDayValue={Number((batch.hd *100).toFixed(2))} loading={false} error={null} />
       <div className="p-4">
         <div className="row justify-content-center">
           <div className="col-12 col-md-6">

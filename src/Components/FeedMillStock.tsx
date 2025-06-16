@@ -14,6 +14,7 @@ function FeedMillStock() {
   const [search, setSearch] = useState("");
   const [newCompName, setNewCompName] = useState("");
   const [timesToUse, setTimesToUse] = useState(1);
+  const [editCompName, setEditCompName] = useState(""); // State for editing composition name
 
   useEffect(() => {
     // Fetch feeds from API
@@ -51,6 +52,7 @@ function FeedMillStock() {
   const handleEdit = () => {
     if (!selectedComposition) return;
     setEditFeeds(selectedComposition.feeds.map((f: any) => ({ ...f })));
+    setEditCompName(selectedComposition.name); // Set name for editing
     setViewState("edit");
   };
 
@@ -80,7 +82,7 @@ function FeedMillStock() {
     await compositionApi.updateComposition(
       selectedComposition.id,
       {
-        name: selectedComposition.name,
+        name: editCompName, // Use edited name
         feeds: editFeeds,
       }
     );
@@ -268,8 +270,8 @@ function FeedMillStock() {
       {viewState === "edit" && (
         <CompositionForm
           title="Edit Composition"
-          initialCompName={selectedComposition?.name || ""}
-          onCompNameChange={() => {}}
+          initialCompName={editCompName}
+          onCompNameChange={(e) => setEditCompName(e.target.value)}
           search={search}
           handleFeedSearch={handleFeedSearch}
           filteredFeeds={filteredFeeds}
