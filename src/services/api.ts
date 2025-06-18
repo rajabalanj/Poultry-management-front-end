@@ -301,6 +301,23 @@ export const dailyBatchApi = {
       throw new Error(getApiErrorMessage(error, 'Failed to upload Excel file'));
     }
   },
+  
+  // PATCH daily batch by batch_id and batch_date
+  updateDailyBatch: async (batch_id: number, batch_date: string, payload: Partial<DailyBatch>): Promise<DailyBatch> => {
+    // Convert batch_date to yyyy-mm-dd if needed
+    let formattedDate = batch_date;
+    if (/^\d{2}-\d{2}-\d{4}$/.test(batch_date)) {
+      // dd-mm-yyyy -> yyyy-mm-dd
+      const [dd, mm, yyyy] = batch_date.split('-');
+      formattedDate = `${yyyy}-${mm}-${dd}`;
+    }
+    try {
+      const response = await api.patch<DailyBatch>(`/daily-batch/${batch_id}/${formattedDate}`, payload);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to update daily batch'));
+    }
+  }
 };
 
 export const feedApi = {

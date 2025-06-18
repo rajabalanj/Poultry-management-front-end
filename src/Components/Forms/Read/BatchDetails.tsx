@@ -155,7 +155,7 @@ const BatchDetails: React.FC = () => {
             className="btn btn-primary w-100"
             onClick={handleDownloadReport}
             >
-            Download Report
+            View Data
           </button>
           </div>
       </div>
