@@ -444,4 +444,44 @@ export const compositionApi = {
   },
 };
 
+// Configuration API for low stock thresholds and other settings
+export interface AppConfig {
+  id?: number; // optional, for update
+  lowKgThreshold: number;
+  lowTonThreshold: number;
+  // Add more config fields as needed
+}
+
+export const configApi = {
+  // Create a new configuration (POST)
+  createConfig: async (config: AppConfig): Promise<AppConfig> => {
+    try {
+      const response = await api.post<AppConfig>('/configurations/', config);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to create configuration'));
+    }
+  },
+
+  // Get configuration (GET)
+  getConfig: async (): Promise<AppConfig> => {
+    try {
+      const response = await api.get<AppConfig>('/configurations/');
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch configuration'));
+    }
+  },
+
+  // Update configuration (PATCH)
+  updateConfig: async (id: number, config: Partial<AppConfig>): Promise<AppConfig> => {
+    try {
+      const response = await api.patch<AppConfig>(`/configurations/${id}/`, config);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to update configuration'));
+    }
+  },
+};
+
 export default api;

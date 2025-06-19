@@ -2,18 +2,21 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import PageHeader from "./Layout/PageHeader";
-import { Modal, Button } from "react-bootstrap"; // Importing Bootstrap Modal for confirmation popup
+import { Modal, Button } from "react-bootstrap";
 import { feedApi } from "../services/api";
-import { FeedResponse } from '../types/Feed'; // Adjust the import path as necessary
+import { FeedResponse } from '../types/Feed';
 import { toast } from 'react-toastify';
+import { useConfig } from './ConfigContext';
 
 const FeedCard: React.FC<{
   feed: FeedResponse;
   onView: (id: number) => void;
   onEdit: (id: number) => void;
   onDelete: (id: number) => void;
-}> = React.memo(({ feed, onView, onEdit, onDelete }) => {
-  const isLow = (feed.unit === 'kg' && Number(feed.quantity) < 3000) || (feed.unit === 'ton' && Number(feed.quantity) < 3);
+  lowKgThreshold: number;
+  lowTonThreshold: number;
+}> = React.memo(({ feed, onView, onEdit, onDelete, lowKgThreshold, lowTonThreshold }) => {
+  const isLow = (feed.unit === 'kg' && Number(feed.quantity) < lowKgThreshold) || (feed.unit === 'ton' && Number(feed.quantity) < lowTonThreshold);
   return (
     <div className={`card mb-2 border shadow-sm ${isLow ? 'border-danger' : ''}`} style={isLow ? { background: '#fff0f0' } : {}}>
       <div className="card-body p-2">
@@ -64,10 +67,12 @@ interface FeedTableProps {
   feeds: FeedResponse[];
   loading: boolean;
   error: string | null;
-  onDelete: (id: number) => void; // New prop for Delete Feed
+  onDelete: (id: number) => void;
+  lowKgThreshold: number;
+  lowTonThreshold: number;
 }
 
-const FeedTable: React.FC<FeedTableProps> = ({ feeds, loading, error, onDelete }) => {
+const FeedTable: React.FC<FeedTableProps> = ({ feeds, loading, error, onDelete, lowKgThreshold, lowTonThreshold }) => {
   const navigate = useNavigate();
 
   const handleViewDetails = useCallback(
@@ -99,10 +104,12 @@ const FeedTable: React.FC<FeedTableProps> = ({ feeds, loading, error, onDelete }
         feed={feed}
         onView={handleViewDetails}
         onEdit={handleEdit}
-        onDelete={onDelete} // Pass the new handler
+        onDelete={onDelete}
+        lowKgThreshold={lowKgThreshold}
+        lowTonThreshold={lowTonThreshold}
       />
     ));
-  }, [feeds, handleViewDetails, handleEdit, onDelete]);
+  }, [feeds, handleViewDetails, handleEdit, onDelete, lowKgThreshold, lowTonThreshold]);
 
   if (loading) return <div className="text-center">Loading...</div>;
   if (error) return <div className="text-center text-danger">{error}</div>;
@@ -117,6 +124,7 @@ const FeedListPage = () => {
   const [feeds, setFeeds] = useState<FeedResponse[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [feedToDelete, setFeedToDelete] = useState<number | null>(null);
+  const { lowKgThreshold, lowTonThreshold } = useConfig();
 
   useEffect(() => {
     const fetchFeedList = async () => {
@@ -126,10 +134,10 @@ const FeedListPage = () => {
         const response = await feedApi.getFeeds();
         const feeds = response.map((feed) => ({
           id: feed.id,
-          title: feed.title, // Map name to title
+          title: feed.title,
           quantity: feed.quantity,
           unit: feed.unit,
-          createdDate: feed.createdDate, // Set lastUsedAt to null
+          createdDate: feed.createdDate,
         }));
         setFeeds(feeds);
       } catch (error: any) {
@@ -142,7 +150,6 @@ const FeedListPage = () => {
     fetchFeedList();
   }, []);
 
-
   const handleDelete = useCallback(async (id: number) => {
     try {
       await feedApi.deleteFeed(id);
@@ -152,7 +159,6 @@ const FeedListPage = () => {
       toast.error(error?.message || 'Failed to delete feed');
     }
   }, []);
-
 
   const confirmDelete = () => {
     if (feedToDelete !== null) {
@@ -170,8 +176,7 @@ const FeedListPage = () => {
   return (
     <div>
       <PageHeader title="Feed List" buttonLabel="Create Feed" buttonLink="/create-feed" />
-      <FeedTable feeds={feeds} loading={loading} error={error} onDelete={handleDelete} />
-
+      <FeedTable feeds={feeds} loading={loading} error={error} onDelete={handleDelete} lowKgThreshold={lowKgThreshold} lowTonThreshold={lowTonThreshold} />
       <Modal show={showDeleteModal} onHide={cancelDelete}>
         <Modal.Header closeButton>
           <Modal.Title>Confirm Delete</Modal.Title>

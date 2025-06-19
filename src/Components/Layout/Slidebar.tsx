@@ -127,6 +127,15 @@ const Slidebar: React.FC = () => {
                   <i className="bi bi-upload me-2"></i>
                   Upload Batch
                   </Link>
+                <Link
+                to="/configurations"
+                className="text-decoration-none text-dark d-block py-2"
+                onClick={closeSidebarMobile}
+              >
+                <i className="bi bi-gear me-2"></i>
+                Configurations
+              </Link>
+              
 {/* <Link
                   to="/egg-room-stock"
                   className="text-decoration-none text-dark d-block py-2"

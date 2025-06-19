@@ -1,4 +1,5 @@
 import React from 'react';
+import { ConfigProvider } from './Components/ConfigContext';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -18,50 +19,54 @@ import CompositionUsageHistory from "./Components/CompositionUsageHistory";
 import UploadBatch from './Components/UploadBatch'
 import EditBatchSimple from './Components/Forms/Update/EditBatchSimple';
 import PreviousDayReportReadOnly from './Components/PreviousDayReportReadOnly';
+import Configurations from './Components/Configurations';
 
 const App: React.FC = () => {
   return (
-    <Router>
-      <Layout>
-        <Routes>
-          <Route
-            path="/"
-            element={
+    <ConfigProvider>
+      <Router>
+        <Layout>
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <>
+                  <PageHeader
+                    title="Batch Management"
+                  />
+                  <Dashboard />
+                </>
+              }
+            />
+            <Route path="/add-batch" element={<AddBatch />} />
+            <Route path="/batch/:batchId/details" element={<BatchDetails />} />
+            <Route path="/batch/:batchId/edit" element={<EditBatch />} />
+            <Route path="/batch/:batchId/edit-simple" element={<EditBatchSimple />} />
+            <Route path="/upload-batch" element={<UploadBatch />} />
+            {/* <Route path="/batch/:batchId/report" element={<PreviousDayReport />} /> */}
+            <Route path="/feed-mill-stock" element={
               <>
                 <PageHeader
-                  title="Batch Management"
+                  title="Feed Compositions"
                 />
-                <Dashboard />
-              </>
-            }
-          />
-          <Route path="/add-batch" element={<AddBatch />} />
-          <Route path="/batch/:batchId/details" element={<BatchDetails />} />
-          <Route path="/batch/:batchId/edit" element={<EditBatch />} />
-          <Route path="/batch/:batchId/edit-simple" element={<EditBatchSimple />} />
-          <Route path="/upload-batch" element={<UploadBatch />} />
-          {/* <Route path="/batch/:batchId/report" element={<PreviousDayReport />} /> */}
-          <Route path="/feed-mill-stock" element={
-            <>
-              <PageHeader
-                title="Feed Compositions"
-              />
-            <FeedMillStock />
-            </>} />
-          <Route path="/create-feed" element={<CreateFeedForm />} />
-          <Route path="/feed/:feed_id/details" element={<FeedDetails />} />
-          <Route path="/feed/:feed_id/edit" element={<EditFeed />} />
-          {/* <Route path="/feed-list" element={<FeedItemList />} /> */}
-          <Route path="/feed" element={<FeedListPage />} />
-          <Route path="/previous-day-report" element={<PreviousDayReportReadOnly />} />
-<Route path="/previous-day-report/:batchId" element={<PreviousDayReport />} />
-          {/* <Route path="/new-feed-composition" element={<NewFeedComposition />} />
-          <Route path="/egg-room-stock" element={<EggRoomStock />} /> */}
-          <Route path="/compositions/:compositionId/usage-history" element={<CompositionUsageHistory />} />
-        </Routes>
-      </Layout>
-      <ToastContainer position="top-right" autoClose={3000} />
-    </Router>
+              <FeedMillStock />
+              </>} />
+            <Route path="/create-feed" element={<CreateFeedForm />} />
+            <Route path="/feed/:feed_id/details" element={<FeedDetails />} />
+            <Route path="/feed/:feed_id/edit" element={<EditFeed />} />
+            {/* <Route path="/feed-list" element={<FeedItemList />} /> */}
+            <Route path="/feed" element={<FeedListPage />} />
+            <Route path="/previous-day-report" element={<PreviousDayReportReadOnly />} />
+            <Route path="/previous-day-report/:batchId" element={<PreviousDayReport />} />
+            {/* <Route path="/new-feed-composition" element={<NewFeedComposition />} />
+            <Route path="/egg-room-stock" element={<EggRoomStock />} /> */}
+            <Route path="/compositions/:compositionId/usage-history" element={<CompositionUsageHistory />} />
+            <Route path="/configurations" element={<Configurations />} />
+          </Routes>
+        </Layout>
+        <ToastContainer position="top-right" autoClose={3000} />
+      </Router>
+    </ConfigProvider>
   );
 };
 
