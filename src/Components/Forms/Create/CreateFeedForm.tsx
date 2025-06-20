@@ -45,7 +45,7 @@ const CreateFeedForm: React.FC = () => {
             const createdFeed = await feedApi.createFeed(feedData); //  Use your apiService
             console.log("Created feed:", createdFeed);
             toast.success(`Feed "${createdFeed.title}" created!`);
-            navigate('/'); //  Go back
+            navigate('/feed'); //  Go back
         } catch (error: any) {
             toast.error(error.message || 'Failed to create feed.');
         } finally {
