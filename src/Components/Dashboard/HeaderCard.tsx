@@ -23,7 +23,7 @@ const HeaderCard: React.FC<HeaderCardProps> = ({ title, mainValue, subValues, ic
         </div>
         
         <div className="fw-bold mb-1 mb-sm-2 text-md">
-          {mainValue.toLocaleString()}
+          {(mainValue ?? 0).toLocaleString()}
         </div>
         
         {subValues && subValues.length > 0 && (

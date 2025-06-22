@@ -3,14 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import HeaderCardGroup from './HeaderCardGroup';
 import GraphsSection from './GraphsSection';
 import BatchTable from '../BatchTable';
-import { batchApi } from '../../services/api';
-import { BatchResponse } from '../../types/batch'; // Adjust the import path as necessary
+import { dailyBatchApi } from '../../services/api';
+import { DailyBatch } from '../../types/daily_batch';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [startDate, setStartDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [batches, setBatches] = useState<BatchResponse[]>([]);
+  const [batchDate, setBatchDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [batches, setBatches] = useState<DailyBatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,11 +19,13 @@ const Dashboard = () => {
     // Navigate with date range as query params
     navigate(`/previous-day-report?start=${startDate}&end=${endDate}`);
   };
-  
+
   useEffect(() => {
     const fetchBatches = async () => {
+      setLoading(true);
       try {
-        const data = await batchApi.getBatches();
+        // batch_date is mandatory, always pass it
+        const data = await dailyBatchApi.getDailyBatches(batchDate);
         setBatches(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error('Error fetching batches:', err);
@@ -33,10 +36,9 @@ const Dashboard = () => {
     };
 
     fetchBatches();
-  }, []);
+  }, [batchDate]);
 
-
-  const totalBirds = batches.reduce((sum, b) => sum + (b.calculated_closing_count || 0), 0);
+  const totalBirds = batches.reduce((sum, b) => sum + (b.closing_count || 0), 0);
   const totalEggs = batches.reduce((sum, b) => sum + ((b.table_eggs || 0) + (b.jumbo || 0) + (b.cr || 0)), 0);
   const openingCount = batches.reduce((sum, b) => sum + (b.opening_count || 0), 0);
   const mortality = batches.reduce((sum, b) => sum + (b.mortality || 0), 0);
@@ -78,8 +80,18 @@ const Dashboard = () => {
 
   return (
     <div className="container-fluid">
-      {/* Date controls and buttons */}
-      
+      {/* Date picker for batch_date */}
+      <div className="row mb-4">
+        <div className="col-12 col-md-3 mb-2">
+          <label className="form-label">Batch Date:</label>
+          <input
+            type="date"
+            className="form-control"
+            value={batchDate}
+            onChange={(e) => setBatchDate(e.target.value)}
+          />
+        </div>
+      </div>
       <HeaderCardGroup cards={cards} loading={loading} error={error} />
       <GraphsSection henDayValue={avgHD} loading={loading} error={error} />
       <div className="row mb-4">
@@ -92,6 +104,7 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+      {/* Keep the other date pickers for report feature */}
       <div className="row mb-4">
         <div className="col-12 col-md-3 mb-2">
           <label className="form-label">Start Date:</label>

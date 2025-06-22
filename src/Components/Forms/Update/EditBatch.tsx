@@ -1,78 +1,77 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { batchApi } from "../../../services/api";
-import { BatchResponse } from "../../../types/batch"; // Adjust the import path as necessary
+import { dailyBatchApi } from "../../../services/api";
+import { DailyBatch } from "../../../types/daily_batch";
 import { toast } from "react-toastify";
 import PageHeader from "../../Layout/PageHeader";
 
 const EditBatch: React.FC = () => {
-  const { batchId } = useParams<{ batchId: string }>();
   const navigate = useNavigate();
-  const [batch, setBatch] = useState<BatchResponse | null>(null);
+  const { batchId, batch_date } = useParams<{ batchId: string; batch_date: string }>();
+  const [batch, setBatch] = useState<DailyBatch | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isChickBatch, setIsChickBatch] = useState(batch?.isChickBatch ?? false);
+  const [isChickBatch, setIsChickBatch] = useState(false);
 
   useEffect(() => {
     const fetchBatch = async () => {
       try {
-        if (!batchId) return;
-        const data = await batchApi.getBatch(Number(batchId));
-        setBatch(data);
-        setIsChickBatch(data.isChickBatch ?? false);
+        if (!batchId || !batch_date) return;
+        const batches = await dailyBatchApi.getDailyBatches(batch_date);
+        const found = batches.find(b => b.batch_id === Number(batchId));
+        if (found) {
+          setBatch(found);
+          setIsChickBatch(false); // Or set from found if available
+        } else {
+          setBatch(null);
+        }
       } catch (err) {
-        console.error("Error fetching batch:", err);
+        console.error("Error fetching daily batch:", err);
         setError("Failed to load batch");
         toast.error("Failed to load batch details");
       } finally {
         setLoading(false);
       }
     };
-
     fetchBatch();
-  }, [batchId]);
+  }, [batchId, batch_date]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!batch || !batchId) return;
-
+    if (!batch || !batchId || !batch_date) return;
     try {
-      await batchApi.updateBatch(Number(batchId), {
+      const payload = {
         mortality: batch.mortality,
         culls: batch.culls,
         table_eggs: isChickBatch ? 0 : batch.table_eggs,
         jumbo: isChickBatch ? 0 : batch.jumbo,
         cr: isChickBatch ? 0 : batch.cr,
-        date: new Date().toISOString().split('T')[0],
-        isChickBatch: isChickBatch,
-      });
+      };
+      await dailyBatchApi.updateDailyBatch(Number(batchId), batch_date, payload);
       toast.success("Batch updated successfully");
       navigate(-1);
     } catch (err) {
-      console.error("Error updating batch:", err);
+      console.error("Error updating daily batch:", err);
       setError("Failed to update batch");
       toast.error("Failed to update batch");
     }
   };
 
-  const handleNumberInput = (value: string, field: keyof BatchResponse) => {
+  const handleNumberInput = (value: string, field: keyof DailyBatch) => {
     if (value === "") {
-      setBatch((prev) => (prev ? { ...prev, [field]: "" } : null));
+      setBatch((prev) => (prev ? { ...prev, [field]: "" as any } : null));
       return;
     }
-
     const num = parseInt(value);
     if (isNaN(num)) {
       return;
     }
-
     if (num < 0) {
       toast.error(
         `${field.charAt(0).toUpperCase() + field.slice(1)} cannot be negative`
       );
       return;
     }
-
     setBatch((prev) => (prev ? { ...prev, [field]: num } : null));
   };
 
@@ -85,48 +84,17 @@ const EditBatch: React.FC = () => {
   return (
     <div className="container-fluid">
       <PageHeader
-  title={new Intl.DateTimeFormat('en-GB').format(new Date()).replace(/\//g, '-')}
-  subtitle={`Update Data ${batch.batch_no}`}
-  buttonLabel="Back"
-  buttonLink={`/batch/${batchId}/details`}
-/>
-
-
+        title={new Intl.DateTimeFormat('en-GB').format(new Date(batch.batch_date)).replace(/\//g, '-')}
+        subtitle={`Update Data ${batch.batch_no}`}
+        buttonLabel="Back"
+        buttonLink={`/batch/${batch.batch_id}/details?batch_date=${batch.batch_date}`}
+      />
       <div className="p-4">
         <form onSubmit={handleSubmit}>
           <div className="row">
             <h4 className="fw-semibold mb-3 border-bottom pb-1 text-primary">
-              Birds
-            </h4>
-            <div className="col-12 col-md-6">
-              <div className="mb-4">
-                <label className="form-label">Mortality</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  value={batch.mortality}
-                  min="0"
-                  onChange={(e) =>
-                    handleNumberInput(e.target.value, "mortality")
-                  }
-                />
-              </div>
-
-              <div className="mb-4">
-                <label className="form-label">Culls</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  value={batch.culls}
-                  min="0"
-                  onChange={(e) => handleNumberInput(e.target.value, "culls")}
-                />
-              </div>
-            </div>
-            <h4 className="fw-semibold mb-3 border-bottom pb-1 text-primary">
               Eggs
             </h4>
-
             <div className="col-12 col-md-6">
               <div className="row g-3 mb-4">
                 <div className="col-6">
@@ -150,7 +118,6 @@ const EditBatch: React.FC = () => {
                   />
                 </div>
               </div>
-
               <div className="mb-4">
                 <label className="form-label">CR</label>
                 <input
@@ -161,7 +128,6 @@ const EditBatch: React.FC = () => {
                   onChange={(e) => handleNumberInput(e.target.value, "cr")}
                 />
               </div>
-
               <div className="bg-light p-4 rounded">
                 <div className="d-flex justify-content-between align-items-center">
                   <h5 className="mb-0">Total Eggs</h5>
@@ -169,10 +135,32 @@ const EditBatch: React.FC = () => {
                 </div>
               </div>
             </div>
+            <h4 className="fw-semibold mb-3 border-bottom pb-1 text-primary">
+              Birds
+            </h4>
+            <div className="col-12 col-md-6">
+              <div className="mb-4">
+                <label className="form-label">Mortality</label>
+                <input
+                  type="number"
+                  className="form-control"
+                  value={batch.mortality}
+                  min="0"
+                  onChange={(e) => handleNumberInput(e.target.value, "mortality")}
+                />
+              </div>
+              <div className="mb-4">
+                <label className="form-label">Culls</label>
+                <input
+                  type="number"
+                  className="form-control"
+                  value={batch.culls}
+                  min="0"
+                  onChange={(e) => handleNumberInput(e.target.value, "culls")}
+                />
+              </div>
+            </div>
           </div>
-
-          
-
           <div className="mt-4 d-flex justify-content-center">
             <button type="submit" className="btn btn-primary me-2">
               Save Changes

@@ -31,36 +31,54 @@ const App: React.FC = () => {
               path="/"
               element={
                 <>
-                  <PageHeader
-                    title="Batch Management"
-                  />
+                  <PageHeader title="Batch Management" />
                   <Dashboard />
                 </>
               }
             />
             <Route path="/add-batch" element={<AddBatch />} />
-            <Route path="/batch/:batchId/details" element={<BatchDetails />} />
-            <Route path="/batch/:batchId/edit" element={<EditBatch />} />
-            <Route path="/batch/:batchId/edit-simple" element={<EditBatchSimple />} />
+            <Route
+              path="/batch/:batch_id/:batch_date/details"
+              element={<BatchDetails />}
+            />
+            <Route
+              path="/batch/:batchId/:batch_date/edit"
+              element={<EditBatch />}
+            />
+            <Route
+              path="/batch/:batchId/edit-simple"
+              element={<EditBatchSimple />}
+            />
             <Route path="/upload-batch" element={<UploadBatch />} />
             {/* <Route path="/batch/:batchId/report" element={<PreviousDayReport />} /> */}
-            <Route path="/feed-mill-stock" element={
-              <>
-                <PageHeader
-                  title="Feed Compositions"
-                />
-              <FeedMillStock />
-              </>} />
+            <Route
+              path="/feed-mill-stock"
+              element={
+                <>
+                  <PageHeader title="Feed Compositions" />
+                  <FeedMillStock />
+                </>
+              }
+            />
             <Route path="/create-feed" element={<CreateFeedForm />} />
             <Route path="/feed/:feed_id/details" element={<FeedDetails />} />
             <Route path="/feed/:feed_id/edit" element={<EditFeed />} />
             {/* <Route path="/feed-list" element={<FeedItemList />} /> */}
             <Route path="/feed" element={<FeedListPage />} />
-            <Route path="/previous-day-report" element={<PreviousDayReportReadOnly />} />
-            <Route path="/previous-day-report/:batchId" element={<PreviousDayReport />} />
+            <Route
+              path="/previous-day-report"
+              element={<PreviousDayReportReadOnly />}
+            />
+            <Route
+              path="/previous-day-report/:batchId"
+              element={<PreviousDayReport />}
+            />
             {/* <Route path="/new-feed-composition" element={<NewFeedComposition />} />
             <Route path="/egg-room-stock" element={<EggRoomStock />} /> */}
-            <Route path="/compositions/:compositionId/usage-history" element={<CompositionUsageHistory />} />
+            <Route
+              path="/compositions/:compositionId/usage-history"
+              element={<CompositionUsageHistory />}
+            />
             <Route path="/configurations" element={<Configurations />} />
           </Routes>
         </Layout>

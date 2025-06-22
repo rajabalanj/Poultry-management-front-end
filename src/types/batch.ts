@@ -3,14 +3,8 @@ export interface Batch {
   batch_no: string;
   age: string;   // Format: "week.day" (e.g., "1.1" for 8 days)
   opening_count: number;
-  mortality: number;
-  culls: number;
-  closing_count: number;
-  table_eggs: number;
-  jumbo: number;
-  cr: number;
   date: string;
-  isChickBatch?: boolean; // Added for backend use
+  isChickBatch?: boolean;   // Optional field to indicate if it's a chick batch
 }
 
 
@@ -20,27 +14,14 @@ export interface BatchResponse {
   batch_no: string;
   age: string;   // Format: "week.day" (e.g., "1.1" for 8 days)
   opening_count: number;
-  mortality: number;
-  culls: number;
-  closing_count: number;
-  table_eggs: number;
-  jumbo: number;
-  cr: number;
   date: string;
-  calculated_closing_count: number;   // Computed field from backend
-  total_eggs: number;   // Computed field from backend
-  hd: number;   // Computed field from backend
   isChickBatch?: boolean;
 }
 
 export interface BatchUpdate {
   age: string;
   opening_count: number;
-  mortality: number;
-  culls: number;
-  table_eggs: number;
-  jumbo: number;
-  cr: number;
+  batch_no: string;
   shed_no: string;
   date: string;
   isChickBatch?: boolean;

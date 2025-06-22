@@ -1,13 +1,13 @@
 import React, { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import { BatchResponse } from "../types/batch"; // Adjust the import path as necessary
+import { DailyBatch } from "../types/daily_batch";
 
 const BatchCard: React.FC<{
-  batch: BatchResponse;
-  onView: (id: number) => void;
-  onEdit: (id: number) => void;
-  onEditSimple: (id: number) => void;
+  batch: DailyBatch;
+  onView: (batch_id: number, batchDate: string) => void;
+  onEdit: (batch_id: number, batchDate: string) => void;
+  onEditSimple: (batch_id: number) => void;
 }> = React.memo(({ batch, onView, onEdit, onEditSimple }) => (
   <div className="card mb-2 border shadow-sm">
     <div className="card-body p-2">
@@ -22,7 +22,7 @@ const BatchCard: React.FC<{
         <div className="d-flex flex-column flex-md-row gap-2">
           <button
             className="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center"
-            onClick={() => onView(batch.id)}
+            onClick={() => onView(batch.batch_id, batch.batch_date)}
             title="View Details"
             aria-label={`View Details for Batch ${batch.batch_no}`}
           >
@@ -31,7 +31,7 @@ const BatchCard: React.FC<{
           </button>
           <button
             className="btn btn-outline-success btn-sm d-flex align-items-center justify-content-center"
-            onClick={() => onEdit(batch.id)}
+            onClick={() => onEdit(batch.batch_id, batch.batch_date)}
             title="Record Daily Data"
             aria-label={`Record Daily Data for Batch ${batch.batch_no}`}
           >
@@ -40,7 +40,7 @@ const BatchCard: React.FC<{
           </button>
           {/* <button
             className="btn btn-outline-warning btn-sm d-flex align-items-center justify-content-center"
-            onClick={() => onEditSimple(batch.id)}
+            onClick={() => onEditSimple(batch.batch_id)}
             title="Edit Batch Details"
             aria-label={`Edit Batch Details Info for Batch ${batch.batch_no}`}
           >
@@ -54,7 +54,7 @@ const BatchCard: React.FC<{
 ));
 
 interface BatchTableProps {
-  batches: BatchResponse[];
+  batches: DailyBatch[];
   loading: boolean;
   error: string | null;
 }
@@ -63,49 +63,51 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
   const navigate = useNavigate();
 
   const handleViewDetails = useCallback(
-    (id: number) => {
-      if (!id) {
-        console.error("Batch ID is required");
+    (batch_id: number, batchDate: string) => {
+      if (!batch_id || !batchDate) {
+        console.error("Batch ID and Batch Date are required");
         return;
       }
-      navigate(`/batch/${id}/details`);
+      navigate(`/batch/${batch_id}/${batchDate}/details`);
     },
     [navigate]
   );
 
   const handleEdit = useCallback(
-    (id: number) => {
-      if (!id) {
-        console.error("Batch ID is required");
+    (batch_id: number, batchDate: string) => {
+      if (!batch_id || !batchDate) {
+        console.error("Batch ID and Batch Date are required");
         return;
       }
-      navigate(`/batch/${id}/edit`);
+      navigate(`/batch/${batch_id}/${batchDate}/edit`);
     },
     [navigate]
   );
 
   const handleEditSimple = useCallback(
-    (id: number) => {
-      if (!id) {
+    (batch_id: number) => {
+      if (!batch_id) {
         console.error("Batch ID is required");
         return;
       }
-      navigate(`/batch/${id}/edit-simple`);
+      navigate(`/batch/${batch_id}/edit-simple`);
     },
     [navigate]
   );
 
   const batchCards = useMemo(() => {
-    return batches.map((batch) => (
+  return batches
+    .filter(batch => batch.batch_id != null && !!batch.batch_date)
+    .map((batch) => (
       <BatchCard
-        key={batch.id}
+        key={`${batch.batch_id}-${batch.batch_date}`}
         batch={batch}
         onView={handleViewDetails}
         onEdit={handleEdit}
         onEditSimple={handleEditSimple}
       />
     ));
-  }, [batches, handleViewDetails, handleEdit, handleEditSimple]);
+}, [batches, handleViewDetails, handleEdit, handleEditSimple]);
 
   if (loading) return <div className="text-center">Loading...</div>;
   if (error) return <div className="text-center text-danger">{error}</div>;

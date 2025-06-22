@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { batchApi } from '../../../services/api';
-import { BatchResponse } from '../../../types/batch'; // Adjust the import path as necessary
+import { dailyBatchApi } from '../../../services/api';
+import { DailyBatch } from '../../../types/daily_batch';
 import { toast } from 'react-toastify';
 import PageHeader from '../../Layout/PageHeader';
 import HeaderCardGroup from '../../Dashboard/HeaderCardGroup';
@@ -9,34 +9,39 @@ import GraphsSection from '../../Dashboard/GraphsSection';
 
 
 const BatchDetails: React.FC = () => {
-  const { batchId } = useParams<{ batchId: string }>();
   const navigate = useNavigate();
-  const [batch, setBatch] = useState<BatchResponse | null>(null);
+  const { batch_id, batch_date } = useParams<{ batch_id: string; batch_date: string }>();
+  // Get batch_date from query params or default to today
+  const [batch, setBatch] = useState<DailyBatch | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [startDate, setStartDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [endDate, setEndDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [startDate, setStartDate] = useState<string>(batch_date || '');
+  const [endDate, setEndDate] = useState<string>(batch_date || '');
 
   useEffect(() => {
     const fetchBatch = async () => {
       try {
-        if (batchId) {
-          const data = await batchApi.getBatchFallback(Number(batchId));
-          setBatch(data);
+        if (batch_id && batch_date) {
+          // Fetch all daily batches for the date, then filter by batch_id
+          const batches = await dailyBatchApi.getDailyBatches(batch_date);
+          const found = batches.find(b => b.batch_id === Number(batch_id));
+          if (found) {
+            setBatch(found);
+          } else {
+            setBatch(null);
+          }
         }
       } catch (error) {
-        console.error('Error fetching batch:', error);
+        console.error('Error fetching daily batch:', error);
         toast.error('Failed to load batch details');
       } finally {
         setIsLoading(false);
       }
     };
-
     fetchBatch();
-  }, [batchId]);
+  }, [batch_id, batch_date]);
 
   const handleDownloadReport = () => {
-    // Navigate with both batchId and date range
-    navigate(`/previous-day-report/${batchId}?start=${startDate}&end=${endDate}`);
+    navigate(`/previous-day-report/${batch_id}?start=${startDate}&end=${endDate}`);
   };
 
   if (isLoading) {
@@ -48,9 +53,7 @@ const BatchDetails: React.FC = () => {
   }
 
   const totalEggs = (batch.table_eggs || 0) + (batch.jumbo || 0) + (batch.cr || 0);
-
-  // Format the batch date
-  const formattedBatchDate = new Intl.DateTimeFormat('en-GB').format(new Date(batch.date)).replace(/\//g, '-');
+  const formattedBatchDate = new Intl.DateTimeFormat('en-GB').format(new Date(batch.batch_date)).replace(/\//g, '-');
 
 
   return (
@@ -66,7 +69,7 @@ const BatchDetails: React.FC = () => {
         cards={[
           {
             title: 'Total Birds',
-            mainValue: batch.calculated_closing_count,
+            mainValue: batch.closing_count,
             subValues: [
               { label: 'Opening Count', value: batch.opening_count },
               { label: 'Mortality', value: batch.mortality },
@@ -124,11 +127,10 @@ const BatchDetails: React.FC = () => {
           </div>
         </div>
         <div className="mt-4 d-flex justify-content-center">
-          <button type="button" className="btn btn-primary me-2" onClick={() => navigate(`/batch/${batchId}/edit`)}>
+          <button type="button" className="btn btn-primary me-2" onClick={() => navigate(`/batch/${batch_id}/${batch_date}/edit`)}>
             Update
           </button>
           <button type="button" className="btn btn-secondary me-2" onClick={() => navigate('/')}>Back to Dashboard</button>
-          
         </div>
       </div>
       <div className="row mb-4">
@@ -157,7 +159,7 @@ const BatchDetails: React.FC = () => {
             >
             View Data
           </button>
-          </div>
+        </div>
       </div>
     </div>
   );

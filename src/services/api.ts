@@ -1,8 +1,8 @@
-import axios, { AxiosError, AxiosResponse } from 'axios';
+import axios, { AxiosError } from 'axios';
 import { Feed, FeedResponse } from '../types/Feed';
-import { BatchResponse, Batch, BatchUpdate } from '../types/batch';
 import { CompositionResponse } from '../types/compositon';
 import { DailyBatch } from '../types/daily_batch';
+import { Batch, BatchResponse, BatchUpdate } from '../types/batch';
 
 // Define types for our data
 
@@ -89,21 +89,8 @@ export const validateBatchData = {
   }
 };
 
-// Default values for new batches
-export const DEFAULT_BATCH_VALUES: Partial<Batch> = {
-  mortality: 0,
-  culls: 0,
-  table_eggs: 0,
-  jumbo: 0,
-  cr: 0,
-  date: new Date().toISOString().split('T')[0], // Set to today's date
-};
-
 /** Fields that can be updated in a batch */
-export type BatchUpdateFields = Partial<BatchUpdate>;
-
-// Define the DailyBatch interface to match the backend model
-
+// export type BatchUpdateFields = Partial<BatchUpdate>;
 
 // Helper function to calculate closing count
 export const calculateClosingCount = (
@@ -123,40 +110,6 @@ export const calculateTotalEggs = (
   return table_eggs + jumbo + cr;
 };
 
-// Helper function to validate a new batch before sending to API
-export const validateBatch = (batch: Batch): string[] => {
-  const errors: string[] = [];
-
-  // Validate age format
-  const ageError = validateBatchData.age(batch.age);
-  if (ageError) errors.push(ageError);
-
-  // Validate non-negative values
-  const fields: Array<[keyof Batch, string]> = [
-    ['opening_count', 'Opening count'],
-    ['mortality', 'Mortality'],
-    ['culls', 'Culls'],
-    ['table_eggs', 'Table eggs'],
-    ['jumbo', 'Jumbo eggs'],
-    ['cr', 'Crack eggs']
-  ];
-
-  fields.forEach(([field, label]) => {
-    const error = validateBatchData.nonNegative(batch[field] as number, label);
-    if (error) errors.push(error);
-  });
-
-  return errors;
-};
-
-// Helper function to create a new batch with defaults
-export const createNewBatch = (data: Partial<Batch>): Batch => {
-  return {
-    ...DEFAULT_BATCH_VALUES,
-    ...data,
-  } as Batch;
-};
-
 // Helper to extract error message
 function getApiErrorMessage(error: unknown, fallback: string) {
   if (axios.isAxiosError(error)) {
@@ -167,102 +120,6 @@ function getApiErrorMessage(error: unknown, fallback: string) {
   }
   return fallback;
 }
-
-// Define and export API functions
-export const batchApi = {
-  // Create a new batch with validation
-  createBatch: async (batchData: Batch): Promise<Batch> => {
-    const errors = validateBatch(batchData);
-    if (errors.length > 0) {
-      throw new Error(`Validation failed: ${errors.join(', ')}`);
-    }
-    try {
-      const response = await api.post<Batch>('/batches/', batchData);
-      return response.data;
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to create batch'));
-    }
-  },
-
-  // Get all batches with pagination
-  getBatches: async (skip: number = 0, limit: number = 100): Promise<BatchResponse[]> => {
-    try {
-      const response = await api.get<BatchResponse[]>(`/batches/fallback/?skip=${skip}&limit=${limit}`);
-      return response.data;
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to fetch batches'));
-    }
-  },
-
-  // Get a single batch by ID
-  getBatch: async (id: number): Promise<BatchResponse> => {
-    try {
-      const response = await api.get<BatchResponse>(`/batches/${id}`);
-      return response.data;
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to fetch batch'));
-    }
-  },
-
-  getBatchFallback: async (id: number): Promise<BatchResponse> => {
-  try {
-    const response = await api.get<BatchResponse>(`/batches/${id}/fallback`);
-    return response.data;
-  } catch (error) {
-    throw new Error(getApiErrorMessage(error, 'Failed to fetch batch fallback'));
-  }
-},
-
-  // Update a batch (using PATCH instead of PUT)
-  updateBatch: async (id: number, batchData: BatchUpdateFields): Promise<BatchUpdateFields> => {
-    try {
-      // Remove any attempt to update computed fields
-      const { closing_count, ...updateData } = batchData as any;
-
-      const response = await api.patch<BatchUpdateFields>(`/batches/${id}`, updateData);
-      return response.data;
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to update batch'));
-    }
-  },
-
-  // Delete a batch
-  deleteBatch: async (id: number): Promise<void> => {
-    try {
-      await api.delete(`/batches/${id}`);
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to delete batch'));
-    }
-  },
-
-  // Fetch daily report as Excel file
-  getDailyReportExcel: async (startDate: string, endDate: string): Promise<void> => {
-    try {
-      const response: AxiosResponse<Blob> = await api.get(
-        `/reports/daily-report?start_date=${startDate}&end_date=${endDate}`,
-        {
-          responseType: 'blob', // Important: Tell Axios to expect a Blob
-        }
-      );
-
-      // Create a Blob URL for the downloaded file
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-
-      // Create a temporary link element to trigger the download
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `daily_report_${startDate}_to_${endDate}.xlsx`); // Set the filename
-      document.body.appendChild(link);
-      link.click();
-
-      // Clean up the Blob URL
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(link);
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to fetch daily report'));
-    }
-  },
-};
 
 // Move the `getSnapshot` function to a new `dailyBatchApi` object
 export const dailyBatchApi = {
@@ -317,7 +174,16 @@ export const dailyBatchApi = {
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to update daily batch'));
     }
-  }
+  },
+
+  getDailyBatches: async (batch_date: string): Promise<DailyBatch[]> => {
+    try {
+      const response = await api.get<DailyBatch[]>(`/daily-batch/?batch_date=${batch_date}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch daily batches'));
+    }
+  },
 };
 
 export const feedApi = {
@@ -444,42 +310,77 @@ export const compositionApi = {
   },
 };
 
-// Configuration API for low stock thresholds and other settings
-export interface AppConfig {
-  id?: number; // optional, for update
-  lowKgThreshold: number;
-  lowTonThreshold: number;
-  // Add more config fields as needed
+// Configuration API for key-value settings
+export interface AppConfigKV {
+  id?: number;
+  name: string;
+  value: string;
 }
 
 export const configApi = {
-  // Create a new configuration (POST)
-  createConfig: async (config: AppConfig): Promise<AppConfig> => {
+  // Get all configurations (GET)
+  getAllConfigs: async (): Promise<AppConfigKV[]> => {
     try {
-      const response = await api.post<AppConfig>('/configurations/', config);
+      const response = await api.get<AppConfigKV[]>('/configurations/');
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch configurations'));
+    }
+  },
+
+  // Update a configuration by name (PATCH)
+  updateConfig: async (name: string, value: string): Promise<AppConfigKV> => {
+    try {
+      const response = await api.patch<AppConfigKV>(`/configurations/${name}/`, { value });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to update configuration'));
+    }
+  },
+
+  // Create a configuration (POST)
+  createConfig: async (name: string, value: string): Promise<AppConfigKV> => {
+    try {
+      const response = await api.post<AppConfigKV>('/configurations/', { name, value });
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to create configuration'));
     }
   },
+};
 
-  // Get configuration (GET)
-  getConfig: async (): Promise<AppConfig> => {
+// Restore batchApi for master batch operations
+export const batchApi = {
+  createBatch: async (batchData: Batch): Promise<BatchResponse> => {
     try {
-      const response = await api.get<AppConfig>('/configurations/');
+      const response = await api.post<BatchResponse>('/batches/', batchData);
       return response.data;
     } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to fetch configuration'));
+      throw new Error(getApiErrorMessage(error, 'Failed to create batch'));
     }
   },
-
-  // Update configuration (PATCH)
-  updateConfig: async (id: number, config: Partial<AppConfig>): Promise<AppConfig> => {
+  getBatches: async (skip: number = 0, limit: number = 100): Promise<BatchResponse[]> => {
     try {
-      const response = await api.patch<AppConfig>(`/configurations/${id}/`, config);
+      const response = await api.get<BatchResponse[]>(`/batches/?skip=${skip}&limit=${limit}`);
       return response.data;
     } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to update configuration'));
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch batches'));
+    }
+  },
+  getBatch: async (id: number): Promise<BatchResponse> => {
+    try {
+      const response = await api.get<BatchResponse>(`/batches/${id}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch batch'));
+    }
+  },
+  updateBatch: async (id: number, batchData: Partial<BatchUpdate>): Promise<BatchResponse> => {
+    try {
+      const response = await api.patch<BatchResponse>(`/batches/${id}`, batchData);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to update batch'));
     }
   },
 };
