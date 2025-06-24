@@ -88,6 +88,7 @@ const Dashboard = () => {
             type="date"
             className="form-control"
             value={batchDate}
+            max={new Date().toISOString().split('T')[0]}
             onChange={(e) => setBatchDate(e.target.value)}
           />
         </div>

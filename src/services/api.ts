@@ -361,7 +361,7 @@ export const batchApi = {
   },
   getBatches: async (skip: number = 0, limit: number = 100): Promise<BatchResponse[]> => {
     try {
-      const response = await api.get<BatchResponse[]>(`/batches/?skip=${skip}&limit=${limit}`);
+      const response = await api.get<BatchResponse[]>(`/batches/all/?skip=${skip}&limit=${limit}`);
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch batches'));

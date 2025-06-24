@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useConfig } from './ConfigContext';
 import PageHeader from './Layout/PageHeader';
-import { configApi } from '../services/api';
+import { configApi, batchApi } from '../services/api';
 import { toast } from 'react-toastify';
+import BatchConfig from './BatchConfig';
 
 const KG_PER_TON = 1000;
 
@@ -12,6 +13,11 @@ const Configurations: React.FC = () => {
   const [ton, setTon] = useState(3);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Batch config state
+  const [batches, setBatches] = useState<import('../types/batch').BatchResponse[]>([]);
+  const [batchLoading, setBatchLoading] = useState(true);
+  const [batchError, setBatchError] = useState<string | null>(null);
 
   // Load config from backend on mount
   useEffect(() => {
@@ -35,6 +41,23 @@ const Configurations: React.FC = () => {
     };
     fetchConfig();
     // eslint-disable-next-line
+  }, []);
+
+  // Fetch batches for config
+  useEffect(() => {
+    const fetchBatches = async () => {
+      setBatchLoading(true);
+      try {
+        const data = await batchApi.getBatches(0, 1000);
+        setBatches(Array.isArray(data) ? data : []);
+        setBatchError(null);
+      } catch (err: any) {
+        setBatchError(err.message || 'Failed to load batches');
+      } finally {
+        setBatchLoading(false);
+      }
+    };
+    fetchBatches();
   }, []);
 
   // Sync ton when kg changes
@@ -106,6 +129,9 @@ const Configurations: React.FC = () => {
             {saving ? 'Saving...' : 'Save'}
           </button>
         </div>
+        <hr />
+        <h5 className="mb-3">Batch Configuration</h5>
+        <BatchConfig batches={batches} loading={batchLoading} error={batchError} />
       </div>
     </div>
   );

@@ -18,8 +18,8 @@ import EditFeed from './Components/Forms/Update/EditFeed';
 import CompositionUsageHistory from "./Components/CompositionUsageHistory";
 import UploadBatch from './Components/UploadBatch'
 import EditBatchSimple from './Components/Forms/Update/EditBatchSimple';
-import PreviousDayReportReadOnly from './Components/PreviousDayReportReadOnly';
 import Configurations from './Components/Configurations';
+import ViewBatchSimple from './Components/Forms/Read/ViewBatchSimple';
 
 const App: React.FC = () => {
   return (
@@ -45,6 +45,7 @@ const App: React.FC = () => {
               path="/batch/:batchId/:batch_date/edit"
               element={<EditBatch />}
             />
+            <Route path="/batch/:batchId/view-simple" element={<ViewBatchSimple />} />
             <Route
               path="/batch/:batchId/edit-simple"
               element={<EditBatchSimple />}
@@ -65,10 +66,6 @@ const App: React.FC = () => {
             <Route path="/feed/:feed_id/edit" element={<EditFeed />} />
             {/* <Route path="/feed-list" element={<FeedItemList />} /> */}
             <Route path="/feed" element={<FeedListPage />} />
-            <Route
-              path="/previous-day-report"
-              element={<PreviousDayReportReadOnly />}
-            />
             <Route
               path="/previous-day-report/:batchId"
               element={<PreviousDayReport />}

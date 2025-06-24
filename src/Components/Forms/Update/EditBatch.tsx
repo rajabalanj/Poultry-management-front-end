@@ -87,7 +87,7 @@ const EditBatch: React.FC = () => {
         title={new Intl.DateTimeFormat('en-GB').format(new Date(batch.batch_date)).replace(/\//g, '-')}
         subtitle={`Update Data ${batch.batch_no}`}
         buttonLabel="Back"
-        buttonLink={`/batch/${batch.batch_id}/details?batch_date=${batch.batch_date}`}
+        buttonLink={`/`}
       />
       <div className="p-4">
         <form onSubmit={handleSubmit}>

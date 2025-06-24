@@ -8,9 +8,11 @@ import PageHeader from '../../Layout/PageHeader';
 const EditBatchSimple: React.FC = () => {
   const { batchId } = useParams<{ batchId: string }>();
   const navigate = useNavigate();
+  const [batchNo, setBatchNo] = useState('');
   const [shedNo, setShedNo] = useState('');
   const [age, setAge] = useState('');
   const [openingCount, setOpeningCount] = useState('');
+  const [date, setDate] = useState('');
   const [isChickBatch, setIsChickBatch] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,9 +22,11 @@ const EditBatchSimple: React.FC = () => {
       try {
         if (!batchId) return;
         const data: BatchResponse = await batchApi.getBatch(Number(batchId));
+        setBatchNo(data.batch_no || '');
         setShedNo(data.shed_no || '');
         setAge(data.age || '');
         setOpeningCount(data.opening_count?.toString() || '');
+        setDate(data.date || '');
         setIsChickBatch(data.isChickBatch ?? false);
       } catch (err) {
         setError('Failed to load batch');
@@ -40,9 +44,11 @@ const EditBatchSimple: React.FC = () => {
     setLoading(true);
     try {
       await batchApi.updateBatch(Number(batchId), {
+        batch_no: batchNo,
         shed_no: shedNo,
         age: age,
         opening_count: parseInt(openingCount),
+        date: date,
         isChickBatch: isChickBatch,
       });
       toast.success('Batch updated successfully!');
@@ -60,13 +66,35 @@ const EditBatchSimple: React.FC = () => {
   return (
     <div className="container-fluid">
       <PageHeader
-        title="Edit Batch (Simple)"
+        title="Edit Batch"
         buttonLabel="Back"
-        buttonLink='/'
+        buttonLink='/configurations'
       />
       <div className="p-4">
         <form onSubmit={handleSubmit}>
           <div className="row g-3">
+            <div className="col-md-6">
+              <label className="form-label">Batch Start Date</label>
+              <input
+                type="date"
+                className="form-control"
+                value={date}
+                onChange={e => setDate(e.target.value)}
+                required
+                max={new Date().toISOString().split('T')[0]}
+              />
+            </div>
+            <div className="col-md-6">
+              <label className="form-label">Batch Number</label>
+              <input
+                type="text"
+                className="form-control"
+                value={batchNo}
+                onChange={e => setBatchNo(e.target.value)}
+                required
+                min="1"
+              />
+            </div>
             <div className="col-md-6">
               <label className="form-label">Shed Number</label>
               <input

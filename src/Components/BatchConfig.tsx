@@ -1,12 +1,12 @@
 import React, { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import { DailyBatch } from "../types/daily_batch";
+import { BatchResponse } from "../types/batch";
 
-const BatchCard: React.FC<{
-  batch: DailyBatch;
-  onView: (batch_id: number, batchDate: string) => void;
-  onEdit: (batch_id: number, batchDate: string) => void;
+const BatchConfigCard: React.FC<{
+  batch: BatchResponse;
+  onView: (batch_id: number) => void;
+  onEdit: (batch_id: number) => void;
 }> = React.memo(({ batch, onView, onEdit }) => (
   <div className="card mb-2 border shadow-sm">
     <div className="card-body p-2">
@@ -21,21 +21,21 @@ const BatchCard: React.FC<{
         <div className="d-flex flex-column flex-md-row gap-2">
           <button
             className="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center"
-            onClick={() => onView(batch.batch_id, batch.batch_date)}
+            onClick={() => onView(batch.id)}
             title="View Details"
             aria-label={`View Details for Batch ${batch.batch_no}`}
           >
             <i className="bi bi-eye me-1"></i>
-            <span className="text-muted text-xs">Batch Overview</span>
+            <span className="text-muted text-xs">View</span>
           </button>
           <button
-            className="btn btn-outline-success btn-sm d-flex align-items-center justify-content-center"
-            onClick={() => onEdit(batch.batch_id, batch.batch_date)}
-            title="Record Daily Data"
-            aria-label={`Record Daily Data for Batch ${batch.batch_no}`}
+            className="btn btn-outline-warning btn-sm d-flex align-items-center justify-content-center"
+            onClick={() => onEdit(batch.id)}
+            title="Edit Batch"
+            aria-label={`Edit Batch ${batch.batch_no}`}
           >
-            <i className="bi bi-journal-text me-1"></i>
-            <span className="text-muted text-xs">Record Daily Data</span>
+            <i className="bi bi-pencil me-1"></i>
+            <span className="text-muted text-xs">Edit</span>
           </button>
         </div>
       </div>
@@ -43,49 +43,49 @@ const BatchCard: React.FC<{
   </div>
 ));
 
-interface BatchTableProps {
-  batches: DailyBatch[];
+interface BatchConfigTableProps {
+  batches: BatchResponse[];
   loading: boolean;
   error: string | null;
 }
 
-const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
+const BatchConfig: React.FC<BatchConfigTableProps> = ({ batches, loading, error }) => {
   const navigate = useNavigate();
 
-  const handleViewDetails = useCallback(
-    (batch_id: number, batchDate: string) => {
-      if (!batch_id || !batchDate) {
-        console.error("Batch ID and Batch Date are required");
+  const handleView = useCallback(
+    (batch_id: number) => {
+      if (!batch_id) {
+        console.error("Batch ID is required");
         return;
       }
-      navigate(`/batch/${batch_id}/${batchDate}/details`);
+      navigate(`/batch/${batch_id}/view-simple`);
     },
     [navigate]
   );
 
   const handleEdit = useCallback(
-    (batch_id: number, batchDate: string) => {
-      if (!batch_id || !batchDate) {
-        console.error("Batch ID and Batch Date are required");
+    (batch_id: number) => {
+      if (!batch_id) {
+        console.error("Batch ID is required");
         return;
       }
-      navigate(`/batch/${batch_id}/${batchDate}/edit`);
+      navigate(`/batch/${batch_id}/edit-simple`);
     },
     [navigate]
   );
 
   const batchCards = useMemo(() => {
     return batches
-      .filter(batch => batch.batch_id != null && !!batch.batch_date)
+      .filter(batch => batch.id != null)
       .map((batch) => (
-        <BatchCard
-          key={`${batch.batch_id}-${batch.batch_date}`}
+        <BatchConfigCard
+          key={batch.id}
           batch={batch}
-          onView={handleViewDetails}
+          onView={handleView}
           onEdit={handleEdit}
         />
       ));
-  }, [batches, handleViewDetails, handleEdit]);
+  }, [batches, handleView, handleEdit]);
 
   if (loading) return <div className="text-center">Loading...</div>;
   if (error) return <div className="text-center text-danger">{error}</div>;
@@ -94,4 +94,4 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
   return <div className="px-2">{batchCards}</div>;
 };
 
-export default BatchTable;
+export default BatchConfig;
