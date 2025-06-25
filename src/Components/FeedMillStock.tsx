@@ -9,7 +9,11 @@ function FeedMillStock() {
   const [viewState, setViewState] = useState<ViewState>("view");
   const [feeds, setFeeds] = useState<FeedResponse[]>([]);
   const [compositions, setCompositions] = useState<any[]>([]);
-  const [selectedCompositionId, setSelectedCompositionId] = useState<number | null>(null);
+  const SELECTED_COMPOSITION_KEY = 'feedmill_selected_composition_id';
+  const [selectedCompositionId, setSelectedCompositionId] = useState<number | null>(() => {
+    const stored = localStorage.getItem(SELECTED_COMPOSITION_KEY);
+    return stored ? Number(stored) : null;
+  });
   const [editFeeds, setEditFeeds] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [newCompName, setNewCompName] = useState("");
@@ -36,6 +40,12 @@ function FeedMillStock() {
       setCompositions(mappedComps);
     });
   }, []);
+
+  useEffect(() => {
+    if (selectedCompositionId !== null) {
+      localStorage.setItem(SELECTED_COMPOSITION_KEY, String(selectedCompositionId));
+    }
+  }, [selectedCompositionId]);
 
   const filteredFeeds = feeds.filter((f) =>
     f.title.toLowerCase().includes(search.toLowerCase())
