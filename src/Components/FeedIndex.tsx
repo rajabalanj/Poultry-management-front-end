@@ -3,10 +3,9 @@ import { useNavigate } from "react-router-dom";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import PageHeader from "./Layout/PageHeader";
 import { Modal, Button } from "react-bootstrap";
-import { feedApi } from "../services/api";
+import { feedApi, configApi } from "../services/api";
 import { FeedResponse } from '../types/Feed';
 import { toast } from 'react-toastify';
-import { useConfig } from './ConfigContext';
 
 const FeedCard: React.FC<{
   feed: FeedResponse;
@@ -124,7 +123,23 @@ const FeedListPage = () => {
   const [feeds, setFeeds] = useState<FeedResponse[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [feedToDelete, setFeedToDelete] = useState<number | null>(null);
-  const { lowKgThreshold, lowTonThreshold } = useConfig();
+  const [lowKgThreshold, setLowKgThreshold] = useState(3000);
+  const [lowTonThreshold, setLowTonThreshold] = useState(3);
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const configs = await configApi.getAllConfigs();
+        const kgConfig = configs.find(c => c.name === 'lowKgThreshold');
+        const tonConfig = configs.find(c => c.name === 'lowTonThreshold');
+        setLowKgThreshold(kgConfig ? Number(kgConfig.value) : 3000);
+        setLowTonThreshold(tonConfig ? Number(tonConfig.value) : 3);
+      } catch (err: any) {
+        toast.error(err.message || 'Failed to load configuration');
+      }
+    };
+    fetchConfig();
+  }, []);
 
   useEffect(() => {
     const fetchFeedList = async () => {

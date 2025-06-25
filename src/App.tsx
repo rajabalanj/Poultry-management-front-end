@@ -1,5 +1,4 @@
 import React from 'react';
-import { ConfigProvider } from './Components/ConfigContext';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -23,7 +22,6 @@ import ViewBatchSimple from './Components/Forms/Read/ViewBatchSimple';
 
 const App: React.FC = () => {
   return (
-    <ConfigProvider>
       <Router>
         <Layout>
           <Routes>
@@ -81,7 +79,6 @@ const App: React.FC = () => {
         </Layout>
         <ToastContainer position="top-right" autoClose={3000} />
       </Router>
-    </ConfigProvider>
   );
 };
 

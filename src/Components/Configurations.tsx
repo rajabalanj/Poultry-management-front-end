@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useConfig } from './ConfigContext';
 import PageHeader from './Layout/PageHeader';
 import { configApi, batchApi } from '../services/api';
 import { toast } from 'react-toastify';
@@ -8,7 +7,6 @@ import BatchConfig from './BatchConfig';
 const KG_PER_TON = 1000;
 
 const Configurations: React.FC = () => {
-  const { setLowKgThreshold, setLowTonThreshold } = useConfig();
   const [kg, setKg] = useState(3000);
   const [ton, setTon] = useState(3);
   const [saving, setSaving] = useState(false);
@@ -31,8 +29,6 @@ const Configurations: React.FC = () => {
         const tonVal = tonConfig ? Number(tonConfig.value) : 3;
         setKg(kgVal);
         setTon(tonVal);
-        setLowKgThreshold(kgVal);
-        setLowTonThreshold(tonVal);
       } catch (err: any) {
         toast.error(err.message || 'Failed to load configuration');
       } finally {
@@ -84,8 +80,6 @@ const Configurations: React.FC = () => {
         configApi.updateConfig('lowKgThreshold', String(kg)),
         configApi.updateConfig('lowTonThreshold', String(ton)),
       ]);
-      setLowKgThreshold(kg);
-      setLowTonThreshold(ton);
       toast.success('Configuration saved!');
     } catch (err: any) {
       toast.error(err.message || 'Failed to save configuration');
