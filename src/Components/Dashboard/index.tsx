@@ -6,11 +6,15 @@ import BatchTable from '../BatchTable';
 import { dailyBatchApi } from '../../services/api';
 import { DailyBatch } from '../../types/daily_batch';
 
+const BATCH_DATE_KEY = 'dashboard_batch_date';
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const [startDate, setStartDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [batchDate, setBatchDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [batchDate, setBatchDate] = useState<string>(() => {
+    return localStorage.getItem(BATCH_DATE_KEY) || new Date().toISOString().split('T')[0];
+  });
   const [batches, setBatches] = useState<DailyBatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,6 +40,10 @@ const Dashboard = () => {
     };
 
     fetchBatches();
+  }, [batchDate]);
+
+  useEffect(() => {
+    localStorage.setItem(BATCH_DATE_KEY, batchDate);
   }, [batchDate]);
 
   const totalBirds = batches.reduce((sum, b) => sum + (b.closing_count || 0), 0);

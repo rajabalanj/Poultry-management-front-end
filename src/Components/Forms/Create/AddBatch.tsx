@@ -13,6 +13,7 @@ const AddBatch: React.FC = () => {
   const [day, setDay] = useState('1');
   const [isLoading, setIsLoading] = useState(false);
   const [is_chick_batch, setIsChickBatch] = useState(false);
+  const [standardHenDay, setStandardHenDay] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,36 +32,37 @@ const AddBatch: React.FC = () => {
     fetchMaxBatchNo();
   }, []);
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setIsLoading(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
 
-  try {
-    const formattedBatchNo = `B-${String(batch_no).padStart(4, '0')}`;
+    try {
+      const formattedBatchNo = `B-${String(batch_no).padStart(4, '0')}`;
 
-    const batchData = {
-      batch_no: formattedBatchNo,
-      shed_no: shed_no,
-      age: `${week}.${day}`,
-      opening_count: parseInt(opening_count),
-      date: batch_date, // already in YYYY-MM-DD from input[type="date"]
-      is_chick_batch: is_chick_batch,
-    };
+      const batchData = {
+        batch_no: formattedBatchNo,
+        shed_no: shed_no,
+        age: `${week}.${day}`,
+        opening_count: parseInt(opening_count),
+        date: batch_date, // already in YYYY-MM-DD from input[type="date"]
+        is_chick_batch: is_chick_batch,
+        standard_hen_day_percentage: standardHenDay,
+      };
 
-    await batchApi.createBatch(batchData);
-    toast.success('Batch added successfully!');
-    navigate('/');
-  } catch (error) {
-    console.error('Error adding batch:', error);
-    if (error instanceof Error) {
-      toast.error(error.message);
-    } else {
-      toast.error('Failed to add batch. Please try again.');
+      await batchApi.createBatch(batchData);
+      toast.success('Batch added successfully!');
+      navigate('/');
+    } catch (error) {
+      console.error('Error adding batch:', error);
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error('Failed to add batch. Please try again.');
+      }
+    } finally {
+      setIsLoading(false);
     }
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   const handleWeekChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -155,6 +157,26 @@ const handleSubmit = async (e: React.FormEvent) => {
                 min="1"
                 max="7"
                 placeholder="Enter day (1-7)"
+              />
+            </div>
+
+            <div className="col-md-6">
+              <label className="form-label">Standard Hen Day Percentage</label>
+              <input
+                type="number"
+                className="form-control"
+                value={standardHenDay}
+                min="0"
+                max="100"
+                step="0.01"
+                onChange={e => {
+                  let val = parseFloat(e.target.value);
+                  if (isNaN(val)) val = 0;
+                  val = Math.max(0, Math.min(100, Math.round(val * 100) / 100));
+                  setStandardHenDay(val);
+                }}
+                required
+                placeholder="0-100"
               />
             </div>
 

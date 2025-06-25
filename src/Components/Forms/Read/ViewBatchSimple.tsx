@@ -7,7 +7,13 @@ import PageHeader from '../../Layout/PageHeader';
 const ViewBatchSimple: React.FC = () => {
   const { batchId } = useParams<{ batchId: string }>();
   const navigate = useNavigate();
-  const [batch, setBatch] = useState<BatchResponse | null>(null);
+  const [batchNo, setBatchNo] = useState('');
+  const [shedNo, setShedNo] = useState('');
+  const [openingCount, setOpeningCount] = useState('');
+  const [age, setAge] = useState('');
+  const [date, setDate] = useState('');
+  const [isChickBatch, setIsChickBatch] = useState(false);
+  const [standardHenDay, setStandardHenDay] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -16,7 +22,13 @@ const ViewBatchSimple: React.FC = () => {
       try {
         if (!batchId) return;
         const data: BatchResponse = await batchApi.getBatch(Number(batchId));
-        setBatch(data);
+        setBatchNo(data.batch_no || '');
+        setShedNo(data.shed_no || '');
+        setAge(data.age || '');
+        setOpeningCount(data.opening_count?.toString() || '');
+        setDate(data.date || '');
+        setIsChickBatch(data.isChickBatch ?? false);
+        setStandardHenDay(data.standard_hen_day_percentage ?? 0);
       } catch (err) {
         setError('Failed to load batch');
       } finally {
@@ -28,7 +40,6 @@ const ViewBatchSimple: React.FC = () => {
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
-  if (!batch) return <div>No batch found.</div>;
 
   return (
     <div className="container-fluid">
@@ -44,7 +55,7 @@ const ViewBatchSimple: React.FC = () => {
             <input
               type="date"
               className="form-control"
-              value={batch.date || ''}
+              value={date || ''}
               disabled
             />
           </div>
@@ -53,7 +64,7 @@ const ViewBatchSimple: React.FC = () => {
             <input
               type="text"
               className="form-control"
-              value={batch.batch_no || ''}
+              value={batchNo}
               disabled
             />
           </div>
@@ -62,7 +73,7 @@ const ViewBatchSimple: React.FC = () => {
             <input
               type="text"
               className="form-control"
-              value={batch.shed_no || ''}
+              value={shedNo}
               disabled
             />
           </div>
@@ -71,7 +82,7 @@ const ViewBatchSimple: React.FC = () => {
             <input
               type="number"
               className="form-control"
-              value={batch.opening_count ?? ''}
+              value={openingCount}
               disabled
             />
           </div>
@@ -80,8 +91,21 @@ const ViewBatchSimple: React.FC = () => {
             <input
               type="text"
               className="form-control"
-              value={batch.age || ''}
+              value={age}
               disabled
+            />
+          </div>
+          <div className="col-md-6">
+            <label className="form-label">Standard Hen Day Percentage</label>
+            <input
+              type="number"
+              className="form-control"
+              value={standardHenDay}
+              min="0"
+              max="100"
+              step="0.01"
+              disabled
+              placeholder="0-100"
             />
           </div>
           <div className="col-12">
@@ -90,7 +114,7 @@ const ViewBatchSimple: React.FC = () => {
                 className="form-check-input border border-dark"
                 type="checkbox"
                 id="chickBatchCheckbox"
-                checked={batch.isChickBatch ?? false}
+                checked={isChickBatch}
                 disabled
               />
               <label className="form-check-label" htmlFor="chickBatchCheckbox">
