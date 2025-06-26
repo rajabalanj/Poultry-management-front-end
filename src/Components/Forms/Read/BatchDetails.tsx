@@ -103,28 +103,50 @@ const BatchDetails: React.FC = () => {
       />
       <GraphsSection henDayValue={Number((batch.hd *100).toFixed(2))} loading={false} error={null} />
       <div className="p-4">
-        <div className="row justify-content-center">
-          <div className="col-12 col-md-6">
-            <div className="mb-4">
-              <label className="form-label">Shed No.</label>
-              <input
-                type="string"
-                className="form-control"
-                value={batch.shed_no}
-                disabled
-              />
-            </div>
-
-            <div className="mb-4">
-              <label className="form-label">Age</label>
-              <input
-                type="text"
-                className="form-control"
-                value={batch.age}
-                disabled
-              />
-            </div>
-          </div>
+        <div className="row">
+          {/* <div className="col-12 col-md-6">
+            <div className="row g-3"> */}
+              <div className="col-12 col-md-6 mb-4 mt-4">
+                <label className="form-label">Shed No.</label>
+                <input
+                  type="string"
+                  className="form-control"
+                  value={batch.shed_no}
+                  disabled
+                />
+              </div>
+              <div className="col-12 col-md-6 mb-4 mt-4">
+                <label className="form-label">Age</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={batch.age}
+                  disabled
+                />
+              </div>
+              <div className="col-12 col-md-6 mb-4 mt-4">
+                <label className="form-label">Standard Hen Day Percentage</label>
+                <input
+                  type="number"
+                  className="form-control"
+                  value={
+                    batch.standard_hen_day_percentage !== undefined && batch.standard_hen_day_percentage !== null && !isNaN(Number(batch.standard_hen_day_percentage))
+                      ? Number(batch.standard_hen_day_percentage).toFixed(2)
+                      : ''
+                  }
+                  disabled
+                />
+              </div>
+              <div className="col-12 col-md-6 mb-4 mt-4">
+                <label className="form-label">Notes</label>
+                <textarea
+                  className="form-control"
+                  value={batch.notes || ''}
+                  disabled
+                />
+              </div>
+            {/* </div>
+          </div> */}
         </div>
         <div className="mt-4 d-flex justify-content-center">
           <button type="button" className="btn btn-primary me-2" onClick={() => navigate(`/batch/${batch_id}/${batch_date}/edit`)}>
