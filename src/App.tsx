@@ -65,7 +65,7 @@ const App: React.FC = () => {
             {/* <Route path="/feed-list" element={<FeedItemList />} /> */}
             <Route path="/feed" element={<FeedListPage />} />
             <Route
-              path="/previous-day-report/:batchId"
+              path="/previous-day-report/:batchId?"
               element={<PreviousDayReport />}
             />
             {/* <Route path="/new-feed-composition" element={<NewFeedComposition />} />

@@ -152,9 +152,9 @@ const BatchDetails: React.FC = () => {
             onChange={(e) => setEndDate(e.target.value)}
           />
         </div>
-        <div className="col-12 col-md-3 mb-2">
+        <div className="col-12 col-md-3 mb-2 mt-4">
           <button 
-            className="btn btn-primary w-100"
+            className="btn btn-primary w-100 mt-2"
             onClick={handleDownloadReport}
             >
             View Data
