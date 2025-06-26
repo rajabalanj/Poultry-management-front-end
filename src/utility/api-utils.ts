@@ -24,6 +24,8 @@ export const fetchBatchData = async (startDate: string, endDate: string, batchId
       cr: batch.cr,
       total_eggs: batch.total_eggs,
       batch_date: batch.batch_date,
+      hd: batch.hd,
+      standard_hen_day_percentage: batch.standard_hen_day_percentage || 0,
     }));
   } catch (error) {
     console.error('Error fetching data:', error);
@@ -51,6 +53,8 @@ export const exportBatchDataToExcel = (gridData: GridRow[], batchId?: string): v
       'Jumbo',
       'CR',
       'Total Eggs',
+      'HD',
+      'Standard HD Percentage',
     ],
     ...gridData.map((row) => [
       row.batch_no,
@@ -65,6 +69,8 @@ export const exportBatchDataToExcel = (gridData: GridRow[], batchId?: string): v
       row.jumbo,
       row.cr,
       row.total_eggs,
+      row.hd,
+      row.standard_hen_day_percentage?.toFixed(2), // Ensure 2 decimal places
     ]),
   ]
     .map((e) => e.join(','))

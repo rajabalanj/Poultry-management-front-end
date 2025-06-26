@@ -5,7 +5,7 @@ export interface Batch {
   opening_count: number;
   date: string;
   isChickBatch?: boolean;   // Optional field to indicate if it's a chick batch
-  standard_hen_day_percentage?: number; // 0-100, default 0, accepts up to 2 decimal places
+  // standard_hen_day_percentage?: number; // 0-100, default 0, accepts up to 2 decimal places
 }
 
 
@@ -17,7 +17,7 @@ export interface BatchResponse {
   opening_count: number;
   date: string;
   isChickBatch?: boolean;
-  standard_hen_day_percentage?: number; // 0-100, default 0, accepts up to 2 decimal places
+  // standard_hen_day_percentage?: number; // 0-100, default 0, accepts up to 2 decimal places
 }
 
 export interface BatchUpdate {
@@ -27,5 +27,5 @@ export interface BatchUpdate {
   shed_no: string;
   date: string;
   isChickBatch?: boolean;
-  standard_hen_day_percentage?: number; // 0-100, default 0, accepts up to 2 decimal places
+  // standard_hen_day_percentage?: number; // 0-100, default 0, accepts up to 2 decimal places
 }

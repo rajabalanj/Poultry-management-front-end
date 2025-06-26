@@ -46,6 +46,9 @@ const EditBatch: React.FC = () => {
         table_eggs: isChickBatch ? 0 : batch.table_eggs,
         jumbo: isChickBatch ? 0 : batch.jumbo,
         cr: isChickBatch ? 0 : batch.cr,
+        notes: batch.notes || "",
+        standard_hen_day_percentage: batch.standard_hen_day_percentage ?? 0,
+        isChickBatch: isChickBatch,
       };
       await dailyBatchApi.updateDailyBatch(Number(batchId), batch_date, payload);
       toast.success("Batch updated successfully");
@@ -92,49 +95,53 @@ const EditBatch: React.FC = () => {
       <div className="p-4">
         <form onSubmit={handleSubmit}>
           <div className="row">
-            <h4 className="fw-semibold mb-3 border-bottom pb-1 text-primary">
-              Eggs
-            </h4>
-            <div className="col-12 col-md-6">
-              <div className="row g-3 mb-4">
-                <div className="col-6">
-                  <label className="form-label">Table</label>
-                  <input
-                    type="number"
-                    className="form-control"
-                    value={batch.table_eggs}
-                    min="0"
-                    onChange={(e) => handleNumberInput(e.target.value, "table_eggs")}
-                  />
+            { !isChickBatch && (
+              <>
+                <h4 className="fw-semibold mb-3 border-bottom pb-1 text-primary">
+                  Eggs
+                </h4>
+                <div className="col-12 col-md-6">
+                  <div className="row g-3 mb-4">
+                    <div className="col-6">
+                      <label className="form-label">Table</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        value={batch.table_eggs}
+                        min="0"
+                        onChange={(e) => handleNumberInput(e.target.value, "table_eggs")}
+                      />
+                    </div>
+                    <div className="col-6">
+                      <label className="form-label">Jumbo</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        value={batch.jumbo}
+                        min="0"
+                        onChange={(e) => handleNumberInput(e.target.value, "jumbo")}
+                      />
+                    </div>
+                  </div>
+                  <div className="mb-4">
+                    <label className="form-label">CR</label>
+                    <input
+                      type="number"
+                      className="form-control"
+                      value={batch.cr}
+                      min="0"
+                      onChange={(e) => handleNumberInput(e.target.value, "cr")}
+                    />
+                  </div>
+                  <div className="bg-light p-4 rounded">
+                    <div className="d-flex justify-content-between align-items-center">
+                      <h5 className="mb-0">Total Eggs</h5>
+                      <span className="h4 text-primary mb-0">{totalEggs}</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="col-6">
-                  <label className="form-label">Jumbo</label>
-                  <input
-                    type="number"
-                    className="form-control"
-                    value={batch.jumbo}
-                    min="0"
-                    onChange={(e) => handleNumberInput(e.target.value, "jumbo")}
-                  />
-                </div>
-              </div>
-              <div className="mb-4">
-                <label className="form-label">CR</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  value={batch.cr}
-                  min="0"
-                  onChange={(e) => handleNumberInput(e.target.value, "cr")}
-                />
-              </div>
-              <div className="bg-light p-4 rounded">
-                <div className="d-flex justify-content-between align-items-center">
-                  <h5 className="mb-0">Total Eggs</h5>
-                  <span className="h4 text-primary mb-0">{totalEggs}</span>
-                </div>
-              </div>
-            </div>
+              </>
+            )}
             <h4 className="fw-semibold mb-3 border-bottom pb-1 text-primary">
               Birds
             </h4>
@@ -159,6 +166,47 @@ const EditBatch: React.FC = () => {
                   onChange={(e) => handleNumberInput(e.target.value, "culls")}
                 />
               </div>
+            </div>
+            <div className="mb-4">
+              <label className="form-label">Notes</label>
+              <textarea
+                className="form-control"
+                value={batch.notes}
+                onChange={(e) => setBatch((prev) => (prev ? { ...prev, notes: e.target.value } : null))}
+              />
+            </div>
+            <div className="mb-4">
+                <label className="form-label">Standard Hen Day Percentage</label>
+                <input
+                  type="number"
+                  className="form-control"
+                  value={batch.standard_hen_day_percentage ?? ''}
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  onChange={e => {
+                    let val = parseFloat(e.target.value);
+                    if (isNaN(val)) val = 0;
+                    if (val < 0) val = 0;
+                    if (val > 100) val = 100;
+                    // Round to 2 decimal places
+                    val = Math.round(val * 100) / 100;
+                    setBatch(prev => prev ? { ...prev, standard_hen_day_percentage: val } : null);
+                  }}
+                  
+                  placeholder="0.00-100.00"
+                />
+            </div>
+            <div className="form-check mb-3">
+              <input
+                className="form-check-input border border-dark"
+                type="checkbox"
+                checked={isChickBatch}
+                onChange={(e) => setIsChickBatch(e.target.checked)}
+              />
+              <label className="form-check-label">
+                This is a Chick Batch
+              </label>
             </div>
           </div>
           <div className="mt-4 d-flex justify-content-center">

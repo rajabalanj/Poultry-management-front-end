@@ -53,7 +53,14 @@ const PreviousDayReport = () => {
             <span className="me-3">
               Date Range: {startDate} to {endDate}
             </span>
-            {batchId && <span>Batch ID: {batchId}</span>}
+            {batchId && (
+              <span>
+                Batch No: {(() => {
+                  const found = gridData.find(row => String(row.batch_id) === String(batchId));
+                  return found ? found.batch_no : batchId;
+                })()}
+              </span>
+            )}
           </div>
           <button
             className="btn btn-success"
@@ -81,6 +88,8 @@ const PreviousDayReport = () => {
                 <th>Jumbo</th>
                 <th>CR</th>
                 <th>Total Eggs</th>
+                <th>HD</th>
+                <th>Standard</th>
               </tr>
             </thead>
             <tbody>
@@ -99,6 +108,8 @@ const PreviousDayReport = () => {
                     <td>{row.jumbo}</td>
                     <td>{row.cr}</td>
                     <td>{row.total_eggs}</td>
+                    <td>{row.hd !== undefined ? Number(row.hd).toFixed(5) : ''}</td>
+                    <td>{row.standard_hen_day_percentage !== undefined ? row.standard_hen_day_percentage.toFixed(2) : ''}</td>
                   </tr>
                 ))}
             </tbody>

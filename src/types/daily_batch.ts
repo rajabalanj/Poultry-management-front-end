@@ -14,4 +14,7 @@ export interface DailyBatch {
   cr: number;
   total_eggs: number; // Computed field
   hd: number; // Computed field
+  notes?: string;
+  standard_hen_day_percentage?: number; // 0-100, default 0, accepts up to 2 decimal places
+  isChickBatch?: boolean
 }

@@ -12,4 +12,6 @@ export interface GridRow {
     jumbo: number;
     cr: number;
     total_eggs: number;
+    hd: number; // Computed field
+    standard_hen_day_percentage?: number; // 0-100, default 0, accepts up to 2 decimal places
   }

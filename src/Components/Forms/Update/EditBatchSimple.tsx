@@ -14,7 +14,7 @@ const EditBatchSimple: React.FC = () => {
   const [openingCount, setOpeningCount] = useState('');
   const [date, setDate] = useState('');
   const [isChickBatch, setIsChickBatch] = useState(false);
-  const [standardHenDay, setStandardHenDay] = useState(0);
+  // const [standardHenDay, setStandardHenDay] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,7 +29,7 @@ const EditBatchSimple: React.FC = () => {
         setOpeningCount(data.opening_count?.toString() || '');
         setDate(data.date || '');
         setIsChickBatch(data.isChickBatch ?? false);
-        setStandardHenDay(data.standard_hen_day_percentage ?? 0);
+        // setStandardHenDay(data.standard_hen_day_percentage ?? 0);
       } catch (err) {
         setError('Failed to load batch');
         toast.error('Failed to load batch details');
@@ -52,7 +52,7 @@ const EditBatchSimple: React.FC = () => {
         opening_count: parseInt(openingCount),
         date: date,
         isChickBatch: isChickBatch,
-        standard_hen_day_percentage: standardHenDay,
+        // standard_hen_day_percentage: standardHenDay,
       });
       toast.success('Batch updated successfully!');
       navigate(-1);
@@ -131,7 +131,7 @@ const EditBatchSimple: React.FC = () => {
                 placeholder="e.g. 1.1"
               />
             </div>
-            <div className="col-md-6">
+            {/* <div className="col-md-6">
               <label className="form-label">Standard Hen Day Percentage</label>
               <input
                 type="number"
@@ -149,7 +149,7 @@ const EditBatchSimple: React.FC = () => {
                 required
                 placeholder="0-100"
               />
-            </div>
+            </div> */}
             <div className="col-12">
               <div className="form-check mb-3">
                 <input

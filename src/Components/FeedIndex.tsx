@@ -165,21 +165,23 @@ const FeedListPage = () => {
     fetchFeedList();
   }, []);
 
-  const handleDelete = useCallback(async (id: number) => {
-    try {
-      await feedApi.deleteFeed(id);
-      setFeeds(prevFeed => prevFeed.filter(feed => feed.id !== id));
-    } catch (error: any) {
-      setError(error?.message || 'Failed to delete feed');
-      toast.error(error?.message || 'Failed to delete feed');
-    }
+  const handleDelete = useCallback((id: number) => {
+    setFeedToDelete(id);
+    setShowDeleteModal(true);
   }, []);
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (feedToDelete !== null) {
-      setFeeds((prevFeeds) => prevFeeds.filter((feed) => feed.id !== feedToDelete));
-      setFeedToDelete(null);
-      setShowDeleteModal(false);
+      try {
+        await feedApi.deleteFeed(feedToDelete);
+        setFeeds((prevFeeds) => prevFeeds.filter((feed) => feed.id !== feedToDelete));
+      } catch (error: any) {
+        setError(error?.message || 'Failed to delete feed');
+        toast.error(error?.message || 'Failed to delete feed');
+      } finally {
+        setFeedToDelete(null);
+        setShowDeleteModal(false);
+      }
     }
   };
 

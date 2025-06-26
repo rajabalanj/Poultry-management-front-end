@@ -13,7 +13,7 @@ const AddBatch: React.FC = () => {
   const [day, setDay] = useState('1');
   const [isLoading, setIsLoading] = useState(false);
   const [is_chick_batch, setIsChickBatch] = useState(false);
-  const [standardHenDay, setStandardHenDay] = useState(0);
+  // const [standardHenDay, setStandardHenDay] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -46,7 +46,7 @@ const AddBatch: React.FC = () => {
         opening_count: parseInt(opening_count),
         date: batch_date, // already in YYYY-MM-DD from input[type="date"]
         is_chick_batch: is_chick_batch,
-        standard_hen_day_percentage: standardHenDay,
+        // standard_hen_day_percentage: standardHenDay,
       };
 
       await batchApi.createBatch(batchData);
@@ -160,7 +160,7 @@ const AddBatch: React.FC = () => {
               />
             </div>
 
-            <div className="col-md-6">
+            {/* <div className="col-md-6">
               <label className="form-label">Standard Hen Day Percentage</label>
               <input
                 type="number"
@@ -178,7 +178,7 @@ const AddBatch: React.FC = () => {
                 required
                 placeholder="0-100"
               />
-            </div>
+            </div> */}
 
             <div className="col-12">
               <div className="form-check mb-3">
