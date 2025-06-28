@@ -3,6 +3,7 @@ import { Feed, FeedResponse } from '../types/Feed';
 import { CompositionResponse } from '../types/compositon';
 import { DailyBatch } from '../types/daily_batch';
 import { Batch, BatchResponse, BatchUpdate } from '../types/batch';
+import { EggRoomReportResponse, EggRoomReportCreate, EggRoomReportUpdate } from '../types/eggRoomReport';
 
 // Define types for our data
 
@@ -382,6 +383,25 @@ export const batchApi = {
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to update batch'));
     }
+  },
+};
+
+// Egg Room Report API
+export const eggRoomReportApi = {
+  getReport: async (report_date: string): Promise<EggRoomReportResponse> => {
+    const response = await api.get<EggRoomReportResponse>(`/egg-room-report/${report_date}`);
+    return response.data;
+  },
+  createReport: async (report: EggRoomReportCreate): Promise<EggRoomReportResponse> => {
+    const response = await api.post<EggRoomReportResponse>('/egg-room-report/', report);
+    return response.data;
+  },
+  updateReport: async (report_date: string, report: EggRoomReportUpdate): Promise<EggRoomReportResponse> => {
+    const response = await api.put<EggRoomReportResponse>(`/egg-room-report/${report_date}`, report);
+    return response.data;
+  },
+  deleteReport: async (report_date: string): Promise<void> => {
+    await api.delete(`/egg-room-report/${report_date}`);
   },
 };
 

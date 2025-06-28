@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import "bootstrap-icons/font/bootstrap-icons.min.css";
+import EggRoomStock from '../EggRoomStock';
 
 const SIDEBAR_WIDTH = "250px";
 const DESKTOP_BREAKPOINT = 992;
@@ -136,14 +137,14 @@ const Slidebar: React.FC = () => {
                 Configurations
               </Link>
               
-{/* <Link
+              <Link
                   to="/egg-room-stock"
                   className="text-decoration-none text-dark d-block py-2"
                   onClick={closeSidebarMobile}
                 >
                   <i className="bi bi-egg me-2"></i>
                   Egg Room Stock
-                </Link> */}
+                </Link>
               </li>
             </ul>
           </div>

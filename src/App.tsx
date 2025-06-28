@@ -19,6 +19,7 @@ import UploadBatch from './Components/UploadBatch'
 import EditBatchSimple from './Components/Forms/Update/EditBatchSimple';
 import Configurations from './Components/Configurations';
 import ViewBatchSimple from './Components/Forms/Read/ViewBatchSimple';
+import EggRoomStock from './Components/EggRoomStock'
 
 const App: React.FC = () => {
   return (
@@ -75,6 +76,8 @@ const App: React.FC = () => {
               element={<CompositionUsageHistory />}
             />
             <Route path="/configurations" element={<Configurations />} />
+            <Route path="/egg-room-stock" element={<EggRoomStock />} />
+            
           </Routes>
         </Layout>
         <ToastContainer position="top-right" autoClose={3000} />
