@@ -255,7 +255,7 @@ const EggRoomStock: React.FC = () => {
               <input
                 type="number"
                 className="form-control bg-light"
-                value={form.table_closing}
+                value={calculateClosings(form).table_closing}
                 disabled
                 style={{ flex: 1 }}
               />
@@ -266,7 +266,7 @@ const EggRoomStock: React.FC = () => {
               <input
                 type="number"
                 className="form-control bg-light"
-                value={form.table_closing}
+                value={calculateClosings(form).table_closing}
                 disabled
               />
             </>
@@ -319,7 +319,7 @@ const EggRoomStock: React.FC = () => {
               <input
                 type="number"
                 className="form-control bg-light"
-                value={form.grade_c_closing}
+                value={calculateClosings(form).grade_c_closing}
                 disabled
                 style={{ flex: 1 }}
               />
@@ -330,7 +330,7 @@ const EggRoomStock: React.FC = () => {
               <input
                 type="number"
                 className="form-control bg-light"
-                value={form.grade_c_closing}
+                value={calculateClosings(form).grade_c_closing}
                 disabled
               />
             </>
@@ -383,7 +383,7 @@ const EggRoomStock: React.FC = () => {
               <input
                 type="number"
                 className="form-control bg-light"
-                value={form.jumbo_closing}
+                value={calculateClosings(form).jumbo_closing}
                 disabled
                 style={{ flex: 1 }}
               />
@@ -394,7 +394,7 @@ const EggRoomStock: React.FC = () => {
               <input
                 type="number"
                 className="form-control bg-light"
-                value={form.jumbo_closing}
+                value={calculateClosings(form).jumbo_closing}
                 disabled
               />
             </>
