@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import PageHeader from "./Layout/PageHeader";
 import { Modal, Button } from "react-bootstrap";
-import { feedApi, configApi } from "../services/api";
+import { feedApi, configApi } from "../services/api"; // Ensure configApi is imported
 import { FeedResponse } from '../types/Feed';
 import { toast } from 'react-toastify';
 
@@ -12,10 +12,16 @@ const FeedCard: React.FC<{
   onView: (id: number) => void;
   onEdit: (id: number) => void;
   onDelete: (id: number) => void;
-  lowKgThreshold: number;
-  lowTonThreshold: number;
+  lowKgThreshold: number; // Prop for global threshold
+  lowTonThreshold: number; // Prop for global threshold
 }> = React.memo(({ feed, onView, onEdit, onDelete, lowKgThreshold, lowTonThreshold }) => {
-  const isLow = (feed.unit === 'kg' && Number(feed.quantity) < lowKgThreshold) || (feed.unit === 'ton' && Number(feed.quantity) < lowTonThreshold);
+  // Use feed-specific thresholds if available, otherwise fall back to global ones
+   const effectiveLowKgThreshold = feed.warningKgThreshold ?? lowKgThreshold;
+  const effectiveLowTonThreshold = feed.warningTonThreshold ?? lowTonThreshold;
+
+  const isLow = (feed.unit === 'kg' && effectiveLowKgThreshold !== undefined && Number(feed.quantity) < effectiveLowKgThreshold) ||
+                (feed.unit === 'ton' && effectiveLowTonThreshold !== undefined && Number(feed.quantity) < effectiveLowTonThreshold);
+
   return (
     <div className={`card mb-2 border shadow-sm ${isLow ? 'border-danger' : ''}`} style={isLow ? { background: '#fff0f0' } : {}}>
       <div className="card-body p-2">
@@ -25,6 +31,20 @@ const FeedCard: React.FC<{
             <div className="text-muted text-xs">
               <span className={`me-2 ${isLow ? 'text-danger fw-bold' : ''}`}>Quantity: {feed.quantity}</span>
               <span>{feed.unit}</span>
+              {/* Display per-feed warning thresholds if they exist */}
+              {feed.warningKgThreshold !== undefined && (
+                <p className="mb-0 text-muted text-xs">Per-feed Warning (kg): {feed.warningKgThreshold}</p>
+              )}
+              {feed.warningTonThreshold !== undefined && (
+                <p className="mb-0 text-muted text-xs">Per-feed Warning (ton): {feed.warningTonThreshold}</p>
+              )}
+              {/* Optionally, display the effective global thresholds if no per-feed is set, for debugging */}
+              {feed.warningKgThreshold === undefined && lowKgThreshold !== undefined && (
+                <p className="mb-0 text-muted text-xs">(Global fallback Warning (kg): {lowKgThreshold})</p>
+              )}
+              {feed.warningTonThreshold === undefined && lowTonThreshold !== undefined && (
+                <p className="mb-0 text-muted text-xs">(Global fallback Warning (ton): {lowTonThreshold})</p>
+              )}
             </div>
           </div>
           <div className="d-flex flex-column flex-md-row gap-2">
@@ -67,8 +87,8 @@ interface FeedTableProps {
   loading: boolean;
   error: string | null;
   onDelete: (id: number) => void;
-  lowKgThreshold: number;
-  lowTonThreshold: number;
+  lowKgThreshold: number; // Prop from FeedListPage
+  lowTonThreshold: number; // Prop from FeedListPage
 }
 
 const FeedTable: React.FC<FeedTableProps> = ({ feeds, loading, error, onDelete, lowKgThreshold, lowTonThreshold }) => {
@@ -104,8 +124,8 @@ const FeedTable: React.FC<FeedTableProps> = ({ feeds, loading, error, onDelete, 
         onView={handleViewDetails}
         onEdit={handleEdit}
         onDelete={onDelete}
-        lowKgThreshold={lowKgThreshold}
-        lowTonThreshold={lowTonThreshold}
+        lowKgThreshold={lowKgThreshold} // Pass global threshold to FeedCard
+        lowTonThreshold={lowTonThreshold} // Pass global threshold to FeedCard
       />
     ));
   }, [feeds, handleViewDetails, handleEdit, onDelete, lowKgThreshold, lowTonThreshold]);
@@ -123,15 +143,18 @@ const FeedListPage = () => {
   const [feeds, setFeeds] = useState<FeedResponse[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [feedToDelete, setFeedToDelete] = useState<number | null>(null);
+  // States for global thresholds, initialized with defaults
   const [lowKgThreshold, setLowKgThreshold] = useState(3000);
   const [lowTonThreshold, setLowTonThreshold] = useState(3);
 
+  // Effect to fetch global configuration for thresholds
   useEffect(() => {
     const fetchConfig = async () => {
       try {
         const configs = await configApi.getAllConfigs();
         const kgConfig = configs.find(c => c.name === 'lowKgThreshold');
         const tonConfig = configs.find(c => c.name === 'lowTonThreshold');
+        // Update states with fetched values or keep defaults
         setLowKgThreshold(kgConfig ? Number(kgConfig.value) : 3000);
         setLowTonThreshold(tonConfig ? Number(tonConfig.value) : 3);
       } catch (err: any) {
@@ -139,8 +162,9 @@ const FeedListPage = () => {
       }
     };
     fetchConfig();
-  }, []);
+  }, []); // Run once on component mount
 
+  // Effect to fetch feed list
   useEffect(() => {
     const fetchFeedList = async () => {
       setLoading(true);
@@ -153,6 +177,8 @@ const FeedListPage = () => {
           quantity: feed.quantity,
           unit: feed.unit,
           createdDate: feed.createdDate,
+          warningKgThreshold: feed.warningKgThreshold,
+          warningTonThreshold: feed.warningTonThreshold,
         }));
         setFeeds(feeds);
       } catch (error: any) {
@@ -163,7 +189,7 @@ const FeedListPage = () => {
       }
     };
     fetchFeedList();
-  }, []);
+  }, []); // Run once on component mount
 
   const handleDelete = useCallback((id: number) => {
     setFeedToDelete(id);
@@ -175,6 +201,7 @@ const FeedListPage = () => {
       try {
         await feedApi.deleteFeed(feedToDelete);
         setFeeds((prevFeeds) => prevFeeds.filter((feed) => feed.id !== feedToDelete));
+        toast.success("Feed deleted successfully!");
       } catch (error: any) {
         setError(error?.message || 'Failed to delete feed');
         toast.error(error?.message || 'Failed to delete feed');
@@ -193,7 +220,14 @@ const FeedListPage = () => {
   return (
     <div>
       <PageHeader title="Feed List" buttonLabel="Create Feed" buttonLink="/create-feed" />
-      <FeedTable feeds={feeds} loading={loading} error={error} onDelete={handleDelete} lowKgThreshold={lowKgThreshold} lowTonThreshold={lowTonThreshold} />
+      <FeedTable
+        feeds={feeds}
+        loading={loading}
+        error={error}
+        onDelete={handleDelete}
+        lowKgThreshold={lowKgThreshold} // Pass global threshold to FeedTable
+        lowTonThreshold={lowTonThreshold} // Pass global threshold to FeedTable
+      />
       <Modal show={showDeleteModal} onHide={cancelDelete}>
         <Modal.Header closeButton>
           <Modal.Title>Confirm Delete</Modal.Title>

@@ -11,6 +11,9 @@ const EditFeed: React.FC = () => {
   const [feed, setFeed] = useState<FeedResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // New state for warning thresholds
+  const [warningKgThreshold, setWarningKgThreshold] = useState<number | ''>('');
+  const [warningTonThreshold, setWarningTonThreshold] = useState<number | ''>('');
 
   useEffect(() => {
     const fetchFeed = async () => {
@@ -18,6 +21,9 @@ const EditFeed: React.FC = () => {
         if (!feed_id) return;
         const data = await feedApi.getFeed(Number(feed_id));
         setFeed(data);
+        // Initialize warning thresholds from fetched data
+        setWarningKgThreshold(data.warningKgThreshold !== undefined ? data.warningKgThreshold : '');
+        setWarningTonThreshold(data.warningTonThreshold !== undefined ? data.warningTonThreshold : '');
       } catch (err) {
         console.error("Error fetching feed:", err);
         setError("Failed to load feed");
@@ -36,11 +42,14 @@ const EditFeed: React.FC = () => {
 
     try {
       await feedApi.updateFeed(Number(feed_id), {
-      id: Number(feed_id),
-      title: feed.title,
-      quantity: feed.quantity,
-      unit: feed.unit,
-      createdDate: feed.createdDate,});
+        id: Number(feed_id),
+        title: feed.title,
+        quantity: feed.quantity,
+        unit: feed.unit,
+        createdDate: feed.createdDate,
+        warningKgThreshold: typeof warningKgThreshold === 'number' ? warningKgThreshold : undefined,
+        warningTonThreshold: typeof warningTonThreshold === 'number' ? warningTonThreshold : undefined,
+      });
       toast.success("Feed updated successfully");
       navigate(-1);
     } catch (err) {
@@ -53,6 +62,38 @@ const EditFeed: React.FC = () => {
   const handleInputChange = (value: string, field: keyof FeedResponse) => {
     setFeed((prev: FeedResponse | null) => (prev ? { ...prev, [field]: value } : null));
   };
+
+  const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value === '' || (/^\d+(\.\d{0,2})?$/.test(value) && Number(value) >= 0)) {
+        handleInputChange(value, "quantity");
+    }
+  };
+
+  const handleWarningKgChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value === '' || (/^\d+(\.\d{0,2})?$/.test(value) && Number(value) >= 0)) {
+      setWarningKgThreshold(value === '' ? '' : Number(value));
+      if (value !== '') {
+        setWarningTonThreshold(Number(value) / 1000); // Convert kg to ton
+      } else {
+        setWarningTonThreshold('');
+      }
+    }
+  };
+
+  const handleWarningTonChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value === '' || (/^\d+(\.\d{0,2})?$/.test(value) && Number(value) >= 0)) {
+      setWarningTonThreshold(value === '' ? '' : Number(value));
+      if (value !== '') {
+        setWarningKgThreshold(Number(value) * 1000); // Convert ton to kg
+      } else {
+        setWarningKgThreshold('');
+      }
+    }
+  };
+
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
@@ -86,7 +127,7 @@ const EditFeed: React.FC = () => {
                   type="number"
                   className="form-control"
                   value={feed.quantity}
-                  onChange={(e) => handleInputChange(e.target.value, "quantity")}
+                  onChange={handleQuantityChange}
                 />
               </div>
 
@@ -101,6 +142,30 @@ const EditFeed: React.FC = () => {
                   <option value="ton">ton</option>
                 </select>
               </div>
+
+              {/* New Warning Threshold Fields */}
+              <div className="mb-4">
+                <label className="form-label">Warning Threshold (kg)</label>
+                <input
+                  type="number"
+                  className="form-control"
+                  value={warningKgThreshold}
+                  onChange={handleWarningKgChange}
+                  placeholder="e.g., 2000"
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="form-label">Warning Threshold (ton)</label>
+                <input
+                  type="number"
+                  className="form-control"
+                  value={warningTonThreshold}
+                  onChange={handleWarningTonChange}
+                  placeholder="e.g., 2"
+                />
+              </div>
+
             </div>
           </div>
 

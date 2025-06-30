@@ -72,6 +72,28 @@ const FeedDetails: React.FC = () => {
                 <option value="ton">ton</option>
               </select>
             </div>
+
+            {/* New Warning Threshold Fields */}
+            <div className="mb-4">
+              <label className="form-label">Warning Threshold (kg)</label>
+              <input
+                type="number"
+                className="form-control"
+                value={feed.warningKgThreshold !== undefined ? feed.warningKgThreshold : ''}
+                disabled
+              />
+            </div>
+
+            <div className="mb-4">
+              <label className="form-label">Warning Threshold (ton)</label>
+              <input
+                type="number"
+                className="form-control"
+                value={feed.warningTonThreshold !== undefined ? feed.warningTonThreshold : ''}
+                disabled
+              />
+            </div>
+
           </div>
         </div>
 

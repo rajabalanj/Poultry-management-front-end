@@ -20,6 +20,7 @@ import EditBatchSimple from './Components/Forms/Update/EditBatchSimple';
 import Configurations from './Components/Configurations';
 import ViewBatchSimple from './Components/Forms/Read/ViewBatchSimple';
 import EggRoomStock from './Components/EggRoomStock'
+import EggRoomStockReport from './Components/EggRoomStockReport';
 
 const App: React.FC = () => {
   return (
@@ -77,6 +78,10 @@ const App: React.FC = () => {
             />
             <Route path="/configurations" element={<Configurations />} />
             <Route path="/egg-room-stock" element={<EggRoomStock />} />
+            <Route
+              path="/egg-room-stock/report"
+              element={<EggRoomStockReport />}
+            />
             
           </Routes>
         </Layout>

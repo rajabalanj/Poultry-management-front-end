@@ -4,6 +4,8 @@ export interface Feed {
   quantity: number;
   unit: string;
   createdDate: string;
+  warningKgThreshold?: number;
+  warningTonThreshold?: number;
 }
 
 export interface FeedResponse {
@@ -12,4 +14,6 @@ export interface FeedResponse {
   quantity: number;
   unit: string;
   createdDate: string;
+  warningKgThreshold?: number;
+  warningTonThreshold?: number;
 }

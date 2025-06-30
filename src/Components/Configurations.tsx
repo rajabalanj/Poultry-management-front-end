@@ -14,75 +14,64 @@ const Configurations: React.FC = () => {
 
   // Batch config state
   const [batches, setBatches] = useState<import('../types/batch').BatchResponse[]>([]);
-  const [batchLoading, setBatchLoading] = useState(true);
-  const [batchError, setBatchError] = useState<string | null>(null);
+  const [batchLoading, setBatchLoading] = useState(true); // Still useful for BatchConfig component
+  const [batchError, setBatchError] = useState<string | null>(null); // Still useful for BatchConfig component
 
-  // Load config from backend on mount
+  // Load all configurations from backend on mount
   useEffect(() => {
-    const fetchConfig = async () => {
+    const fetchAllConfigs = async () => {
       setLoading(true);
+      setBatchLoading(true); // Set batch loading
       try {
         const configs = await configApi.getAllConfigs();
         const kgConfig = configs.find(c => c.name === 'lowKgThreshold');
         const tonConfig = configs.find(c => c.name === 'lowTonThreshold');
-        const kgVal = kgConfig ? Number(kgConfig.value) : 3000;
-        const tonVal = tonConfig ? Number(tonConfig.value) : 3;
-        setKg(kgVal);
-        setTon(tonVal);
+        setKg(kgConfig ? Number(kgConfig.value) : 3000);
+        setTon(tonConfig ? Number(tonConfig.value) : 3);
+
+        // Load batch configs
+        const batchData = await batchApi.getBatches(0, 1000); // Assuming getBatches can take limit/skip
+        setBatches(Array.isArray(batchData) ? batchData : []);
+        setBatchError(null); // Clear any previous batch error
+
       } catch (err: any) {
-        toast.error(err.message || 'Failed to load configuration');
+        toast.error(err.message || 'Failed to load configurations.');
+        setBatchError(err.message || 'Failed to load batch configurations.'); // Set specific error for batch
       } finally {
         setLoading(false);
+        setBatchLoading(false); // End batch loading
       }
     };
-    fetchConfig();
-    // eslint-disable-next-line
-  }, []);
-
-  // Fetch batches for config
-  useEffect(() => {
-    const fetchBatches = async () => {
-      setBatchLoading(true);
-      try {
-        const data = await batchApi.getBatches(0, 1000);
-        setBatches(Array.isArray(data) ? data : []);
-        setBatchError(null);
-      } catch (err: any) {
-        setBatchError(err.message || 'Failed to load batches');
-      } finally {
-        setBatchLoading(false);
-      }
-    };
-    fetchBatches();
+    fetchAllConfigs();
   }, []);
 
   // Sync ton when kg changes
   const handleKgChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newKg = Number(e.target.value);
-    setKg(newKg);
-    const newTon = +(newKg / KG_PER_TON).toFixed(3);
-    if (ton !== newTon) setTon(newTon);
+    const value = Number(e.target.value);
+    if (!isNaN(value)) {
+      setKg(value);
+      setTon(value / KG_PER_TON);
+    }
   };
 
   // Sync kg when ton changes
   const handleTonChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newTon = Number(e.target.value);
-    setTon(newTon);
-    const newKg = Math.round(newTon * KG_PER_TON);
-    if (kg !== newKg) setKg(newKg);
+    const value = Number(e.target.value);
+    if (!isNaN(value)) {
+      setTon(value);
+      setKg(value * KG_PER_TON);
+    }
   };
 
-  // Save to backend and context
+  // Save to backend
   const handleSave = async () => {
     setSaving(true);
     try {
-      await Promise.all([
-        configApi.updateConfig('lowKgThreshold', String(kg)),
-        configApi.updateConfig('lowTonThreshold', String(ton)),
-      ]);
-      toast.success('Configuration saved!');
+      await configApi.updateConfig('lowKgThreshold', String(kg));
+      await configApi.updateConfig('lowTonThreshold', String(ton));
+      toast.success('Configurations saved successfully!');
     } catch (err: any) {
-      toast.error(err.message || 'Failed to save configuration');
+      toast.error(err.message || 'Failed to save configurations.');
     } finally {
       setSaving(false);
     }
@@ -92,14 +81,14 @@ const Configurations: React.FC = () => {
     <div>
       <PageHeader title="Configurations"></PageHeader>
       <div className="px-4">
-        <div className="mb-3 d-flex gap-3 align-items-center">
-          <label className="form-label mb-0">Low Feed Thresholds:</label>
+        <div className="mb-3 d-flex flex-column flex-md-row gap-3 align-items-start align-items-md-center">
+          <label className="form-label mb-0 flex-shrink-0">Global Low Feed Thresholds:</label>
           <div className="d-flex align-items-center gap-2">
             <span>kg:</span>
             <input
               type="number"
               className="form-control form-control-sm"
-              style={{ width: 80 }}
+              style={{ width: 100 }}
               value={kg}
               min={0}
               onChange={handleKgChange}
@@ -111,7 +100,7 @@ const Configurations: React.FC = () => {
             <input
               type="number"
               className="form-control form-control-sm"
-              style={{ width: 80 }}
+              style={{ width: 100 }}
               value={ton}
               min={0}
               step={0.001}
@@ -119,8 +108,8 @@ const Configurations: React.FC = () => {
               disabled={loading}
             />
           </div>
-          <button className="btn btn-primary ms-3" onClick={handleSave} disabled={saving || loading}>
-            {saving ? 'Saving...' : 'Save'}
+          <button className="btn btn-primary ms-0 ms-md-3 mt-2 mt-md-0" onClick={handleSave} disabled={saving || loading}>
+            {saving ? 'Saving...' : 'Save Global Thresholds'}
           </button>
         </div>
         <hr />

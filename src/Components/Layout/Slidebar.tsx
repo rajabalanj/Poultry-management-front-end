@@ -145,6 +145,14 @@ const Slidebar: React.FC = () => {
                   <i className="bi bi-egg me-2"></i>
                   Egg Room Stock
                 </Link>
+                <Link
+                  to="/egg-room-stock/report"
+                  className="text-decoration-none text-dark d-block py-2"
+                  onClick={closeSidebarMobile}
+                >
+                  <i className="bi bi-file-earmark-text me-2"></i>
+                  Egg Room Stock Report
+                </Link>
               </li>
             </ul>
           </div>

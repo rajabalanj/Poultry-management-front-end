@@ -3,7 +3,7 @@ import { Feed, FeedResponse } from '../types/Feed';
 import { CompositionResponse } from '../types/compositon';
 import { DailyBatch } from '../types/daily_batch';
 import { Batch, BatchResponse, BatchUpdate } from '../types/batch';
-import { EggRoomReportResponse, EggRoomReportCreate, EggRoomReportUpdate } from '../types/eggRoomReport';
+import { EggRoomReportResponse, EggRoomReportCreate, EggRoomReportUpdate, EggRoomSingleReportResponse } from '../types/eggRoomReport';
 
 // Define types for our data
 
@@ -162,10 +162,10 @@ export const dailyBatchApi = {
   
   // PATCH daily batch by batch_id and batch_date
   updateDailyBatch: async (batch_id: number, batch_date: string, payload: Partial<DailyBatch>): Promise<DailyBatch> => {
-    // Convert batch_date to yyyy-mm-dd if needed
+    // Convert batch_date to YYYY-mm-dd if needed
     let formattedDate = batch_date;
     if (/^\d{2}-\d{2}-\d{4}$/.test(batch_date)) {
-      // dd-mm-yyyy -> yyyy-mm-dd
+      // dd-mm-yyyy -> YYYY-mm-dd
       const [dd, mm, yyyy] = batch_date.split('-');
       formattedDate = `${yyyy}-${mm}-${dd}`;
     }
@@ -388,20 +388,40 @@ export const batchApi = {
 
 // Egg Room Report API
 export const eggRoomReportApi = {
-  getReport: async (report_date: string): Promise<EggRoomReportResponse> => {
-    const response = await api.get<EggRoomReportResponse>(`/egg-room-report/${report_date}`);
+  getReport: async (report_date: string): Promise<EggRoomSingleReportResponse> => {
+    const response = await api.get<EggRoomSingleReportResponse>(`/egg-room-report/${report_date}`);
     return response.data;
   },
   createReport: async (report: EggRoomReportCreate): Promise<EggRoomReportResponse> => {
     const response = await api.post<EggRoomReportResponse>('/egg-room-report/', report);
     return response.data;
   },
-  updateReport: async (report_date: string, report: EggRoomReportUpdate): Promise<EggRoomReportResponse> => {
-    const response = await api.put<EggRoomReportResponse>(`/egg-room-report/${report_date}`, report);
-    return response.data;
+  // In api.ts
+updateReport: async (report_date: string, reportData: EggRoomReportUpdate) => { // Renamed 'report' to 'reportData' for clarity
+    if (!report_date || report_date === 'undefined') {
+      throw new Error('Invalid date parameter');
+    }
+    
+    try {
+      const response = await api.put<EggRoomReportResponse>(
+        `/egg-room-report/${encodeURIComponent(report_date)}`,
+        reportData // Use reportData here
+      );
+      return response.data;
+    } catch (error) {
+      console.error('API Error:', error);
+      throw error;
+    }
   },
   deleteReport: async (report_date: string): Promise<void> => {
     await api.delete(`/egg-room-report/${report_date}`);
+  },
+
+  getReports: async (start_date: string, end_date: string): Promise<EggRoomReportResponse[]> => {
+    const response = await api.get<EggRoomReportResponse[]>(`/egg-room-report/`, {
+      params: { start_date, end_date }
+    });
+    return response.data;
   },
 };
 
