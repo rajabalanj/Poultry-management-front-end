@@ -175,7 +175,7 @@ const EditBatch: React.FC = () => {
                 onChange={(e) => setBatch((prev) => (prev ? { ...prev, notes: e.target.value } : null))}
               />
             </div>
-            <div className="mb-4">
+            {/* <div className="mb-4">
                 <label className="form-label">Standard Hen Day Percentage</label>
                 <input
                   type="number"
@@ -196,7 +196,7 @@ const EditBatch: React.FC = () => {
                   
                   placeholder="0.00-100.00"
                 />
-            </div>
+            </div> */}
             <div className="form-check mb-3">
               <input
                 className="form-check-input border border-dark"

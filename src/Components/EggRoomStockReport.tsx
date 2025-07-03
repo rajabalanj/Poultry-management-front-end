@@ -15,10 +15,7 @@ const EggRoomStockReport: React.FC = () => {
   setLoading(true);
   setError(null);
   try {
-    const formattedStartDate = startDate.split('-').reverse().join('-');
-      const formattedEndDate = endDate.split('-').reverse().join('-');
-    // 1. Get API response
-    const response = await eggRoomReportApi.getReports(formattedStartDate, formattedEndDate);
+    const response = await eggRoomReportApi.getReports(startDate, endDate);
     
     // 2. Extract and flatten entries from all reports
     const reportsData: EggRoomStockEntry[] = response.map((item: any) => ({
