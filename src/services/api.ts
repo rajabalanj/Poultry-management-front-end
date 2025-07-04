@@ -4,6 +4,7 @@ import { CompositionResponse } from '../types/compositon';
 import { DailyBatch } from '../types/daily_batch';
 import { Batch, BatchResponse, BatchUpdate } from '../types/batch';
 import { EggRoomReportResponse, EggRoomReportCreate, EggRoomReportUpdate, EggRoomSingleReportResponse } from '../types/eggRoomReport';
+import { FeedAudit } from '../types/feed_audit';
 
 // Define types for our data
 
@@ -233,6 +234,14 @@ export const feedApi = {
       throw new Error(getApiErrorMessage(error, 'Failed to delete feed'));
     }
   },
+  getFeedAudit: async (feed_id: number): Promise<FeedAudit[]> => {
+  try {
+    const response = await api.get<FeedAudit[]>(`/feed/${feed_id}/audit/`);
+    return response.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Failed to fetch feed audit report'));
+  }
+},
 };
 
 // Composition API for create, read, update, delete

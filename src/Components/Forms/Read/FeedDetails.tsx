@@ -99,6 +99,13 @@ const FeedDetails: React.FC = () => {
 
         <div className="mt-4 d-flex justify-content-center">
           <button
+    type="button"
+    className="btn btn-primary"
+    onClick={() => navigate(`/feed/${feed.id}/audit`)}
+  >
+    View Report
+  </button>
+          <button
             type="button"
             className="btn btn-secondary"
             onClick={() => navigate(-1)}

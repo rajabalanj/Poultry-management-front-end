@@ -21,6 +21,9 @@ import Configurations from './Components/Configurations';
 import ViewBatchSimple from './Components/Forms/Read/ViewBatchSimple';
 import EggRoomStock from './Components/EggRoomStock'
 import EggRoomStockReport from './Components/EggRoomStockReport';
+// Add this import
+import FeedAuditReport from "./Components/FeedAuditReport";
+
 
 const App: React.FC = () => {
   return (
@@ -82,6 +85,7 @@ const App: React.FC = () => {
               path="/egg-room-stock/report"
               element={<EggRoomStockReport />}
             />
+            <Route path="/feed/:feed_id/audit" element={<FeedAuditReport />} />
             
           </Routes>
         </Layout>
