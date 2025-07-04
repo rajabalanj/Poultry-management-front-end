@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { feedApi } from "../services/api";
 import { FeedAudit } from "../types/feed_audit";
 import PageHeader from "../Components/Layout/PageHeader";
 
 const FeedAuditReport: React.FC = () => {
   const { feed_id } = useParams<{ feed_id: string }>();
-  const navigate = useNavigate();
   const [audits, setAudits] = useState<FeedAudit[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
