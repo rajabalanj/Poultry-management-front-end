@@ -38,7 +38,7 @@ export const useEggRoomStock = () => {
     ...entry,
     table_closing:
       entry.table_opening +
-      entry.table_received +
+      entry.table_received -
       entry.table_transfer -
       entry.table_damage -
       entry.table_out,
@@ -51,7 +51,7 @@ export const useEggRoomStock = () => {
     grade_c_closing:
       entry.grade_c_opening +
       entry.grade_c_shed_received +
-      entry.grade_c_room_received +
+      entry.grade_c_room_received -
       entry.grade_c_transfer -
       entry.grade_c_labour -
       entry.grade_c_waste,

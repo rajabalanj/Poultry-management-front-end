@@ -1,100 +1,116 @@
 import React, { useState } from 'react';
 import { eggRoomReportApi } from '../services/api';
-import { EggRoomStockEntry } from '../types/eggRoomReport'; // Adjust the import path as necessary
+import { EggRoomStockEntry } from '../types/eggRoomReport';
 import PageHeader from './Layout/PageHeader';
+import { DateSelector } from './DateSelector';
+// import './EggRoomStockReport.css'; // Import a new CSS file for custom styles
 
 const EggRoomStockReport: React.FC = () => {
   const today = new Date().toISOString().slice(0, 10);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState(today);
+  const [endDate, setEndDate] = useState(today);
   const [reports, setReports] = useState<EggRoomStockEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dateRangeError, setDateRangeError] = useState<string | null>(null);
 
   const fetchReports = async () => {
-  setLoading(true);
-  setError(null);
-  try {
-    const response = await eggRoomReportApi.getReports(startDate, endDate);
-    
-    // 2. Extract and flatten entries from all reports
-    const reportsData: EggRoomStockEntry[] = response.map((item: any) => ({
-        ...item,
-        date: item.report_date // Map report_date to date
-      }));
+    if (!startDate || !endDate) {
+      setDateRangeError('Please select both a Start Date and an End Date.');
+      return;
+    }
+    const start = new Date(startDate);
+    const end = new Date(endDate);
 
-    setReports(reportsData);
-  } catch (err: any) {
-    setError(err?.message || 'Failed to fetch reports');
-  } finally {
-    setLoading(false);
-  }
-};
+    if (start > end) {
+      setDateRangeError('End Date cannot be before Start Date.');
+      return;
+    } else {
+      setDateRangeError(null);
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await eggRoomReportApi.getReports(startDate, endDate);
+      const reportsData: EggRoomStockEntry[] = response.map((item: any) => ({
+        ...item,
+        date: item.report_date
+      }));
+      setReports(reportsData);
+    } catch (err: any) {
+      setError(err?.message || 'Failed to fetch reports');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="container-fluid">
       <PageHeader title="Egg Room Stock Report" />
       <div className="row mb-4">
-        <div className="col-md-6 d-flex align-items-end gap-2">
-          <div>
-            <label>Start Date: </label>
-            <input
-              type="date"
-              className="form-control"
-              value={startDate}
-              max={today}
-              onChange={e => setStartDate(e.target.value)}
-            />
-          </div>
-          <div>
-            <label>End Date: </label>
-            <input
-              type="date"
-              className="form-control"
-              value={endDate}
-              max={today}
-              min={startDate}
-              onChange={e => setEndDate(e.target.value)}
-            />
-          </div>
-          <button className="btn btn-primary ms-2" onClick={fetchReports} disabled={!startDate || !endDate || loading}>
+        <div className="col-md-6 d-flex align-items-end gap-2 flex-wrap">
+          <DateSelector
+            label="Start Date"
+            value={startDate}
+            onChange={setStartDate}
+            maxDate={endDate || today}
+            className="flex-grow-1"
+          />
+          <DateSelector
+            label="End Date"
+            value={endDate}
+            onChange={setEndDate}
+            minDate={startDate}
+            maxDate={today}
+            className="flex-grow-1"
+          />
+          <button
+            className="btn btn-primary ms-2 mb-2"
+            onClick={fetchReports}
+            disabled={!startDate || !endDate || loading || !!dateRangeError}
+          >
             {loading ? 'Loading...' : 'Get Report'}
           </button>
         </div>
       </div>
+      {dateRangeError && <div className="alert alert-danger text-center">{dateRangeError}</div>}
       {error && <div className="alert alert-danger text-center">{error}</div>}
+
       {reports.length > 0 && (
         <div className="table-responsive">
           <table className="table table-bordered">
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Table Opening</th>
-                <th>Table Received</th>
-                <th>Table Transfer</th>
-                <th>Table Damage</th>
-                <th>Table Out</th>
-                <th>Table Closing</th>
-                <th>Jumbo Opening</th>
-                <th>Jumbo Received</th>
-                <th>Jumbo Transfer</th>
-                <th>Jumbo Waste</th>
-                <th>Jumbo In</th>
-                <th>Jumbo Closing</th>
-                <th>Grade C Opening</th>
-                <th>Grade C Shed Received</th>
-                <th>Grade C Room Received</th>
-                <th>Grade C Transfer</th>
-                <th>Grade C Labour</th>
-                <th>Grade C Waste</th>
-                <th>Grade C Closing</th>
+                <th rowSpan={2} className="text-center align-middle">Date</th>
+                <th colSpan={6} className="text-center">Table</th>
+                <th colSpan={6} className="text-center">Jumbo</th>
+                <th colSpan={7} className="text-center">Grade C</th>
+              </tr>
+              <tr>
+                <th className="text-center">Opening</th>
+                <th className="text-center">Received</th>
+                <th className="text-center">Transfer</th>
+                <th className="text-center">Damage</th>
+                <th className="text-center">Out</th>
+                <th className="text-center">Closing</th>
+                <th className="text-center">Opening</th>
+                <th className="text-center">Received</th>
+                <th className="text-center">Transfer</th>
+                <th className="text-center">Waste</th>
+                <th className="text-center">In</th>
+                <th className="text-center">Closing</th>
+                <th className="text-center">Opening</th>
+                <th className="text-center">Shed Received</th>
+                <th className="text-center">Room Received</th>
+                <th className="text-center">Transfer</th>
+                <th className="text-center">Labour</th>
+                <th className="text-center">Waste</th>
+                <th className="text-center">Closing</th>
               </tr>
             </thead>
             <tbody>
               {reports.map((r) => (
-                // Add a check directly here as a safeguard, though filtering above should prevent this.
-                // Using r.id if available, or fall back to date if id is optional and date is reliable unique key
-                // For simplicity, sticking to date as key as per original code, assuming it's unique per entry.
                 <tr key={r.report_date}>
                   <td>{r.report_date}</td>
                   <td>{r.table_opening}</td>

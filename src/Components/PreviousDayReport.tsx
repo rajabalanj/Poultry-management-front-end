@@ -22,8 +22,8 @@ const PreviousDayReport = () => {
   const fetchData = async () => {
     try {
       const data = await fetchBatchData(
-        startDate, 
-        endDate, 
+        startDate,
+        endDate,
         batchId // Pass undefined if batchId doesn't exist
       );
       setGridData(data);
@@ -95,23 +95,49 @@ const PreviousDayReport = () => {
             <tbody>
               {validGridData
                 .slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
-                .map((row) => (
-                  <tr key={`${row.batch_id}-${row.batch_date}`}>
-                    <td>{row.batch_date}</td>
-                    <td>{row.shed_no}</td>
-                    <td>{row.age}</td>
-                    <td>{row.opening_count}</td>
-                    <td>{row.mortality}</td>
-                    <td>{row.culls}</td>
-                    <td>{row.closing_count}</td>
-                    <td>{row.table_eggs}</td>
-                    <td>{row.jumbo}</td>
-                    <td>{row.cr}</td>
-                    <td>{row.total_eggs}</td>
-                    <td>{row.hd !== undefined ? Number(row.hd).toFixed(5) : ''}</td>
-                    <td>{row.standard_hen_day_percentage !== undefined ? row.standard_hen_day_percentage.toFixed(2) : ''}</td>
-                  </tr>
-                ))}
+                .map((row) => {
+                  let hdCellClassName = '';
+                  let hdCellStyle = {};
+
+                  // Apply conditional styling for HD cell
+                  if (row.hd !== undefined && row.standard_hen_day_percentage !== undefined) {
+                    const actualHDPercentage = Number(row.hd) * 100;
+                    const standardHDPercentage = Number(row.standard_hen_day_percentage);
+                    const difference = actualHDPercentage - standardHDPercentage;
+
+                    if (difference >= -10) { // Difference is -10 or more (meaning actual HD is at most 10% less than standard, or higher)
+                      hdCellClassName = 'text-success fw-bold';
+                      hdCellStyle = { backgroundColor: '#d4edda' }; // Light green background
+                    } else if (difference >= -20) { // Difference is between -20 and -10 (actual HD is 10-20% less than standard)
+                      hdCellClassName = 'text-warning fw-bold';
+                      hdCellStyle = { backgroundColor: '#fff3cd' }; // Light yellow background
+                    } else { // Difference is less than -20 (actual HD is more than 20% less than standard)
+                      hdCellClassName = 'text-danger fw-bold';
+                      hdCellStyle = { backgroundColor: '#f8d7da' }; // Light red background
+                    }
+                  }
+
+                  return (
+                    <tr key={`${row.batch_id}-${row.batch_date}`}>
+                      <td>{row.batch_date}</td>
+                      <td>{row.shed_no}</td>
+                      <td>{row.age}</td>
+                      <td>{row.opening_count}</td>
+                      <td>{row.mortality}</td>
+                      <td>{row.culls}</td>
+                      <td>{row.closing_count}</td>
+                      <td>{row.table_eggs}</td>
+                      <td>{row.jumbo}</td>
+                      <td>{row.cr}</td>
+                      <td>{row.total_eggs}</td>
+                      {/* Apply conditional styling to the HD cell */}
+                      <td className={hdCellClassName} style={hdCellStyle}>
+                        {row.hd !== undefined ? Number(row.hd).toFixed(5) : ''}
+                      </td>
+                      <td>{row.standard_hen_day_percentage !== undefined ? row.standard_hen_day_percentage.toFixed(2) : ''}</td>
+                    </tr>
+                  );
+                })}
             </tbody>
           </table>
           {totalPages > 1 && (

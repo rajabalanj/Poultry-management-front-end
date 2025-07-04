@@ -33,7 +33,7 @@ const UploadBatch: React.FC = () => {
   };
 
   return (
-    <div className="container mt-4">
+    <div className="container-fluid">
       <PageHeader
         title="Upload Batch"
         buttonLabel="Back"

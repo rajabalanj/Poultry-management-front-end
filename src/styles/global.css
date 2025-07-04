@@ -6,6 +6,27 @@
   --font-md: 1.1rem;     /* Medium text */
   --font-lg: 1.25rem;    /* Large text */
   --font-xl: 1.5rem;     /* Extra large text */
+  --color-card-birds: #F1C40F; /* Sunflower Yellow */
+  --color-card-feed: #3498DB; /* Peter River Blue */
+  --color-card-eggs: #9B59B6; /* Amethyst Purple */
+  --color-sidebar-icon: #2ECC71; /* Emerald Green */
+  
+}
+
+.icon-color-birds {
+  color: var(--color-card-birds);
+}
+
+.icon-color-feed {
+  color: var(--color-card-feed);
+}
+
+.icon-color-eggs {
+  color: var(--color-card-eggs);
+}
+
+.icon-color-sidebar {
+  color: var(--color-sidebar-icon);
 }
 
 /* Typography classes for mobile */
@@ -121,21 +142,6 @@
   margin-left: 50px; /* Adjust this value based on the size of the hamburger icon */
 }
 
-.bg-accessible-success {
-  background-color: #145c3a !important;
-  color: #ffffff !important;
-}
-
-.bg-accessible-warning {
-  background-color: #946200 !important;
-  color: #ffffff !important;
-}
-
-.bg-accessible-danger {
-  background-color: #8b1a1a !important;
-  color: #ffffff !important;
-}
-
 @media (max-width: 768px) {
   .page-header {
     padding: 10px;
@@ -147,3 +153,96 @@
   }
 }
 
+/* Remove focus outline/shadow from accordion buttons */
+.accordion-button:focus {
+    box-shadow: none !important; /* Removes the default blue outline on focus */
+    outline: none !important;    /* Ensures no browser-specific outline appears */
+}
+
+/* Remove background and shadow when the accordion button is NOT collapsed (i.e., open) */
+.accordion-button:not(.collapsed) {
+    background-color: transparent !important; /* Makes the background transparent when open */
+    color: inherit !important;             /* Keeps the default text color (usually black/dark) */
+    box-shadow: none !important;           /* Removes any shadow when open */
+}
+
+
+/* Main Menu Container */
+.nav-menu {
+  list-style: none; /* Remove default list bullets */
+  padding: 0; /* Remove default padding */
+  margin: 0; /* Remove default margin */
+}
+
+/* Common styling for all main menu items (Dashboard, Batch Management, etc.) */
+.nav-menu-item {
+  margin-bottom: 0.25rem; /* Space between primary menu items */
+}
+
+.nav-menu-link {
+  display: flex; /* Use flexbox for icon and text alignment */
+  align-items: center; /* Vertically center icon and text */
+  padding: 0.6rem 1rem; /* Consistent padding for all main menu items */
+  font-size: 1rem;
+  color: #333;
+  text-decoration: none;
+  background-color: transparent;
+  border-radius: 5px; /* Consistent rounded corners */
+  transition: background-color 0.2s ease-in-out; /* Smooth hover effect */
+  cursor: pointer; /* Indicate clickable area for expandable items */
+  user-select: none; /* Prevent text selection on click */
+}
+
+.nav-menu-link:hover {
+  background-color: #f0f0f0; /* Light background on hover */
+}
+
+/* Icon styling */
+.icon-color-sidebar {
+  color: #28a745; /* Green color for icons */
+  font-size: 1.25rem;
+  width: 28px; /* Fixed width for consistent icon alignment */
+  min-width: 28px;
+  text-align: center;
+  margin-right: 0.75rem; /* Space between icon and text */
+  line-height: 1; /* Ensures vertical alignment of icon */
+}
+
+/* Styling for the chevron icon on expandable items */
+.nav-menu-link.expandable .chevron-icon {
+  margin-left: auto; /* Push caret to the right */
+  font-size: 0.8rem; /* Size of the chevron */
+  transition: transform 0.2s ease-in-out; /* Smooth rotation */
+}
+
+.nav-menu-link.expandable .chevron-icon.rotated {
+  transform: rotate(90deg); /* Rotate 90 degrees when open (pointing right) */
+}
+
+/* Sub-menu container styling */
+.sub-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  overflow: hidden; /* Hide overflow during collapse/expand animation */
+  max-height: 0; /* Initial state: collapsed */
+  transition: max-height 0.3s ease-out; /* Smooth transition for expand/collapse */
+}
+
+.sub-menu.open {
+  max-height: 500px; /* Adjust this value to be larger than your largest sub-menu content */
+                         /* Use a value large enough to accommodate all sub-items when expanded. */
+}
+
+/* Sub-menu item styling */
+.sub-menu-item {
+  margin-bottom: 0.1rem; /* Small gap between sub-menu items */
+}
+
+.sub-menu-item .nav-menu-link {
+  /* Indent sub-menu links */
+  padding-left: calc(1rem + 28px + 0.75rem); /* Matches parent icon + text indentation */
+  font-size: 0.95rem; /* Slightly smaller font for sub-items */
+  padding-top: 0.4rem; /* Vertical padding for gap */
+  padding-bottom: 0.4rem; /* Vertical padding for gap */
+}

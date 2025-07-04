@@ -97,7 +97,7 @@ const FeedDetails: React.FC = () => {
           </div>
         </div>
 
-        <div className="mt-4 d-flex justify-content-center">
+        <div className="mt-4 d-flex justify-content-center gap-3">
           <button
     type="button"
     className="btn btn-primary"

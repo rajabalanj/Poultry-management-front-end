@@ -5,6 +5,7 @@ import GraphsSection from './GraphsSection';
 import BatchTable from '../BatchTable';
 import { dailyBatchApi } from '../../services/api';
 import { DailyBatch } from '../../types/daily_batch';
+import { DateSelector } from '../DateSelector'; // Your component
 
 const BATCH_DATE_KEY = 'dashboard_batch_date';
 
@@ -18,9 +19,18 @@ const Dashboard = () => {
   const [batches, setBatches] = useState<DailyBatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [dateRangeError, setDateRangeError] = useState<string | null>(null); // State for validation error
 
   const handleDownloadReport = () => {
-    // Navigate with date range as query params
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (start > end) {
+      setDateRangeError('End Date cannot be before Start Date.');
+      return;
+    } else {
+      setDateRangeError(null);
+    }
     navigate(`/previous-day-report?start=${startDate}&end=${endDate}`);
   };
 
@@ -28,7 +38,6 @@ const Dashboard = () => {
     const fetchBatches = async () => {
       setLoading(true);
       try {
-        // batch_date is mandatory, always pass it
         const data = await dailyBatchApi.getDailyBatches(batchDate);
         setBatches(Array.isArray(data) ? data : []);
       } catch (err) {
@@ -58,6 +67,7 @@ const Dashboard = () => {
       title: "Total Birds",
       mainValue: totalBirds,
       icon: "bi bi-feather",
+      iconColor: "icon-color-birds",
       subValues: [
         { label: "Opening Count", value: openingCount },
         { label: "Mortality", value: mortality },
@@ -68,16 +78,18 @@ const Dashboard = () => {
       title: "Total Feed",
       mainValue: 1250, // Placeholder value
       icon: "bi bi-basket",
+      iconColor: "icon-color-feed",
       subValues: [
         { label: "Chick Feed", value: 620 }, // Placeholder value
         { label: "Layer Feed", value: 470 },
-        { label: "Grower Feed", value: 170 } // Placeholder value       
+        { label: "Grower Feed", value: 170 } // Placeholder value
       ] // Placeholder values
     },
     {
       title: "Total Eggs",
       mainValue: totalEggs,
       icon: "bi bi-egg",
+      iconColor: "icon-color-eggs",
       subValues: [
         { label: "Normal", value: batches.reduce((sum, b) => sum + (b.table_eggs || 0), 0) },
         { label: "Jumbo", value: batches.reduce((sum, b) => sum + (b.jumbo || 0), 0) },
@@ -91,13 +103,11 @@ const Dashboard = () => {
       {/* Date picker for batch_date */}
       <div className="row mb-4">
         <div className="col-12 col-md-3 mb-2">
-          <label className="form-label">Batch Date:</label>
-          <input
-            type="date"
-            className="form-control"
+          <DateSelector
             value={batchDate}
-            max={new Date().toISOString().split('T')[0]}
-            onChange={(e) => setBatchDate(e.target.value)}
+            maxDate={new Date().toISOString().split('T')[0]}
+            onChange={(value) => setBatchDate(value)}
+            label='Batch Date'
           />
         </div>
       </div>
@@ -113,33 +123,37 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-      {/* Keep the other date pickers for report feature */}
-      <div className="row mb-4">
+      {/* Use DateSelector for Start and End Dates */}
+      <div className="row mb-4 align-items-end">
         <div className="col-12 col-md-3 mb-2">
-          <label className="form-label">Start Date:</label>
-          <input
-            type="date"
-            className="form-control"
+          <DateSelector
+            label="Start Date"
             value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
+            onChange={setStartDate}
+            maxDate={endDate} // Dynamically set maxDate for Start Date
           />
         </div>
         <div className="col-12 col-md-3 mb-2">
-          <label className="form-label">End Date:</label>
-          <input
-            type="date"
-            className="form-control"
+          <DateSelector
+            label="End Date"
             value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
+            onChange={setEndDate}
+            minDate={startDate} // You'd need to add minDate prop to DateSelector
+            maxDate={new Date().toISOString().split('T')[0]} // End Date can't be in the future
           />
         </div>
-        <div className="col-12 col-md-3 mb-2 mt-4">
-          <button 
+        <div className="col-12 col-md-3 mb-2 mt-3">
+          <button
             className="btn btn-primary w-100 mt-2"
             onClick={handleDownloadReport}
           >
             View Data
           </button>
+          {dateRangeError && (
+            <div className="text-danger mt-2">
+              {dateRangeError}
+            </div>
+          )}
         </div>
       </div>
     </div>

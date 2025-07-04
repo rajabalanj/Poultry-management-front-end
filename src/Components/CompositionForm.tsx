@@ -73,7 +73,7 @@ function CompositionForm({
                     <span className="text-muted">kg</span>
                     <button
                       onClick={() => handleRemoveFeed(f.feed_id)}
-                      className="btn btn-sm btn-outline-danger"
+                      className="btn btn-sm btn-danger"
                     >
                       <i className="bi bi-trash"></i>
                     </button>
@@ -117,7 +117,7 @@ function CompositionForm({
         <button onClick={onSave} className="btn btn-primary">
           <i className="bi bi-save me-1"></i>{saveButtonLabel}
         </button>
-        <button onClick={onCancel} className="btn btn-outline-secondary">
+        <button onClick={onCancel} className="btn btn-secondary">
           <i className="bi bi-x-lg me-1"></i>Cancel
         </button>
       </div>

@@ -11,15 +11,16 @@ interface HeaderCardProps {
   mainValue: number;
   subValues?: SubValue[];
   icon?: string;
+  iconColor?: string; // Optional prop for icon color
 }
 
-const HeaderCard: React.FC<HeaderCardProps> = ({ title, mainValue, subValues, icon }) => {
+const HeaderCard: React.FC<HeaderCardProps> = ({ title, mainValue, subValues, icon, iconColor }) => {
   return (
     <div className="card h-100 shadow-sm">
       <div className="card-body p-2 p-sm-3">
         <div className="d-flex align-items-center mb-1 mb-sm-2">
-          {icon && <i className={`bi ${icon} me-1 me-sm-2 icon-sm`}></i>}
-          <h6 className="card-title mb-0 text-muted text-sm">{title}</h6>
+          {icon && <i className={`bi ${icon} me-1 me-sm-2 icon-sm ${iconColor ? iconColor : ''}`}></i>}
+          <h6 className="card-title mb-0 text-sm">{title}</h6>
         </div>
         
         <div className="fw-bold mb-1 mb-sm-2 text-md">
@@ -34,7 +35,7 @@ const HeaderCard: React.FC<HeaderCardProps> = ({ title, mainValue, subValues, ic
                 <div className="ms-1 ms-sm-2">
                   <span className="fw-bold">{sub.value.toLocaleString()}</span>
                   {sub.subValue && (
-                    <span className="text-muted ms-1 ms-sm-2">({sub.subValue.toLocaleString()})</span>
+                    <span className="ms-1 ms-sm-2">({sub.subValue.toLocaleString()})</span>
                   )}
                 </div>
               </div>

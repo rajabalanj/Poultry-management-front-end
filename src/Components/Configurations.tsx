@@ -113,8 +113,20 @@ const Configurations: React.FC = () => {
           </button>
         </div>
         <hr />
-        <h5 className="mb-3">Batch Configuration</h5>
+        <div className="accordion">
+  <div className="accordion-item">
+    <h2 className="accordion-header" id="batch-config-heading">
+      <button className="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#batch-config-collapse" aria-expanded="true" aria-controls="batch-config-collapse">
+        Batch Configuration
+      </button>
+    </h2>
+    <div id="batch-config-collapse" className="accordion-collapse collapse" aria-labelledby="batch-config-heading" data-bs-parent="#accordionExample">
+      <div className="accordion-body">
         <BatchConfig batches={batches} loading={batchLoading} error={batchError} />
+      </div>
+    </div>
+  </div>
+</div>
       </div>
     </div>
   );

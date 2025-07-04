@@ -30,7 +30,7 @@ const FeedAuditReport: React.FC = () => {
       <PageHeader
         title="Feed Audit Report"
         buttonLabel="Back"
-        buttonLink={`/feed/${feed_id}`}
+        buttonLink={`/feed/${feed_id}/details`}
       />
       {loading && <div>Loading...</div>}
       {error && <div className="text-danger">{error}</div>}

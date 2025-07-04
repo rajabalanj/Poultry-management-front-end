@@ -13,29 +13,29 @@ const BatchConfigCard: React.FC<{
       <div className="d-flex justify-content-between align-items-center">
         <div>
           <h6 className="mb-1 text-sm">Batch {batch.batch_no}</h6>
-          <div className="text-muted text-xs">
+          <div className="text-xs">
             <span className="me-2">Shed: {batch.shed_no}</span>
             <span>Age: {batch.age}</span>
           </div>
         </div>
         <div className="d-flex flex-column flex-md-row gap-2">
           <button
-            className="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center"
+            className="btn btn-primary btn-sm d-flex align-items-center justify-content-center"
             onClick={() => onView(batch.id)}
             title="View Details"
             aria-label={`View Details for Batch ${batch.batch_no}`}
           >
             <i className="bi bi-eye me-1"></i>
-            <span className="text-muted text-xs">View</span>
+            <span className="text-xs">View</span>
           </button>
           <button
-            className="btn btn-outline-warning btn-sm d-flex align-items-center justify-content-center"
+            className="btn btn-warning btn-sm d-flex align-items-center justify-content-center"
             onClick={() => onEdit(batch.id)}
             title="Edit Batch"
             aria-label={`Edit Batch ${batch.batch_no}`}
           >
             <i className="bi bi-pencil me-1"></i>
-            <span className="text-muted text-xs">Edit</span>
+            <span className="text-xs">Edit</span>
           </button>
         </div>
       </div>

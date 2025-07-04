@@ -13,29 +13,29 @@ const BatchCard: React.FC<{
       <div className="d-flex justify-content-between align-items-center">
         <div>
           <h6 className="mb-1 text-sm">Batch {batch.batch_no}</h6>
-          <div className="text-muted text-xs">
+          <div className="text-xs">
             <span className="me-2">Shed: {batch.shed_no}</span>
             <span>Age: {batch.age}</span>
           </div>
         </div>
         <div className="d-flex flex-column flex-md-row gap-2">
           <button
-            className="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center"
+            className="btn btn-primary btn-sm d-flex align-items-center justify-content-center"
             onClick={() => onView(batch.batch_id, batch.batch_date)}
             title="View Details"
             aria-label={`View Details for Batch ${batch.batch_no}`}
           >
             <i className="bi bi-eye me-1"></i>
-            <span className="text-muted text-xs">Batch Overview</span>
+            <span className="text-xs">Batch Overview</span>
           </button>
           <button
-            className="btn btn-outline-success btn-sm d-flex align-items-center justify-content-center"
+            className="btn btn-success btn-sm d-flex align-items-center justify-content-center"
             onClick={() => onEdit(batch.batch_id, batch.batch_date)}
             title="Record Daily Data"
             aria-label={`Record Daily Data for Batch ${batch.batch_no}`}
           >
             <i className="bi bi-journal-text me-1"></i>
-            <span className="text-muted text-xs">Record Daily Data</span>
+            <span className="text-xs">Record Daily Data</span>
           </button>
         </div>
       </div>

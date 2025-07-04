@@ -82,6 +82,7 @@ const EggRoomStock: React.FC = () => {
           onChange={setSelectedDate}
           maxDate={new Date().toISOString().slice(0, 10)}
           disabled={loading}
+          label='Report Date'
         />
 
         {sectionConfigs.map((config) => (
