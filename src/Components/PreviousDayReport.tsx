@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import PageHeader from './Layout/PageHeader';
 import { GridRow } from '../types/GridRow';
 import { fetchBatchData, exportBatchDataToExcel } from '../utility/api-utils';
+import { configApi } from '../services/api';
 
 const PreviousDayReport = () => {
   const { batchId } = useParams<{ batchId?: string }>();
@@ -18,6 +19,15 @@ const PreviousDayReport = () => {
 
   const validGridData = gridData.filter(row => row && Object.keys(row).length > 0);
   const totalPages = validGridData.length > 0 ? Math.ceil(validGridData.length / rowsPerPage) : 0;
+  const [henDayDeviation, setHenDayDeviation] = useState(10); // default fallback
+
+  useEffect(() => {
+    // Fetch config on mount
+    configApi.getAllConfigs().then(configs => {
+      const hdConfig = configs.find(c => c.name === 'henDayDeviation');
+      setHenDayDeviation(hdConfig ? Number(hdConfig.value) : 10);
+    });
+  }, []);
 
   const fetchData = async () => {
     try {
@@ -103,18 +113,15 @@ const PreviousDayReport = () => {
                   if (row.hd !== undefined && row.standard_hen_day_percentage !== undefined) {
                     const actualHDPercentage = Number(row.hd) * 100;
                     const standardHDPercentage = Number(row.standard_hen_day_percentage);
-                    const difference = actualHDPercentage - standardHDPercentage;
+                    const difference = standardHDPercentage - actualHDPercentage;
 
-                    if (difference >= -10) { // Difference is -10 or more (meaning actual HD is at most 10% less than standard, or higher)
+                    if (henDayDeviation >= difference) { // Difference is -10 or more (meaning actual HD is at most 10% less than standard, or higher)
                       hdCellClassName = 'text-success fw-bold';
                       hdCellStyle = { backgroundColor: '#d4edda' }; // Light green background
-                    } else if (difference >= -20) { // Difference is between -20 and -10 (actual HD is 10-20% less than standard)
-                      hdCellClassName = 'text-warning fw-bold';
-                      hdCellStyle = { backgroundColor: '#fff3cd' }; // Light yellow background
-                    } else { // Difference is less than -20 (actual HD is more than 20% less than standard)
+                    } else { // Difference is between -20 and -10 (actual HD is 10-20% less than standard)
                       hdCellClassName = 'text-danger fw-bold';
-                      hdCellStyle = { backgroundColor: '#f8d7da' }; // Light red background
-                    }
+                      hdCellStyle = { backgroundColor: '#fff3cd' }; // Light yellow background
+                    } 
                   }
 
                   return (

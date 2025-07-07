@@ -5,6 +5,7 @@ import { DailyBatch } from '../types/daily_batch';
 import { Batch, BatchResponse, BatchUpdate } from '../types/batch';
 import { EggRoomReportResponse, EggRoomReportCreate, EggRoomReportUpdate, EggRoomSingleReportResponse } from '../types/eggRoomReport';
 import { FeedAudit } from '../types/feed_audit';
+import { BovansPerformance } from "../types/bovans"; // Ensure this import is present
 
 // Define types for our data
 
@@ -431,6 +432,26 @@ updateReport: async (report_date: string, reportData: EggRoomReportUpdate) => { 
       params: { start_date, end_date }
     });
     return response.data;
+  },
+};
+
+// New Bovans Performance API
+export const bovansApi = {
+  getAllBovansPerformance: async (skip: number = 0, limit: number = 10): Promise<BovansPerformance[]> => {
+    try {
+      const response = await api.get<BovansPerformance[]>(`/bovans/?skip=${skip}&limit=${limit}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch Bovans performance data'));
+    }
+  },
+  getBovansPerformanceByAge: async (age_weeks: number): Promise<BovansPerformance> => {
+    try {
+      const response = await api.get<BovansPerformance>(`/bovans/${age_weeks}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, `Failed to fetch Bovans performance data for age ${age_weeks}`));
+    }
   },
 };
 

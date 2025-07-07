@@ -1,49 +1,97 @@
-import React, { useState, useEffect } from 'react';
-import PageHeader from './Layout/PageHeader';
-import { configApi, batchApi } from '../services/api';
-import { toast } from 'react-toastify';
-import BatchConfig from './BatchConfig';
+import React, { useState, useEffect } from "react";
+import PageHeader from "./Layout/PageHeader";
+import { configApi, batchApi } from "../services/api";
+import { bovansApi } from "../services/api"; // Import the new Bovans API
+import { toast } from "react-toastify";
+import BatchConfig from "./BatchConfig";
+import { BovansPerformance } from "../types/bovans"; // Import BovansPerformance type
 
 const KG_PER_TON = 1000;
 
 const Configurations: React.FC = () => {
   const [kg, setKg] = useState(3000);
   const [ton, setTon] = useState(3);
+  const [henDayDeviation, setHenDayDeviation] = useState(0);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Batch config state
-  const [batches, setBatches] = useState<import('../types/batch').BatchResponse[]>([]);
-  const [batchLoading, setBatchLoading] = useState(true); // Still useful for BatchConfig component
-  const [batchError, setBatchError] = useState<string | null>(null); // Still useful for BatchConfig component
+  const [batches, setBatches] = useState<
+    import("../types/batch").BatchResponse[]
+  >([]);
+  const [batchLoading, setBatchLoading] = useState(true);
+  const [batchError, setBatchError] = useState<string | null>(null);
 
-  // Load all configurations from backend on mount
+  // Bovans Performance state
+  const [bovansPerformanceData, setBovansPerformanceData] = useState<BovansPerformance[]>([]);
+  const [bovansLoading, setBovansLoading] = useState(true);
+  const [bovansError, setBovansError] = useState<string | null>(null);
+  const [bovansCurrentPage, setBovansCurrentPage] = useState(1);
+  const [bovansTotalItems, setBovansTotalItems] = useState(0); // You might need a separate endpoint for total count
+  const bovansItemsPerPage = 10;
+
+  // Load all configurations and Bovans data from backend on mount
   useEffect(() => {
-    const fetchAllConfigs = async () => {
+    const fetchAllConfigsAndBovans = async () => {
       setLoading(true);
-      setBatchLoading(true); // Set batch loading
+      setBatchLoading(true);
+      setBovansLoading(true); // Start Bovans loading
+
       try {
+        // Fetch global configurations
         const configs = await configApi.getAllConfigs();
-        const kgConfig = configs.find(c => c.name === 'lowKgThreshold');
-        const tonConfig = configs.find(c => c.name === 'lowTonThreshold');
+        const kgConfig = configs.find((c) => c.name === "lowKgThreshold");
+        const tonConfig = configs.find((c) => c.name === "lowTonThreshold");
+        const henDayDeviationConfig = configs.find(
+          (c) => c.name === "henDayDeviation"
+        );
         setKg(kgConfig ? Number(kgConfig.value) : 3000);
         setTon(tonConfig ? Number(tonConfig.value) : 3);
+        setHenDayDeviation(
+          henDayDeviationConfig ? Number(henDayDeviationConfig.value) : 0
+        );
 
         // Load batch configs
-        const batchData = await batchApi.getBatches(0, 1000); // Assuming getBatches can take limit/skip
+        const batchData = await batchApi.getBatches(0, 1000);
         setBatches(Array.isArray(batchData) ? batchData : []);
-        setBatchError(null); // Clear any previous batch error
+        setBatchError(null);
+
+        // Load Bovans performance data
+        await fetchBovansPerformance(bovansCurrentPage);
 
       } catch (err: any) {
-        toast.error(err.message || 'Failed to load configurations.');
-        setBatchError(err.message || 'Failed to load batch configurations.'); // Set specific error for batch
+        toast.error(err.message || "Failed to load configurations.");
+        setBatchError(err.message || "Failed to load batch configurations.");
+        setBovansError(err.message || "Failed to load Bovans performance data."); // Set specific error for Bovans
       } finally {
         setLoading(false);
-        setBatchLoading(false); // End batch loading
+        setBatchLoading(false);
+        setBovansLoading(false); // End Bovans loading
       }
     };
-    fetchAllConfigs();
+    fetchAllConfigsAndBovans();
   }, []);
+
+  // Function to fetch Bovans performance data with pagination
+  const fetchBovansPerformance = async (page: number) => {
+    setBovansLoading(true);
+    try {
+      const skip = (page - 1) * bovansItemsPerPage;
+      const data = await bovansApi.getAllBovansPerformance(skip, bovansItemsPerPage);
+      setBovansPerformanceData(data);
+      // For total items, you'd ideally have an endpoint that returns total count.
+      // For now, we'll assume the number of items fetched is the total for the current page.
+      // In a real scenario, you'd get total count from the backend to calculate total pages.
+      // Example: If your API returned { data: [...], total_count: 100 }, you'd use total_count here.
+      setBovansTotalItems(data.length); // This will be incorrect for total items across all pages
+      setBovansError(null);
+    } catch (err: any) {
+      setBovansError(err.message || "Failed to load Bovans performance data.");
+      setBovansPerformanceData([]); // Clear data on error
+    } finally {
+      setBovansLoading(false);
+    }
+  };
 
   // Sync ton when kg changes
   const handleKgChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,66 +115,235 @@ const Configurations: React.FC = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await configApi.updateConfig('lowKgThreshold', String(kg));
-      await configApi.updateConfig('lowTonThreshold', String(ton));
-      toast.success('Configurations saved successfully!');
+      await configApi.updateConfig("lowKgThreshold", String(kg));
+      await configApi.updateConfig("lowTonThreshold", String(ton));
+      await configApi.updateConfig("henDayDeviation", String(henDayDeviation));
+      toast.success("Configurations saved successfully!");
     } catch (err: any) {
-      toast.error(err.message || 'Failed to save configurations.');
+      toast.error(err.message || "Failed to save configurations.");
     } finally {
       setSaving(false);
     }
   };
 
+  // Pagination handlers for Bovans Performance
+  const handleBovansPageChange = (pageNumber: number) => {
+    setBovansCurrentPage(pageNumber);
+    fetchBovansPerformance(pageNumber);
+  };
+
+  // Calculate total pages for Bovans performance
+  // Note: This relies on `bovansTotalItems` being the true total count from the backend.
+  // If your API doesn't provide a total count, you'll need to fetch it separately or adjust.
+  const bovansTotalPages = Math.ceil(bovansTotalItems / bovansItemsPerPage);
+
+
   return (
-    <div>
+    <div className="container-fluid">
       <PageHeader title="Configurations"></PageHeader>
-      <div className="px-4">
-        <div className="mb-3 d-flex flex-column flex-md-row gap-3 align-items-start align-items-md-center">
-          <label className="form-label mb-0 flex-shrink-0">Global Low Feed Thresholds:</label>
-          <div className="d-flex align-items-center gap-2">
-            <span>kg:</span>
+      <div className="p-3 border rounded shadow-sm">
+        {/* Global Low Feed Thresholds */}
+        <div className="mb-4">
+          <label className="form-label fw-semibold">
+            Global Low Feed Thresholds:
+          </label>
+          <div className="row g-3">
+            <div className="col-6 col-md-auto d-flex align-items-center">
+              <span className="me-2">kg:</span>
+              <input
+                type="number"
+                className="form-control form-control-sm"
+                style={{ maxWidth: 100 }}
+                value={kg}
+                min={0}
+                onChange={handleKgChange}
+                disabled={loading}
+              />
+            </div>
+            <div className="col-6 col-md-auto d-flex align-items-center">
+              <span className="me-2">ton:</span>
+              <input
+                type="number"
+                className="form-control form-control-sm"
+                style={{ maxWidth: 100 }}
+                value={ton}
+                min={0}
+                step={0.001}
+                onChange={handleTonChange}
+                disabled={loading}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Max Allowed Hen Day % Drop */}
+        <div className="mb-4">
+          <label className="form-label fw-semibold">
+            Max Allowed HD % Drop:
+          </label>
+          <div className="d-flex align-items-center">
             <input
               type="number"
               className="form-control form-control-sm"
-              style={{ width: 100 }}
-              value={kg}
-              min={0}
-              onChange={handleKgChange}
+              style={{ maxWidth: 100 }}
+              value={henDayDeviation}
+              onChange={(e) => setHenDayDeviation(Number(e.target.value))}
               disabled={loading}
             />
           </div>
-          <div className="d-flex align-items-center gap-2">
-            <span>ton:</span>
-            <input
-              type="number"
-              className="form-control form-control-sm"
-              style={{ width: 100 }}
-              value={ton}
-              min={0}
-              step={0.001}
-              onChange={handleTonChange}
-              disabled={loading}
-            />
-          </div>
-          <button className="btn btn-primary ms-0 ms-md-3 mt-2 mt-md-0" onClick={handleSave} disabled={saving || loading}>
-            {saving ? 'Saving...' : 'Save Global Thresholds'}
+        </div>
+
+        {/* Save Button */}
+        <div className="mt-3">
+          <button
+            className="btn btn-primary"
+            onClick={handleSave}
+            disabled={saving || loading}
+          >
+            {saving ? "Saving..." : "Save Configurations"}
           </button>
         </div>
-        <hr />
-        <div className="accordion">
-  <div className="accordion-item">
-    <h2 className="accordion-header" id="batch-config-heading">
-      <button className="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#batch-config-collapse" aria-expanded="true" aria-controls="batch-config-collapse">
-        Batch Configuration
-      </button>
-    </h2>
-    <div id="batch-config-collapse" className="accordion-collapse collapse" aria-labelledby="batch-config-heading" data-bs-parent="#accordionExample">
-      <div className="accordion-body">
-        <BatchConfig batches={batches} loading={batchLoading} error={batchError} />
       </div>
-    </div>
-  </div>
-</div>
+      <hr />
+      <div className="accordion" id="configurationsAccordion">
+        {/* Batch Configuration Accordion Item */}
+        <div className="accordion-item">
+          <h2 className="accordion-header" id="batch-config-heading">
+            <button
+              className="accordion-button collapsed" // Add 'collapsed' by default
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#batch-config-collapse"
+              aria-expanded="false" // Set to false by default
+              aria-controls="batch-config-collapse"
+            >
+              Batch Configuration
+            </button>
+          </h2>
+          <div
+            id="batch-config-collapse"
+            className="accordion-collapse collapse"
+            aria-labelledby="batch-config-heading"
+            data-bs-parent="#configurationsAccordion"
+          >
+            <div className="accordion-body">
+              <BatchConfig
+                batches={batches}
+                loading={batchLoading}
+                error={batchError}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Bovans White Layer Performance Accordion Item */}
+        <div className="accordion-item mt-3"> {/* Added mt-3 for spacing */}
+          <h2 className="accordion-header" id="bovans-performance-heading">
+            <button
+              className="accordion-button collapsed" // Add 'collapsed' by default
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#bovans-performance-collapse"
+              aria-expanded="false" // Set to false by default
+              aria-controls="bovans-performance-collapse"
+            >
+              Bovans White Layer Performance Data
+            </button>
+          </h2>
+          <div
+            id="bovans-performance-collapse"
+            className="accordion-collapse collapse"
+            aria-labelledby="bovans-performance-heading"
+            data-bs-parent="#configurationsAccordion"
+          >
+            <div className="accordion-body">
+              {bovansLoading ? (
+                <p>Loading Bovans performance data...</p>
+              ) : bovansError ? (
+                <div className="alert alert-danger" role="alert">
+                  Error: {bovansError}
+                </div>
+              ) : bovansPerformanceData.length === 0 ? (
+                <p>No Bovans performance data available.</p>
+              ) : (
+                <>
+                  <div className="table-responsive">
+                    <table className="table table-striped table-hover">
+                      <thead>
+                        <tr>
+                          <th>Age (Weeks)</th>
+                          <th>Livability (%)</th>
+                          <th>Lay (%)</th>
+                          <th>Eggs/Bird (Cum)</th>
+                          <th>Feed Intake/Day (g)</th>
+                          <th>Feed Intake (Cum kg)</th>
+                          <th>Body Weight (g)</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {bovansPerformanceData.map((data) => (
+                          <tr key={data.age_weeks}>
+                            <td>{data.age_weeks}</td>
+                            <td>{data.livability_percent}</td>
+                            <td>{data.lay_percent}</td>
+                            <td>{data.eggs_per_bird_cum}</td>
+                            <td>{data.feed_intake_per_day_g}</td>
+                            <td>{data.feed_intake_cum_kg}</td>
+                            <td>{data.body_weight_g}</td>
+                            <td>
+                              {/* View button - for now, just an alert, you might want a modal or dedicated page */}
+                              <button
+                                className="btn btn-info btn-sm"
+                                onClick={() => alert(`Viewing details for Age: ${data.age_weeks}\nLivability: ${data.livability_percent}%`)}
+                              >
+                                View
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Pagination Controls */}
+                  <nav aria-label="Bovans Performance Pagination">
+                    <ul className="pagination justify-content-center">
+                      <li className={`page-item ${bovansCurrentPage === 1 ? 'disabled' : ''}`}>
+                        <button
+                          className="page-link"
+                          onClick={() => handleBovansPageChange(bovansCurrentPage - 1)}
+                          disabled={bovansCurrentPage === 1}
+                        >
+                          Previous
+                        </button>
+                      </li>
+                      {Array.from({ length: bovansTotalPages }, (_, i) => i + 1).map((page) => (
+                        <li key={page} className={`page-item ${bovansCurrentPage === page ? 'active' : ''}`}>
+                          <button
+                            className="page-link"
+                            onClick={() => handleBovansPageChange(page)}
+                          >
+                            {page}
+                          </button>
+                        </li>
+                      ))}
+                      <li className={`page-item ${bovansCurrentPage === bovansTotalPages ? 'disabled' : ''}`}>
+                        <button
+                          className="page-link"
+                          onClick={() => handleBovansPageChange(bovansCurrentPage + 1)}
+                          disabled={bovansCurrentPage === bovansTotalPages}
+                        >
+                          Next
+                        </button>
+                      </li>
+                    </ul>
+                  </nav>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
