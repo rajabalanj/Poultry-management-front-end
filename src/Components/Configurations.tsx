@@ -53,7 +53,8 @@ const Configurations: React.FC = () => {
 
         // Load batch configs
         const batchData = await batchApi.getBatches(0, 1000);
-        setBatches(Array.isArray(batchData) ? batchData : []);
+        const activeBatches = batchData.filter(batch => batch.is_active == true);
+        setBatches(Array.isArray(activeBatches) ? activeBatches : []);
         setBatchError(null);
 
         // Load Bovans performance data
@@ -77,17 +78,16 @@ const Configurations: React.FC = () => {
     setBovansLoading(true);
     try {
       const skip = (page - 1) * bovansItemsPerPage;
-      const data = await bovansApi.getAllBovansPerformance(skip, bovansItemsPerPage);
-      setBovansPerformanceData(data);
-      // For total items, you'd ideally have an endpoint that returns total count.
-      // For now, we'll assume the number of items fetched is the total for the current page.
-      // In a real scenario, you'd get total count from the backend to calculate total pages.
-      // Example: If your API returned { data: [...], total_count: 100 }, you'd use total_count here.
-      setBovansTotalItems(data.length); // This will be incorrect for total items across all pages
+      // Now, 'data' will be the PaginatedBovansPerformanceResponse object
+      const response = await bovansApi.getAllBovansPerformance(skip, bovansItemsPerPage);
+
+      setBovansPerformanceData(response.data); // Access the actual data array
+      setBovansTotalItems(response.total_count); // Set the total count from the response
       setBovansError(null);
     } catch (err: any) {
       setBovansError(err.message || "Failed to load Bovans performance data.");
       setBovansPerformanceData([]); // Clear data on error
+      setBovansTotalItems(0); // Reset total items on error
     } finally {
       setBovansLoading(false);
     }
@@ -278,7 +278,6 @@ const Configurations: React.FC = () => {
                           <th>Feed Intake/Day (g)</th>
                           <th>Feed Intake (Cum kg)</th>
                           <th>Body Weight (g)</th>
-                          <th>Actions</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -291,15 +290,6 @@ const Configurations: React.FC = () => {
                             <td>{data.feed_intake_per_day_g}</td>
                             <td>{data.feed_intake_cum_kg}</td>
                             <td>{data.body_weight_g}</td>
-                            <td>
-                              {/* View button - for now, just an alert, you might want a modal or dedicated page */}
-                              <button
-                                className="btn btn-info btn-sm"
-                                onClick={() => alert(`Viewing details for Age: ${data.age_weeks}\nLivability: ${data.livability_percent}%`)}
-                              >
-                                View
-                              </button>
-                            </td>
                           </tr>
                         ))}
                       </tbody>

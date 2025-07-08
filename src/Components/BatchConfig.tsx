@@ -2,12 +2,15 @@ import React, { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { BatchResponse } from "../types/batch";
+import { batchApi } from "../services/api"; // Import dailyBatchApi
+import { toast } from "react-toastify"; // Import toast for notifications
 
 const BatchConfigCard: React.FC<{
   batch: BatchResponse;
   onView: (batch_id: number) => void;
   onEdit: (batch_id: number) => void;
-}> = React.memo(({ batch, onView, onEdit }) => (
+  onClose: (batch_id: number) => void; // Add onClose prop
+}> = React.memo(({ batch, onView, onEdit, onClose }) => (
   <div className="card mb-2 border shadow-sm">
     <div className="card-body p-2">
       <div className="d-flex justify-content-between align-items-center">
@@ -37,6 +40,17 @@ const BatchConfigCard: React.FC<{
             <i className="bi bi-pencil me-1"></i>
             <span className="text-xs">Edit</span>
           </button>
+          {/* {batch.closing_date === null && ( // Conditionally render Close button */}
+            <button
+              className="btn btn-danger btn-sm d-flex align-items-center justify-content-center"
+              onClick={() => onClose(batch.id)}
+              title="Close Batch"
+              aria-label={`Close Batch ${batch.batch_no}`}
+            >
+              <i className="bi bi-x-circle me-1"></i>
+              <span className="text-xs">Close</span>
+            </button>
+          {/* )} */}
         </div>
       </div>
     </div>
@@ -74,6 +88,20 @@ const BatchConfig: React.FC<BatchConfigTableProps> = ({ batches, loading, error 
     [navigate]
   );
 
+  const handleClose = useCallback(async (batch_id: number) => {
+  if (confirm(`Are you sure you want to close batch ${batch_id}?`)) {
+    try {
+      await batchApi.closeBatch(batch_id);
+      toast.success(`Batch ${batch_id} closed successfully!`);
+      // You might want to re-fetch batches here to update the UI
+      // For now, we'll rely on a full page refresh or parent component re-fetch
+      window.location.reload(); // Simple reload for demonstration
+    } catch (err: any) {
+      toast.error(err.message || `Failed to close batch ${batch_id}.`);
+    }
+  }
+}, []);
+
   const batchCards = useMemo(() => {
     return batches
       .filter(batch => batch.id != null)
@@ -83,9 +111,10 @@ const BatchConfig: React.FC<BatchConfigTableProps> = ({ batches, loading, error 
           batch={batch}
           onView={handleView}
           onEdit={handleEdit}
+          onClose={handleClose} // Pass handleClose to BatchConfigCard
         />
       ));
-  }, [batches, handleView, handleEdit]);
+  }, [batches, handleView, handleEdit, handleClose]);
 
   if (loading) return <div className="text-center">Loading...</div>;
   if (error) return <div className="text-center text-danger">{error}</div>;

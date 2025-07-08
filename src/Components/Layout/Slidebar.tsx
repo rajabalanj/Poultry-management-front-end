@@ -84,12 +84,12 @@ const Slidebar: React.FC = () => {
       >
         <div className="px-3">
           <div style={{ marginTop: isDesktop ? "0" : "-15px" }}>
-            <h5 className="mb-4">Menu</h5>
+            <h5 className="mb-4 fw-bold">Menu</h5>
             <div className="sidebar">
               <ul className="nav-menu"> {/* New custom class */}
 
                 {/* Dashboard - Simple Link */}
-                <li className="nav-menu-item">
+                <li className="nav-menu-item fw-bold">
                   <Link
                     to="/"
                     className="nav-menu-link"
@@ -103,7 +103,7 @@ const Slidebar: React.FC = () => {
                 {/* Batch Management - Expandable Item */}
                 <li className="nav-menu-item">
                   <div
-                    className={`nav-menu-link expandable ${openMenu === 'batch' ? 'active' : ''}`}
+                    className={`nav-menu-link fw-bold expandable ${openMenu === 'batch' ? 'active' : ''}`}
                     onClick={() => toggleMenu('batch')}
                   >
                     <i className="bi bi-file-earmark-text me-2 icon-color-sidebar"></i>
@@ -135,7 +135,7 @@ const Slidebar: React.FC = () => {
                 {/* Egg Room Management - Expandable Item */}
                 <li className="nav-menu-item">
                   <div
-                    className={`nav-menu-link expandable ${openMenu === 'egg' ? 'active' : ''}`}
+                    className={`nav-menu-link fw-bold expandable ${openMenu === 'egg' ? 'active' : ''}`}
                     onClick={() => toggleMenu('egg')}
                   >
                     <i className="bi bi-egg me-2 icon-color-sidebar"></i>
@@ -167,7 +167,7 @@ const Slidebar: React.FC = () => {
                 {/* Feed Management - Expandable Item */}
                 <li className="nav-menu-item">
                   <div
-                    className={`nav-menu-link expandable ${openMenu === 'feed' ? 'active' : ''}`}
+                    className={`nav-menu-link fw-bold expandable ${openMenu === 'feed' ? 'active' : ''}`}
                     onClick={() => toggleMenu('feed')}
                   >
                     <i className="bi bi-bag me-2 icon-color-sidebar"></i>
@@ -197,7 +197,7 @@ const Slidebar: React.FC = () => {
                 </li>
 
                 {/* Configurations - Simple Link */}
-                <li className="nav-menu-item">
+                <li className="nav-menu-item fw-bold">
                   <Link
                     to="/configurations"
                     className="nav-menu-link"

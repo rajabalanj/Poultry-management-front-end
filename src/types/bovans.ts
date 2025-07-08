@@ -7,3 +7,8 @@ export interface BovansPerformance {
   feed_intake_cum_kg: number;
   body_weight_g: number;
 }
+
+export interface PaginatedBovansPerformanceResponse {
+  data: BovansPerformance[];
+  total_count: number;
+}

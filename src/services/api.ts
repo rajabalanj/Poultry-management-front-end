@@ -5,7 +5,7 @@ import { DailyBatch } from '../types/daily_batch';
 import { Batch, BatchResponse, BatchUpdate } from '../types/batch';
 import { EggRoomReportResponse, EggRoomReportCreate, EggRoomReportUpdate, EggRoomSingleReportResponse } from '../types/eggRoomReport';
 import { FeedAudit } from '../types/feed_audit';
-import { BovansPerformance } from "../types/bovans"; // Ensure this import is present
+import { BovansPerformance, PaginatedBovansPerformanceResponse } from "../types/bovans"; // Ensure this import is present
 
 // Define types for our data
 
@@ -187,6 +187,7 @@ export const dailyBatchApi = {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch daily batches'));
     }
   },
+  
 };
 
 export const feedApi = {
@@ -394,6 +395,15 @@ export const batchApi = {
       throw new Error(getApiErrorMessage(error, 'Failed to update batch'));
     }
   },
+
+  closeBatch: async (batch_id: number): Promise<{ message: string }> => {
+  try {
+    const response = await api.put<{ message: string }>(`/batch/${batch_id}/close`);
+    return response.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Failed to close batch'));
+  }
+},
 };
 
 // Egg Room Report API
@@ -437,10 +447,11 @@ updateReport: async (report_date: string, reportData: EggRoomReportUpdate) => { 
 
 // New Bovans Performance API
 export const bovansApi = {
-  getAllBovansPerformance: async (skip: number = 0, limit: number = 10): Promise<BovansPerformance[]> => {
+ getAllBovansPerformance: async (skip: number = 0, limit: number = 10): Promise<PaginatedBovansPerformanceResponse> => {
     try {
-      const response = await api.get<BovansPerformance[]>(`/bovans/?skip=${skip}&limit=${limit}`);
-      return response.data;
+      // The response from the API will now be of type PaginatedBovansPerformanceResponse
+      const response = await api.get<PaginatedBovansPerformanceResponse>(`/bovans/?skip=${skip}&limit=${limit}`);
+      return response.data; // This 'response.data' will now contain { data: [...], total_count: ... }
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch Bovans performance data'));
     }
