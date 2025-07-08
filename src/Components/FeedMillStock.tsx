@@ -1,6 +1,8 @@
+// FeedMillStock.tsx
 import { useEffect, useState } from "react";
-import { compositionApi } from "../services/api";
+import { compositionApi, batchApi } from "../services/api"; // Import batchApi
 import { FeedResponse } from "../types/Feed";
+import { BatchResponse } from "../types/batch"; // Import BatchResponse
 import CompositionForm from "./CompositionForm";
 import { toast } from "react-toastify";
 
@@ -19,26 +21,36 @@ function FeedMillStock() {
   const [newCompName, setNewCompName] = useState("");
   const [timesToUse, setTimesToUse] = useState(1);
   const [editCompName, setEditCompName] = useState(""); // State for editing composition name
+  const [batches, setBatches] = useState<BatchResponse[]>([]); // State to store batches
+  const [selectedShedNo, setSelectedShedNo] = useState<string>(''); // State for selected shed_no
 
   useEffect(() => {
     // Fetch feeds from API
-    // Use FeedResponse type
     import("../services/api").then(({ feedApi }) => {
       feedApi.getFeeds().then((feedResponses: FeedResponse[]) => {
         setFeeds(feedResponses);
       });
     });
     compositionApi.getCompositions().then((comps) => {
-      // Map feed_id to feed_id for each feed in each composition
       const mappedComps = comps.map((comp) => ({
         ...comp,
         feeds: comp.feeds.map((f: any) => ({
           ...f,
-          feed_id: f.feed_id ?? f.feed_id, // support both possible keys
+          feed_id: f.feed_id ?? f.feed_id,
         })),
       }));
       setCompositions(mappedComps);
     });
+
+    // Fetch batches
+    batchApi.getBatches().then((fetchedBatches: BatchResponse[]) => {
+      setBatches(fetchedBatches);
+      // Set a default selectedShedNo if available, e.g., the first one
+      if (fetchedBatches.length > 0) {
+        setSelectedShedNo(fetchedBatches[0].shed_no);
+      }
+    });
+
   }, []);
 
   useEffect(() => {
@@ -62,7 +74,7 @@ function FeedMillStock() {
   const handleEdit = () => {
     if (!selectedComposition) return;
     setEditFeeds(selectedComposition.feeds.map((f: any) => ({ ...f })));
-    setEditCompName(selectedComposition.name); // Set name for editing
+    setEditCompName(selectedComposition.name);
     setViewState("edit");
   };
 
@@ -75,7 +87,6 @@ function FeedMillStock() {
   const handleFeedSearch = (e: React.ChangeEvent<HTMLInputElement>) =>
     setSearch(e.target.value);
 
-  // Accept both Feed and FeedResponse for compatibility
   const handleAddFeed = (feed: { id?: number; title?: string }) => {
     if (!feed.id) return;
     if (!editFeeds.some((f: any) => f.feed_id === feed.id)) {
@@ -92,7 +103,7 @@ function FeedMillStock() {
     await compositionApi.updateComposition(
       selectedComposition.id,
       {
-        name: editCompName, // Use edited name
+        name: editCompName,
         feeds: editFeeds,
       }
     );
@@ -230,19 +241,41 @@ function FeedMillStock() {
               +
             </button>
           </div>
+          {/* Shed Number Selection */}
+          <div className="mb-3">
+            <label htmlFor="shedNoSelect" className="form-label">Select Shed Number:</label>
+            <select
+              id="shedNoSelect"
+              className="form-select form-select-sm"
+              value={selectedShedNo}
+              onChange={(e) => setSelectedShedNo(e.target.value)}
+            >
+              <option value="">Select a Shed</option>
+              {batches.map((batch) => (
+                <option key={batch.id} value={batch.shed_no}>
+                  {batch.shed_no}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className="d-flex gap-2">
             <button
               className="btn btn-success btn-sm"
               onClick={async () => {
+                if (!selectedShedNo) {
+                  toast.error("Please select a Shed Number");
+                  return;
+                }
                 const usedAt = new Date().toISOString().split('T')[0];
                 try {
                   await compositionApi.useComposition({
                     compositionId: selectedComposition.id,
                     times: timesToUse,
                     usedAt,
+                    shedNo: selectedShedNo, // Pass the selected shed_no
                   });
-                  toast.success(`Used composition ${selectedComposition.name} ${timesToUse} time(s)`);
-                  // Optionally update local state/UI
+                  toast.success(`Used composition ${selectedComposition.name} ${timesToUse} time(s) for Shed ${selectedShedNo}`);
                   const updated = await compositionApi.getCompositions();
                   setCompositions(updated);
                   setViewState("view");

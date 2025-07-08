@@ -8,6 +8,7 @@ interface UsageHistoryItem {
   composition_id: number;
   times: number;
   used_at: string;
+  shed_no: string;
 }
 
 interface Composition {
@@ -25,6 +26,7 @@ const CompositionUsageHistory = () => {
 
   useEffect(() => {
     const fetchHistory = async () => {
+      console.log("compositionId:", compositionId);  
       try {
         if (!compositionId) return;
         setLoading(true);
@@ -35,7 +37,9 @@ const CompositionUsageHistory = () => {
           compositionApi.getComposition(Number(compositionId)), // Assuming this exists
         ]);
         setHistory(historyData);
+        // console.log("Fetched composition usage history:", historyData);
         setComposition(compositionData);
+        console.log("Fetched composition usage history:", historyData);  // <-- Add this
       } catch (err) {
         setError("Failed to load usage history or composition details");
       } finally {
@@ -67,6 +71,7 @@ const CompositionUsageHistory = () => {
               <th>Date</th>
               <th>Times Used</th>
               <th>Total Weight Used (kg)</th>
+              <th>Shed</th>
             </tr>
           </thead>
           <tbody>
@@ -81,6 +86,7 @@ const CompositionUsageHistory = () => {
                   <td>{new Date(item.used_at).toLocaleDateString()}</td>
                   <td>{item.times}</td>
                   <td>{compositionUnitWeight * item.times}</td>
+                  <td>{item.shed_no}</td>
                 </tr>
               ))
             )}

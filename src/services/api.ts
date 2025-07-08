@@ -289,12 +289,13 @@ export const compositionApi = {
     }
   },
 
-  useComposition: async ({ compositionId, times, usedAt }: { compositionId: number, times: number, usedAt: string }) => {
+  useComposition: async ({ compositionId, times, usedAt, shedNo }: { compositionId: number, times: number, usedAt: string, shedNo?: string }) => {
     try {
       await api.post('/compositions/use-composition', {
         compositionId,
         times,
         usedAt,
+        shed_no: shedNo, // Include shed_no here
       });
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to use composition'));
