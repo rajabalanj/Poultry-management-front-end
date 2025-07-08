@@ -9,7 +9,6 @@ const DESKTOP_BREAKPOINT = 992;
 const Slidebar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(window.innerWidth >= DESKTOP_BREAKPOINT);
   const location = useLocation();
-  // const navigate = useNavigate();
   const isDesktop = window.innerWidth >= DESKTOP_BREAKPOINT;
 
   // State to manage which sub-menu is open
@@ -31,6 +30,21 @@ const Slidebar: React.FC = () => {
     }
   }, [location, isDesktop]);
 
+  // Add this useEffect to manage openMenu based on current location
+  useEffect(() => {
+    // Determine which parent menu should be open based on the current path
+    if (location.pathname.startsWith('/add-batch') || location.pathname.startsWith('/upload-batch')) {
+      setOpenMenu('batch');
+    } else if (location.pathname.startsWith('/egg-room-stock')) {
+      setOpenMenu('egg');
+    } else if (location.pathname.startsWith('/feed') || location.pathname.startsWith('/feed-mill-stock')) {
+      setOpenMenu('feed');
+    } else {
+      setOpenMenu(null); // No sub-menu related path, so close any open sub-menus
+    }
+  }, [location.pathname]); // Re-run when the path changes
+
+
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
     if (isOpen) { // If sidebar is closing, close any open sub-menus
@@ -41,7 +55,7 @@ const Slidebar: React.FC = () => {
   const closeSidebarMobile = () => {
     if (!isDesktop) {
       setIsOpen(false);
-      setOpenMenu(null); // Close any open sub-menus on mobile link click
+      // setOpenMenu(null); // Don't close sub-menus here, handled by useEffect above
     }
   };
 
@@ -92,7 +106,7 @@ const Slidebar: React.FC = () => {
                 <li className="nav-menu-item fw-bold">
                   <Link
                     to="/"
-                    className="nav-menu-link"
+                    className={`nav-menu-link ${location.pathname === "/" ? "active-link" : ""}`}
                     onClick={closeSidebarMobile}
                   >
                     <i className="bi bi-house me-2 icon-color-sidebar"></i>
@@ -114,7 +128,7 @@ const Slidebar: React.FC = () => {
                     <li className="sub-menu-item">
                       <Link
                         to="/add-batch"
-                        className="nav-menu-link"
+                        className={`nav-menu-link ${location.pathname === "/add-batch" ? "active-link" : ""}`}
                         onClick={closeSidebarMobile}
                       >
                         Add Batch
@@ -123,7 +137,7 @@ const Slidebar: React.FC = () => {
                     <li className="sub-menu-item">
                       <Link
                         to="/upload-batch"
-                        className="nav-menu-link"
+                        className={`nav-menu-link ${location.pathname === "/upload-batch" ? "active-link" : ""}`}
                         onClick={closeSidebarMobile}
                       >
                         Upload Batch
@@ -146,7 +160,7 @@ const Slidebar: React.FC = () => {
                     <li className="sub-menu-item">
                       <Link
                         to="/egg-room-stock"
-                        className="nav-menu-link"
+                        className={`nav-menu-link ${location.pathname === "/egg-room-stock" ? "active-link" : ""}`}
                         onClick={closeSidebarMobile}
                       >
                         Egg Room Stock
@@ -155,7 +169,7 @@ const Slidebar: React.FC = () => {
                     <li className="sub-menu-item">
                       <Link
                         to="/egg-room-stock/report"
-                        className="nav-menu-link"
+                        className={`nav-menu-link ${location.pathname === "/egg-room-stock/report" ? "active-link" : ""}`}
                         onClick={closeSidebarMobile}
                       >
                         Egg Room Stock Report
@@ -178,7 +192,7 @@ const Slidebar: React.FC = () => {
                     <li className="sub-menu-item">
                       <Link
                         to="/feed"
-                        className="nav-menu-link"
+                        className={`nav-menu-link ${location.pathname === "/feed" ? "active-link" : ""}`}
                         onClick={closeSidebarMobile}
                       >
                         Feeds
@@ -187,7 +201,7 @@ const Slidebar: React.FC = () => {
                     <li className="sub-menu-item">
                       <Link
                         to="/feed-mill-stock"
-                        className="nav-menu-link"
+                        className={`nav-menu-link ${location.pathname === "/feed-mill-stock" ? "active-link" : ""}`}
                         onClick={closeSidebarMobile}
                       >
                         Feed Compositions
@@ -200,7 +214,7 @@ const Slidebar: React.FC = () => {
                 <li className="nav-menu-item fw-bold">
                   <Link
                     to="/configurations"
-                    className="nav-menu-link"
+                    className={`nav-menu-link ${location.pathname === "/configurations" ? "active-link" : ""}`}
                     onClick={closeSidebarMobile}
                   >
                     <i className="bi bi-gear me-2 icon-color-sidebar"></i>

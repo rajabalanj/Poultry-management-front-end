@@ -246,3 +246,87 @@
   padding-top: 0.4rem; /* Vertical padding for gap */
   padding-bottom: 0.4rem; /* Vertical padding for gap */
 }
+
+/* Slidebar.css */
+
+/* Style for the active menu link */
+.nav-menu-link.active-link {
+  background-color: #e9ecef; /* Light gray background */
+  color: #007bff; /* Blue text color */
+  border-left: 4px solid #007bff; /* A left border for emphasis */
+  padding-left: 16px; /* Adjust padding due to border */
+}
+
+/* Style for the active expandable menu (parent item) */
+.nav-menu-link.expandable.active {
+  background-color: #e9ecef; /* Light gray background */
+  color: #007bff; /* Blue text color */
+}
+
+/* Optional: Improve hover state for all links */
+.nav-menu-link:hover {
+  background-color: #e2e6ea;
+  text-decoration: none;
+}
+
+/* Adjustments for sub-menu items */
+.sub-menu-item .nav-menu-link {
+  padding-left: 30px; /* Indent sub-menu items */
+}
+
+/* Styles for the chevron icon rotation */
+.chevron-icon {
+  transition: transform 0.3s ease;
+}
+
+.chevron-icon.rotated {
+  transform: rotate(90deg);
+}
+
+.nav-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.nav-menu-item {
+  margin-bottom: 5px;
+}
+
+.nav-menu-link {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  text-decoration: none;
+  color: #333;
+  transition: all 0.3s ease;
+  border-radius: 5px;
+}
+
+.nav-menu-link.expandable {
+  cursor: pointer;
+  justify-content: space-between;
+}
+
+.sub-menu {
+  list-style: none;
+  padding-left: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+}
+
+.sub-menu.open {
+  max-height: 200px; /* Adjust as needed based on content */
+  transition: max-height 0.3s ease-in;
+}
+
+.sub-menu-item .nav-menu-link {
+  font-weight: normal;
+  font-size: 0.9em;
+}
+
+/* Icon color for sidebar links (you might already have this) */
+.icon-color-sidebar {
+  color: #6c757d; /* Example color */
+}
