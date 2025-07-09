@@ -210,7 +210,7 @@ const Configurations: React.FC = () => {
         <div className="accordion-item">
           <h2 className="accordion-header" id="batch-config-heading">
             <button
-              className="accordion-button collapsed" // Add 'collapsed' by default
+              className="accordion-button collapsed fw-semibold" // Add 'collapsed' by default
               type="button"
               data-bs-toggle="collapse"
               data-bs-target="#batch-config-collapse"
@@ -235,12 +235,12 @@ const Configurations: React.FC = () => {
             </div>
           </div>
         </div>
-
+        {/* <hr /> */}
         {/* Bovans White Layer Performance Accordion Item */}
-        <div className="accordion-item mt-3"> {/* Added mt-3 for spacing */}
+        <div className="accordion-item mt-3 border-top"> {/* Added mt-3 for spacing */}
           <h2 className="accordion-header" id="bovans-performance-heading">
             <button
-              className="accordion-button collapsed" // Add 'collapsed' by default
+              className="accordion-button collapsed fw-semibold" // Add 'collapsed' by default
               type="button"
               data-bs-toggle="collapse"
               data-bs-target="#bovans-performance-collapse"
