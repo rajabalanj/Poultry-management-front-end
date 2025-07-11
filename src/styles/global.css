@@ -10,7 +10,13 @@
   --color-card-feed: #3498DB; /* Peter River Blue */
   --color-card-eggs: #9B59B6; /* Amethyst Purple */
   --color-sidebar-icon: #2ECC71; /* Emerald Green */
-  
+   --sidebar-bg: #ffffff; /* Pure white background */
+  --sidebar-text: #333333; /* Dark gray for text */
+  --sidebar-hover: #f5f5f5; /* Light gray for hover */
+  --sidebar-active: #e3f2fd; /* Light blue for active items */
+  --sidebar-border: #e0e0e0; /* Subtle border color */
+  --sidebar-icon: #1976d2; /* Professional blue for icons */
+  --sidebar-submenu-indicator: #90caf9; /* Lighter blue for submenu indicator */
 }
 
 .icon-color-birds {
@@ -180,21 +186,17 @@
 }
 
 .nav-menu-link {
-  display: flex; /* Use flexbox for icon and text alignment */
-  align-items: center; /* Vertically center icon and text */
-  padding: 0.6rem 1rem; /* Consistent padding for all main menu items */
-  font-size: 1rem;
-  color: #333;
-  text-decoration: none;
-  background-color: transparent;
-  border-radius: 5px; /* Consistent rounded corners */
-  transition: background-color 0.2s ease-in-out; /* Smooth hover effect */
-  cursor: pointer; /* Indicate clickable area for expandable items */
-  user-select: none; /* Prevent text selection on click */
+  color: var(--sidebar-text);
+  padding: 0.75rem 1rem;
+  margin: 0.15rem 0.5rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  font-weight: 500; /* Medium weight for better readability */
 }
 
 .nav-menu-link:hover {
-  background-color: #f0f0f0; /* Light background on hover */
+  background-color: var(--sidebar-hover);
+  color: var(--sidebar-icon);
 }
 
 /* Icon styling */
@@ -220,14 +222,6 @@
 }
 
 /* Sub-menu container styling */
-.sub-menu {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  overflow: hidden; /* Hide overflow during collapse/expand animation */
-  max-height: 0; /* Initial state: collapsed */
-  transition: max-height 0.3s ease-out; /* Smooth transition for expand/collapse */
-}
 
 .sub-menu.open {
   max-height: 500px; /* Adjust this value to be larger than your largest sub-menu content */
@@ -240,43 +234,46 @@
 }
 
 .sub-menu-item .nav-menu-link {
-  /* Indent sub-menu links */
-  padding-left: calc(1rem + 28px + 0.75rem); /* Matches parent icon + text indentation */
-  font-size: 0.95rem; /* Slightly smaller font for sub-items */
-  padding-top: 0.4rem; /* Vertical padding for gap */
-  padding-bottom: 0.4rem; /* Vertical padding for gap */
+  padding-left: 3rem; /* More consistent indentation */
+  font-weight: 400; /* Lighter weight for sub-items */
+  position: relative;
 }
 
 /* Slidebar.css */
 
 /* Style for the active menu link */
 .nav-menu-link.active-link {
-  background-color: #e9ecef; /* Light gray background */
-  color: #007bff; /* Blue text color */
-  border-left: 4px solid #007bff; /* A left border for emphasis */
-  padding-left: 16px; /* Adjust padding due to border */
+  background-color: var(--sidebar-active);
+  color: var(--sidebar-icon);
+  border-left: 3px solid var(--sidebar-icon);
+  padding-left: calc(1rem - 3px); /* Adjust for border */
+  font-weight: 600;
 }
 
 /* Style for the active expandable menu (parent item) */
 .nav-menu-link.expandable.active {
-  background-color: #e9ecef; /* Light gray background */
-  color: #007bff; /* Blue text color */
+  background-color: var(--sidebar-active);
+  color: var(--sidebar-icon); /* Blue text color */
+}
+
+.nav-menu-link.expandable.active .icon-color-sidebar {
+  color: var(--sidebar-icon);
 }
 
 /* Optional: Improve hover state for all links */
-.nav-menu-link:hover {
+/* .nav-menu-link:hover {
   background-color: #e2e6ea;
   text-decoration: none;
-}
+} */
 
 /* Adjustments for sub-menu items */
-.sub-menu-item .nav-menu-link {
+/* .sub-menu-item .nav-menu-link {
   padding-left: 30px; /* Indent sub-menu items */
-}
+/* } */
 
 /* Styles for the chevron icon rotation */
 .chevron-icon {
-  transition: transform 0.3s ease;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .chevron-icon.rotated {
@@ -287,6 +284,7 @@
   list-style: none;
   padding: 0;
   margin: 0;
+  padding: 0 0.5rem;
 }
 
 .nav-menu-item {
@@ -314,6 +312,7 @@
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.3s ease-out;
+  margin-top: 0.25rem;
 }
 
 .sub-menu.open {
@@ -321,12 +320,77 @@
   transition: max-height 0.3s ease-in;
 }
 
-.sub-menu-item .nav-menu-link {
+/* .sub-menu-item .nav-menu-link {
   font-weight: normal;
   font-size: 0.9em;
+} */
+
+.sub-menu-item .nav-menu-link::before {
+  content: "";
+  position: absolute;
+  left: 2.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 5px;
+  height: 5px;
+  background-color: var(--sidebar-submenu-indicator);
+  border-radius: 50%;
 }
 
-/* Icon color for sidebar links (you might already have this) */
+/* Replace the existing sidebar styles with these */
+.sidebar {
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--sidebar-border);
+}
+
+.sidebar.open {
+  box-shadow: 2px 0 10px rgba(0,0,0,0.08); /* More subtle shadow */
+}
+
+.sidebar h5 {
+  color: var(--sidebar-text);
+  font-size: 1.1rem;
+  padding: 0 1rem;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
 .icon-color-sidebar {
-  color: #6c757d; /* Example color */
+  color: var(--sidebar-icon);
+  font-size: 1.1rem;
+  width: 24px;
+  min-width: 24px;
+}
+
+@media (max-width: 991px) {
+  .sidebar {
+    padding-top: 10px; /* More space for mobile header */
+  }
+  
+  .hamburger-button {
+    background-color: var(--sidebar-icon);
+    color: white;
+    border-radius: 6px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .hamburger-button i {
+    font-size: 1.3rem;
+  }
+}
+
+/* Add to global.css */
+.nav-menu-item:not(:last-child) {
+  margin-bottom: 0.5rem;
+}
+
+.nav-menu-divider {
+  height: 1px;
+  background-color: var(--sidebar-border);
+  margin: 1rem 0.5rem;
 }

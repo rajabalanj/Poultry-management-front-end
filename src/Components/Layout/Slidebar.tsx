@@ -99,6 +99,7 @@ const Slidebar: React.FC = () => {
         <div className="px-3">
           <div style={{ marginTop: isDesktop ? "0" : "-15px" }}>
             <h5 className="mb-4 fw-bold">Menu</h5>
+            
             <div className="sidebar">
               <ul className="nav-menu"> {/* New custom class */}
 
@@ -208,6 +209,17 @@ const Slidebar: React.FC = () => {
                       </Link>
                     </li>
                   </ul>
+                </li>
+
+                <li className="nav-menu-item fw-bold">
+                  <Link
+                    to="/medicine"
+                    className={`nav-menu-link ${location.pathname === "/medicine" ? "active-link" : ""}`}
+                    onClick={closeSidebarMobile}
+                  >
+                    <i className="bi bi-file-medical me-2 icon-color-sidebar"></i>
+                    Medicine Management
+                  </Link>
                 </li>
 
                 {/* Configurations - Simple Link */}

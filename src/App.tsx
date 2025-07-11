@@ -23,6 +23,11 @@ import EggRoomStock from './Components/EggRoomStock'
 import EggRoomStockReport from './Components/EggRoomStockReport';
 // Add this import
 import FeedAuditReport from "./Components/FeedAuditReport";
+import CreateMedicineForm from './Components/Forms/Create/CreateMedicineForm';
+import MedicineDetails from './Components/Forms/Read/MedicineDetails';
+import EditMedicine from './Components/Forms/Update/EditMedicine';
+import MedicineListPage from './Components/MedicineIndex';
+import MedicineAuditReport from './Components/MedicineAuditReport';
 
 
 const App: React.FC = () => {
@@ -69,6 +74,11 @@ const App: React.FC = () => {
             <Route path="/feed/:feed_id/edit" element={<EditFeed />} />
             {/* <Route path="/feed-list" element={<FeedItemList />} /> */}
             <Route path="/feed" element={<FeedListPage />} />
+            <Route path="/create-medicine" element={<CreateMedicineForm />} />
+            <Route path="/medicine/:medicine_id/details" element={<MedicineDetails />} />
+            <Route path="/medicine/:medicine_id/edit" element={<EditMedicine />} />
+            {/* <Route path="/feed-list" element={<FeedItemList />} /> */}
+            <Route path="/medicine" element={<MedicineListPage />} />
             <Route
               path="/previous-day-report/:batchId?"
               element={<PreviousDayReport />}
@@ -86,7 +96,7 @@ const App: React.FC = () => {
               element={<EggRoomStockReport />}
             />
             <Route path="/feed/:feed_id/audit" element={<FeedAuditReport />} />
-            
+            <Route path="/medicine/:medicine_id/audit" element={<MedicineAuditReport />} />
           </Routes>
         </Layout>
         <ToastContainer position="top-right" autoClose={3000} />

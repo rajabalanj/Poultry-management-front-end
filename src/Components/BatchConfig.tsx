@@ -89,18 +89,19 @@ const BatchConfig: React.FC<BatchConfigTableProps> = ({ batches, loading, error 
   );
 
   const handleClose = useCallback(async (batch_id: number) => {
-  if (confirm(`Are you sure you want to close batch ${batch_id}?`)) {
+  const batch = batches.find(b => b.id === batch_id);
+  if (confirm(`Are you sure you want to close batch ${batch?.batch_no}?`)) {
     try {
       await batchApi.closeBatch(batch_id);
-      toast.success(`Batch ${batch_id} closed successfully!`);
+      toast.success(`Batch ${batch?.batch_no} closed successfully!`);
       // You might want to re-fetch batches here to update the UI
       // For now, we'll rely on a full page refresh or parent component re-fetch
-      window.location.reload(); // Simple reload for demonstration
+      // window.location.reload(); // Simple reload for demonstration
     } catch (err: any) {
       toast.error(err.message || `Failed to close batch ${batch_id}.`);
     }
   }
-}, []);
+}, [batches]);
 
   const batchCards = useMemo(() => {
     return batches
