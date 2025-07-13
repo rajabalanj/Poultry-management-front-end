@@ -14,6 +14,8 @@ const Configurations: React.FC = () => {
   const [henDayDeviation, setHenDayDeviation] = useState(0);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [medicineKg, setMedicineKg] = useState(3000);
+const [medicineGram, setMedicineGram] = useState(3000);
 
   // Batch config state
   const [batches, setBatches] = useState<
@@ -45,11 +47,15 @@ const Configurations: React.FC = () => {
         const henDayDeviationConfig = configs.find(
           (c) => c.name === "henDayDeviation"
         );
+        const medicineKgConfig = configs.find((c) => c.name === "medicineLowKgThreshold");
+    const medicineGramConfig = configs.find((c) => c.name === "medicineLowGramThreshold");
         setKg(kgConfig ? Number(kgConfig.value) : 3000);
         setTon(tonConfig ? Number(tonConfig.value) : 3);
         setHenDayDeviation(
           henDayDeviationConfig ? Number(henDayDeviationConfig.value) : 0
         );
+        setMedicineKg(medicineKgConfig ? Number(medicineKgConfig.value) : 3000);
+    setMedicineGram(medicineGramConfig ? Number(medicineGramConfig.value) : 3000);
 
         // Load batch configs
         const batchData = await batchApi.getBatches(0, 1000);
@@ -111,6 +117,22 @@ const Configurations: React.FC = () => {
     }
   };
 
+  const handleMedicineKgChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const value = Number(e.target.value);
+  if (!isNaN(value)) {
+    setMedicineKg(value);
+    setMedicineGram(value*1000);
+  }
+};
+
+const handleMedicineGramChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const value = Number(e.target.value);
+  if (!isNaN(value)) {
+    setMedicineGram(value);
+    setMedicineKg(value/1000);
+  }
+};
+
   // Save to backend
   const handleSave = async () => {
     setSaving(true);
@@ -118,6 +140,8 @@ const Configurations: React.FC = () => {
       await configApi.updateConfig("lowKgThreshold", String(kg));
       await configApi.updateConfig("lowTonThreshold", String(ton));
       await configApi.updateConfig("henDayDeviation", String(henDayDeviation));
+      await configApi.updateConfig("medicineLowKgThreshold", String(medicineKg));
+    await configApi.updateConfig("medicineLowGramThreshold", String(medicineGram));
       toast.success("Configurations saved successfully!");
     } catch (err: any) {
       toast.error(err.message || "Failed to save configurations.");
@@ -175,6 +199,37 @@ const Configurations: React.FC = () => {
             </div>
           </div>
         </div>
+        <div className="mb-4">
+    <label className="form-label fw-semibold">
+      Medicine Low Thresholds:
+    </label>
+    <div className="row g-3">
+      <div className="col-6 col-md-auto d-flex align-items-center">
+        <span className="me-2">kg:</span>
+        <input
+          type="number"
+          className="form-control form-control-sm"
+          style={{ maxWidth: 100 }}
+          value={medicineKg}
+          min={0}
+          onChange={handleMedicineKgChange}
+          disabled={loading}
+        />
+      </div>
+      <div className="col-6 col-md-auto d-flex align-items-center">
+        <span className="me-2">gram:</span>
+        <input
+          type="number"
+          className="form-control form-control-sm"
+          style={{ maxWidth: 100 }}
+          value={medicineGram}
+          min={0}
+          onChange={handleMedicineGramChange}
+          disabled={loading}
+        />
+      </div>
+    </div>
+  </div>
 
         {/* Max Allowed Hen Day % Drop */}
         <div className="mb-4">

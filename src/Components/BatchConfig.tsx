@@ -1,9 +1,12 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { BatchResponse } from "../types/batch";
 import { batchApi } from "../services/api"; // Import dailyBatchApi
 import { toast } from "react-toastify"; // Import toast for notifications
+import { Modal, Button } from "react-bootstrap";
+
+
 
 const BatchConfigCard: React.FC<{
   batch: BatchResponse;
@@ -65,7 +68,8 @@ interface BatchConfigTableProps {
 
 const BatchConfig: React.FC<BatchConfigTableProps> = ({ batches, loading, error }) => {
   const navigate = useNavigate();
-
+  const [showCloseModal, setShowCloseModal] = useState(false);
+const [batchToClose, setBatchToClose] = useState<BatchResponse | null>(null);
   const handleView = useCallback(
     (batch_id: number) => {
       if (!batch_id) {
@@ -88,20 +92,14 @@ const BatchConfig: React.FC<BatchConfigTableProps> = ({ batches, loading, error 
     [navigate]
   );
 
-  const handleClose = useCallback(async (batch_id: number) => {
+  const handleClose = useCallback((batch_id: number) => {
   const batch = batches.find(b => b.id === batch_id);
-  if (confirm(`Are you sure you want to close batch ${batch?.batch_no}?`)) {
-    try {
-      await batchApi.closeBatch(batch_id);
-      toast.success(`Batch ${batch?.batch_no} closed successfully!`);
-      // You might want to re-fetch batches here to update the UI
-      // For now, we'll rely on a full page refresh or parent component re-fetch
-      // window.location.reload(); // Simple reload for demonstration
-    } catch (err: any) {
-      toast.error(err.message || `Failed to close batch ${batch_id}.`);
-    }
+  if (batch) {
+    setBatchToClose(batch);
+    setShowCloseModal(true);
   }
 }, [batches]);
+
 
   const batchCards = useMemo(() => {
     return batches
@@ -120,8 +118,44 @@ const BatchConfig: React.FC<BatchConfigTableProps> = ({ batches, loading, error 
   if (loading) return <div className="text-center">Loading...</div>;
   if (error) return <div className="text-center text-danger">{error}</div>;
   if (batches.length === 0) return <div className="text-center">No batches found</div>;
+  return (
+  <>
+    <div className="px-2">{batchCards}</div>
 
-  return <div className="px-2">{batchCards}</div>;
+    <Modal show={showCloseModal} onHide={() => setShowCloseModal(false)}>
+      <Modal.Header closeButton>
+        <Modal.Title>Confirm Close</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        Are you sure you want to close batch <strong>{batchToClose?.batch_no}</strong>?
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={() => setShowCloseModal(false)}>
+          Cancel
+        </Button>
+        <Button
+          variant="danger"
+          onClick={async () => {
+            if (!batchToClose) return;
+            try {
+              await batchApi.closeBatch(batchToClose.id);
+              toast.success(`Batch ${batchToClose.batch_no} closed successfully!`);
+              setShowCloseModal(false);
+              setBatchToClose(null);
+              window.location.reload();
+            } catch (err: any) {
+              toast.error(err.message || `Failed to close batch ${batchToClose.id}.`);
+            }
+          }}
+        >
+          Close Batch
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  </>
+);
+
+  
 };
 
 export default BatchConfig;

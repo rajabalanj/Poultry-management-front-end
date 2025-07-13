@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import PageHeader from "./Layout/PageHeader";
 import { Modal, Button } from "react-bootstrap";
-import { medicineApi, configApi } from "../services/api"; // Ensure configApi is imported
+import { medicineApi, configApi, batchApi } from "../services/api"; // Ensure configApi is imported
 import { MedicineResponse } from '../types/Medicine';
 import { toast } from 'react-toastify';
 
@@ -12,14 +12,16 @@ const MedicineCard: React.FC<{
   onView: (id: number) => void;
   onEdit: (id: number) => void;
   onDelete: (id: number) => void;
+  onUse: (id: number) => void;
   lowKGThreshold: number; // Prop for global threshold
   lowGramThreshold: number; // Prop for global threshold
-}> = React.memo(({ medicine, onView, onEdit, onDelete, lowKGThreshold, lowGramThreshold }) => {
+}> = React.memo(({ medicine, onView, onEdit, onDelete, onUse, lowKGThreshold, lowGramThreshold }) => {
   // Use medicine-specific thresholds if available, otherwise fall back to global ones
    const effectiveLowKGThreshold = medicine.warningKGThreshold ?? lowKGThreshold;
   const effectiveLowGramThreshold = medicine.warningGramThreshold ?? lowGramThreshold;
 
-  const isLow = (medicine.unit === 'kg' && effectiveLowKGThreshold !== undefined && Number(medicine.quantity) < effectiveLowKGThreshold) ||
+  const isLow = (medicine.unit === 'kg' && effectiveLowKGThreshold !== undefined &&
+    Number(medicine.quantity) < effectiveLowKGThreshold) ||
                 (medicine.unit === 'gram' && effectiveLowGramThreshold !== undefined && Number(medicine.quantity) < effectiveLowGramThreshold);
 
   return (
@@ -48,6 +50,15 @@ const MedicineCard: React.FC<{
             </div>
           </div>
           <div className="d-flex flex-column flex-md-row gap-2">
+            <button
+  className="btn btn-warning btn-sm d-flex align-items-center justify-content-center"
+  onClick={() => onUse(medicine.id)}
+  title="Use Medicine"
+>
+  <i className="bi bi-capsule me-1"></i>
+  <span className="text-xs">Use</span>
+</button>
+
             <button
               className="btn btn-primary btn-sm d-flex align-items-center justify-content-center"
               onClick={() => onView(medicine.id)}
@@ -87,11 +98,12 @@ interface MedicineTableProps {
   loading: boolean;
   error: string | null;
   onDelete: (id: number) => void;
+  onUse: (id: number) => void;
   lowKGThreshold: number; // Prop from MedicineListPage
   lowGramThreshold: number; // Prop from MedicineListPage
 }
 
-const MedicineTable: React.FC<MedicineTableProps> = ({ medicines, loading, error, onDelete, lowKGThreshold, lowGramThreshold }) => {
+const MedicineTable: React.FC<MedicineTableProps> = ({ medicines, loading, error, onDelete, onUse, lowKGThreshold, lowGramThreshold }) => {
   const navigate = useNavigate();
 
   const handleViewDetails = useCallback(
@@ -116,6 +128,9 @@ const MedicineTable: React.FC<MedicineTableProps> = ({ medicines, loading, error
     [navigate]
   );
 
+  
+
+
   const medicineCards = useMemo(() => {
     return medicines.map((medicine) => (
       <MedicineCard
@@ -124,6 +139,7 @@ const MedicineTable: React.FC<MedicineTableProps> = ({ medicines, loading, error
         onView={handleViewDetails}
         onEdit={handleEdit}
         onDelete={onDelete}
+        onUse={onUse}
         lowKGThreshold={lowKGThreshold} // Pass global threshold to MedicineCard
         lowGramThreshold={lowGramThreshold} // Pass global threshold to MedicineCard
       />
@@ -144,19 +160,25 @@ const MedicineListPage = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [medicineToDelete, setMedicineToDelete] = useState<number | null>(null);
   // States for global thresholds, initialized with defaults
-  const [lowKGThreshold, setLowKgThreshold] = useState(3000);
-  const [lowGramThreshold, setLowTonThreshold] = useState(3);
+  const [lowMedicineKGThreshold, setLowMedicineKgThreshold] = useState(0);
+const [lowMedicineGramThreshold, setLowMedicineGramThreshold] = useState(0); // Default to 0 kg
+  const [showUseModal, setShowUseModal] = useState(false);
+const [selectedMedicineId, setSelectedMedicineId] = useState<number | null>(null);
+const [amount, setAmount] = useState('');
+const [shedNo, setShedNo] = useState('');
+const [shedOptions, setShedOptions] = useState<string[]>([]);
+
 
   // Effect to fetch global configuration for thresholds
   useEffect(() => {
     const fetchConfig = async () => {
       try {
         const configs = await configApi.getAllConfigs();
-        const kgConfig = configs.find(c => c.name === 'lowKgThreshold');
-        const tonConfig = configs.find(c => c.name === 'lowTonThreshold');
+        const kgConfig = configs.find(c => c.name === 'medicineLowKgThreshold');
+    const gramConfig = configs.find(c => c.name === 'medicineLowGramThreshold');
         // Update states with fetched values or keep defaults
-        setLowKgThreshold(kgConfig ? Number(kgConfig.value) : 3000);
-        setLowTonThreshold(tonConfig ? Number(tonConfig.value) : 3);
+        setLowMedicineKgThreshold(kgConfig ? Number(kgConfig.value) : 0);
+    setLowMedicineGramThreshold(gramConfig ? Number(gramConfig.value) : 0);
       } catch (err: any) {
         toast.error(err.message || 'Failed to load configuration');
       }
@@ -191,10 +213,29 @@ const MedicineListPage = () => {
     fetchMedicineList();
   }, []); // Run once on component mount
 
+  useEffect(() => {
+  const fetchSheds = async () => {
+    try {
+      const batches = await batchApi.getBatches();
+      const sheds = Array.from(new Set(batches.map(batch => batch.shed_no).filter(Boolean)));
+      setShedOptions(sheds);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to fetch shed numbers');
+    }
+  };
+  fetchSheds();
+}, []);
+
+
   const handleDelete = useCallback((id: number) => {
     setMedicineToDelete(id);
     setShowDeleteModal(true);
   }, []);
+
+  const handleUseMedicine = useCallback((id: number) => {
+  setSelectedMedicineId(id);
+  setShowUseModal(true);
+}, []);
 
   const confirmDelete = async () => {
     if (medicineToDelete !== null) {
@@ -225,8 +266,9 @@ const MedicineListPage = () => {
         loading={loading}
         error={error}
         onDelete={handleDelete}
-        lowKGThreshold={lowKGThreshold} // Pass global threshold to MedicineTable
-        lowGramThreshold={lowGramThreshold} // Pass global threshold to MedicineTable
+        onUse={handleUseMedicine}
+        lowKGThreshold={lowMedicineKGThreshold} // Pass global threshold to MedicineTable
+        lowGramThreshold={lowMedicineGramThreshold} // Pass global threshold to MedicineTable
       />
       <Modal show={showDeleteModal} onHide={cancelDelete}>
         <Modal.Header closeButton>
@@ -242,6 +284,76 @@ const MedicineListPage = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+      <Modal show={showUseModal} onHide={() => setShowUseModal(false)}>
+  <Modal.Header closeButton>
+    <Modal.Title>Use Medicine</Modal.Title>
+  </Modal.Header>
+  <Modal.Body>
+    <div className="mb-3">
+      <label className="form-label">Amount (in grams)</label>
+      <input
+        type="number"
+        className="form-control"
+        value={amount}
+        onChange={(e) => setAmount(e.target.value)}
+      />
+    </div>
+    <div className="mb-3">
+      <label className="form-label">Shed Number</label>
+      <select
+        className="form-select"
+        value={shedNo}
+        onChange={(e) => setShedNo(e.target.value)}
+      >
+        <option value="">Select Shed</option>
+        {shedOptions.map((shed, index) => (
+          <option key={index} value={shed}>{shed}</option>
+        ))}
+      </select>
+    </div>
+  </Modal.Body>
+  <Modal.Footer>
+    <Button variant="secondary" onClick={() => setShowUseModal(false)}>Cancel</Button>
+    <Button
+  variant="primary"
+  onClick={async () => {
+    if (!amount || !shedNo || !selectedMedicineId) {
+      toast.error('All fields are required');
+      return;
+    }
+
+    try {
+      // Find the batch_id using the selected shed_no
+      const batches = await batchApi.getBatches();
+      const matchingBatch = batches.find(batch => batch.shed_no === shedNo && batch.is_active);
+
+      if (!matchingBatch) {
+        toast.error(`No active batch found for shed "${shedNo}"`);
+        return;
+      }
+
+      await medicineApi.useMedicine({
+        medicine_id: selectedMedicineId,
+        batch_id: matchingBatch.id,
+        used_quantity_grams: Number(amount),
+      });
+
+      toast.success(`Used ${amount} grams of medicine ${selectedMedicineId} in Shed ${shedNo}`);
+      setShowUseModal(false);
+      setAmount('');
+      setShedNo('');
+      setSelectedMedicineId(null);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to use medicine');
+    }
+  }}
+>
+  Confirm Use
+</Button>
+
+  </Modal.Footer>
+</Modal>
+
     </div>
   );
 };

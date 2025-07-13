@@ -302,6 +302,20 @@ export const medicineApi = {
     throw new Error(getApiErrorMessage(error, 'Failed to fetch medicine audit report'));
   }
 },
+useMedicine: async (data: {
+  medicine_id: number;
+  batch_id: number;
+  used_quantity_grams: number;
+  used_at?: string;
+}): Promise<any> => {
+  try {
+    const response = await api.post("/medicine/use-medicine", data);
+    return response.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, "Failed to record medicine usage"));
+  }
+},
+
 };
 
 // Composition API for create, read, update, delete
@@ -379,6 +393,15 @@ export const compositionApi = {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch composition usage history'));
     }
   },
+  revertCompositionUsage: async (usageId: number): Promise<{ message: string }> => {
+  try {
+    const response = await api.post<{ message: string }>(`/compositions/revert-usage/${usageId}`);
+    return response.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Failed to revert composition usage'));
+  }
+},
+
 };
 
 // Configuration API for key-value settings
