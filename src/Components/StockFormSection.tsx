@@ -10,6 +10,8 @@ interface StockFormSectionProps {
     fields: Array<{
       key: keyof EggRoomStockEntry;
       label: string;
+      disabled?: boolean; // Add disabled property
+      controlledBy?: keyof EggRoomStockEntry; // Add controlledBy property
     }>;
   };
   values: EggRoomStockEntry;
@@ -39,7 +41,7 @@ export const StockFormSection: React.FC<StockFormSectionProps> = ({
           <span className="flex-grow-1">{title}</span>
         </div>
         <div className="mt-2">
-          {fields.map(({ key, label }) => (
+          {fields.map(({ key, label, disabled, controlledBy }) => (
             <div className="mb-2" key={key}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <label className="form-label text-capitalize mb-0" style={{ minWidth: maxLabelWidth }}>
@@ -49,9 +51,11 @@ export const StockFormSection: React.FC<StockFormSectionProps> = ({
                   type="number"
                   className="form-control"
                   style={{ flex: 1 }}
-                  value={values[key] as number}
+                  // Use value from 'controlledBy' if specified, otherwise use its own value
+                  value={controlledBy ? (values[controlledBy] as number || '') : (values[key] as number || '')}
                   onChange={(e) => onChange(key, e.target.value)}
                   min={0}
+                  disabled={disabled} // Apply disabled property
                 />
               </div>
             </div>
@@ -82,15 +86,17 @@ export const StockFormSection: React.FC<StockFormSectionProps> = ({
         {title}
       </div>
       <div className="row g-2 align-items-end">
-        {fields.map(({ key, label }) => (
+        {fields.map(({ key, label, disabled, controlledBy }) => (
           <div className="col" key={key}>
             <label className="form-label text-capitalize">{label}</label>
             <input
               type="number"
               className="form-control"
-              value={values[key] as number}
+              // Use value from 'controlledBy' if specified, otherwise use its own value
+              value={controlledBy ? (values[controlledBy] as number || '') : (values[key] as number || '')}
               onChange={(e) => onChange(key, e.target.value)}
               min={0}
+              disabled={disabled} // Apply disabled property
             />
           </div>
         ))}
