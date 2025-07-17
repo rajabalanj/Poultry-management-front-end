@@ -31,7 +31,7 @@ const sectionConfigs: Array<{
       { key: 'table_opening', label: 'Opening' },
       { key: 'table_received', label: 'Received' },
       { key: 'table_transfer', label: 'Transfer' },
-      { key: 'table_damage', label: 'Damage', disabled: true, controlledBy: 'grade_c_room_received' },
+      { key: 'table_damage', label: 'Damage' },
       { key: 'table_out', label: 'Out' },
     ],
   },
@@ -56,7 +56,7 @@ const sectionConfigs: Array<{
     fields: [
       { key: 'grade_c_opening', label: 'Opening' },
       { key: 'grade_c_shed_received', label: 'Shed Received' },
-      { key: 'grade_c_room_received', label: 'Room Received' },
+      { key: 'grade_c_room_received', label: 'Room Received', disabled: true, controlledBy: 'table_damage' },
       { key: 'grade_c_transfer', label: 'Transfer' },
       { key: 'grade_c_labour', label: 'Labour' },
       { key: 'grade_c_waste', label: 'Waste' },

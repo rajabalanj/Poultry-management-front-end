@@ -39,7 +39,7 @@ export interface EggRoomReportResponse extends EggRoomStockEntry {
 
 export interface EggRoomReportCreate {
   report_date: string; // Changed from 'date' to 'report_date'
-  entries: EggRoomStockEntry[]; // Or single entry if that's what your API expects
+  // entries: EggRoomStockEntry[]; // Or single entry if that's what your API expects
 }
 
 export interface EggRoomReportUpdate {
