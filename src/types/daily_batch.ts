@@ -16,5 +16,5 @@ export interface DailyBatch {
   hd: number; // Computed field
   notes?: string;
   standard_hen_day_percentage?: number; // 0-100, default 0, accepts up to 2 decimal places
-  isChickBatch?: boolean
+  batch_type?: 'Chick' | 'Layer' | 'Grower';
 }

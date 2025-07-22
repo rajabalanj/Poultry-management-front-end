@@ -11,7 +11,7 @@ const EditBatch: React.FC = () => {
   const [batch, setBatch] = useState<DailyBatch | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isChickBatch, setIsChickBatch] = useState(false);
+  const [batch_type, setBatchType] = useState<string>(); // Default to 'layer'
 
   useEffect(() => {
     const fetchBatch = async () => {
@@ -21,7 +21,7 @@ const EditBatch: React.FC = () => {
         const found = batches.find(b => b.batch_id === Number(batchId));
         if (found) {
           setBatch(found);
-          setIsChickBatch(false); // Or set from found if available
+          setBatchType(found.batch_type);
         } else {
           setBatch(null);
         }
@@ -43,12 +43,11 @@ const EditBatch: React.FC = () => {
       const payload = {
         mortality: batch.mortality,
         culls: batch.culls,
-        table_eggs: isChickBatch ? 0 : batch.table_eggs,
-        jumbo: isChickBatch ? 0 : batch.jumbo,
-        cr: isChickBatch ? 0 : batch.cr,
+        table_eggs: batch.table_eggs,
+        jumbo: batch.jumbo,
+        cr:  batch.cr,
         notes: batch.notes || "",
         standard_hen_day_percentage: batch.standard_hen_day_percentage ?? 0,
-        isChickBatch: isChickBatch,
       };
       await dailyBatchApi.updateDailyBatch(Number(batchId), batch_date, payload);
       toast.success("Batch updated successfully");
@@ -95,7 +94,7 @@ const EditBatch: React.FC = () => {
       <div className="p-4">
         <form onSubmit={handleSubmit}>
           <div className="row">
-            { !isChickBatch && (
+            {batch_type === 'Layer' && (
               <>
                 <h4 className="fw-semibold mb-3 border-bottom pb-1 text-primary">
                   Eggs
@@ -175,39 +174,7 @@ const EditBatch: React.FC = () => {
                 onChange={(e) => setBatch((prev) => (prev ? { ...prev, notes: e.target.value } : null))}
               />
             </div>
-            {/* <div className="mb-4">
-                <label className="form-label">Standard Hen Day Percentage</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  value={batch.standard_hen_day_percentage ?? ''}
-                  min="0"
-                  max="100"
-                  step="0.01"
-                  onChange={e => {
-                    let val = parseFloat(e.target.value);
-                    if (isNaN(val)) val = 0;
-                    if (val < 0) val = 0;
-                    if (val > 100) val = 100;
-                    // Round to 2 decimal places
-                    val = Math.round(val * 100) / 100;
-                    setBatch(prev => prev ? { ...prev, standard_hen_day_percentage: val } : null);
-                  }}
-                  
-                  placeholder="0.00-100.00"
-                />
-            </div> */}
-            <div className="form-check mb-3">
-              <input
-                className="form-check-input border border-dark"
-                type="checkbox"
-                checked={isChickBatch}
-                onChange={(e) => setIsChickBatch(e.target.checked)}
-              />
-              <label className="form-check-label">
-                This is a Chick Batch
-              </label>
-            </div>
+            
           </div>
           <div className="mt-4 d-flex justify-content-center">
             <button type="submit" className="btn btn-primary me-2">

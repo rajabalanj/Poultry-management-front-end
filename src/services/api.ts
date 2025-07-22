@@ -480,7 +480,7 @@ export const batchApi = {
 
   closeBatch: async (batch_id: number): Promise<{ message: string }> => {
   try {
-    const response = await api.put<{ message: string }>(`/batch/${batch_id}/close`);
+    const response = await api.put<{ message: string }>(`/batches/${batch_id}/close`);
     return response.data;
   } catch (error) {
     throw new Error(getApiErrorMessage(error, 'Failed to close batch'));

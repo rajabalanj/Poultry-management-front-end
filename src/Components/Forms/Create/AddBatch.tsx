@@ -12,8 +12,6 @@ const AddBatch: React.FC = () => {
   const [week, setWeek] = useState('1');
   const [day, setDay] = useState('1');
   const [isLoading, setIsLoading] = useState(false);
-  const [is_chick_batch, setIsChickBatch] = useState(false);
-  // const [standardHenDay, setStandardHenDay] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -45,7 +43,6 @@ const AddBatch: React.FC = () => {
         age: `${week}.${day}`,
         opening_count: parseInt(opening_count),
         date: batch_date, // already in YYYY-MM-DD from input[type="date"]
-        is_chick_batch: is_chick_batch,
         // standard_hen_day_percentage: standardHenDay,
       };
 
@@ -158,41 +155,6 @@ const AddBatch: React.FC = () => {
                 max="7"
                 placeholder="Enter day (1-7)"
               />
-            </div>
-
-            {/* <div className="col-md-6">
-              <label className="form-label">Standard Hen Day Percentage</label>
-              <input
-                type="number"
-                className="form-control"
-                value={standardHenDay}
-                min="0"
-                max="100"
-                step="0.01"
-                onChange={e => {
-                  let val = parseFloat(e.target.value);
-                  if (isNaN(val)) val = 0;
-                  val = Math.max(0, Math.min(100, Math.round(val * 100) / 100));
-                  setStandardHenDay(val);
-                }}
-                required
-                placeholder="0-100"
-              />
-            </div> */}
-
-            <div className="col-12">
-              <div className="form-check mb-3">
-                <input
-                  className="form-check-input border border-dark"
-                  type="checkbox"
-                  id="chickBatchCheckbox"
-                  checked={is_chick_batch}
-                  onChange={e => setIsChickBatch(e.target.checked)}
-                />
-                <label className="form-check-label" htmlFor="chickBatchCheckbox">
-                  Chick Batch (no eggs)
-                </label>
-              </div>
             </div>
 
             <div className="col-12">

@@ -13,7 +13,6 @@ const EditBatchSimple: React.FC = () => {
   const [age, setAge] = useState('');
   const [openingCount, setOpeningCount] = useState('');
   const [date, setDate] = useState('');
-  const [isChickBatch, setIsChickBatch] = useState(false);
   // const [standardHenDay, setStandardHenDay] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,8 +27,6 @@ const EditBatchSimple: React.FC = () => {
         setAge(data.age || '');
         setOpeningCount(data.opening_count?.toString() || '');
         setDate(data.date || '');
-        setIsChickBatch(data.isChickBatch ?? false);
-        // setStandardHenDay(data.standard_hen_day_percentage ?? 0);
       } catch (err) {
         setError('Failed to load batch');
         toast.error('Failed to load batch details');
@@ -51,8 +48,6 @@ const EditBatchSimple: React.FC = () => {
         age: age,
         opening_count: parseInt(openingCount),
         date: date,
-        isChickBatch: isChickBatch,
-        // standard_hen_day_percentage: standardHenDay,
       });
       toast.success('Batch updated successfully!');
       navigate(-1);
@@ -131,39 +126,7 @@ const EditBatchSimple: React.FC = () => {
                 placeholder="e.g. 1.1"
               />
             </div>
-            {/* <div className="col-md-6">
-              <label className="form-label">Standard Hen Day Percentage</label>
-              <input
-                type="number"
-                className="form-control"
-                value={standardHenDay}
-                min="0"
-                max="100"
-                step="0.01"
-                onChange={e => {
-                  let val = parseFloat(e.target.value);
-                  if (isNaN(val)) val = 0;
-                  val = Math.max(0, Math.min(100, Math.round(val * 100) / 100));
-                  setStandardHenDay(val);
-                }}
-                required
-                placeholder="0-100"
-              />
-            </div> */}
-            <div className="col-12">
-              <div className="form-check mb-3">
-                <input
-                  className="form-check-input border border-dark"
-                  type="checkbox"
-                  id="chickBatchCheckbox"
-                  checked={isChickBatch}
-                  onChange={e => setIsChickBatch(e.target.checked)}
-                />
-                <label className="form-check-label" htmlFor="chickBatchCheckbox">
-                  Chick Batch (no eggs)
-                </label>
-              </div>
-            </div>
+            
             <div className="col-12">
               <button
                 type="submit"

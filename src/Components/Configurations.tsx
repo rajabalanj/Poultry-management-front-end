@@ -68,8 +68,7 @@ const [eggRoomStartDate, setEggRoomStartDate] = useState<string>(''); // YYYY-MM
 
         // Load batch configs
         const batchData = await batchApi.getBatches(0, 1000);
-        const activeBatches = batchData.filter(batch => batch.is_active == true);
-        setBatches(Array.isArray(activeBatches) ? activeBatches : []);
+        setBatches(Array.isArray(batchData) ? batchData : []);
         setBatchError(null);
 
         // Load Bovans performance data

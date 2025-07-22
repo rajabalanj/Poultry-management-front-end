@@ -101,26 +101,65 @@ const [batchToClose, setBatchToClose] = useState<BatchResponse | null>(null);
 }, [batches]);
 
 
-  const batchCards = useMemo(() => {
-    return batches
-      .filter(batch => batch.id != null)
-      .map((batch) => (
-        <BatchConfigCard
-          key={batch.id}
-          batch={batch}
-          onView={handleView}
-          onEdit={handleEdit}
-          onClose={handleClose} // Pass handleClose to BatchConfigCard
-        />
-      ));
-  }, [batches, handleView, handleEdit, handleClose]);
+  const visibleBatches = useMemo(() => batches.filter(batch => batch.id != null && !!batch.batch_type), [batches]);
+  const batchSections = useMemo(() => {
+    const byType = {
+      Layer: visibleBatches.filter(b => b.batch_type === 'Layer'),
+      Grower: visibleBatches.filter(b => b.batch_type === 'Grower'),
+      Chick: visibleBatches.filter(b => b.batch_type === 'Chick'),
+    };
+    return byType;
+  }, [visibleBatches]);
 
   if (loading) return <div className="text-center">Loading...</div>;
   if (error) return <div className="text-center text-danger">{error}</div>;
-  if (batches.length === 0) return <div className="text-center">No batches found</div>;
+  if (visibleBatches.length === 0) return <div className="text-center">No batches found</div>;
   return (
-  <>
-    <div className="px-2">{batchCards}</div>
+    <>
+      <div className="px-2">
+        {batchSections.Layer.length > 0 && (
+          <div className="mb-4">
+            <h5 className="fw-bold text-primary mb-3">Layer Batches</h5>
+            {batchSections.Layer.map(batch => (
+              <BatchConfigCard
+                key={`Layer-${batch.id}`}
+                batch={batch}
+                onView={handleView}
+                onEdit={handleEdit}
+                onClose={handleClose}
+              />
+            ))}
+          </div>
+        )}
+        {batchSections.Grower.length > 0 && (
+          <div className="mb-4">
+            <h5 className="fw-bold text-success mb-3">Grower Batches</h5>
+            {batchSections.Grower.map(batch => (
+              <BatchConfigCard
+                key={`Grower-${batch.id}`}
+                batch={batch}
+                onView={handleView}
+                onEdit={handleEdit}
+                onClose={handleClose}
+              />
+            ))}
+          </div>
+        )}
+        {batchSections.Chick.length > 0 && (
+          <div className="mb-4">
+            <h5 className="fw-bold text-warning mb-3">Chick Batches</h5>
+            {batchSections.Chick.map(batch => (
+              <BatchConfigCard
+                key={`Chick-${batch.id}`}
+                batch={batch}
+                onView={handleView}
+                onEdit={handleEdit}
+                onClose={handleClose}
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
     <Modal show={showCloseModal} onHide={() => setShowCloseModal(false)}>
       <Modal.Header closeButton>

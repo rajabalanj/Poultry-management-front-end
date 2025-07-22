@@ -74,24 +74,62 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
     [navigate]
   );
 
-  const batchCards = useMemo(() => {
-    return batches
-      .filter(batch => batch.batch_id != null && !!batch.batch_date)
-      .map((batch) => (
-        <BatchCard
-          key={`${batch.batch_id}-${batch.batch_date}`}
-          batch={batch}
-          onView={handleViewDetails}
-          onEdit={handleEdit}
-        />
-      ));
-  }, [batches, handleViewDetails, handleEdit]);
+  const filteredBatches = useMemo(() => {
+    const valid = batches.filter(batch => batch.batch_id != null && !!batch.batch_date && !!batch.batch_type);
+    return {
+      Layer: valid.filter(b => b.batch_type === 'Layer'),
+      Grower: valid.filter(b => b.batch_type === 'Grower'),
+      Chick: valid.filter(b => b.batch_type === 'Chick'),
+    };
+  }, [batches]);
 
   if (loading) return <div className="text-center">Loading...</div>;
   if (error) return <div className="text-center text-danger">{error}</div>;
   if (batches.length === 0) return <div className="text-center">No batches found</div>;
 
-  return <div className="px-2">{batchCards}</div>;
+  return (
+    <div className="px-2">
+      {filteredBatches.Layer.length > 0 && (
+        <div className="mb-4">
+          <h5 className="fw-bold text-primary mb-3">Layer Batches</h5>
+          {filteredBatches.Layer.map(batch => (
+            <BatchCard
+              key={`Layer-${batch.batch_id}-${batch.batch_date}`}
+              batch={batch}
+              onView={handleViewDetails}
+              onEdit={handleEdit}
+            />
+          ))}
+        </div>
+      )}
+      {filteredBatches.Grower.length > 0 && (
+        <div className="mb-4">
+          <h5 className="fw-bold text-success mb-3">Grower Batches</h5>
+          {filteredBatches.Grower.map(batch => (
+            <BatchCard
+              key={`Grower-${batch.batch_id}-${batch.batch_date}`}
+              batch={batch}
+              onView={handleViewDetails}
+              onEdit={handleEdit}
+            />
+          ))}
+        </div>
+      )}
+      {filteredBatches.Chick.length > 0 && (
+        <div className="mb-4">
+          <h5 className="fw-bold text-warning mb-3">Chick Batches</h5>
+          {filteredBatches.Chick.map(batch => (
+            <BatchCard
+              key={`Chick-${batch.batch_id}-${batch.batch_date}`}
+              batch={batch}
+              onView={handleViewDetails}
+              onEdit={handleEdit}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default BatchTable;

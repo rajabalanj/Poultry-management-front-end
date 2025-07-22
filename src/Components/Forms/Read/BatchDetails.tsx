@@ -145,23 +145,6 @@ const BatchDetails: React.FC = () => {
                   disabled
                 />
               </div>
-              {/* Chick Batch Checkbox */}
-              <div className="col-12 col-md-6 mb-4 mt-4">
-                <div className="form-check mb-3">
-                  <input
-                    className="form-check-input border border-dark"
-                    type="checkbox"
-                    id="chickBatchCheckbox"
-                    checked={!!batch.isChickBatch}
-                    disabled
-                  />
-                  <label className="form-check-label" htmlFor="chickBatchCheckbox">
-                    This is a Chick Batch
-                  </label>
-                </div>
-              </div>
-            {/* </div>
-          </div> */}
         </div>
         <div className="mt-4 d-flex justify-content-center">
           <button type="button" className="btn btn-primary me-2" onClick={() => navigate(`/batch/${batch_id}/${batch_date}/edit`)}>

@@ -60,8 +60,8 @@ const Dashboard = () => {
   const openingCount = batches.reduce((sum, b) => sum + (b.opening_count || 0), 0);
   const mortality = batches.reduce((sum, b) => sum + (b.mortality || 0), 0);
   const culls = batches.reduce((sum, b) => sum + (b.culls || 0), 0);
-  const avgHD = batches.length > 0 ? Number(((batches.reduce((sum, b) => sum + (b.hd || 0), 0) / batches.length) * 100).toFixed(2)) : 0;
-
+  const layerBatches = batches.filter(b => b.batch_type === 'Layer');
+const avgHD = layerBatches.length > 0 ? Number(((layerBatches.reduce((sum, b) => sum + (b.hd || 0), 0) / layerBatches.length) * 100).toFixed(2)) : 0;
   const cards = [
     {
       title: "Total Birds",
