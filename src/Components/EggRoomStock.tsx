@@ -26,7 +26,7 @@ const sectionConfigs: Array<{
     id: 'table',
     title: 'Table Stock',
     icon: 'bi-box-seam',
-    color: 'success',
+    color: 'primary',
     fields: [
       { key: 'table_opening', label: 'Opening', disabled: true },
       { key: 'table_received', label: 'Received' },
@@ -52,7 +52,7 @@ const sectionConfigs: Array<{
     id: 'gradec',
     title: 'Grade C',
     icon: 'bi-award',
-    color: 'warning',
+    color: 'primary',
     fields: [
       { key: 'grade_c_opening', label: 'Opening', disabled: true },
       { key: 'grade_c_shed_received', label: 'Shed Received' },
