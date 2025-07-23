@@ -36,8 +36,6 @@ const UploadBatch: React.FC = () => {
     <>
     <PageHeader
         title="Upload Batch"
-        buttonLabel="Back"
-        buttonLink="/"
       />
     <div className="container-fluid">
       

@@ -79,8 +79,6 @@ const AddBatch: React.FC = () => {
     <>
     <PageHeader 
         title="Add New Batch"
-        buttonLabel="Back to Dashboard"
-        buttonLink="/"
       />
     <div className="container-fluid">
       <div className="p-4">
