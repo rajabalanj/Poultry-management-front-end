@@ -133,7 +133,7 @@ const EditBatch: React.FC = () => {
                       onChange={(e) => handleNumberInput(e.target.value, "cr")}
                     />
                   </div>
-                  <div className="bg-light p-4 rounded">
+                  <div className="bg-light p-4 rounded mb-4">
                     <div className="d-flex justify-content-between align-items-center">
                       <h5 className="mb-0">Total Eggs</h5>
                       <span className="h4 text-primary mb-0">{totalEggs}</span>
