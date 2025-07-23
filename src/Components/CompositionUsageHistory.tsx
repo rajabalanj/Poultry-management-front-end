@@ -60,12 +60,14 @@ const CompositionUsageHistory = () => {
   }, [composition]);
 
   return (
-    <div className="container-fluid">
-      <PageHeader
+    <>
+    <PageHeader
         title={composition ? `Usage History for "${composition.name}"` : "Composition Usage History"}
         buttonLabel="Back to Feed Mill"
         buttonLink="/feed-mill-stock"
       />
+    <div className="container-fluid">
+      
       {loading && <div>Loading...</div>}
       {error && <div className="text-danger">{error}</div>}
       {!loading && !error && (
@@ -144,6 +146,7 @@ const CompositionUsageHistory = () => {
   </Modal.Footer>
 </Modal>
     </div>
+    </>
   );
 };
 

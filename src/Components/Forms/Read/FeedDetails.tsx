@@ -35,12 +35,14 @@ const FeedDetails: React.FC = () => {
   if (!feed) return <div>Feed not found</div>;
 
   return (
-    <div className="container-fluid">
-      <PageHeader
+    <>
+    <PageHeader
         title={`Feed Details - ${feed.title}`}
         buttonLabel="Back"
         buttonLink="/feed"
       />
+    <div className="container-fluid">
+      
 
       <div className="p-4">
         <div className="row justify-content-center">
@@ -100,7 +102,7 @@ const FeedDetails: React.FC = () => {
         <div className="mt-4 d-flex justify-content-center gap-3">
           <button
     type="button"
-    className="btn btn-primary"
+    className="btn btn-info"
     onClick={() => navigate(`/feed/${feed.id}/audit`)}
   >
     View Report
@@ -115,6 +117,7 @@ const FeedDetails: React.FC = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

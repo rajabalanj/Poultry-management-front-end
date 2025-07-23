@@ -26,12 +26,14 @@ const FeedAuditReport: React.FC = () => {
   }, [feed_id]);
 
   return (
-    <div className="container-fluid">
-      <PageHeader
+    <>
+    <PageHeader
         title="Feed Audit Report"
         buttonLabel="Back"
         buttonLink={`/feed/${feed_id}/details`}
       />
+    <div className="container-fluid">
+      
       {loading && <div>Loading...</div>}
       {error && <div className="text-danger">{error}</div>}
       {!loading && !error && (
@@ -73,6 +75,7 @@ const FeedAuditReport: React.FC = () => {
         </div>
       )}
     </div>
+    </>
   );
 };
 

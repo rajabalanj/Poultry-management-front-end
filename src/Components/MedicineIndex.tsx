@@ -25,27 +25,23 @@ const MedicineCard: React.FC<{
                 (medicine.unit === 'gram' && effectiveLowGramThreshold !== undefined && Number(medicine.quantity) < effectiveLowGramThreshold);
 
   return (
-    <div className={`card mb-2 border shadow-sm ${isLow ? 'border-warning' : ''}`} style={isLow ? { background: '#fff0f0' } : {}}>
+    <div className={`card mb-2 mt-2 border shadow-sm ${isLow ? 'border-warning' : ''}`} style={isLow ? { background: '#fff0f0' } : {}}>
       <div className="card-body p-2">
         <div className="d-flex justify-content-between align-items-center">
           <div>
-            <h6 className="mb-1 text-sm">Title {medicine.title}</h6>
-            <div className="text-xs">
+            <h6 className="mb-1">Title: {medicine.title}</h6>
+            <div className="text-sm">
               <span className={`me-2 ${isLow ? 'text-warning fw-bold' : ''}`}>Quantity: {medicine.quantity}{' '}
               <span>{medicine.unit}</span></span>
               {/* Display per-medicine warning thresholds if they exist */}
-              {medicine.warningKGThreshold !== undefined && (
-                <p className="mb-0 text-xs">Per-medicine Warning (kg): {medicine.warningKGThreshold}</p>
-              )}
+              
               {medicine.warningGramThreshold !== undefined && (
-                <p className="mb-0 text-xs">Per-medicine Warning (gram): {medicine.warningGramThreshold}</p>
+                <p className="mb-0 text-sm">Per-medicine Warning (gram): {medicine.warningGramThreshold}</p>
               )}
               {/* Optionally, display the effective global thresholds if no per-medicine is set, for debugging */}
-              {medicine.warningKGThreshold === undefined && lowKGThreshold !== undefined && (
-                <p className="mb-0 text-xs">(Global fallback Warning (kg): {lowKGThreshold})</p>
-              )}
+              
               {medicine.warningGramThreshold === undefined && lowGramThreshold !== undefined && (
-                <p className="mb-0 text-xs">(Global fallback Warning (ton): {lowGramThreshold})</p>
+                <p className="mb-0 text-sm">(Global fallback Warning (ton): {lowGramThreshold})</p>
               )}
             </div>
           </div>
@@ -56,17 +52,17 @@ const MedicineCard: React.FC<{
   title="Use Medicine"
 >
   <i className="bi bi-capsule me-1"></i>
-  <span className="text-xs">Use</span>
+  <span className="text-sm">Use</span>
 </button>
 
             <button
-              className="btn btn-primary btn-sm d-flex align-items-center justify-content-center"
+              className="btn btn-info btn-sm d-flex align-items-center justify-content-center"
               onClick={() => onView(medicine.id)}
               title="View Details"
               aria-label={`View Details for Medicine ${medicine.title}`}
             >
               <i className="bi bi-eye me-1"></i>
-              <span className="text-xs">Medicine Details</span>
+              <span className="text-sm">Medicine Details</span>
             </button>
             <button
               className="btn btn-success btn-sm d-flex align-items-center justify-content-center"
@@ -75,7 +71,7 @@ const MedicineCard: React.FC<{
               aria-label={`Edit Medicine ${medicine.title}`}
             >
               <i className="bi bi-pencil-square me-1"></i>
-              <span className="text-xs">Edit Medicine</span>
+              <span className="text-sm">Edit Medicine</span>
             </button>
             <button
               className="btn btn-danger btn-sm d-flex align-items-center justify-content-center"
@@ -84,7 +80,7 @@ const MedicineCard: React.FC<{
               aria-label={`Delete Medicine ${medicine.title}`}
             >
               <i className="bi bi-trash me-1"></i>
-              <span className="text-xs">Delete</span>
+              <span className="text-sm">Delete</span>
             </button>
           </div>
         </div>
@@ -259,8 +255,9 @@ const [shedOptions, setShedOptions] = useState<string[]>([]);
   };
 
   return (
+    <>
+    <PageHeader title="Medicine List" buttonVariant="success" buttonLabel="Create Medicine" buttonLink="/create-medicine" />
     <div>
-      <PageHeader title="Medicine List" buttonLabel="Create Medicine" buttonLink="/create-medicine" />
       <MedicineTable
         medicines={medicines}
         loading={loading}
@@ -355,6 +352,7 @@ const [shedOptions, setShedOptions] = useState<string[]>([]);
 </Modal>
 
     </div>
+    </>
   );
 };
 

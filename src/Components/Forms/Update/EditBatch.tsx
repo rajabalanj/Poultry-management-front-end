@@ -84,13 +84,14 @@ const EditBatch: React.FC = () => {
   const totalEggs = (batch.table_eggs || 0) + (batch.jumbo || 0) + (batch.cr || 0);
 
   return (
-    <div className="container-fluid">
-      <PageHeader
+    <>
+    <PageHeader
         title={new Intl.DateTimeFormat('en-GB').format(new Date(batch.batch_date)).replace(/\//g, '-')}
         subtitle={`Update Data ${batch.batch_no}`}
         buttonLabel="Back"
         buttonLink={`/`}
       />
+    <div className="container-fluid">
       <div className="p-4">
         <form onSubmit={handleSubmit}>
           <div className="row">
@@ -177,7 +178,7 @@ const EditBatch: React.FC = () => {
             
           </div>
           <div className="mt-4 d-flex justify-content-center">
-            <button type="submit" className="btn btn-primary me-2">
+            <button type="submit" className="btn btn-success me-2">
               Save Changes
             </button>
             <button
@@ -191,6 +192,7 @@ const EditBatch: React.FC = () => {
         </form>
       </div>
     </div>
+    </>
   );
 };
 

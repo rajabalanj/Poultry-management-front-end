@@ -159,7 +159,7 @@ const CreateMedicineForm: React.FC = () => {
                         <div className="col-12">
                             <button
                                 type="submit"
-                                className="btn btn-primary"
+                                className="btn btn-success"
                                 disabled={isLoading}
                                 onClick={() => navigate('/medicine')}
                             >

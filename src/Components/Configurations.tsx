@@ -39,53 +39,75 @@ const [eggRoomStartDate, setEggRoomStartDate] = useState<string>(''); // YYYY-MM
   const [bovansTotalItems, setBovansTotalItems] = useState(0); // You might need a separate endpoint for total count
   const bovansItemsPerPage = 10;
 
+  // Function to fetch Bovans performance data with pagination
+
   // Load all configurations and Bovans data from backend on mount
   useEffect(() => {
     const fetchAllConfigsAndBovans = async () => {
       setLoading(true);
       setBatchLoading(true);
-      setBovansLoading(true); // Start Bovans loading
-
+      setBovansLoading(true);
       try {
-        // Fetch global configurations
         const configs = await configApi.getAllConfigs();
         const kgConfig = configs.find((c) => c.name === "lowKgThreshold");
         const tonConfig = configs.find((c) => c.name === "lowTonThreshold");
-        const henDayDeviationConfig = configs.find(
-          (c) => c.name === "henDayDeviation"
-        );
+        const henDayDeviationConfig = configs.find((c) => c.name === "henDayDeviation");
         const medicineKgConfig = configs.find((c) => c.name === "medicineLowKgThreshold");
-    const medicineGramConfig = configs.find((c) => c.name === "medicineLowGramThreshold");
-    const eggRoomStartDateConfig = configs.find((c) => c.name === "system_start_date");
+        const medicineGramConfig = configs.find((c) => c.name === "medicineLowGramThreshold");
+        const eggRoomStartDateConfig = configs.find((c) => c.name === "system_start_date");
         setKg(kgConfig ? Number(kgConfig.value) : 3000);
         setTon(tonConfig ? Number(tonConfig.value) : 3);
-        setHenDayDeviation(
-          henDayDeviationConfig ? Number(henDayDeviationConfig.value) : 0
-        );
+        setHenDayDeviation(henDayDeviationConfig ? Number(henDayDeviationConfig.value) : 0);
         setMedicineKg(medicineKgConfig ? Number(medicineKgConfig.value) : 3000);
-    setMedicineGram(medicineGramConfig ? Number(medicineGramConfig.value) : 3000);
+        setMedicineGram(medicineGramConfig ? Number(medicineGramConfig.value) : 3000);
         setEggRoomStartDate(eggRoomStartDateConfig ? eggRoomStartDateConfig.value : '');
 
-        // Load batch configs
         const batchData = await batchApi.getBatches(0, 1000);
         setBatches(Array.isArray(batchData) ? batchData : []);
         setBatchError(null);
 
-        // Load Bovans performance data
         await fetchBovansPerformance(bovansCurrentPage);
-
       } catch (err: any) {
         toast.error(err.message || "Failed to load configurations.");
         setBatchError(err.message || "Failed to load batch configurations.");
-        setBovansError(err.message || "Failed to load Bovans performance data."); // Set specific error for Bovans
+        setBovansError(err.message || "Failed to load Bovans performance data.");
       } finally {
         setLoading(false);
         setBatchLoading(false);
-        setBovansLoading(false); // End Bovans loading
+        setBovansLoading(false);
       }
     };
     fetchAllConfigsAndBovans();
+    // eslint-disable-next-line
   }, []);
+
+  useEffect(() => {
+  const fetchPreviousDayReport = async () => {
+    if (!eggRoomStartDate) return;
+
+    const startDate = new Date(eggRoomStartDate);
+    if (isNaN(startDate.getTime())) return;
+
+    const reportDate = format(new Date(eggRoomStartDate), 'yyyy-MM-dd');
+
+
+    try {
+      const report = await eggRoomReportApi.getReport(reportDate);
+      // These are assumed keys from EggRoomSingleReportResponse
+      setInitialTableOpening(report.table_opening || 0);
+      setInitialJumboOpening(report.jumbo_opening || 0);
+      setInitialGradeCOpening(report.grade_c_opening || 0);
+    } catch (error) {
+      console.warn("No previous report found for Egg Room start date:", error);
+      setInitialTableOpening(0);
+      setInitialJumboOpening(0);
+      setInitialGradeCOpening(0);
+    }
+  };
+
+  fetchPreviousDayReport();
+}, [eggRoomStartDate]);
+
 
   // Function to handle the Egg Room initial setup
   const handleEggRoomInitialSetup = async () => {
@@ -95,43 +117,43 @@ const [eggRoomStartDate, setEggRoomStartDate] = useState<string>(''); // YYYY-MM
         toast.error("Please select an Egg Room Start Date.");
         return;
       }
-
       const startDate = new Date(eggRoomStartDate);
       if (isNaN(startDate.getTime())) {
-          toast.error("Invalid Egg Room Start Date format.");
-          return;
+        toast.error("Invalid Egg Room Start Date format.");
+        return;
       }
-      
       // Calculate the "day before" date for the dummy report
       const dayBeforeStartDate = new Date(startDate);
       dayBeforeStartDate.setDate(startDate.getDate() - 1);
       const dummyReportDate = format(dayBeforeStartDate, 'yyyy-MM-dd');
-
-      // 1. Create the "dummy" report for the day before the actual start date
+      // 1. Create or update the "dummy" report for the day before the actual start date
       const initialReportData = {
         report_date: dummyReportDate,
+        table_opening: 0,
         table_received: initialTableOpening,
         table_transfer: 0,
         table_damage: 0,
         table_out: 0,
-        grade_c_shed_received: 0, // Assuming shed is 0 for initial setup
-        grade_c_room_received: initialGradeCOpening, // Map to room_received for initial physical count
+        table_closing: initialTableOpening,
+        grade_c_opening: 0,
+        grade_c_shed_received: 0,
+        grade_c_room_received: initialGradeCOpening,
         grade_c_transfer: 0,
         grade_c_labour: 0,
         grade_c_waste: 0,
+        grade_c_closing: initialGradeCOpening,
+        jumbo_opening: 0,
         jumbo_received: initialJumboOpening,
         jumbo_transfer: 0,
         jumbo_waste: 0,
         jumbo_in: 0,
+        jumbo_closing: initialJumboOpening,
       };
-
-      await eggRoomReportApi.createReport(initialReportData);
-      toast.success(`Initial report created for ${dummyReportDate}.`);
-
+      await eggRoomReportApi.initialSetupReport(initialReportData);
+      toast.success(`Initial report updated for ${dummyReportDate}.`);
       // 2. Update the system_start_date in AppConfig
       await configApi.updateConfig('system_start_date', eggRoomStartDate);
       toast.success(`System start date set to ${eggRoomStartDate}.`);
-
     } catch (error) {
       toast.error("Failed to set Egg Room initial configuration.");
       console.error("Egg Room Setup Error:", error);
@@ -224,9 +246,11 @@ const handleMedicineGramChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 
 
 return (
+  <>
+  <PageHeader title="Configurations"></PageHeader>
     <div className="container-fluid">
-      <PageHeader title="Configurations"></PageHeader>
-      <div className="p-3 border rounded shadow-sm mb-4"> {/* Added mb-4 for spacing */}
+      
+      <div className="p-3 border rounded shadow-sm mb-4 mt-2"> {/* Added mb-4 for spacing */}
         {/* Global Low Feed Thresholds */}
         <div className="mb-4">
           <label className="form-label fw-semibold">
@@ -312,9 +336,9 @@ return (
         </div>
 
         {/* Save Button */}
-        <div className="mt-3">
+        <div className="mt-3 text-end">
           <button
-            className="btn btn-primary"
+            className="btn btn-success"
             onClick={handleSave}
             disabled={saving || loading}
           >
@@ -323,95 +347,111 @@ return (
         </div>
       </div>
 
-      {/* Egg Room Initial Setup */}
-      <div className="card shadow-sm mb-4">
-        <div className="card-header bg-primary text-white">
-          <h5 className="mb-0">Egg Room Initial Setup</h5>
-        </div>
-        <div className="card-body">
-          <div className="form-group row mb-3">
-            <label htmlFor="eggRoomStartDate" className="col-sm-4 col-form-label">
-              Egg Room Start Date
-            </label>
-            <div className="col-sm-8">
-              <input
-                type="date"
-                className="form-control"
-                id="eggRoomStartDate"
-                value={eggRoomStartDate}
-                onChange={(e) => setEggRoomStartDate(e.target.value)}
-                disabled={eggRoomSaving}
-              />
-            </div>
-          </div>
-          <div className="form-group row mb-3">
-            <label htmlFor="initialTableOpening" className="col-sm-4 col-form-label">
-              Initial Table Egg Count
-            </label>
-            <div className="col-sm-8">
-              <input
-                type="number"
-                className="form-control"
-                id="initialTableOpening"
-                value={initialTableOpening}
-                onChange={(e) => setInitialTableOpening(parseInt(e.target.value) || 0)}
-                disabled={eggRoomSaving}
-              />
-            </div>
-          </div>
-          <div className="form-group row mb-3">
-            <label htmlFor="initialJumboOpening" className="col-sm-4 col-form-label">
-              Initial Jumbo Egg Count
-            </label>
-            <div className="col-sm-8">
-              <input
-                type="number"
-                className="form-control"
-                id="initialJumboOpening"
-                value={initialJumboOpening}
-                onChange={(e) => setInitialJumboOpening(parseInt(e.target.value) || 0)}
-                disabled={eggRoomSaving}
-              />
-            </div>
-          </div>
-          <div className="form-group row mb-3">
-            <label htmlFor="initialGradeCOpening" className="col-sm-4 col-form-label">
-              Initial Grade C Egg Count
-            </label>
-            <div className="col-sm-8">
-              <input
-                type="number"
-                className="form-control"
-                id="initialGradeCOpening"
-                value={initialGradeCOpening}
-                onChange={(e) => setInitialGradeCOpening(parseInt(e.target.value) || 0)}
-                disabled={eggRoomSaving}
-              />
-            </div>
-          </div>
-          <div className="form-group row">
-            <div className="col-sm-12 text-end">
-              <button
-                className="btn btn-success"
-                onClick={handleEggRoomInitialSetup}
-                disabled={eggRoomSaving}
-              >
-                {eggRoomSaving ? "Saving..." : "Set Initial Egg Room Data"}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <hr />
 
       {/* Accordion for Batch and Bovans Performance */}
       <div className="accordion" id="configurationsAccordion">
+        {/* Egg Room Initial Setup Accordion Item */}
+        <div className="accordion-item mb-3">
+          <h2 className="accordion-header text-light bg-primary" id="egg-room-setup-heading">
+            <button
+              className="accordion-button collapsed fw-semibold text-light bg-primary accordion-button-white-arrow"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#egg-room-setup-collapse"
+              aria-expanded="false"
+              aria-controls="egg-room-setup-collapse"
+            >
+              Egg Room Initial Setup
+            </button>
+          </h2>
+          <div
+            id="egg-room-setup-collapse"
+            className="accordion-collapse collapse"
+            aria-labelledby="egg-room-setup-heading"
+            data-bs-parent="#configurationsAccordion"
+          >
+            <div className="accordion-body">
+              <div className="form-group row mb-3">
+                <label htmlFor="eggRoomStartDate" className="col-sm-4 col-form-label">
+                  Egg Room Start Date
+                </label>
+                <div className="col-sm-8">
+                  <input
+                    type="date"
+                    className="form-control"
+                    id="eggRoomStartDate"
+                    value={eggRoomStartDate}
+                    onChange={(e) => setEggRoomStartDate(e.target.value)}
+                    disabled={eggRoomSaving}
+                  />
+                </div>
+              </div>
+              <div className="form-group row mb-3">
+                <label htmlFor="initialTableOpening" className="col-sm-4 col-form-label">
+                  Initial Table Egg Count
+                </label>
+                <div className="col-sm-8">
+                  <input
+                    type="number"
+                    className="form-control"
+                    id="initialTableOpening"
+                    value={initialTableOpening}
+                    onChange={(e) => setInitialTableOpening(parseInt(e.target.value) || 0)}
+                    disabled={eggRoomSaving}
+                  />
+                </div>
+              </div>
+              <div className="form-group row mb-3">
+                <label htmlFor="initialJumboOpening" className="col-sm-4 col-form-label">
+                  Initial Jumbo Egg Count
+                </label>
+                <div className="col-sm-8">
+                  <input
+                    type="number"
+                    className="form-control"
+                    id="initialJumboOpening"
+                    value={initialJumboOpening}
+                    onChange={(e) => setInitialJumboOpening(parseInt(e.target.value) || 0)}
+                    disabled={eggRoomSaving}
+                  />
+                </div>
+              </div>
+              <div className="form-group row mb-3">
+                <label htmlFor="initialGradeCOpening" className="col-sm-4 col-form-label">
+                  Initial Grade C Egg Count
+                </label>
+                <div className="col-sm-8">
+                  <input
+                    type="number"
+                    className="form-control"
+                    id="initialGradeCOpening"
+                    value={initialGradeCOpening}
+                    onChange={(e) => setInitialGradeCOpening(parseInt(e.target.value) || 0)}
+                    disabled={eggRoomSaving}
+                  />
+                </div>
+              </div>
+              <div className="form-group row">
+                <div className="col-sm-12 text-end">
+                  <button
+                    className="btn btn-success"
+                    onClick={handleEggRoomInitialSetup}
+                    disabled={eggRoomSaving}
+                  >
+                    {eggRoomSaving ? "Saving..." : "Set Initial Egg Room Data"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Batch Configuration Accordion Item */}
         <div className="accordion-item">
-          <h2 className="accordion-header" id="batch-config-heading">
+          <h2 className="accordion-header text-light bg-primary" id="batch-config-heading">
             <button
-              className="accordion-button collapsed fw-semibold"
+              className="accordion-button collapsed fw-semibold text-light bg-primary accordion-button-white-arrow"
               type="button"
               data-bs-toggle="collapse"
               data-bs-target="#batch-config-collapse"
@@ -439,9 +479,9 @@ return (
 
         {/* Bovans White Layer Performance Accordion Item */}
         <div className="accordion-item mt-3 border-top">
-          <h2 className="accordion-header" id="bovans-performance-heading">
+          <h2 className="accordion-header text-light bg-primary" id="bovans-performance-heading">
             <button
-              className="accordion-button collapsed fw-semibold"
+              className="accordion-button collapsed fw-semibold text-light bg-primary accordion-button-white-arrow"
               type="button"
               data-bs-toggle="collapse"
               data-bs-target="#bovans-performance-collapse"
@@ -537,10 +577,8 @@ return (
         </div>
       </div>
     </div>
+    </>
   );
 };
 
 export default Configurations;
-
-
-

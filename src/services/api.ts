@@ -490,6 +490,14 @@ export const batchApi = {
 
 // Egg Room Report API
 export const eggRoomReportApi = {
+  // POST /egg-room-report/initial-setup
+  initialSetupReport: async (report: EggRoomReportCreate) => {
+    const response = await api.post<EggRoomReportResponse>(
+      '/egg-room-report/initial-setup',
+      report
+    );
+    return response.data;
+  },
   getReport: async (report_date: string): Promise<EggRoomSingleReportResponse> => {
     const response = await api.get<EggRoomSingleReportResponse>(`/egg-room-report/${report_date}`);
     return response.data;

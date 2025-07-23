@@ -69,7 +69,7 @@ const avgHD = layerBatches.length > 0 ? Number(((layerBatches.reduce((sum, b) =>
       icon: "bi bi-feather",
       iconColor: "icon-color-birds",
       subValues: [
-        { label: "Opening Count", value: openingCount },
+        { label: "Opening", value: openingCount },
         { label: "Mortality", value: mortality },
         { label: "Culls", value: culls }
       ]
@@ -117,7 +117,7 @@ const avgHD = layerBatches.length > 0 ? Number(((layerBatches.reduce((sum, b) =>
         <div className="col">
           <div className="card shadow-sm">
             <div className="card-body">
-              <h6 className="card-title mb-3">Batch Data</h6>
+              
               <BatchTable batches={batches} loading={loading} error={error} />
             </div>
           </div>
@@ -142,9 +142,9 @@ const avgHD = layerBatches.length > 0 ? Number(((layerBatches.reduce((sum, b) =>
             maxDate={new Date().toISOString().split('T')[0]} // End Date can't be in the future
           />
         </div>
-        <div className="col-12 col-md-3 mb-2 mt-3">
+        <div className="col-12 col-md-3 mb-3 mt-3">
           <button
-            className="btn btn-primary w-100 mt-2"
+            className="btn btn-info w-100 mt-2"
             onClick={handleDownloadReport}
           >
             View Data

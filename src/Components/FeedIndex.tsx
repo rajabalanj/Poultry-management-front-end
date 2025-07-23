@@ -23,39 +23,33 @@ const FeedCard: React.FC<{
                 (feed.unit === 'ton' && effectiveLowTonThreshold !== undefined && Number(feed.quantity) < effectiveLowTonThreshold);
 
   return (
-    <div className={`card mb-2 border shadow-sm ${isLow ? 'border-warning' : ''}`} style={isLow ? { background: '#fff0f0' } : {}}>
+    <div className={`card mb-2 mt-2 border shadow-sm ${isLow ? 'border-warning' : ''}`} style={isLow ? { background: '#fff0f0' } : {}}>
       <div className="card-body p-2">
         <div className="d-flex justify-content-between align-items-center">
           <div>
-            <h6 className="mb-1 text-sm">Title {feed.title}</h6>
-            <div className="text-xs">
+            <h6 className="mb-1">Title: {feed.title}</h6>
+            <div className="text-sm">
               <span className={`me-2 ${isLow ? 'text-warning fw-bold' : ''}`}>Quantity: {feed.quantity}{' '}
               <span>{feed.unit}</span></span>
               {/* Display per-feed warning thresholds if they exist */}
               {feed.warningKgThreshold !== undefined && (
-                <p className="mb-0 text-xs">Per-feed Warning (kg): {feed.warningKgThreshold}</p>
-              )}
-              {feed.warningTonThreshold !== undefined && (
-                <p className="mb-0 text-xs">Per-feed Warning (ton): {feed.warningTonThreshold}</p>
+                <p className="mb-0 text-sm">Per-feed Warning (kg): {feed.warningKgThreshold}</p>
               )}
               {/* Optionally, display the effective global thresholds if no per-feed is set, for debugging */}
               {feed.warningKgThreshold === undefined && lowKgThreshold !== undefined && (
-                <p className="mb-0 text-xs">(Global fallback Warning (kg): {lowKgThreshold})</p>
-              )}
-              {feed.warningTonThreshold === undefined && lowTonThreshold !== undefined && (
-                <p className="mb-0 text-xs">(Global fallback Warning (ton): {lowTonThreshold})</p>
+                <p className="mb-0 text-sm">(Global fallback Warning (kg): {lowKgThreshold})</p>
               )}
             </div>
           </div>
           <div className="d-flex flex-column flex-md-row gap-2">
             <button
-              className="btn btn-primary btn-sm d-flex align-items-center justify-content-center"
+              className="btn btn-info btn-sm d-flex align-items-center justify-content-center"
               onClick={() => onView(feed.id)}
               title="View Details"
               aria-label={`View Details for Feed ${feed.title}`}
             >
               <i className="bi bi-eye me-1"></i>
-              <span className="text-xs">Feed Details</span>
+              <span className="text-sm">Feed Details</span>
             </button>
             <button
               className="btn btn-success btn-sm d-flex align-items-center justify-content-center"
@@ -64,7 +58,7 @@ const FeedCard: React.FC<{
               aria-label={`Edit Feed ${feed.title}`}
             >
               <i className="bi bi-pencil-square me-1"></i>
-              <span className="text-xs">Edit Feed</span>
+              <span className="text-sm">Edit Feed</span>
             </button>
             <button
               className="btn btn-danger btn-sm d-flex align-items-center justify-content-center"
@@ -73,7 +67,7 @@ const FeedCard: React.FC<{
               aria-label={`Delete Feed ${feed.title}`}
             >
               <i className="bi bi-trash me-1"></i>
-              <span className="text-xs">Delete</span>
+              <span className="text-sm">Delete</span>
             </button>
           </div>
         </div>
@@ -218,8 +212,9 @@ const FeedListPage = () => {
   };
 
   return (
+    <>
+    <PageHeader title="Feed List" buttonVariant="success" buttonLabel="Create Feed" buttonLink="/create-feed" />
     <div>
-      <PageHeader title="Feed List" buttonLabel="Create Feed" buttonLink="/create-feed" />
       <FeedTable
         feeds={feeds}
         loading={loading}
@@ -243,6 +238,7 @@ const FeedListPage = () => {
         </Modal.Footer>
       </Modal>
     </div>
+    </>
   );
 };
 

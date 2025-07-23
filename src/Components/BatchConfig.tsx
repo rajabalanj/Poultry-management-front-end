@@ -19,20 +19,20 @@ const BatchConfigCard: React.FC<{
       <div className="d-flex justify-content-between align-items-center">
         <div>
           <h6 className="mb-1 text-sm">Batch {batch.batch_no}</h6>
-          <div className="text-xs">
+          <div className="text-sm">
             <span className="me-2">Shed: {batch.shed_no}</span>
             <span>Age: {batch.age}</span>
           </div>
         </div>
         <div className="d-flex flex-column flex-md-row gap-2">
           <button
-            className="btn btn-primary btn-sm d-flex align-items-center justify-content-center"
+            className="btn btn-info btn-sm d-flex align-items-center justify-content-center"
             onClick={() => onView(batch.id)}
             title="View Details"
             aria-label={`View Details for Batch ${batch.batch_no}`}
           >
             <i className="bi bi-eye me-1"></i>
-            <span className="text-xs">View</span>
+            <span className="text-sm">View</span>
           </button>
           <button
             className="btn btn-warning btn-sm d-flex align-items-center justify-content-center"
@@ -41,7 +41,7 @@ const BatchConfigCard: React.FC<{
             aria-label={`Edit Batch ${batch.batch_no}`}
           >
             <i className="bi bi-pencil me-1"></i>
-            <span className="text-xs">Edit</span>
+            <span className="text-sm">Edit</span>
           </button>
           {/* {batch.closing_date === null && ( // Conditionally render Close button */}
             <button
@@ -51,7 +51,7 @@ const BatchConfigCard: React.FC<{
               aria-label={`Close Batch ${batch.batch_no}`}
             >
               <i className="bi bi-x-circle me-1"></i>
-              <span className="text-xs">Close</span>
+              <span className="text-sm">Close</span>
             </button>
           {/* )} */}
         </div>
@@ -133,7 +133,7 @@ const [batchToClose, setBatchToClose] = useState<BatchResponse | null>(null);
         )}
         {batchSections.Grower.length > 0 && (
           <div className="mb-4">
-            <h5 className="fw-bold text-success mb-3">Grower Batches</h5>
+            <h5 className="fw-bold text-primary mb-3">Grower Batches</h5>
             {batchSections.Grower.map(batch => (
               <BatchConfigCard
                 key={`Grower-${batch.id}`}
@@ -147,7 +147,7 @@ const [batchToClose, setBatchToClose] = useState<BatchResponse | null>(null);
         )}
         {batchSections.Chick.length > 0 && (
           <div className="mb-4">
-            <h5 className="fw-bold text-warning mb-3">Chick Batches</h5>
+            <h5 className="fw-bold text-primary mb-3">Chick Batches</h5>
             {batchSections.Chick.map(batch => (
               <BatchConfigCard
                 key={`Chick-${batch.id}`}

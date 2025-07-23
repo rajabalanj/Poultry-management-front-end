@@ -38,12 +38,13 @@ const ViewBatchSimple: React.FC = () => {
   if (error) return <div>{error}</div>;
 
   return (
-    <div className="container-fluid">
-      <PageHeader
+    <>
+    <PageHeader
         title="View Batch"
         buttonLabel="Back"
         buttonLink='/configurations'
       />
+    <div className="container-fluid">
       <div className="p-4">
         <div className="row g-3">
           <div className="col-md-6">
@@ -74,7 +75,7 @@ const ViewBatchSimple: React.FC = () => {
             />
           </div>
           <div className="col-md-6">
-            <label className="form-label">Opening Count</label>
+            <label className="form-label">Opening</label>
             <input
               type="number"
               className="form-control"
@@ -104,6 +105,7 @@ const ViewBatchSimple: React.FC = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

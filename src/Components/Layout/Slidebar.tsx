@@ -67,7 +67,7 @@ const Slidebar: React.FC = () => {
     <>
       {!isDesktop && (
         <button
-          className="hamburger-button btn btn-link position-fixed top-0 start-0 m-2 p-2"
+          className="hamburger-button position-fixed top-0 start-0 ms-2 mt-2"
           onClick={toggleSidebar}
           style={{ zIndex: 1031 }}
         >
@@ -87,7 +87,7 @@ const Slidebar: React.FC = () => {
           transition: "width 0.3s ease, transform 0.3s ease",
           zIndex: 1030,
           overflowX: "hidden",
-          paddingTop: isDesktop ? "20px" : "60px",
+          paddingTop: isDesktop ? "20px" : "50px",
           boxShadow: isOpen ? "2px 0 5px rgba(0,0,0,0.1)" : "none",
           transform:
             !isDesktop && !isOpen
@@ -98,7 +98,7 @@ const Slidebar: React.FC = () => {
       >
         <div className="px-3">
           <div style={{ marginTop: isDesktop ? "0" : "-15px" }}>
-            <h5 className="mb-4 fw-bold">Menu</h5>
+            <h5 className="ms-4 fw-bold">Menu</h5>
             
             <div className="sidebar">
               <ul className="nav-menu"> {/* New custom class */}

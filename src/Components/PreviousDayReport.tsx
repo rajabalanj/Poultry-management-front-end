@@ -53,8 +53,9 @@ const PreviousDayReport = () => {
   };
 
   return (
+    <>
+    <PageHeader title="Batch Overview" />
     <div className="container-fluid">
-      <PageHeader title="Batch Overview" />
       {/* Error message */}
       {error && <div className="alert alert-danger text-center">{error}</div>}
       <div className="row mb-4">
@@ -90,7 +91,7 @@ const PreviousDayReport = () => {
                 <th>Batch Date</th>
                 <th>Shed No</th>
                 <th>Age</th>
-                <th>Opening Count</th>
+                <th>Opening</th>
                 <th>Mortality</th>
                 <th>Culls</th>
                 <th>Closing Count</th>
@@ -117,10 +118,10 @@ const PreviousDayReport = () => {
 
                     if (henDayDeviation >= difference) { // Difference is -10 or more (meaning actual HD is at most 10% less than standard, or higher)
                       hdCellClassName = 'text-success fw-bold';
-                      hdCellStyle = { backgroundColor: '#d4edda' }; // Light green background
+                      hdCellStyle = { backgroundColor: '#E8F8D9 ' }; // Light green background
                     } else { // Difference is between -20 and -10 (actual HD is 10-20% less than standard)
                       hdCellClassName = 'text-danger fw-bold';
-                      hdCellStyle = { backgroundColor: '#fff3cd' }; // Light yellow background
+                      hdCellStyle = { backgroundColor: '#fff9f5' }; // Light yellow background
                     } 
                   }
 
@@ -171,6 +172,7 @@ const PreviousDayReport = () => {
         </div>
       )}
     </div>
+    </>
   );
 };
 

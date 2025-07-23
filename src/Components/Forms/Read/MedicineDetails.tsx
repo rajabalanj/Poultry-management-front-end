@@ -39,12 +39,13 @@ const MedicineDetails: React.FC = () => {
   console.log("medicine.id in MedicineDetails:", medicine?.id); // Use optional chaining for safety
 
   return (
-    <div className="container-fluid">
-      <PageHeader
+    <>
+    <PageHeader
         title={`Medicine Details - ${medicine.title}`}
         buttonLabel="Back"
         buttonLink="/medicine"
       />
+    <div className="container-fluid">
 
       <div className="p-4">
         <div className="row justify-content-center">
@@ -104,7 +105,7 @@ const MedicineDetails: React.FC = () => {
         <div className="mt-4 d-flex justify-content-center gap-3">
           <button
     type="button"
-    className="btn btn-primary"
+    className="btn btn-info"
     onClick={() => navigate(`/medicine/${medicine.id}/audit`)}
   >
     View Report
@@ -119,6 +120,7 @@ const MedicineDetails: React.FC = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

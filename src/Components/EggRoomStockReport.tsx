@@ -46,8 +46,9 @@ const EggRoomStockReport: React.FC = () => {
   };
 
   return (
+    <>
+    <PageHeader title="Egg Room Stock Report" />
     <div className="container-fluid">
-      <PageHeader title="Egg Room Stock Report" />
       <div className="row mb-4">
         <div className="col-md-6 d-flex align-items-end gap-2 flex-wrap">
           <DateSelector
@@ -66,7 +67,7 @@ const EggRoomStockReport: React.FC = () => {
             className="flex-grow-1"
           />
           <button
-            className="btn btn-primary ms-2 mb-2"
+            className="btn btn-info ms-2 mb-2"
             onClick={fetchReports}
             disabled={!startDate || !endDate || loading || !!dateRangeError}
           >
@@ -139,6 +140,7 @@ const EggRoomStockReport: React.FC = () => {
         </div>
       )}
     </div>
+    </>
   );
 };
 

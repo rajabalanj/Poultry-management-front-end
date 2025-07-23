@@ -202,13 +202,13 @@ function FeedMillStock() {
           {/* Use Composition Controls */}
           <div className="mt-3 d-flex align-items-center gap-2">
             <button
-              className="btn btn-info btn-sm"
+              className="btn btn-success btn-sm"
               onClick={() => setViewState("use-composition")}
             >
               Use Composition
             </button>
             <button
-              className="btn btn-secondary btn-sm"
+              className="btn btn-info btn-sm"
               onClick={() => {
                 if (selectedCompositionId) {
                   window.location.href = `/compositions/${selectedCompositionId}/usage-history`;
@@ -228,14 +228,14 @@ function FeedMillStock() {
           <div className="d-flex align-items-center gap-2 mb-2">
             <span>Times:</span>
             <button
-              className="btn btn-secondary btn-sm"
+              className="btn btn-danger btn-sm"
               onClick={() => setTimesToUse((prev) => Math.max(1, prev - 1))}
             >
               -
             </button>
             <span>{timesToUse}</span>
             <button
-              className="btn btn-secondary btn-sm"
+              className="btn btn-success btn-sm"
               onClick={() => setTimesToUse((prev) => prev + 1)}
             >
               +

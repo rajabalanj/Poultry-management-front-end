@@ -98,11 +98,12 @@ const EggRoomStock: React.FC = () => {
   };
 
   return (
+    <>
+    <PageHeader title="Egg Room Stock" />
     <div className="container">
-      <PageHeader title="Egg Room Stock" />
       {error && <div className="alert alert-danger text-center">{error}</div>}
 
-      <form onSubmit={handleSave} className="card p-3 mb-4">
+      <form onSubmit={handleSave} className="card p-3 mb-4 mt-2">
         <DateSelector
           value={selectedDate}
           onChange={setSelectedDate}
@@ -134,6 +135,7 @@ const EggRoomStock: React.FC = () => {
         />
       </form>
     </div>
+    </>
   );
 };
 

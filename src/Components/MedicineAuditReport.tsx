@@ -26,12 +26,13 @@ const MedicineAuditReport: React.FC = () => {
   }, [medicine_id]);
 
   return (
-    <div className="container-fluid">
-      <PageHeader
+    <>
+    <PageHeader
         title="Medicine Audit Report"
         buttonLabel="Back"
         buttonLink={`/medicine/${medicine_id}/details`}
       />
+    <div className="container-fluid">
       {loading && <div>Loading...</div>}
       {error && <div className="text-danger">{error}</div>}
       {!loading && !error && (
@@ -71,6 +72,7 @@ const MedicineAuditReport: React.FC = () => {
         </div>
       )}
     </div>
+    </>
   );
 };
 

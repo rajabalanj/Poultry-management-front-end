@@ -33,12 +33,14 @@ const UploadBatch: React.FC = () => {
   };
 
   return (
-    <div className="container-fluid">
-      <PageHeader
+    <>
+    <PageHeader
         title="Upload Batch"
         buttonLabel="Back"
         buttonLink="/"
       />
+    <div className="container-fluid">
+      
 
       <div className="card shadow-sm p-4 mt-3" style={{ maxWidth: 500, margin: '0 auto' }}>
         <div className="form-group mb-3">
@@ -55,7 +57,7 @@ const UploadBatch: React.FC = () => {
         </div>
 
         <button
-          className="btn btn-primary w-100"
+          className="btn btn-success w-100"
           onClick={handleUpload}
           disabled={!selectedFile || uploading}
         >
@@ -69,6 +71,7 @@ const UploadBatch: React.FC = () => {
         )}
       </div>
     </div>
+    </>
   );
 };
 

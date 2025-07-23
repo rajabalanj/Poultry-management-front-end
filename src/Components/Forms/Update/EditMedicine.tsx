@@ -102,13 +102,13 @@ const EditMedicine: React.FC = () => {
   if (!medicine) return <div>Medicine not found</div>;
 
   return (
-    <div className="container-fluid">
-      <PageHeader
+    <>
+    <PageHeader
         title={`Update Medicine ${medicine.title}`}
         buttonLabel="Back"
         buttonLink={`/medicine/${medicine_id}/details`}
       />
-
+    <div className="container-fluid">
       <div className="p-4">
         <form onSubmit={handleSubmit}>
           <div className="row">
@@ -172,7 +172,7 @@ const EditMedicine: React.FC = () => {
           </div>
 
           <div className="mt-4 d-flex justify-content-center">
-            <button type="submit" className="btn btn-primary me-2">
+            <button type="submit" className="btn btn-success me-2">
               Save Changes
             </button>
             <button
@@ -186,6 +186,7 @@ const EditMedicine: React.FC = () => {
         </form>
       </div>
     </div>
+    </>
   );
 };
 

@@ -20,7 +20,7 @@ export const DateSelector: React.FC<DateSelectorProps> = ({
   className = '',
 }) => {
   return (
-    <div className={`mb-2 ${className}`}>
+    <div className={`mb-2 mt-2 d-flex align-items-center ${className}`}>
       <label>{label}:</label>
       <input
         type="date"

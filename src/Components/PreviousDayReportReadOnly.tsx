@@ -44,8 +44,9 @@ const PreviousDayReportReadOnly = () => {
   };
 
   return (
+    <>
+    <PageHeader title="Batch Overview"></PageHeader>
     <div className="container-fluid">
-      <PageHeader title="Batch Overview"></PageHeader>
       {/* Error message */}
       {error && <div className="alert alert-danger text-center">{error}</div>}
       <div className="row mb-4">
@@ -57,7 +58,7 @@ const PreviousDayReportReadOnly = () => {
             {batchId && <span>Batch ID: {batchId}</span>}
           </div>
           <button
-            className="btn btn-success"
+            className="btn btn-success btn-sm d-flex align-items-center justify-content-center"
             onClick={handleExport}
             disabled={gridData.length === 0}
           >
@@ -74,7 +75,7 @@ const PreviousDayReportReadOnly = () => {
                 <th>Batch Date</th>
                 <th>Shed No</th>
                 <th>Age</th>
-                <th>Opening Count</th>
+                <th>Opening</th>
                 <th>Mortality</th>
                 <th>Culls</th>
                 <th>Closing Count</th>
@@ -135,6 +136,7 @@ const PreviousDayReportReadOnly = () => {
         </div>
       )}
     </div>
+    </>
   );
 };
 

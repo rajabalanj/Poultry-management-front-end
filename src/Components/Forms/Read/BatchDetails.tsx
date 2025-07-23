@@ -57,13 +57,15 @@ const BatchDetails: React.FC = () => {
 
 
   return (
-    <div className="container-fluid">
-      <PageHeader 
+    <>
+    <PageHeader 
         title={formattedBatchDate}
         subtitle={`Batch Details - ${batch.batch_no}`}
         buttonLabel="Back"
         buttonLink="/"
       />
+    <div className="container-fluid">
+      
       
       <HeaderCardGroup
         cards={[
@@ -71,7 +73,7 @@ const BatchDetails: React.FC = () => {
             title: 'Total Birds',
             mainValue: batch.closing_count,
             subValues: [
-              { label: 'Opening Count', value: batch.opening_count },
+              { label: 'Opening', value: batch.opening_count },
               { label: 'Mortality', value: batch.mortality },
               { label: 'Culls', value: batch.culls },
             ],
@@ -147,7 +149,7 @@ const BatchDetails: React.FC = () => {
               </div>
         </div>
         <div className="mt-4 d-flex justify-content-center">
-          <button type="button" className="btn btn-primary me-2" onClick={() => navigate(`/batch/${batch_id}/${batch_date}/edit`)}>
+          <button type="button" className="btn btn-success me-2" onClick={() => navigate(`/batch/${batch_id}/${batch_date}/edit`)}>
             Update
           </button>
           <button type="button" className="btn btn-secondary me-2" onClick={() => navigate('/')}>Back to Dashboard</button>
@@ -174,7 +176,7 @@ const BatchDetails: React.FC = () => {
         </div>
         <div className="col-12 col-md-3 mb-2 mt-4">
           <button 
-            className="btn btn-primary w-100 mt-2"
+            className="btn btn-info w-100 mt-2"
             onClick={handleDownloadReport}
             >
             View Data
@@ -182,6 +184,7 @@ const BatchDetails: React.FC = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

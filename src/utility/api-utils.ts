@@ -45,7 +45,7 @@ export const exportBatchDataToExcel = (gridData: GridRow[], batchId?: string): v
       'Shed No',
       'Batch Date',
       'Age',
-      'Opening Count',
+      'Opening',
       'Mortality',
       'Culls',
       'Closing Count',

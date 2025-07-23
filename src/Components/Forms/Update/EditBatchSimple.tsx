@@ -62,12 +62,13 @@ const EditBatchSimple: React.FC = () => {
   if (error) return <div>{error}</div>;
 
   return (
-    <div className="container-fluid">
-      <PageHeader
+    <>
+    <PageHeader
         title="Edit Batch"
         buttonLabel="Back"
         buttonLink='/configurations'
       />
+    <div className="container-fluid">
       <div className="p-4">
         <form onSubmit={handleSubmit}>
           <div className="row g-3">
@@ -105,7 +106,7 @@ const EditBatchSimple: React.FC = () => {
               />
             </div>
             <div className="col-md-6">
-              <label className="form-label">Opening Count</label>
+              <label className="form-label">Opening</label>
               <input
                 type="number"
                 className="form-control"
@@ -130,7 +131,7 @@ const EditBatchSimple: React.FC = () => {
             <div className="col-12">
               <button
                 type="submit"
-                className="btn btn-primary"
+                className="btn btn-success"
                 disabled={loading}
               >
                 {loading ? 'Saving...' : 'Save Changes'}
@@ -147,6 +148,7 @@ const EditBatchSimple: React.FC = () => {
         </form>
       </div>
     </div>
+    </>
   );
 };
 
