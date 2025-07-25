@@ -33,6 +33,7 @@ const sectionConfigs: Array<{
       { key: 'table_transfer', label: 'Transfer' },
       { key: 'table_damage', label: 'Damage' },
       { key: 'table_out', label: 'Out' },
+      { key: 'table_in', label: 'In', disabled: true, controlledBy: 'jumbo_out' },
     ],
   },
   {
@@ -46,6 +47,7 @@ const sectionConfigs: Array<{
       { key: 'jumbo_transfer', label: 'Transfer' },
       { key: 'jumbo_waste', label: 'Waste' },
       { key: 'jumbo_in', label: 'In', disabled: true, controlledBy: 'table_out' },
+      { key: 'jumbo_out', label: 'Out' },
     ],
   },
   {

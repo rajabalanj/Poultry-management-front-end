@@ -7,6 +7,7 @@ export interface EggRoomStockEntry {
   table_transfer: number;
   table_damage: number;
   table_out: number;
+  table_in: number; // Added to match EggRoomStockEntry
   table_closing: number;
   grade_c_opening: number;
   grade_c_shed_received: number;
@@ -20,6 +21,7 @@ export interface EggRoomStockEntry {
   jumbo_transfer: number;
   jumbo_waste: number;
   jumbo_in: number;
+  jumbo_out: number; // Added to match EggRoomStockEntry
   jumbo_closing: number;
 }
 
@@ -49,6 +51,7 @@ export interface EggRoomReportUpdate {
   table_transfer: number;
   table_damage: number;
   table_out: number;
+  table_in: number;
   table_closing: number;
   grade_c_opening: number;
   grade_c_shed_received: number;
@@ -63,4 +66,6 @@ export interface EggRoomReportUpdate {
   jumbo_waste: number;
   jumbo_in: number;
   jumbo_closing: number;
+  jumbo_out: number;
+
 }

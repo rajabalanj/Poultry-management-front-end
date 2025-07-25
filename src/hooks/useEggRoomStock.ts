@@ -10,6 +10,7 @@ const defaultEntry = (reportDate?: string): EggRoomStockEntry => ({
   table_transfer: 0,
   table_damage: 0,
   table_out: 0,
+  table_in: 0, // Added to match EggRoomStockEntry
   table_closing: 0,
   jumbo_opening: 0,
   jumbo_received: 0,
@@ -24,6 +25,7 @@ const defaultEntry = (reportDate?: string): EggRoomStockEntry => ({
   grade_c_labour: 0,
   grade_c_waste: 0,
   grade_c_closing: 0,
+  jumbo_out: 0, // Added to match EggRoomStockEntry
 });
 
 export const useEggRoomStock = () => {
@@ -41,13 +43,15 @@ export const useEggRoomStock = () => {
       entry.table_received -
       entry.table_transfer -
       entry.table_damage -
-      entry.table_out,
+      entry.table_out +
+      entry.table_in,
     jumbo_closing:
       entry.jumbo_opening +
       entry.jumbo_received +
       entry.jumbo_in -
       entry.jumbo_transfer -
-      entry.jumbo_waste,
+      entry.jumbo_waste -
+      entry.jumbo_out,
     grade_c_closing:
       entry.grade_c_opening +
       entry.grade_c_shed_received +
@@ -66,6 +70,7 @@ export const useEggRoomStock = () => {
       table_transfer: entry.table_transfer ?? 0,
       table_damage: entry.table_damage ?? 0,
       table_out: entry.table_out ?? 0,
+      table_in: entry.table_in ?? 0, // Added to match EggRoomStockEntry
       table_closing: entry.table_closing ?? 0,
       jumbo_opening: entry.jumbo_opening ?? 0,
       jumbo_received: entry.jumbo_received ?? 0,
@@ -73,6 +78,7 @@ export const useEggRoomStock = () => {
       jumbo_waste: entry.jumbo_waste ?? 0,
       jumbo_in: entry.jumbo_in ?? 0,
       jumbo_closing: entry.jumbo_closing ?? 0,
+      jumbo_out: entry.jumbo_out ?? 0, // Added to match EggRoomStockEntry
       grade_c_opening: entry.grade_c_opening ?? 0,
       grade_c_shed_received: entry.grade_c_shed_received ?? 0,
       grade_c_room_received: entry.grade_c_room_received ?? 0,

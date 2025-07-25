@@ -136,8 +136,8 @@ const [eggRoomStartDate, setEggRoomStartDate] = useState<string>(''); // YYYY-MM
         table_out: 0,
         table_closing: initialTableOpening,
         grade_c_opening: 0,
-        grade_c_shed_received: 0,
-        grade_c_room_received: initialGradeCOpening,
+        grade_c_shed_received: initialGradeCOpening,
+        grade_c_room_received: 0,
         grade_c_transfer: 0,
         grade_c_labour: 0,
         grade_c_waste: 0,
@@ -147,6 +147,7 @@ const [eggRoomStartDate, setEggRoomStartDate] = useState<string>(''); // YYYY-MM
         jumbo_transfer: 0,
         jumbo_waste: 0,
         jumbo_in: 0,
+        jumbo_out: 0,
         jumbo_closing: initialJumboOpening,
       };
       await eggRoomReportApi.initialSetupReport(initialReportData);

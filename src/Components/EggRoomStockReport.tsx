@@ -164,12 +164,14 @@ const EggRoomStockReport: React.FC = () => {
                 <th className="text-center">Transfer</th>
                 <th className="text-center">Damage</th>
                 <th className="text-center">Out</th>
+                <th className="text-center">In</th>
                 <th className="text-center">Closing</th>
                 <th className="text-center">Opening</th>
                 <th className="text-center">Received</th>
                 <th className="text-center">Transfer</th>
                 <th className="text-center">Waste</th>
                 <th className="text-center">In</th>
+                <th className="text-center">Out</th>
                 <th className="text-center">Closing</th>
                 <th className="text-center">Opening</th>
                 <th className="text-center">Shed Received</th>
@@ -189,12 +191,14 @@ const EggRoomStockReport: React.FC = () => {
                   <td>{r.table_transfer}</td>
                   <td>{r.table_damage}</td>
                   <td>{r.table_out}</td>
+                  <td>{r.table_in}</td>
                   <td>{r.table_closing}</td>
                   <td>{r.jumbo_opening}</td>
                   <td>{r.jumbo_received}</td>
                   <td>{r.jumbo_transfer}</td>
                   <td>{r.jumbo_waste}</td>
                   <td>{r.jumbo_in}</td>
+                  <td>{r.jumbo_out}</td>
                   <td>{r.jumbo_closing}</td>
                   <td>{r.grade_c_opening}</td>
                   <td>{r.grade_c_shed_received}</td>
