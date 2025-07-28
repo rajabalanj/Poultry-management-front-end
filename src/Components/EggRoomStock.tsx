@@ -30,10 +30,10 @@ const sectionConfigs: Array<{
     fields: [
       { key: 'table_opening', label: 'Opening', disabled: true },
       { key: 'table_received', label: 'Received' },
-      { key: 'table_transfer', label: 'Transfer' },
+      { key: 'table_transfer', label: 'Transfer (Sales)' },
       { key: 'table_damage', label: 'Damage' },
-      { key: 'table_out', label: 'Out' },
-      { key: 'table_in', label: 'In', disabled: true, controlledBy: 'jumbo_out' },
+      { key: 'table_out', label: 'Out (Move to Jumbo)' },
+      { key: 'table_in', label: 'In (From Jumbo)', disabled: true, controlledBy: 'jumbo_out' },
     ],
   },
   {
@@ -44,10 +44,10 @@ const sectionConfigs: Array<{
     fields: [
       { key: 'jumbo_opening', label: 'Opening', disabled: true },
       { key: 'jumbo_received', label: 'Received' },
-      { key: 'jumbo_transfer', label: 'Transfer' },
+      { key: 'jumbo_transfer', label: 'Transfer (Sales)' },
       { key: 'jumbo_waste', label: 'Waste' },
-      { key: 'jumbo_in', label: 'In', disabled: true, controlledBy: 'table_out' },
-      { key: 'jumbo_out', label: 'Out' },
+      { key: 'jumbo_in', label: 'In (From Table)', disabled: true, controlledBy: 'table_out' },
+      { key: 'jumbo_out', label: 'Out (Move to Table)' },
     ],
   },
   {
@@ -59,7 +59,7 @@ const sectionConfigs: Array<{
       { key: 'grade_c_opening', label: 'Opening', disabled: true },
       { key: 'grade_c_shed_received', label: 'Shed Received' },
       { key: 'grade_c_room_received', label: 'Room Received', disabled: true, controlledBy: 'table_damage' },
-      { key: 'grade_c_transfer', label: 'Transfer' },
+      { key: 'grade_c_transfer', label: 'Transfer (Sales)' },
       { key: 'grade_c_labour', label: 'Labour' },
       { key: 'grade_c_waste', label: 'Waste' },
     ],
