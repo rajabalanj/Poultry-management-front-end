@@ -6,6 +6,8 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import 'bootstrap-icons/font/bootstrap-icons.min.css'
 import './styles/bootstrap.min.css'
 import './styles/global.css';
+import 'react-datepicker/dist/react-datepicker.css';
+
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

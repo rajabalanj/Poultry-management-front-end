@@ -19,7 +19,7 @@ export const SaveControls: React.FC<SaveControlsProps> = ({
     <div className={`mt-3 d-flex gap-2 ${className}`}>
       <button
         type="submit"
-        className="btn btn-success"
+        className="btn btn-primary"
         disabled={loading}
         onClick={onSave}
       >

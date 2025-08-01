@@ -333,7 +333,6 @@
   transform: translateY(-50%);
   width: 5px;
   height: 5px;
-  background-color: var(--sidebar-submenu-indicator);
   border-radius: 50%;
 }
 
@@ -401,8 +400,8 @@
 }
 
 .btn-secondary {
-  background-color: #6c757d; /* Your desired background color */
-  border-color: #6c757d; /* Your desired border color */
+  background-color: #495057; /* Your desired background color */
+  border-color: #495057; /* Your desired border color */
   color: #ffffff; /* Your desired text color */
 }
 
@@ -417,7 +416,7 @@
 
 .btn-secondary:active {
   background-color: #3E3F3A; /* Your desired active background color */
-  border-color: #6c757d; /* Your desired active border color */
+  border-color: #495057; /* Your desired active border color */
 }
 
 .accordion-button-white-arrow::after {

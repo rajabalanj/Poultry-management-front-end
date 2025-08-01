@@ -6,7 +6,7 @@ interface PageHeaderProps {
   buttonLabel?: string;
   subtitle?: string;
   buttonLink?: string;
-  buttonVariant?: 'secondary' | 'success';
+  buttonVariant?: 'secondary' | 'primary';
 }
 
 const PageHeader: React.FC<PageHeaderProps> = ({
@@ -19,7 +19,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   const navigate = useNavigate();
 
   return (
-    <div className="page-header d-flex justify-content-between align-items-center px-4 py-3 text-primary" style={{ backgroundColor: '#f8f9fa'}}>
+    <div className="page-header d-flex justify-content-between align-items-center px-4 py-3 text-primary fw-bold" style={{ backgroundColor: '#f8f9fa'}}>
       <div>
         {title && <h4 className="mb-1 text-bold ms-4 mt-1" style={{ textShadow: '1px 1px 3px rgba(0, 0, 0, 0.1)' }}>{title}</h4>} {/* Date */}
         {subtitle && <h4 className="mb-0 ms-4" style={{ textShadow: '1px 1px 3px rgba(0, 0, 0, 0.1)' }}>{subtitle}</h4>}       {/* Batch Info */}

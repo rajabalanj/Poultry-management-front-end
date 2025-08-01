@@ -114,7 +114,7 @@ function CompositionForm({
         </div>
       </div>
       <div className="d-flex gap-2">
-        <button onClick={onSave} className="btn btn-success">
+        <button onClick={onSave} className="btn btn-primary">
           <i className="bi bi-save me-1"></i>{saveButtonLabel}
         </button>
         <button onClick={onCancel} className="btn btn-secondary">

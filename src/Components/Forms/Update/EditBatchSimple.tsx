@@ -131,7 +131,7 @@ const EditBatchSimple: React.FC = () => {
             <div className="col-12">
               <button
                 type="submit"
-                className="btn btn-success"
+                className="btn btn-primary"
                 disabled={loading}
               >
                 {loading ? 'Saving...' : 'Save Changes'}

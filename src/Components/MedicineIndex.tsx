@@ -256,7 +256,7 @@ const [shedOptions, setShedOptions] = useState<string[]>([]);
 
   return (
     <>
-    <PageHeader title="Medicine List" buttonVariant="success" buttonLabel="Create Medicine" buttonLink="/create-medicine" />
+    <PageHeader title="Medicine List" buttonVariant="primary" buttonLabel="Create Medicine" buttonLink="/create-medicine" />
     <div>
       <MedicineTable
         medicines={medicines}

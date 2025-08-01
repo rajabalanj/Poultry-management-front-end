@@ -151,7 +151,7 @@ const PreviousDayReport = () => {
           </div>
           <div className="d-flex gap-2 mt-2 align-self-end">
             <button
-              className="btn btn-info"
+              className="btn btn-primary"
               onClick={handleShare}
               disabled={gridData.length === 0 || isSharing}
             >

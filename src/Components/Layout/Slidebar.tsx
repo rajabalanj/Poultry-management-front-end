@@ -32,17 +32,30 @@ const Slidebar: React.FC = () => {
 
   // Add this useEffect to manage openMenu based on current location
   useEffect(() => {
-    // Determine which parent menu should be open based on the current path
-    if (location.pathname.startsWith('/add-batch') || location.pathname.startsWith('/upload-batch')) {
-      setOpenMenu('batch');
-    } else if (location.pathname.startsWith('/egg-room-stock')) {
-      setOpenMenu('egg');
-    } else if (location.pathname.startsWith('/feed') || location.pathname.startsWith('/feed-mill-stock')) {
-      setOpenMenu('feed');
-    } else {
-      setOpenMenu(null); // No sub-menu related path, so close any open sub-menus
-    }
-  }, [location.pathname]); // Re-run when the path changes
+  // Determine which parent menu should be open based on the current path
+  if (
+    location.pathname.startsWith("/add-batch") ||
+    location.pathname.startsWith("/upload-batch")
+  ) {
+    setOpenMenu("batch");
+  } else if (location.pathname.startsWith("/egg-room-stock")) {
+    setOpenMenu("egg");
+  } else if (
+    location.pathname.startsWith("/feed") ||
+    location.pathname.startsWith("/feed-mill-stock")
+  ) {
+    setOpenMenu("feed");
+  } else if (
+    location.pathname.startsWith("/vendors") ||
+    location.pathname.startsWith("/inventory-items") ||
+    location.pathname.startsWith("/purchase-orders")
+  ) {
+    setOpenMenu("purchase");
+  } else {
+    setOpenMenu(null); // No sub-menu related path, so close any open sub-menus
+  }
+}, [location.pathname]);
+ // Re-run when the path changes
 
 
   const toggleSidebar = () => {
@@ -221,6 +234,48 @@ const Slidebar: React.FC = () => {
                     Medicine Management
                   </Link>
                 </li>
+
+                {/* Purchase Management - Expandable Item */}
+<li className="nav-menu-item">
+  <div
+    className={`nav-menu-link fw-bold expandable ${openMenu === 'purchase' ? 'active' : ''}`}
+    onClick={() => toggleMenu('purchase')}
+  >
+    <i className="bi bi-cart4 me-2 icon-color-sidebar"></i>
+    Purchase Management
+    <i className={`bi bi-chevron-right chevron-icon ${openMenu === 'purchase' ? 'rotated' : ''}`}></i>
+  </div>
+  <ul className={`sub-menu ${openMenu === 'purchase' ? 'open' : ''}`}>
+    <li className="sub-menu-item">
+      <Link
+        to="/vendors"
+        className={`nav-menu-link ${location.pathname === "/vendors" ? "active-link" : ""}`}
+        onClick={closeSidebarMobile}
+      >
+        Vendors
+      </Link>
+    </li>
+    <li className="sub-menu-item">
+  <Link
+    to="/inventory-items"
+    className={`nav-menu-link ${location.pathname === "/inventory-items" ? "active-link" : ""}`}
+    onClick={closeSidebarMobile}
+  >
+    Inventory
+  </Link>
+</li>
+<li className="sub-menu-item">
+    <Link
+      to="/purchase-orders"
+      className={`nav-menu-link ${location.pathname === "/purchase-orders" ? "active-link" : ""}`}
+      onClick={closeSidebarMobile}
+    >
+      Purchase Orders
+    </Link>
+  </li>
+  </ul>
+</li>
+
 
                 {/* Configurations - Simple Link */}
                 <li className="nav-menu-item fw-bold">

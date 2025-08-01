@@ -339,7 +339,7 @@ return (
         {/* Save Button */}
         <div className="mt-3 text-end">
           <button
-            className="btn btn-success"
+            className="btn btn-primary"
             onClick={handleSave}
             disabled={saving || loading}
           >
@@ -436,7 +436,7 @@ return (
               <div className="form-group row">
                 <div className="col-sm-12 text-end">
                   <button
-                    className="btn btn-success"
+                    className="btn btn-primary"
                     onClick={handleEggRoomInitialSetup}
                     disabled={eggRoomSaving}
                   >

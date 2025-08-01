@@ -158,7 +158,7 @@ function FeedMillStock() {
         {selectedComposition && viewState !== "edit" && viewState !== "add" && (
           <button
             onClick={handleEdit}
-            className="btn btn-sm btn-primary"
+            className="btn btn-sm btn-success"
           >
             <i className="bi bi-pencil me-1"></i>Edit
           </button>
@@ -167,7 +167,7 @@ function FeedMillStock() {
         {viewState !== "add" && (
           <button
             onClick={handleAddComposition}
-            className="btn btn-sm btn-success"
+            className="btn btn-sm btn-primary"
           >
             <i className="bi bi-plus-lg me-1"></i>Create
           </button>
@@ -202,7 +202,7 @@ function FeedMillStock() {
           {/* Use Composition Controls */}
           <div className="mt-3 d-flex align-items-center gap-2">
             <button
-              className="btn btn-success btn-sm"
+              className="btn btn-primary btn-sm"
               onClick={() => setViewState("use-composition")}
             >
               Use Composition
@@ -261,7 +261,7 @@ function FeedMillStock() {
 
           <div className="d-flex gap-2">
             <button
-              className="btn btn-success btn-sm"
+              className="btn btn-primary btn-sm"
               onClick={async () => {
                 if (!selectedShedNo) {
                   toast.error("Please select a Shed Number");

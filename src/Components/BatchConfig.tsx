@@ -35,7 +35,7 @@ const BatchConfigCard: React.FC<{
             <span className="text-sm">View</span>
           </button>
           <button
-            className="btn btn-warning btn-sm d-flex align-items-center justify-content-center"
+            className="btn btn-success btn-sm d-flex align-items-center justify-content-center"
             onClick={() => onEdit(batch.id)}
             title="Edit Batch"
             aria-label={`Edit Batch ${batch.batch_no}`}

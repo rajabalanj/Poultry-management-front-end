@@ -28,6 +28,19 @@ import MedicineDetails from './Components/Forms/Read/MedicineDetails';
 import EditMedicine from './Components/Forms/Update/EditMedicine';
 import MedicineListPage from './Components/MedicineIndex';
 import MedicineAuditReport from './Components/MedicineAuditReport';
+import VendorIndexPage from './Components/Vendor/VendorIndex';
+import CreateVendorForm from './Components/Vendor/CreateVendorForm';
+import EditVendor from './Components/Vendor/EditVendor';
+import VendorDetails from './Components/Vendor/VendorDetails';
+import InventoryItemIndexPage from './Components/InventoryItem/InventoryItemIndex';
+import CreateInventoryItemForm from './Components/InventoryItem/CreateInventoryItemForm';
+import InventoryItemDetails from './Components/InventoryItem/InventoryItemDetails';
+import EditInventoryItem from './Components/InventoryItem/EditInventoryItem';
+import PurchaseOrderIndexPage from './Components/PurchaseOrder/PurchaseOrderIndex';
+import CreatePurchaseOrderForm from './Components/PurchaseOrder/CreatePurchaseOrderForm';
+import PurchaseOrderDetails from './Components/PurchaseOrder/PurchaseOrderDetails';
+import EditPurchaseOrder from './Components/PurchaseOrder/EditPurchaseOrder';
+import AddPaymentForm from './Components/PurchaseOrder/AddPaymentForm';
 
 
 const App: React.FC = () => {
@@ -97,6 +110,20 @@ const App: React.FC = () => {
             />
             <Route path="/feed/:feed_id/audit" element={<FeedAuditReport />} />
             <Route path="/medicine/:medicine_id/audit" element={<MedicineAuditReport />} />
+            <Route path="/vendors" element={<VendorIndexPage />} />
+          <Route path="/create-vendor" element={<CreateVendorForm />} />
+          <Route path="/vendors/:vendor_id/details" element={<VendorDetails />} />
+          <Route path="/vendors/:vendor_id/edit" element={<EditVendor />} />
+           {/* NEW: Inventory Item Routes */}
+          <Route path="/inventory-items" element={<InventoryItemIndexPage />} />
+          <Route path="/inventory-items/create" element={<CreateInventoryItemForm />} />
+          <Route path="/inventory-items/:item_id/details" element={<InventoryItemDetails />} />
+          <Route path="/inventory-items/:item_id/edit" element={<EditInventoryItem />} />
+          <Route path="/purchase-orders" element={<PurchaseOrderIndexPage />} />
+          <Route path="/purchase-orders/create" element={<CreatePurchaseOrderForm />} /> {/* NEW ROUTE */}
+          <Route path="/purchase-orders/:po_id/details" element={<PurchaseOrderDetails />} /> {/* NEW ROUTE */}
+          <Route path="/purchase-orders/:po_id/edit" element={<EditPurchaseOrder />} /> {/* NEW ROUTE */}
+          <Route path="/purchase-orders/:po_id/add-payment" element={<AddPaymentForm />} />
           </Routes>
         </Layout>
         <ToastContainer position="top-right" autoClose={3000} />

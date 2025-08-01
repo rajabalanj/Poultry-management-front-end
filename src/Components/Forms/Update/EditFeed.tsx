@@ -170,7 +170,7 @@ const EditFeed: React.FC = () => {
           </div>
 
           <div className="mt-4 d-flex justify-content-center">
-            <button type="submit" className="btn btn-success me-2">
+            <button type="submit" className="btn btn-primary me-2">
               Save Changes
             </button>
             <button

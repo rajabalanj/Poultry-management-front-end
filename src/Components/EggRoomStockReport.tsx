@@ -129,14 +129,14 @@ const EggRoomStockReport: React.FC = () => {
           />
           <div className="d-flex gap-2 mb-2">
             <button
-              className="btn btn-primary"
+              className="btn btn-info"
               onClick={fetchReports}
               disabled={!startDate || !endDate || loading || isSharing || !!dateRangeError}
             >
               {loading ? 'Loading...' : 'Get Report'}
             </button>
             <button
-              className="btn btn-info"
+              className="btn btn-primary"
               onClick={handleShare}
               disabled={reports.length === 0 || loading || isSharing}
             >

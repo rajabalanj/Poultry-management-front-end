@@ -213,7 +213,7 @@ const FeedListPage = () => {
 
   return (
     <>
-    <PageHeader title="Feed List" buttonVariant="success" buttonLabel="Create Feed" buttonLink="/create-feed" />
+    <PageHeader title="Feed List" buttonVariant="primary" buttonLabel="Create Feed" buttonLink="/create-feed" />
     <div>
       <FeedTable
         feeds={feeds}
