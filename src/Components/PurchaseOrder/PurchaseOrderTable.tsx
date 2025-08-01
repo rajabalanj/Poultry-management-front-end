@@ -2,6 +2,7 @@
 import React, { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { PurchaseOrderResponse } from "../../types/PurchaseOrder";
+import { VendorResponse } from "../../types/Vendor"; // Import VendorResponse
 import PurchaseOrderCard from "./PurchaseOrderCard";
 
 interface PurchaseOrderTableProps {
@@ -9,9 +10,10 @@ interface PurchaseOrderTableProps {
   loading: boolean;
   error: string | null;
   onDelete: (id: number) => void;
+  vendors: VendorResponse[]; // Add vendors prop
 }
 
-const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders, loading, error, onDelete }) => {
+const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders, loading, error, onDelete, vendors }) => {
   const navigate = useNavigate();
 
   const handleViewDetails = useCallback(
@@ -41,12 +43,13 @@ const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders,
       <PurchaseOrderCard
         key={po.id}
         po={po}
+        vendors={vendors} // Pass vendors to PurchaseOrderCard
         onView={handleViewDetails}
         onEdit={handleEdit}
         onDelete={onDelete}
       />
     ));
-  }, [purchaseOrders, handleViewDetails, handleEdit, onDelete]);
+  }, [purchaseOrders, vendors, handleViewDetails, handleEdit, onDelete]); // Add vendors to dependencies
 
   if (loading) return <div className="text-center">Loading purchase orders...</div>;
   if (error) return <div className="text-center text-danger">{error}</div>;

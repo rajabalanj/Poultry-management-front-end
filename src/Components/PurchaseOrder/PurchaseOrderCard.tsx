@@ -1,10 +1,12 @@
 // src/components/PurchaseOrder/PurchaseOrderCard.tsx
 import React from "react";
 import { PurchaseOrderResponse, PurchaseOrderStatus, PaymentStatus } from "../../types/PurchaseOrder";
+import { VendorResponse } from "../../types/Vendor"; // Import VendorResponse
 import { format } from 'date-fns';
 
 interface PurchaseOrderCardProps {
   po: PurchaseOrderResponse;
+  vendors: VendorResponse[]; // Add vendors prop
   onView: (id: number) => void;
   onEdit: (id: number) => void;
   onDelete: (id: number) => void;
@@ -31,10 +33,13 @@ const getStatusBadgeClass = (status: PurchaseOrderStatus | PaymentStatus) => {
 };
 
 const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = React.memo(
-  ({ po, onView, onEdit, onDelete }) => {
+  ({ po, vendors, onView, onEdit, onDelete }) => {
     const formattedExpectedDeliveryDate = po.expected_delivery_date
       ? format(new Date(po.expected_delivery_date), 'MMM dd, yyyy')
       : 'N/A';
+
+    // Map vendor_id to vendor name
+    const vendorName = vendors.find(v => v.id === po.vendor_id)?.name || 'N/A';
 
     return (
       <div className="card mb-2 mt-2 border shadow-sm">
@@ -43,10 +48,8 @@ const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = React.memo(
             <div>
               <h6 className="mb-1">PO Number: {po.po_number}</h6>
               <div className="text-sm">
-                <p className="mb-0">Vendor: {po.vendor?.name || 'N/A'}</p>
-                {/* FIX 1: Safely access total_amount */}
+                <p className="mb-0">Vendor: {vendorName}</p> {/* Use vendorName */}
                 <p className="mb-0">Total Amount: Rs. {(po.total_amount || 0).toFixed(2)}</p>
-                {/* FIX 2: Safely access amount_paid */}
                 <p className="mb-0">Amount Paid: Rs. {(po.amount_paid || 0).toFixed(2)}</p>
                 <p className="mb-0">Status: <span className={`badge ${getStatusBadgeClass(po.status)}`}>{po.status}</span></p>
                 <p className="mb-0">Payment Status: <span className={`badge ${getStatusBadgeClass(po.payment_status)}`}>{po.payment_status}</span></p>

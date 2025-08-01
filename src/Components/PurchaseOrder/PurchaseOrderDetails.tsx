@@ -3,9 +3,11 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import PageHeader from "../Layout/PageHeader";
-import { purchaseOrderApi } from "../../services/api";
+import { purchaseOrderApi, vendorApi, inventoryItemApi } from "../../services/api"; // Add inventoryItemApi
 import { PurchaseOrderResponse, PurchaseOrderStatus, PaymentStatus } from "../../types/PurchaseOrder";
-import { format } from 'date-fns'; // For date formatting
+import { VendorResponse } from "../../types/Vendor";
+import { InventoryItemResponse } from "../../types/InventoryItem"; // Add InventoryItemResponse
+import { format } from 'date-fns';
 
 const getStatusBadgeClass = (status: PurchaseOrderStatus | PaymentStatus) => {
   switch (status) {
@@ -31,32 +33,56 @@ const PurchaseOrderDetails: React.FC = () => {
   const { po_id } = useParams<{ po_id: string }>();
   const navigate = useNavigate();
   const [purchaseOrder, setPurchaseOrder] = useState<PurchaseOrderResponse | null>(null);
+  const [vendors, setVendors] = useState<VendorResponse[]>([]);
+  const [inventoryItems, setInventoryItems] = useState<InventoryItemResponse[]>([]); // Add inventoryItems state
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
-  
+
   useEffect(() => {
     const fetchPurchaseOrder = async () => {
-  try {
-    if (!po_id) {
-      setError("Purchase Order ID is missing.");
-      setLoading(false);
-      return;
-    }
-    const data = await purchaseOrderApi.getPurchaseOrder(Number(po_id)); // Removed parsePurchaseOrderResponse
-    console.log("Fetched PO Data:", data);
-    setPurchaseOrder(data);
-  } catch (err: any) {
-    console.error("Error fetching purchase order:", err);
-    setError(err?.message || "Failed to load purchase order details.");
-    toast.error(err?.message || "Failed to load purchase order details.");
-  } finally {
-    setLoading(false);
-  }
-};
+      try {
+        if (!po_id) {
+          setError("Purchase Order ID is missing.");
+          setLoading(false);
+          return;
+        }
+        const [poData, vendorsData, inventoryItemsData] = await Promise.all([
+          purchaseOrderApi.getPurchaseOrder(Number(po_id)),
+          vendorApi.getVendors(),
+          inventoryItemApi.getInventoryItems(), // Fetch inventory items
+        ]);
+        setPurchaseOrder(poData);
+        setVendors(vendorsData);
+        setInventoryItems(inventoryItemsData);
+      } catch (err: any) {
+        console.error("Error fetching purchase order:", err);
+        setError(err?.message || "Failed to load purchase order details.");
+        toast.error(err?.message || "Failed to load purchase order details.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
     fetchPurchaseOrder();
   }, [po_id]);
+
+  // Map vendor_id to vendor name
+  const getVendorName = (vendorId: number) => {
+    const vendor = vendors.find(v => v.id === vendorId);
+    return vendor?.name || 'N/A';
+  };
+
+  // Map inventory_item_id to item name
+  const getItemName = (itemId: number) => {
+    const item = inventoryItems.find(i => i.id === itemId);
+    return item?.name || 'N/A';
+  };
+
+  // Map inventory_item_id to item unit
+  const getItemUnit = (itemId: number) => {
+    const item = inventoryItems.find(i => i.id === itemId);
+    return item?.unit || 'N/A';
+  };
 
   if (loading) return <div className="text-center mt-5">Loading purchase order details...</div>;
   if (error) return <div className="text-center text-danger mt-5">{error}</div>;
@@ -76,7 +102,7 @@ const PurchaseOrderDetails: React.FC = () => {
                 <strong>PO Number:</strong> {purchaseOrder.po_number}
               </div>
               <div className="col-md-6">
-                <strong>Vendor:</strong> {purchaseOrder.vendor?.name || 'N/A'}
+                <strong>Vendor:</strong> {getVendorName(purchaseOrder.vendor_id)}
               </div>
               <div className="col-md-6">
                 <strong>Order Date:</strong> {format(new Date(purchaseOrder.order_date), 'MMM dd, yyyy')}
@@ -116,7 +142,7 @@ const PurchaseOrderDetails: React.FC = () => {
           <div className="card-header bg-info text-white">
             <h5 className="mb-0">Ordered Items</h5>
           </div>
-          <div className="card-body p-0"> {/* p-0 to remove padding for table */}
+          <div className="card-body p-0">
             {purchaseOrder.items && purchaseOrder.items.length > 0 ? (
               <div className="table-responsive">
                 <table className="table table-striped table-hover mb-0">
@@ -132,11 +158,11 @@ const PurchaseOrderDetails: React.FC = () => {
                   </thead>
                   <tbody>
                     {purchaseOrder.items.map((item, index) => (
-                      <tr key={item.id || index}> {/* Use item.id if available, otherwise index */}
+                      <tr key={item.id || index}>
                         <td>{index + 1}</td>
-                        <td>{item.inventory_item?.name || 'N/A'}</td>
+                        <td>{getItemName(item.inventory_item_id)}</td> {/* Use getItemName */}
                         <td>{item.quantity}</td>
-                        <td>{item.inventory_item?.unit || 'N/A'}</td>
+                        <td>{getItemUnit(item.inventory_item_id)}</td> {/* Use getItemUnit */}
                         <td>{(item.price_per_unit || 0).toFixed(2)}</td>
                         <td>{(item.line_total || 0).toFixed(2)}</td>
                       </tr>
@@ -144,8 +170,8 @@ const PurchaseOrderDetails: React.FC = () => {
                   </tbody>
                   <tfoot>
                     <tr>
-                        <td colSpan={5} className="text-end fw-bold">Total PO Value:</td>
-                        <td className="fw-bold">Rs. {(purchaseOrder.total_amount || 0).toFixed(2)}</td>
+                      <td colSpan={5} className="text-end fw-bold">Total PO Value:</td>
+                      <td className="fw-bold">Rs. {(purchaseOrder.total_amount || 0).toFixed(2)}</td>
                     </tr>
                   </tfoot>
                 </table>
@@ -158,57 +184,56 @@ const PurchaseOrderDetails: React.FC = () => {
 
         {/* Payments Section */}
         <div className="card shadow-sm mb-4">
-            <div className="card-header bg-success text-white">
-                <h5 className="mb-0">Payments Received</h5>
+          <div className="card-header bg-success text-white">
+            <h5 className="mb-0">Payments Received</h5>
+          </div>
+          <div className="card-body p-0">
+            {purchaseOrder.payments && purchaseOrder.payments.length > 0 ? (
+              <div className="table-responsive">
+                <table className="table table-striped table-hover mb-0">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Amount Paid (Rs.)</th>
+                      <th>Payment Date</th>
+                      <th>Mode</th>
+                      <th>Reference</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {purchaseOrder.payments.map((payment, index) => (
+                      <tr key={payment.id || index}>
+                        <td>{index + 1}</td>
+                        <td>{(payment.amount_paid || 0).toFixed(2)}</td>
+                        <td>{format(new Date(payment.payment_date), 'MMM dd, yyyy')}</td>
+                        <td>{payment.payment_mode || 'N/A'}</td>
+                        <td>{payment.reference_number || 'N/A'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colSpan={1} className="text-end fw-bold">Total Paid:</td>
+                      <td className="fw-bold">Rs. {(purchaseOrder.amount_paid || 0).toFixed(2)}</td>
+                      <td colSpan={3}></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            ) : (
+              <p className="p-3">No payments recorded for this purchase order yet.</p>
+            )}
+            <div className="card-footer text-end">
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                onClick={() => navigate(`/purchase-orders/${po_id}/add-payment`)}
+              >
+                <i className="bi bi-wallet-fill me-1"></i> Add Payment
+              </button>
             </div>
-            <div className="card-body p-0">
-                {purchaseOrder.payments && purchaseOrder.payments.length > 0 ? (
-                    <div className="table-responsive">
-                        <table className="table table-striped table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Amount Paid (Rs.)</th>
-                                    <th>Payment Date</th>
-                                    <th>Mode</th>
-                                    <th>Reference</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {purchaseOrder.payments.map((payment, index) => (
-                                    <tr key={payment.id || index}>
-                                        <td>{index + 1}</td>
-                                        <td>{(payment.amount_paid || 0).toFixed(2)}</td>
-                                        <td>{format(new Date(payment.payment_date), 'MMM dd, yyyy')}</td>
-                                        <td>{payment.payment_mode || 'N/A'}</td>
-                                        <td>{payment.reference_number || 'N/A'}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <td colSpan={1} className="text-end fw-bold">Total Paid:</td>
-                                    <td className="fw-bold">Rs. {(purchaseOrder.amount_paid || 0).toFixed(2)}</td>
-                                    <td colSpan={3}></td> {/* Span remaining columns */}
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                ) : (
-                    <p className="p-3">No payments recorded for this purchase order yet.</p>
-                )}
-                <div className="card-footer text-end">
-                <button
-                    type="button"
-                    className="btn btn-primary btn-sm"
-                    onClick={() => navigate(`/purchase-orders/${po_id}/add-payment`)}
-                >
-                    <i className="bi bi-wallet-fill me-1"></i> Add Payment
-                </button>
-            </div>
-            </div>
+          </div>
         </div>
-
 
         <div className="mt-4 d-flex justify-content-center gap-3">
           <button

@@ -1,14 +1,14 @@
 // src/components/PurchaseOrder/PurchaseOrderIndex.tsx
 import React, { useCallback, useEffect, useState } from "react";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import PageHeader from "../Layout/PageHeader"; // Adjust path if necessary
+import PageHeader from "../Layout/PageHeader";
 import { Modal, Button } from "react-bootstrap";
-import { purchaseOrderApi, vendorApi } from "../../services/api"; // Import purchaseOrderApi and vendorApi
+import { purchaseOrderApi, vendorApi } from "../../services/api";
 import { PurchaseOrderResponse, PurchaseOrderStatus } from "../../types/PurchaseOrder";
-import { VendorResponse } from "../../types/Vendor"; // Import VendorResponse for filter dropdown
+import { VendorResponse } from "../../types/Vendor";
 import { toast } from 'react-toastify';
-import PurchaseOrderTable from "./PurchaseOrderTable"; // Import the PurchaseOrderTable
-import DatePicker from 'react-datepicker'; 
+import PurchaseOrderTable from "./PurchaseOrderTable";
+import DatePicker from 'react-datepicker';
 
 const PurchaseOrderIndexPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -17,15 +17,12 @@ const PurchaseOrderIndexPage: React.FC = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [poToDelete, setPoToDelete] = useState<number | null>(null);
   const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(null);
-
-  // Filter states
   const [vendors, setVendors] = useState<VendorResponse[]>([]);
   const [filterVendorId, setFilterVendorId] = useState<number | ''>('');
   const [filterStatus, setFilterStatus] = useState<PurchaseOrderStatus | ''>('');
   const [filterStartDate, setFilterStartDate] = useState<Date | null>(null);
   const [filterEndDate, setFilterEndDate] = useState<Date | null>(null);
 
-  // Fetch vendors for filter dropdown
   useEffect(() => {
     const fetchVendors = async () => {
       try {
@@ -38,7 +35,6 @@ const PurchaseOrderIndexPage: React.FC = () => {
     fetchVendors();
   }, []);
 
-  // Effect to fetch purchase order list based on filters
   useEffect(() => {
     const fetchPurchaseOrderList = async () => {
       setLoading(true);
@@ -61,7 +57,7 @@ const PurchaseOrderIndexPage: React.FC = () => {
       }
     };
     fetchPurchaseOrderList();
-  }, [filterVendorId, filterStatus, filterStartDate, filterEndDate]); // Re-fetch when filters change
+  }, [filterVendorId, filterStatus, filterStartDate, filterEndDate]);
 
   const handleDelete = useCallback((id: number) => {
     setPoToDelete(id);
@@ -80,9 +76,9 @@ const PurchaseOrderIndexPage: React.FC = () => {
         setDeleteErrorMessage(message);
         toast.error(message);
       } finally {
-        if (!deleteErrorMessage) { // Only close modal if no specific error message is displayed
-            setPoToDelete(null);
-            setShowDeleteModal(false);
+        if (!deleteErrorMessage) {
+          setPoToDelete(null);
+          setShowDeleteModal(false);
         }
       }
     }
@@ -103,7 +99,6 @@ const PurchaseOrderIndexPage: React.FC = () => {
         buttonLink="/purchase-orders/create"
       />
       <div className="container mt-4">
-        {/* Filter Section */}
         <div className="card shadow-sm mb-4 p-3">
           <h5 className="mb-3">Filter Purchase Orders</h5>
           <div className="row g-3">
@@ -136,26 +131,26 @@ const PurchaseOrderIndexPage: React.FC = () => {
               </select>
             </div>
             <div className="col-md-4">
-                <label htmlFor="startDateFilter" className="form-label">Start Date:</label>
-                <DatePicker
-                    selected={filterStartDate}
-                    onChange={(date: Date | null) => setFilterStartDate(date)}
-                    dateFormat="yyyy-MM-dd"
-                    className="form-control"
-                    placeholderText="Select start date"
-                    isClearable
-                />
+              <label htmlFor="startDateFilter" className="form-label">Start Date:</label>
+              <DatePicker
+                selected={filterStartDate}
+                onChange={(date: Date | null) => setFilterStartDate(date)}
+                dateFormat="yyyy-MM-dd"
+                className="form-control"
+                placeholderText="Select start date"
+                isClearable
+              />
             </div>
             <div className="col-md-4">
-                <label htmlFor="endDateFilter" className="form-label">End Date:</label>
-                <DatePicker
-                    selected={filterEndDate}
-                    onChange={(date: Date | null) => setFilterEndDate(date)}
-                    dateFormat="yyyy-MM-dd"
-                    className="form-control"
-                    placeholderText="Select end date"
-                    isClearable
-                />
+              <label htmlFor="endDateFilter" className="form-label">End Date:</label>
+              <DatePicker
+                selected={filterEndDate}
+                onChange={(date: Date | null) => setFilterEndDate(date)}
+                dateFormat="yyyy-MM-dd"
+                className="form-control"
+                placeholderText="Select end date"
+                isClearable
+              />
             </div>
           </div>
         </div>
@@ -165,6 +160,7 @@ const PurchaseOrderIndexPage: React.FC = () => {
           loading={loading}
           error={error}
           onDelete={handleDelete}
+          vendors={vendors} // Pass vendors to PurchaseOrderTable
         />
         <Modal show={showDeleteModal} onHide={cancelDelete}>
           <Modal.Header closeButton>
