@@ -9,8 +9,10 @@ import { VendorResponse } from "../../types/Vendor";
 import { toast } from 'react-toastify';
 import PurchaseOrderTable from "./PurchaseOrderTable";
 import DatePicker from 'react-datepicker';
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 const PurchaseOrderIndexPage: React.FC = () => {
+  const navigate = useNavigate(); // Initialize useNavigate
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrderResponse[]>([]);
@@ -64,6 +66,10 @@ const PurchaseOrderIndexPage: React.FC = () => {
     setDeleteErrorMessage(null);
     setShowDeleteModal(true);
   }, []);
+
+  const handleAddPayment = useCallback((id: number) => {
+    navigate(`/purchase-orders/${id}/add-payment`);
+  }, [navigate]);
 
   const confirmDelete = async () => {
     if (poToDelete !== null) {
@@ -161,6 +167,7 @@ const PurchaseOrderIndexPage: React.FC = () => {
           error={error}
           onDelete={handleDelete}
           vendors={vendors} // Pass vendors to PurchaseOrderTable
+          onAddPayment={handleAddPayment} // Pass the new handler
         />
         <Modal show={showDeleteModal} onHide={cancelDelete}>
           <Modal.Header closeButton>

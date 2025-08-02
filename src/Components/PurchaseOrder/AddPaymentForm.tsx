@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
 import { purchaseOrderApi } from '../../services/api';
-import { PaymentCreate, PurchaseOrderResponse, PaymentResponse, PurchaseOrderStatus } from '../../types/PurchaseOrder';
+import { PaymentCreate, PurchaseOrderResponse } from '../../types/PurchaseOrder';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { format } from 'date-fns';
@@ -96,7 +96,7 @@ const AddPaymentForm: React.FC = () => {
     };
 
     try {
-      await purchaseOrderApi.addPaymentToPurchaseOrder(Number(po_id), newPayment);
+      await purchaseOrderApi.addPaymentToPurchaseOrder(newPayment);
       toast.success('Payment added successfully!');
       navigate(`/purchase-orders/${po_id}/details`); // Go back to PO details page
     } catch (error: any) {

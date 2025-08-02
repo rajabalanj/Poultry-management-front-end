@@ -117,10 +117,10 @@ const PurchaseOrderDetails: React.FC = () => {
                 <strong>Payment Status:</strong> <span className={`badge ${getStatusBadgeClass(purchaseOrder.payment_status)}`}>{purchaseOrder.payment_status}</span>
               </div>
               <div className="col-md-6">
-                <strong>Total Amount:</strong> Rs. {(purchaseOrder.total_amount || 0).toFixed(2)}
+                <strong>Total Amount:</strong> Rs. {(Number(purchaseOrder.total_amount) || 0).toFixed(2)}
               </div>
               <div className="col-md-6">
-                <strong>Amount Paid:</strong> Rs. {(purchaseOrder.amount_paid || 0).toFixed(2)}
+                <strong>Amount Paid:</strong> Rs. {(Number(purchaseOrder.amount_paid) || 0).toFixed(2)}
               </div>
               <div className="col-12">
                 <strong>Notes:</strong> {purchaseOrder.notes || 'N/A'}
@@ -163,15 +163,15 @@ const PurchaseOrderDetails: React.FC = () => {
                         <td>{getItemName(item.inventory_item_id)}</td> {/* Use getItemName */}
                         <td>{item.quantity}</td>
                         <td>{getItemUnit(item.inventory_item_id)}</td> {/* Use getItemUnit */}
-                        <td>{(item.price_per_unit || 0).toFixed(2)}</td>
-                        <td>{(item.line_total || 0).toFixed(2)}</td>
+                        <td>{(Number(item.price_per_unit) || 0).toFixed(2)}</td>
+                        <td>{(Number(item.line_total) || 0).toFixed(2)}</td>
                       </tr>
                     ))}
                   </tbody>
                   <tfoot>
                     <tr>
                       <td colSpan={5} className="text-end fw-bold">Total PO Value:</td>
-                      <td className="fw-bold">Rs. {(purchaseOrder.total_amount || 0).toFixed(2)}</td>
+                      <td className="fw-bold">Rs. {(Number(purchaseOrder.total_amount) || 0).toFixed(2)}</td>
                     </tr>
                   </tfoot>
                 </table>
@@ -204,7 +204,7 @@ const PurchaseOrderDetails: React.FC = () => {
                     {purchaseOrder.payments.map((payment, index) => (
                       <tr key={payment.id || index}>
                         <td>{index + 1}</td>
-                        <td>{(payment.amount_paid || 0).toFixed(2)}</td>
+                        <td>{(Number(payment.amount_paid) || 0).toFixed(2)}</td>
                         <td>{format(new Date(payment.payment_date), 'MMM dd, yyyy')}</td>
                         <td>{payment.payment_mode || 'N/A'}</td>
                         <td>{payment.reference_number || 'N/A'}</td>
@@ -214,7 +214,7 @@ const PurchaseOrderDetails: React.FC = () => {
                   <tfoot>
                     <tr>
                       <td colSpan={1} className="text-end fw-bold">Total Paid:</td>
-                      <td className="fw-bold">Rs. {(purchaseOrder.amount_paid || 0).toFixed(2)}</td>
+                      <td className="fw-bold">Rs. {(Number(purchaseOrder.amount_paid) || 0).toFixed(2)}</td>
                       <td colSpan={3}></td>
                     </tr>
                   </tfoot>

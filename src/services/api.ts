@@ -802,14 +802,14 @@ export const purchaseOrderApi = {
     }
   },
 
-  addPaymentToPurchaseOrder: async (po_id: number, payment: PaymentCreate): Promise<PaymentResponse> => {
+  addPaymentToPurchaseOrder: async (payment: PaymentCreate): Promise<PaymentResponse> => {
     try {
-      const response = await api.post<PaymentResponse>(`/purchase-orders/${po_id}/payments`, payment, {
+      const response = await api.post<PaymentResponse>(`/payments`, payment, {
         headers: { 'X-User-ID': currentUserId },
       });
       return response.data;
     } catch (error) {
-      throw new Error(getApiErrorMessage(error, `Failed to add payment to PO ${po_id}`));
+      throw new Error(getApiErrorMessage(error, 'Failed to add payment to PO'));
     }
   },
 };

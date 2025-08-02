@@ -10,6 +10,7 @@ interface PurchaseOrderCardProps {
   onView: (id: number) => void;
   onEdit: (id: number) => void;
   onDelete: (id: number) => void;
+  onAddPayment: (id: number) => void;
 }
 
 const getStatusBadgeClass = (status: PurchaseOrderStatus | PaymentStatus) => {
@@ -33,7 +34,7 @@ const getStatusBadgeClass = (status: PurchaseOrderStatus | PaymentStatus) => {
 };
 
 const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = React.memo(
-  ({ po, vendors, onView, onEdit, onDelete }) => {
+  ({ po, vendors, onView, onEdit, onDelete, onAddPayment }) => {
     const formattedExpectedDeliveryDate = po.expected_delivery_date
       ? format(new Date(po.expected_delivery_date), 'MMM dd, yyyy')
       : 'N/A';
@@ -83,6 +84,15 @@ const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = React.memo(
               >
                 <i className="bi bi-trash me-1"></i>
                 <span className="text-sm">Delete</span>
+              </button>
+              <button
+                className="btn btn-primary btn-sm d-flex align-items-center justify-content-center"
+                onClick={() => onAddPayment(po.id)}
+                title="Add Payment"
+                aria-label={`Add Payment for PO ${po.po_number}`}
+              >
+                <i className="bi bi-wallet-fill me-1"></i>
+                <span className="text-sm">Add Payment</span>
               </button>
             </div>
           </div>

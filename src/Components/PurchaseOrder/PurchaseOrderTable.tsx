@@ -11,9 +11,10 @@ interface PurchaseOrderTableProps {
   error: string | null;
   onDelete: (id: number) => void;
   vendors: VendorResponse[]; // Add vendors prop
+  onAddPayment: (id: number) => void;
 }
 
-const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders, loading, error, onDelete, vendors }) => {
+const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders, loading, error, onDelete, vendors, onAddPayment }) => {
   const navigate = useNavigate();
 
   const handleViewDetails = useCallback(
@@ -47,9 +48,10 @@ const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders,
         onView={handleViewDetails}
         onEdit={handleEdit}
         onDelete={onDelete}
+        onAddPayment={onAddPayment}
       />
     ));
-  }, [purchaseOrders, vendors, handleViewDetails, handleEdit, onDelete]); // Add vendors to dependencies
+  }, [purchaseOrders, vendors, handleViewDetails, handleEdit, onDelete, onAddPayment]); // Add vendors to dependencies
 
   if (loading) return <div className="text-center">Loading purchase orders...</div>;
   if (error) return <div className="text-center text-danger">{error}</div>;
