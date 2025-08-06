@@ -7,7 +7,7 @@ import PageHeader from "./Components/Layout/PageHeader";
 import AddBatch from "./Components/Forms/Create/AddBatch";
 import BatchDetails from "./Components/Forms/Read/BatchDetails";
 import EditBatch from "./Components/Forms/Update/EditBatch";
-import Dashboard from "./Components/Dashboard";
+import DashboardIndex from "./Components/Dashboard";
 import FeedMillStock from "./Components/FeedMillStock";
 import CreateFeedForm from './Components/Forms/Create/CreateFeedForm';
 import FeedListPage from './Components/FeedIndex';
@@ -41,6 +41,8 @@ import CreatePurchaseOrderForm from './Components/PurchaseOrder/CreatePurchaseOr
 import PurchaseOrderDetails from './Components/PurchaseOrder/PurchaseOrderDetails';
 import EditPurchaseOrder from './Components/PurchaseOrder/EditPurchaseOrder';
 import AddPaymentForm from './Components/PurchaseOrder/AddPaymentForm';
+import Dashboard from './Components/Dashboard/Dashboard';
+
 
 
 const App: React.FC = () => {
@@ -51,9 +53,15 @@ const App: React.FC = () => {
             <Route
               path="/"
               element={
+                  <Dashboard />
+              }
+            />
+            <Route
+              path="/production"
+              element={
                 <>
                   <PageHeader title="Batch Management" />
-                  <Dashboard />
+                  <DashboardIndex />
                 </>
               }
             />

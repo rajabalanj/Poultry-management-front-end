@@ -9,7 +9,7 @@ import { DateSelector } from '../DateSelector'; // Your component
 
 const BATCH_DATE_KEY = 'dashboard_batch_date';
 
-const Dashboard = () => {
+const DashboardIndex = () => {
   const navigate = useNavigate();
   const [startDate, setStartDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState<string>(new Date().toISOString().split('T')[0]);
@@ -160,4 +160,4 @@ const avgHD = layerBatches.length > 0 ? Number(((layerBatches.reduce((sum, b) =>
   );
 };
 
-export default Dashboard;
+export default DashboardIndex;

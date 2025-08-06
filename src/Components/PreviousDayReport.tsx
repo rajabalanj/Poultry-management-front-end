@@ -130,7 +130,7 @@ const PreviousDayReport = () => {
 
   return (
     <>
-    <PageHeader title="Batch Overview" />
+    <PageHeader title="Batch Overview" buttonLabel='Back' buttonVariant='secondary' buttonLink='/production'/>
     <div className="container-fluid">
       {/* Error message */}
       {error && <div className="alert alert-danger text-center">{error}</div>}

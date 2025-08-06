@@ -62,7 +62,7 @@ const BatchDetails: React.FC = () => {
         title={formattedBatchDate}
         subtitle={`Batch Details - ${batch.batch_no}`}
         buttonLabel="Back"
-        buttonLink="/"
+        buttonLink="/production"
       />
     <div className="container-fluid">
       
@@ -152,7 +152,7 @@ const BatchDetails: React.FC = () => {
           <button type="button" className="btn btn-primary me-2" onClick={() => navigate(`/batch/${batch_id}/${batch_date}/edit`)}>
             Update
           </button>
-          <button type="button" className="btn btn-secondary me-2" onClick={() => navigate('/')}>Back to Dashboard</button>
+          <button type="button" className="btn btn-secondary me-2" onClick={() => navigate('/production')}>Back to Production</button>
         </div>
       </div>
       <div className="row mb-4">

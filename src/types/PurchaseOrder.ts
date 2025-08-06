@@ -5,8 +5,8 @@ import { VendorResponse } from './Vendor';
 export enum PurchaseOrderStatus {
   DRAFT = "Draft",
   APPROVED = "Approved",
-  PARTIALLY_RECEIVED = "Partially Received",
-  RECEIVED = "Received",
+  PARTIALLY_PAID = "Partially Paid",
+  PAID = "Paid",
   CANCELLED = "Cancelled",
 }
 

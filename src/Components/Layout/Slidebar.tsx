@@ -141,6 +141,15 @@ const Slidebar: React.FC = () => {
                   <ul className={`sub-menu ${openMenu === 'batch' ? 'open' : ''}`}>
                     <li className="sub-menu-item">
                       <Link
+                        to="/production"
+                        className={`nav-menu-link ${location.pathname === "/production" ? "active-link" : ""}`}
+                        onClick={closeSidebarMobile}
+                      >
+                        Production
+                      </Link>
+                    </li>
+                    <li className="sub-menu-item">
+                      <Link
                         to="/add-batch"
                         className={`nav-menu-link ${location.pathname === "/add-batch" ? "active-link" : ""}`}
                         onClick={closeSidebarMobile}

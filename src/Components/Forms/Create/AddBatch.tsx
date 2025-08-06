@@ -48,7 +48,7 @@ const AddBatch: React.FC = () => {
 
       await batchApi.createBatch(batchData);
       toast.success('Batch added successfully!');
-      navigate('/');
+      navigate('/production'); // Redirect to production page
     } catch (error) {
       console.error('Error adding batch:', error);
       if (error instanceof Error) {
@@ -167,7 +167,7 @@ const AddBatch: React.FC = () => {
               <button
                 type="button"
                 className="btn btn-secondary ms-2"
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/production')} // Redirect to production page
               >
                 Cancel
               </button>

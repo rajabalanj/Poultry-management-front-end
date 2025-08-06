@@ -20,10 +20,10 @@ const getStatusBadgeClass = (status: PurchaseOrderStatus | PaymentStatus) => {
       return "bg-secondary";
     case PurchaseOrderStatus.APPROVED:
       return "bg-info";
-    case PurchaseOrderStatus.PARTIALLY_RECEIVED:
+    case PurchaseOrderStatus.PARTIALLY_PAID:
     case PaymentStatus.PARTIALLY_PAID:
       return "bg-warning";
-    case PurchaseOrderStatus.RECEIVED:
+    case PurchaseOrderStatus.PAID:
     case PaymentStatus.FULLY_PAID:
       return "bg-success";
     case PurchaseOrderStatus.CANCELLED:
@@ -53,7 +53,6 @@ const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = React.memo(
                 <p className="mb-0">Total Amount: Rs. {(po.total_amount || 0).toFixed(2)}</p>
                 <p className="mb-0">Amount Paid: Rs. {(po.amount_paid || 0).toFixed(2)}</p>
                 <p className="mb-0">Status: <span className={`badge ${getStatusBadgeClass(po.status)}`}>{po.status}</span></p>
-                <p className="mb-0">Payment Status: <span className={`badge ${getStatusBadgeClass(po.payment_status)}`}>{po.payment_status}</span></p>
                 <p className="mb-0">Expected Delivery: {formattedExpectedDeliveryDate}</p>
               </div>
             </div>

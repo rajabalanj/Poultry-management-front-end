@@ -16,10 +16,10 @@ const getStatusBadgeClass = (status: PurchaseOrderStatus | PaymentStatus) => {
       return "bg-secondary";
     case PurchaseOrderStatus.APPROVED:
       return "bg-info";
-    case PurchaseOrderStatus.PARTIALLY_RECEIVED:
+    case PurchaseOrderStatus.PARTIALLY_PAID:
     case PaymentStatus.PARTIALLY_PAID:
       return "bg-warning";
-    case PurchaseOrderStatus.RECEIVED:
+    case PurchaseOrderStatus.PAID:
     case PaymentStatus.FULLY_PAID:
       return "bg-success";
     case PurchaseOrderStatus.CANCELLED:
@@ -114,9 +114,6 @@ const PurchaseOrderDetails: React.FC = () => {
                 <strong>Status:</strong> <span className={`badge ${getStatusBadgeClass(purchaseOrder.status)}`}>{purchaseOrder.status}</span>
               </div>
               <div className="col-md-6">
-                <strong>Payment Status:</strong> <span className={`badge ${getStatusBadgeClass(purchaseOrder.payment_status)}`}>{purchaseOrder.payment_status}</span>
-              </div>
-              <div className="col-md-6">
                 <strong>Total Amount:</strong> Rs. {(Number(purchaseOrder.total_amount) || 0).toFixed(2)}
               </div>
               <div className="col-md-6">
@@ -185,7 +182,7 @@ const PurchaseOrderDetails: React.FC = () => {
         {/* Payments Section */}
         <div className="card shadow-sm mb-4">
           <div className="card-header bg-success text-white">
-            <h5 className="mb-0">Payments Received</h5>
+            <h5 className="mb-0">Payments</h5>
           </div>
           <div className="card-body p-0">
             {purchaseOrder.payments && purchaseOrder.payments.length > 0 ? (
