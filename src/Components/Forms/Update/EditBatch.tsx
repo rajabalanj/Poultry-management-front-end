@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { dailyBatchApi } from "../../../services/api";
+import { dailyBatchApi, compositionApi } from "../../../services/api";
 import { DailyBatch } from "../../../types/daily_batch";
 import { toast } from "react-toastify";
 import PageHeader from "../../Layout/PageHeader";
+import { CompositionResponse } from "../../../types/compositon";
 
 const EditBatch: React.FC = () => {
   const navigate = useNavigate();
@@ -12,6 +13,9 @@ const EditBatch: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [batch_type, setBatchType] = useState<string>(); // Default to 'layer'
+  const [compositions, setCompositions] = useState<CompositionResponse[]>([]);
+  const [selectedCompositionId, setSelectedCompositionId] = useState<number | null>(null);
+  const [timesToUse, setTimesToUse] = useState(1);
 
   useEffect(() => {
     const fetchBatch = async () => {
@@ -36,6 +40,12 @@ const EditBatch: React.FC = () => {
     fetchBatch();
   }, [batchId, batch_date]);
 
+  useEffect(() => {
+    compositionApi.getCompositions().then((comps) => {
+      setCompositions(comps);
+    });
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!batch || !batchId || !batch_date) return;
@@ -45,7 +55,7 @@ const EditBatch: React.FC = () => {
         culls: batch.culls,
         table_eggs: batch.table_eggs,
         jumbo: batch.jumbo,
-        cr:  batch.cr,
+        cr: batch.cr,
         notes: batch.notes || "",
         standard_hen_day_percentage: batch.standard_hen_day_percentage ?? 0,
       };
@@ -58,6 +68,33 @@ const EditBatch: React.FC = () => {
       toast.error("Failed to update batch");
     }
   };
+
+  const handleUseComposition = async () => {
+    if (!selectedCompositionId || !batch) {
+      toast.error("Please select a composition and ensure batch data is loaded.");
+      return;
+    }
+
+    const selectedComposition = compositions.find(c => c.id === selectedCompositionId);
+    if (!selectedComposition) {
+      toast.error("Selected composition not found.");
+      return;
+    }
+
+    const usedAt = new Date().toISOString().split('T')[0];
+    try {
+      await compositionApi.useComposition({
+        compositionId: selectedComposition.id,
+        times: timesToUse,
+        usedAt,
+        shedNo: batch.shed_no, // Pass batch.shed_no as shedNo
+      });
+      toast.success(`Used composition ${selectedComposition.name} ${timesToUse} time(s) for Batch ${batch?.batch_no}`);
+    } catch (err) {
+      toast.error("Failed to use composition");
+    }
+  };
+
 
   const handleNumberInput = (value: string, field: keyof DailyBatch) => {
     if (value === "") {
@@ -85,115 +122,167 @@ const EditBatch: React.FC = () => {
 
   return (
     <>
-    <PageHeader
+      <PageHeader
         title={new Intl.DateTimeFormat('en-GB').format(new Date(batch.batch_date)).replace(/\//g, '-')}
         subtitle={`Update Data ${batch.batch_no}`}
         buttonLabel="Back"
         buttonLink={`/production`}
       />
-    <div className="container-fluid">
-      <div className="p-4">
-        <form onSubmit={handleSubmit}>
-          <div className="row">
-            {batch_type === 'Layer' && (
-              <>
-                <h4 className="fw-semibold mb-3 border-bottom pb-1 text-primary">
-                  Eggs
-                </h4>
-                <div className="col-12 col-md-6">
-                  <div className="row g-3 mb-4">
-                    <div className="col-6">
-                      <label className="form-label">Table</label>
+      <div className="container-fluid">
+        <div className="p-4">
+          <form onSubmit={handleSubmit}>
+            <div className="row">
+              {batch_type === 'Layer' && (
+                <>
+                  <h4 className="fw-semibold mb-3 border-bottom pb-1 text-primary">
+                    Eggs
+                  </h4>
+                  <div className="col-12 col-md-6">
+                    <div className="row g-3 mb-4">
+                      <div className="col-6">
+                        <label className="form-label">Table</label>
+                        <input
+                          type="number"
+                          className="form-control"
+                          value={batch.table_eggs}
+                          min="0"
+                          onChange={(e) => handleNumberInput(e.target.value, "table_eggs")}
+                        />
+                      </div>
+                      <div className="col-6">
+                        <label className="form-label">Jumbo</label>
+                        <input
+                          type="number"
+                          className="form-control"
+                          value={batch.jumbo}
+                          min="0"
+                          onChange={(e) => handleNumberInput(e.target.value, "jumbo")}
+                        />
+                      </div>
+                    </div>
+                    <div className="mb-4">
+                      <label className="form-label">CR</label>
                       <input
                         type="number"
                         className="form-control"
-                        value={batch.table_eggs}
+                        value={batch.cr}
                         min="0"
-                        onChange={(e) => handleNumberInput(e.target.value, "table_eggs")}
+                        onChange={(e) => handleNumberInput(e.target.value, "cr")}
                       />
                     </div>
-                    <div className="col-6">
-                      <label className="form-label">Jumbo</label>
-                      <input
-                        type="number"
-                        className="form-control"
-                        value={batch.jumbo}
-                        min="0"
-                        onChange={(e) => handleNumberInput(e.target.value, "jumbo")}
-                      />
+                    <div className="bg-light p-4 rounded mb-4">
+                      <div className="d-flex justify-content-between align-items-center">
+                        <h5 className="mb-0">Total Eggs</h5>
+                        <span className="h4 text-primary mb-0">{totalEggs}</span>
+                      </div>
                     </div>
                   </div>
-                  <div className="mb-4">
-                    <label className="form-label">CR</label>
-                    <input
-                      type="number"
-                      className="form-control"
-                      value={batch.cr}
-                      min="0"
-                      onChange={(e) => handleNumberInput(e.target.value, "cr")}
-                    />
-                  </div>
-                  <div className="bg-light p-4 rounded mb-4">
-                    <div className="d-flex justify-content-between align-items-center">
-                      <h5 className="mb-0">Total Eggs</h5>
-                      <span className="h4 text-primary mb-0">{totalEggs}</span>
-                    </div>
-                  </div>
+                </>
+              )}
+              <h4 className="fw-semibold mb-3 border-bottom pb-1 text-primary">
+                Birds
+              </h4>
+              <div className="col-12 col-md-6">
+                <div className="mb-4">
+                  <label className="form-label">Mortality</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={batch.mortality}
+                    min="0"
+                    onChange={(e) => handleNumberInput(e.target.value, "mortality")}
+                  />
                 </div>
-              </>
-            )}
+                <div className="mb-4">
+                  <label className="form-label">Culls</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={batch.culls}
+                    min="0"
+                    onChange={(e) => handleNumberInput(e.target.value, "culls")}
+                  />
+                </div>
+              </div>
+              <div className="mb-4">
+                <label className="form-label">Notes</label>
+                <textarea
+                  className="form-control"
+                  value={batch.notes}
+                  onChange={(e) => setBatch((prev) => (prev ? { ...prev, notes: e.target.value } : null))}
+                />
+              </div>
+
+            </div>
+            <div className="mt-4 d-flex justify-content-center">
+              <button type="submit" className="btn btn-primary me-2">
+                Save Changes
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => navigate(-1)}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+
+          <div className="mt-4">
             <h4 className="fw-semibold mb-3 border-bottom pb-1 text-primary">
-              Birds
+              Use Composition
             </h4>
-            <div className="col-12 col-md-6">
-              <div className="mb-4">
-                <label className="form-label">Mortality</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  value={batch.mortality}
-                  min="0"
-                  onChange={(e) => handleNumberInput(e.target.value, "mortality")}
-                />
+            <div className="card p-3 mt-3">
+              <h5>Use Composition</h5>
+              <div className="mb-3">
+                <label htmlFor="compositionSelect" className="form-label">Select Composition:</label>
+                <select
+                  id="compositionSelect"
+                  className="form-select form-select-sm"
+                  value={selectedCompositionId || ""}
+                  onChange={(e) => setSelectedCompositionId(Number(e.target.value))}
+                >
+                  <option value="">Select a Composition</option>
+                  {compositions.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
               </div>
-              <div className="mb-4">
-                <label className="form-label">Culls</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  value={batch.culls}
-                  min="0"
-                  onChange={(e) => handleNumberInput(e.target.value, "culls")}
-                />
+
+              <div className="d-flex align-items-center gap-2 mb-2">
+                <span>Times:</span>
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={() => setTimesToUse((prev) => Math.max(1, prev - 1))}
+                >
+                  -
+                </button>
+                <span>{timesToUse}</span>
+                <button
+                  className="btn btn-success btn-sm"
+                  onClick={() => setTimesToUse((prev) => prev + 1)}
+                >
+                  +
+                </button>
+              </div>
+
+              <div className="d-flex gap-2">
+                <button
+                  className="btn btn-primary btn-sm"
+                  onClick={handleUseComposition}
+                >
+                  Confirm
+                </button>
               </div>
             </div>
-            <div className="mb-4">
-              <label className="form-label">Notes</label>
-              <textarea
-                className="form-control"
-                value={batch.notes}
-                onChange={(e) => setBatch((prev) => (prev ? { ...prev, notes: e.target.value } : null))}
-              />
-            </div>
-            
           </div>
-          <div className="mt-4 d-flex justify-content-center">
-            <button type="submit" className="btn btn-primary me-2">
-              Save Changes
-            </button>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => navigate(-1)}
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
+        </div>
       </div>
-    </div>
     </>
   );
 };
 
 export default EditBatch;
+

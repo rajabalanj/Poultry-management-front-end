@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import PageHeader from '../../Layout/PageHeader';
 import HeaderCardGroup from '../../Dashboard/HeaderCardGroup';
 import GraphsSection from '../../Dashboard/GraphsSection';
-
+import { DateSelector } from '../../DateSelector';
 
 const BatchDetails: React.FC = () => {
   const navigate = useNavigate();
@@ -65,13 +65,47 @@ const BatchDetails: React.FC = () => {
         buttonLink="/production"
       />
     <div className="container-fluid">
-      
+      <div className="col-12 mb-4">
+        <div className="card shadow-sm">
+          <div className="card-body">
+            <h5 className="card-title">Report</h5>
+            <div className="row g-3 align-items-end">
+              <div className="col-12 col-md-4">
+                <DateSelector
+                  label="Start Date"
+                  value={startDate}
+                  onChange={setStartDate}
+                  maxDate={endDate}
+                />
+              </div>
+              <div className="col-12 col-md-4">
+                <DateSelector
+                  label="End Date"
+                  value={endDate}
+                  onChange={setEndDate}
+                  minDate={startDate}
+                  maxDate={new Date().toISOString().split('T')[0]}
+                />
+              </div>
+              <div className="col-12 col-md-4">
+                <button
+                  className="btn btn-info w-100 mb-2"
+                  onClick={handleDownloadReport}
+                >
+                  View Data
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       
       <HeaderCardGroup
         cards={[
           {
             title: 'Total Birds',
             mainValue: batch.closing_count,
+            iconColor: "icon-color-birds",
             subValues: [
               { label: 'Opening', value: batch.opening_count },
               { label: 'Mortality', value: batch.mortality },
@@ -82,6 +116,7 @@ const BatchDetails: React.FC = () => {
           {
             title: 'Total Feed',
             mainValue: totalEggs,
+            iconColor: "icon-color-feed",
             subValues: [
               { label: 'Chick Feed', value: 620 }, // Placeholder value
               { label: 'Layer Feed', value: 470 }, // Placeholder value
@@ -92,6 +127,7 @@ const BatchDetails: React.FC = () => {
           {
             title: 'Total Eggs',
             mainValue: totalEggs,
+            iconColor: "icon-color-eggs",
             subValues: [
               { label: 'Normal', value: batch.table_eggs || 0 },
               { label: 'Jumbo', value: batch.jumbo || 0 },
@@ -155,34 +191,7 @@ const BatchDetails: React.FC = () => {
           <button type="button" className="btn btn-secondary me-2" onClick={() => navigate('/production')}>Back to Production</button>
         </div>
       </div>
-      <div className="row mb-4">
-        <div className="col-12 col-md-3 mb-2">
-          <label className="form-label">Start Date</label>
-          <input
-            type="date"
-            className="form-control"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          />
-        </div>
-        <div className="col-12 col-md-3 mb-2">
-          <label className="form-label">End Date</label>
-          <input
-            type="date"
-            className="form-control"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          />
-        </div>
-        <div className="col-12 col-md-3 mb-2 mt-4">
-          <button 
-            className="btn btn-info w-100 mt-2"
-            onClick={handleDownloadReport}
-            >
-            View Data
-          </button>
-        </div>
-      </div>
+      
     </div>
     </>
   );

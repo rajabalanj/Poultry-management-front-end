@@ -1,10 +1,11 @@
 import React from 'react';
 import HeaderCard from './HeaderCard';
 
-interface HeaderCardData {
+export interface HeaderCardData {
   title: string;
   mainValue: number;
   icon: string;
+  iconColor?: string;
   subValues?: { label: string; value: number }[];
 }
 

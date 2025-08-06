@@ -20,6 +20,8 @@ const DashboardIndex = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dateRangeError, setDateRangeError] = useState<string | null>(null); // State for validation error
+  const [shedNos, setShedNos] = useState<string[]>([]);
+  const [selectedShedNo, setSelectedShedNo] = useState<string>("");
 
   const handleDownloadReport = () => {
     const start = new Date(startDate);
@@ -40,6 +42,8 @@ const DashboardIndex = () => {
       try {
         const data = await dailyBatchApi.getDailyBatches(batchDate);
         setBatches(Array.isArray(data) ? data : []);
+        const uniqueShedNos = Array.from(new Set(data.map(b => b.shed_no)));
+        setShedNos(uniqueShedNos);
       } catch (err) {
         console.error('Error fetching batches:', err);
         setError('Failed to load batches');
@@ -55,13 +59,17 @@ const DashboardIndex = () => {
     localStorage.setItem(BATCH_DATE_KEY, batchDate);
   }, [batchDate]);
 
-  const totalBirds = batches.reduce((sum, b) => sum + (b.closing_count || 0), 0);
-  const totalEggs = batches.reduce((sum, b) => sum + ((b.table_eggs || 0) + (b.jumbo || 0) + (b.cr || 0)), 0);
-  const openingCount = batches.reduce((sum, b) => sum + (b.opening_count || 0), 0);
-  const mortality = batches.reduce((sum, b) => sum + (b.mortality || 0), 0);
-  const culls = batches.reduce((sum, b) => sum + (b.culls || 0), 0);
-  const layerBatches = batches.filter(b => b.batch_type === 'Layer');
-const avgHD = layerBatches.length > 0 ? Number(((layerBatches.reduce((sum, b) => sum + (b.hd || 0), 0) / layerBatches.length) * 100).toFixed(2)) : 0;
+  const filteredBatches = selectedShedNo
+    ? batches.filter(b => b.shed_no === selectedShedNo)
+    : batches;
+
+  const totalBirds = filteredBatches.reduce((sum, b) => sum + (b.closing_count || 0), 0);
+  const totalEggs = filteredBatches.reduce((sum, b) => sum + ((b.table_eggs || 0) + (b.jumbo || 0) + (b.cr || 0)), 0);
+  const openingCount = filteredBatches.reduce((sum, b) => sum + (b.opening_count || 0), 0);
+  const mortality = filteredBatches.reduce((sum, b) => sum + (b.mortality || 0), 0);
+  const culls = filteredBatches.reduce((sum, b) => sum + (b.culls || 0), 0);
+  const layerBatches = filteredBatches.filter(b => b.batch_type === 'Layer');
+  const avgHD = layerBatches.length > 0 ? Number(((layerBatches.reduce((sum, b) => sum + (b.hd || 0), 0) / layerBatches.length) * 100).toFixed(2)) : 0;
   const cards = [
     {
       title: "Total Birds",
@@ -91,69 +99,109 @@ const avgHD = layerBatches.length > 0 ? Number(((layerBatches.reduce((sum, b) =>
       icon: "bi bi-egg",
       iconColor: "icon-color-eggs",
       subValues: [
-        { label: "Normal", value: batches.reduce((sum, b) => sum + (b.table_eggs || 0), 0) },
-        { label: "Jumbo", value: batches.reduce((sum, b) => sum + (b.jumbo || 0), 0) },
-        { label: "Crack", value: batches.reduce((sum, b) => sum + (b.cr || 0), 0) }
+        { label: "Normal", value: filteredBatches.reduce((sum, b) => sum + (b.table_eggs || 0), 0) },
+        { label: "Jumbo", value: filteredBatches.reduce((sum, b) => sum + (b.jumbo || 0), 0) },
+        { label: "Crack", value: filteredBatches.reduce((sum, b) => sum + (b.cr || 0), 0) }
       ]
     },
   ];
 
   return (
     <div className="container-fluid">
-      {/* Date picker for batch_date */}
-      <div className="row mb-4">
-        <div className="col-12 col-md-3 mb-2">
-          <DateSelector
-            value={batchDate}
-            maxDate={new Date().toISOString().split('T')[0]}
-            onChange={(value) => setBatchDate(value)}
-            label='Batch Date'
-          />
-        </div>
-      </div>
-      <HeaderCardGroup cards={cards} loading={loading} error={error} />
-      <GraphsSection henDayValue={avgHD} loading={loading} error={error} />
-      <div className="row mb-4">
-        <div className="col">
+      <div className="row g-3">
+        {/* Filters Section */}
+        <div className="col-12">
           <div className="card shadow-sm">
             <div className="card-body">
-              
-              <BatchTable batches={batches} loading={loading} error={error} />
+              <div className="row g-3 align-items-end">
+                <div className="col-12 col-md-4">
+                  <DateSelector
+                    value={batchDate}
+                    maxDate={new Date().toISOString().split('T')[0]}
+                    onChange={(value) => setBatchDate(value)}
+                    label='Batch Date'
+                  />
+                </div>
+                <div className="col-12 col-md-4">
+                  <label className="form-label">Shed Number</label>
+                  <select
+                    className="form-select"
+                    value={selectedShedNo}
+                    onChange={(e) => setSelectedShedNo(e.target.value)}
+                  >
+                    <option value="">All Sheds</option>
+                    {shedNos.map(shedNo => (
+                      <option key={shedNo} value={shedNo}>{shedNo}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      {/* Use DateSelector for Start and End Dates */}
-      <div className="row mb-4 align-items-end">
-        <div className="col-12 col-md-3 mb-2">
-          <DateSelector
-            label="Start Date"
-            value={startDate}
-            onChange={setStartDate}
-            maxDate={endDate} // Dynamically set maxDate for Start Date
-          />
+
+        {/* Header Cards */}
+        <div className="col-12">
+          <HeaderCardGroup cards={cards} loading={loading} error={error} />
         </div>
-        <div className="col-12 col-md-3 mb-2">
-          <DateSelector
-            label="End Date"
-            value={endDate}
-            onChange={setEndDate}
-            minDate={startDate} // You'd need to add minDate prop to DateSelector
-            maxDate={new Date().toISOString().split('T')[0]} // End Date can't be in the future
-          />
-        </div>
-        <div className="col-12 col-md-3 mb-3 mt-3">
-          <button
-            className="btn btn-info w-100 mt-2"
-            onClick={handleDownloadReport}
-          >
-            View Data
-          </button>
-          {dateRangeError && (
-            <div className="text-danger mt-2">
-              {dateRangeError}
+
+        {/* Graphs Section */}
+        <div className="col-12">
+          <div className="card shadow-sm">
+            <div className="card-body">
+              <GraphsSection henDayValue={avgHD} loading={loading} error={error} />
             </div>
-          )}
+          </div>
+        </div>
+
+        {/* Batch Table */}
+        <div className="col-12">
+          <div className="card shadow-sm">
+            <div className="card-body">
+              <BatchTable batches={filteredBatches} loading={loading} error={error} />
+            </div>
+          </div>
+        </div>
+
+        {/* Report Download Section */}
+        <div className="col-12">
+          <div className="card shadow-sm">
+            <div className="card-body">
+              <h5 className="card-title">Report</h5>
+              <div className="row g-3 align-items-end">
+                <div className="col-12 col-md-4">
+                  <DateSelector
+                    label="Start Date"
+                    value={startDate}
+                    onChange={setStartDate}
+                    maxDate={endDate}
+                  />
+                </div>
+                <div className="col-12 col-md-4">
+                  <DateSelector
+                    label="End Date"
+                    value={endDate}
+                    onChange={setEndDate}
+                    minDate={startDate}
+                    maxDate={new Date().toISOString().split('T')[0]}
+                  />
+                </div>
+                <div className="col-12 col-md-4">
+                  <button
+                    className="btn btn-info w-100 mb-2"
+                    onClick={handleDownloadReport}
+                  >
+                    View Data
+                  </button>
+                  {dateRangeError && (
+                    <div className="text-danger mt-2">
+                      {dateRangeError}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

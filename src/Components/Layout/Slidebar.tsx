@@ -127,6 +127,8 @@ const Slidebar: React.FC = () => {
                     Dashboard
                   </Link>
                 </li>
+                
+                
 
                 {/* Batch Management - Expandable Item */}
                 <li className="nav-menu-item">
@@ -169,8 +171,22 @@ const Slidebar: React.FC = () => {
                   </ul>
                 </li>
 
+                <li className="nav-menu-item fw-bold">
+                      <Link
+                        to="/egg-room-stock"
+                        className={`nav-menu-link ${location.pathname === "/egg-room-stock" ? "active-link" : ""}`}
+                        onClick={closeSidebarMobile}
+                      >
+                        <i className="bi bi-egg me-2 icon-color-sidebar"></i>
+                        Egg Room Stock
+                      </Link>
+                    </li>
+
+                
+
+
                 {/* Egg Room Management - Expandable Item */}
-                <li className="nav-menu-item">
+                {/* <li className="nav-menu-item">
                   <div
                     className={`nav-menu-link fw-bold expandable ${openMenu === 'egg' ? 'active' : ''}`}
                     onClick={() => toggleMenu('egg')}
@@ -199,7 +215,7 @@ const Slidebar: React.FC = () => {
                       </Link>
                     </li>
                   </ul>
-                </li>
+                </li> */}
 
                 {/* Feed Management - Expandable Item */}
                 <li className="nav-menu-item">
