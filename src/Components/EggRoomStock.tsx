@@ -100,6 +100,8 @@ const EggRoomStock: React.FC = () => {
   const tableRef = useRef<HTMLTableElement>(null);
   const [isSharing, setIsSharing] = useState(false);
 
+  const [activeTab, setActiveTab] = useState<string>('table');
+
   const handleFormChange = (field: keyof EggRoomStockEntry, value: number | string) => {
     handleChange(field, value);
 
@@ -288,35 +290,25 @@ const EggRoomStock: React.FC = () => {
 
       {reports.length > 0 && (
         <div className="table-responsive">
+          <ul className="nav nav-tabs">
+            {sectionConfigs.map((config) => (
+              <li className="nav-item" key={config.id}>
+                <button
+                  className={`nav-link ${activeTab === config.id ? 'active' : ''}`}
+                  onClick={() => setActiveTab(config.id)}
+                >
+                  {config.title}
+                </button>
+              </li>
+            ))}
+          </ul>
           <table className="table table-bordered" ref={tableRef}>
             <thead>
               <tr>
-                <th rowSpan={2} className="text-center align-middle">Date</th>
-                <th colSpan={6} className="text-center">Table</th>
-                <th colSpan={6} className="text-center">Jumbo</th>
-                <th colSpan={7} className="text-center">Grade C</th>
-              </tr>
-              <tr>
-                <th className="text-center">Opening</th>
-                <th className="text-center">Received</th>
-                <th className="text-center">Transfer</th>
-                <th className="text-center">Damage</th>
-                <th className="text-center">Out</th>
-                <th className="text-center">In</th>
-                <th className="text-center">Closing</th>
-                <th className="text-center">Opening</th>
-                <th className="text-center">Received</th>
-                <th className="text-center">Transfer</th>
-                <th className="text-center">Waste</th>
-                <th className="text-center">In</th>
-                <th className="text-center">Out</th>
-                <th className="text-center">Closing</th>
-                <th className="text-center">Opening</th>
-                <th className="text-center">Shed Received</th>
-                <th className="text-center">Room Received</th>
-                <th className="text-center">Transfer</th>
-                <th className="text-center">Labour</th>
-                <th className="text-center">Waste</th>
+                <th className="text-center align-middle">Date</th>
+                {sectionConfigs.find(c => c.id === activeTab)?.fields.map(field => (
+                  <th key={field.key} className="text-center">{field.label}</th>
+                ))}
                 <th className="text-center">Closing</th>
               </tr>
             </thead>
@@ -324,27 +316,15 @@ const EggRoomStock: React.FC = () => {
               {reports.map((r) => (
                 <tr key={r.report_date}>
                   <td>{r.report_date}</td>
-                  <td>{r.table_opening}</td>
-                  <td>{r.table_received}</td>
-                  <td>{r.table_transfer}</td>
-                  <td>{r.table_damage}</td>
-                  <td>{r.table_out}</td>
-                  <td>{r.table_in}</td>
-                  <td>{r.table_closing}</td>
-                  <td>{r.jumbo_opening}</td>
-                  <td>{r.jumbo_received}</td>
-                  <td>{r.jumbo_transfer}</td>
-                  <td>{r.jumbo_waste}</td>
-                  <td>{r.jumbo_in}</td>
-                  <td>{r.jumbo_out}</td>
-                  <td>{r.jumbo_closing}</td>
-                  <td>{r.grade_c_opening}</td>
-                  <td>{r.grade_c_shed_received}</td>
-                  <td>{r.grade_c_room_received}</td>
-                  <td>{r.grade_c_transfer}</td>
-                  <td>{r.grade_c_labour}</td>
-                  <td>{r.grade_c_waste}</td>
-                  <td>{r.grade_c_closing}</td>
+                  {sectionConfigs.find(c => c.id === activeTab)?.fields.map(field => {
+                    const value = r[field.key];
+                    return (
+                      <td key={field.key}>
+                        {typeof value === 'number' ? value : String(value ?? '')}
+                      </td>
+                    );
+                  })}
+                  <td>{r[closingFields[activeTab]]}</td>
                 </tr>
               ))}
             </tbody>
