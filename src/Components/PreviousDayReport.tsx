@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { flushSync } from 'react-dom';
+import { flushSync } from 'react-dom'; // Import flushSync
 import { useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from './Layout/PageHeader';
@@ -7,6 +7,7 @@ import { GridRow } from '../types/GridRow';
 import { fetchBatchData, exportBatchDataToExcel } from '../utility/api-utils';
 import { configApi } from '../services/api';
 import * as htmlToImage from 'html-to-image';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 const PreviousDayReport = () => {
   const { batchId } = useParams<{ batchId?: string }>();
@@ -19,6 +20,7 @@ const PreviousDayReport = () => {
   const rowsPerPage = 10;
   const [error, setError] = useState<string | null>(null);
   const [isSharing, setIsSharing] = useState(false);
+  const navigate = useNavigate(); // Initialize useNavigate
   const tableRef = useRef<HTMLTableElement>(null);
 
   const validGridData = gridData.filter(row => row && Object.keys(row).length > 0);
@@ -128,6 +130,12 @@ const PreviousDayReport = () => {
     }
   };
 
+  const handleEdit = (batchId: number, batchDate: string) => {
+    const [day, month, year] = batchDate.split('-');
+    const formattedDate = `${year}-${month}-${day}`;
+    navigate(`/batch/${batchId}/${formattedDate}/edit`);
+  };
+
   return (
     <>
     <PageHeader title="Batch Overview" buttonLabel='Back' buttonVariant='secondary' buttonLink='/production'/>
@@ -228,6 +236,12 @@ const PreviousDayReport = () => {
                         {row.hd !== undefined ? Number(row.hd).toFixed(5) : ''}
                       </td>
                       <td>{row.standard_hen_day_percentage !== undefined ? row.standard_hen_day_percentage.toFixed(2) : ''}</td>
+                      <td>
+                        <button
+                          className="btn btn-sm btn-warning"
+                          onClick={() => handleEdit(row.batch_id, row.batch_date)}
+                        >Edit</button>
+                      </td>
                     </tr>
                   );
                 })}

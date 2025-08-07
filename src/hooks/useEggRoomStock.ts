@@ -108,6 +108,18 @@ export const useEggRoomStock = () => {
       setForm(fromApiEntry(response));
       setEditing(true);
     } catch (err) {
+      // Type guard for Axios error
+      const isAxiosError = typeof err === 'object' && err !== null && 'response' in err;
+      const detail = isAxiosError ? (err as any).response?.data?.detail : undefined;
+      if (typeof detail === 'string' && detail.includes('cannot be before the system start date')) {
+        // Specific error handling for dates before system start date
+        console.warn("Selected date is before system start date:", detail);
+        setError("The selected date is before the Egg Room Start Date. Please select a valid date.");
+        setForm(defaultEntry(selectedDate)); // Reset form to default
+        setEditing(false);
+        return; // Exit the function early to prevent further processing
+      }
+
       console.error("Error fetching report:", err);
       // If fetching fails (e.g., 404), set form to default values for the selectedDate
       setForm(defaultEntry(selectedDate)); // Use the current selectedDate for default
@@ -120,6 +132,7 @@ export const useEggRoomStock = () => {
   
   fetchData();
 }, [selectedDate]); // Dependency array: re-run when selectedDate changes.
+
 
   const handleChange = useCallback((field: keyof EggRoomStockEntry, value: number | string) => {
     setForm(prev => ({

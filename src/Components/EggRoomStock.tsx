@@ -35,7 +35,7 @@ const sectionConfigs: Array<{
       { key: 'table_received', label: 'Received' },
       { key: 'table_transfer', label: 'Transfer' },
       { key: 'table_damage', label: 'Damage' },
-      { key: 'table_out', label: 'Out (Move to Jumbo)' },
+      { key: 'table_out', label: 'Out (To Jumbo)' },
       { key: 'table_in', label: 'In (From Jumbo)', disabled: true, controlledBy: 'jumbo_out' },
     ],
   },
@@ -50,7 +50,7 @@ const sectionConfigs: Array<{
       { key: 'jumbo_transfer', label: 'Transfer' },
       { key: 'jumbo_waste', label: 'Waste' },
       { key: 'jumbo_in', label: 'In (From Table)', disabled: true, controlledBy: 'table_out' },
-      { key: 'jumbo_out', label: 'Out (Move to Table)' },
+      { key: 'jumbo_out', label: 'Out (To Table)' },
     ],
   },
   {
@@ -137,7 +137,13 @@ const EggRoomStock: React.FC = () => {
       }));
       setReports(reportsData);
     } catch (err: any) {
-      setReportError(err?.message || 'Failed to fetch reports');
+      const isAxiosError = typeof err === 'object' && err !== null && 'response' in err;
+      const detail = isAxiosError ? err.response?.data?.detail : undefined;
+      if (typeof detail === 'string') {
+        setReportError("The selected date is before the Egg Room Start Date. Please select a valid date.");
+      } else {
+        setReportError(err?.message || 'Failed to fetch reports');
+      }
     } finally {
       setReportLoading(false);
     }
