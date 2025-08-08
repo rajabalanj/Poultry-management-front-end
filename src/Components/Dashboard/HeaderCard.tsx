@@ -28,9 +28,12 @@ const HeaderCard: React.FC<HeaderCardProps> = ({ title, mainValue, subValues, ic
         </div>
         
         {subValues && subValues.length > 0 && (
-          <div className="text-sm">
+          <div 
+            className="text-sm"
+            style={subValues.length > 3 ? { maxHeight: '80px', overflowY: 'auto' } : {}}
+          >
             {subValues.map((sub, index) => (
-              <div key={index} className="d-flex justify-content-between mb-1">
+              <div key={index} className="d-flex justify-content-between mb-1 border-bottom pb-1">
                 <span className="text-nowrap text-muted">{sub.label}</span>
                 <div className="ms-1 ms-sm-2">
                   <span className="fw-bold">{sub.value.toLocaleString()}</span>

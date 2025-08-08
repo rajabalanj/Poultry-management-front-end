@@ -25,10 +25,10 @@ const PageHeader: React.FC<PageHeaderProps> = ({
         {subtitle && <h4 className="mb-0 ms-4" style={{ textShadow: '1px 1px 3px rgba(0, 0, 0, 0.1)' }}>{subtitle}</h4>}       {/* Batch Info */}
       </div>
 
-      {buttonLabel && buttonLink && (
-        <button 
+      {buttonLabel && (
+        <button
           className={`btn btn-${buttonVariant} btn-sm d-flex align-items-center justify-content-center`}
-          onClick={() => navigate(buttonLink)}
+          onClick={() => (buttonLink ? navigate(buttonLink) : navigate(-1))}
         >
           {buttonLabel}
         </button>

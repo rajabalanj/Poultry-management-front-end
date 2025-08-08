@@ -34,6 +34,7 @@ export const useEggRoomStock = () => {
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dateError, setDateError] = useState<string | null>(null);
 
   // Calculate closing values
   const calculateClosings = useCallback((entry: EggRoomStockEntry): EggRoomStockEntry => ({
@@ -94,6 +95,7 @@ export const useEggRoomStock = () => {
   const fetchData = async () => {
     setLoading(true);
     setError(null); // Clear previous errors
+    setDateError(null);
     try {
       const response = await eggRoomReportApi.getReport(selectedDate);
       // Ensure the date is a valid string before setting, prioritize report_date
@@ -114,7 +116,7 @@ export const useEggRoomStock = () => {
       if (typeof detail === 'string' && detail.includes('cannot be before the system start date')) {
         // Specific error handling for dates before system start date
         console.warn("Selected date is before system start date:", detail);
-        setError("The selected date is before the Egg Room Start Date. Please select a valid date.");
+        setDateError(detail);
         setForm(defaultEntry(selectedDate)); // Reset form to default
         setEditing(false);
         return; // Exit the function early to prevent further processing
@@ -213,5 +215,6 @@ export const useEggRoomStock = () => {
     handleSave,
     handleDelete,
     setSelectedDate,
+    dateError,
   };
 };

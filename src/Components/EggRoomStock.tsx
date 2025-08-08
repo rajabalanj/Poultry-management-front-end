@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useEggRoomStock } from '../hooks/useEggRoomStock';
 import { StockFormSection } from '../Components/StockFormSection';
 import { DateSelector } from '../Components/DateSelector';
@@ -88,6 +88,7 @@ const EggRoomStock: React.FC = () => {
     handleSave,
     handleDelete,
     setSelectedDate,
+    dateError,
   } = useEggRoomStock();
 
   const today = new Date().toISOString().slice(0, 10);
@@ -99,8 +100,20 @@ const EggRoomStock: React.FC = () => {
   const [reportError, setReportError] = useState<string | null>(null);
   const tableRef = useRef<HTMLTableElement>(null);
   const [isSharing, setIsSharing] = useState(false);
+  const [showDateModal, setShowDateModal] = useState(false);
+  const [suggestedStartDate, setSuggestedStartDate] = useState<string | null>(null);
 
   const [activeTab, setActiveTab] = useState<string>('table');
+
+  useEffect(() => {
+    if (dateError) {
+      const dateMatches = dateError.match(/(\d{4}-\d{2}-\d{2})/g);
+      if (dateMatches && dateMatches.length > 1) {
+        setSuggestedStartDate(dateMatches[1]);
+        setShowDateModal(true);
+      }
+    }
+  }, [dateError]);
 
   const handleFormChange = (field: keyof EggRoomStockEntry, value: number | string) => {
     handleChange(field, value);
@@ -114,12 +127,14 @@ const EggRoomStock: React.FC = () => {
     });
   };
 
-  const fetchReports = async () => {
-    if (!startDate || !endDate) {
+  const fetchReports = async (overrideStartDate?: string) => {
+    const effectiveStartDate = overrideStartDate || startDate;
+
+    if (!effectiveStartDate || !endDate) {
       setDateRangeError('Please select both a Start Date and an End Date.');
       return;
     }
-    const start = new Date(startDate);
+    const start = new Date(effectiveStartDate);
     const end = new Date(endDate);
 
     if (start > end) {
@@ -132,7 +147,7 @@ const EggRoomStock: React.FC = () => {
     setReportLoading(true);
     setReportError(null);
     try {
-      const response = await eggRoomReportApi.getReports(startDate, endDate);
+      const response = await eggRoomReportApi.getReports(effectiveStartDate, endDate);
       const reportsData: EggRoomStockEntry[] = response.map((item: any) => ({
         ...item,
         date: item.report_date
@@ -142,13 +157,26 @@ const EggRoomStock: React.FC = () => {
       const isAxiosError = typeof err === 'object' && err !== null && 'response' in err;
       const detail = isAxiosError ? err.response?.data?.detail : undefined;
       if (typeof detail === 'string') {
-        setReportError("The selected date is before the Egg Room Start Date. Please select a valid date.");
+        const dateMatches = detail.match(/(\d{4}-\d{2}-\d{2})/g);
+        if (dateMatches && dateMatches.length > 1) {
+          setSuggestedStartDate(dateMatches[1]);
+          setShowDateModal(true);
+        } else {
+          setReportError("The selected date is before the Egg Room Start Date. Please select a valid date.");
+        }
       } else {
         setReportError(err?.message || 'Failed to fetch reports');
       }
     } finally {
       setReportLoading(false);
     }
+  };
+
+  const handleConfirmDateChange = () => {
+    if (suggestedStartDate) {
+      setSelectedDate(suggestedStartDate);
+    }
+    setShowDateModal(false);
   };
 
   const handleShare = async () => {
@@ -269,7 +297,7 @@ const EggRoomStock: React.FC = () => {
           <div className="col-12 col-md-4">
             <button
               className="btn btn-info w-100"
-              onClick={fetchReports}
+              onClick={() => fetchReports()}
               disabled={!startDate || !endDate || reportLoading || !!dateRangeError}
             >
               {reportLoading ? 'Loading...' : 'Get Report'}
@@ -287,6 +315,26 @@ const EggRoomStock: React.FC = () => {
       </div>
 
       {reportError && <div className="alert alert-danger text-center">{reportError}</div>}
+
+      {showDateModal && (
+        <div className="modal show" tabIndex={-1} style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Invalid Start Date</h5>
+                <button type="button" className="btn-close" onClick={() => setShowDateModal(false)}></button>
+              </div>
+              <div className="modal-body">
+                <p>The selected date is before the system start date. Would you like to use the earliest available date, {suggestedStartDate}?</p>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setShowDateModal(false)}>Cancel</button>
+                <button type="button" className="btn btn-primary" onClick={handleConfirmDateChange}>Use Suggested Date</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {reports.length > 0 && (
         <div className="table-responsive">

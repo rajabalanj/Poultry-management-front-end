@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import HeaderCardGroup from './HeaderCardGroup';
 import GraphsSection from './GraphsSection';
 import BatchTable from '../BatchTable';
-import { dailyBatchApi } from '../../services/api';
+import { dailyBatchApi, compositionApi } from '../../services/api';
 import { DailyBatch } from '../../types/daily_batch';
 import { DateSelector } from '../DateSelector'; // Your component
 
@@ -22,6 +22,10 @@ const DashboardIndex = () => {
   const [dateRangeError, setDateRangeError] = useState<string | null>(null); // State for validation error
   const [shedNos, setShedNos] = useState<string[]>([]);
   const [selectedShedNo, setSelectedShedNo] = useState<string>("");
+  // Feed usage state
+  const [feedUsage, setFeedUsage] = useState<{ total_feed: number, feed_breakdown: { feed_type: string, amount: number }[] } | null>(null);
+  const [feedLoading, setFeedLoading] = useState(false);
+  // Removed unused feedError
 
   const handleDownloadReport = () => {
     const start = new Date(startDate);
@@ -57,9 +61,33 @@ const DashboardIndex = () => {
         setLoading(false);
       }
     };
-
     fetchBatches();
   }, [batchDate]);
+
+  // Fetch feed usage for the selected batchDate and shed
+  useEffect(() => {
+    const fetchFeedUsage = async () => {
+      setFeedLoading(true);
+      try {
+        // If shed is selected, try to get batch_id for that shed
+        let batchId: number | undefined = undefined;
+        if (selectedShedNo) {
+          const batch = batches.find(b => b.shed_no === selectedShedNo);
+          if (batch) batchId = batch.batch_id;
+        }
+        const usage = await compositionApi.getFeedUsageByDate(batchDate, batchId);
+        setFeedUsage(usage);
+      } catch (err: any) {
+        setFeedUsage(null);
+      } finally {
+        setFeedLoading(false);
+      }
+    };
+    // Only fetch if batches are loaded
+    if (!loading) {
+      fetchFeedUsage();
+    }
+  }, [batchDate, selectedShedNo, batches, loading]);
 
   useEffect(() => {
     localStorage.setItem(BATCH_DATE_KEY, batchDate);
@@ -89,15 +117,13 @@ const DashboardIndex = () => {
       ]
     },
     {
-      title: "Total Feed",
-      mainValue: 1250, // Placeholder value
+      title: "Total Feed (kg)",
+      mainValue: feedUsage ? feedUsage.total_feed : (feedLoading ? 0 : 0),
       icon: "bi bi-basket",
       iconColor: "icon-color-feed",
-      subValues: [
-        { label: "Chick Feed", value: 620 }, // Placeholder value
-        { label: "Layer Feed", value: 470 },
-        { label: "Grower Feed", value: 170 } // Placeholder value
-      ] // Placeholder values
+      subValues: feedUsage && feedUsage.feed_breakdown.length > 0
+        ? feedUsage.feed_breakdown.map(fb => ({ label: fb.feed_type, value: fb.amount }))
+        : (feedLoading ? [{ label: 'Loading...', value: 0 }] : [])
     },
     {
       title: "Total Eggs",

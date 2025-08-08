@@ -415,6 +415,25 @@ export const compositionApi = {
   }
 },
 
+    /**
+     * Get feed usage summary by date (and optional batch_id)
+     * @param usageDate - string (YYYY-MM-DD)
+     * @param batchId - optional number
+     * @returns { total_feed: number, feed_breakdown: Array<{feed_type: string, amount: number}> }
+     */
+    getFeedUsageByDate: async (usageDate: string, batchId?: number): Promise<{ total_feed: number, feed_breakdown: { feed_type: string, amount: number }[] }> => {
+      try {
+        const response = await api.get(`/compositions/usage-by-date/`, {
+          params: {
+            usage_date: usageDate,
+            batch_id: batchId || undefined,
+          },
+        });
+        return response.data;
+      } catch (error) {
+        throw new Error(getApiErrorMessage(error, 'Failed to fetch feed usage by date'));
+      }
+    },
 };
 
 // Configuration API for key-value settings
