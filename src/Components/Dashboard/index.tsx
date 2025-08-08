@@ -33,7 +33,13 @@ const DashboardIndex = () => {
     } else {
       setDateRangeError(null);
     }
-    navigate(`/previous-day-report?start=${startDate}&end=${endDate}`);
+
+    const selectedBatch = batches.find(b => b.shed_no === selectedShedNo);
+    if (selectedShedNo && selectedBatch) {
+      navigate(`/previous-day-report/${selectedBatch.batch_id}?start=${startDate}&end=${endDate}`);
+    } else {
+      navigate(`/previous-day-report?start=${startDate}&end=${endDate}`);
+    }
   };
 
   useEffect(() => {
