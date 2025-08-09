@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { dailyBatchApi } from '../../../services/api';
+import { compositionApi } from '../../../services/api';
 import { DailyBatch } from '../../../types/daily_batch';
 import { toast } from 'react-toastify';
 import PageHeader from '../../Layout/PageHeader';
@@ -16,6 +17,9 @@ const BatchDetails: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [startDate, setStartDate] = useState<string>(batch_date || '');
   const [endDate, setEndDate] = useState<string>(batch_date || '');
+  // Feed usage state
+  const [feedUsage, setFeedUsage] = useState<{ total_feed: number, feed_breakdown: { feed_type: string, amount: number }[] } | null>(null);
+  const [feedLoading, setFeedLoading] = useState(false);
 
   useEffect(() => {
     const fetchBatch = async () => {
@@ -40,6 +44,32 @@ const BatchDetails: React.FC = () => {
     fetchBatch();
   }, [batch_id, batch_date]);
 
+  // Fetch feed usage for the batch and date
+  useEffect(() => {
+    const fetchFeedUsage = async () => {
+      setFeedLoading(true);
+      try {
+        if (batch && batch.batch_id && batch.batch_date) {
+          const usage = await dailyBatchApi.getDailyBatches(batch.batch_date);
+          // Find the batch for this batch_id
+          const batchObj = usage.find(b => b.batch_id === batch.batch_id);
+          // Use compositionApi.getFeedUsageByDate for this batch and date
+          const feedUsageData = await compositionApi.getFeedUsageByDate(batch.batch_date, batch.batch_id);
+          setFeedUsage(feedUsageData);
+        } else {
+          setFeedUsage(null);
+        }
+      } catch (err) {
+        setFeedUsage(null);
+      } finally {
+        setFeedLoading(false);
+      }
+    };
+    if (batch && batch.batch_id && batch.batch_date) {
+      fetchFeedUsage();
+    }
+  }, [batch]);
+
   const handleDownloadReport = () => {
     navigate(`/previous-day-report/${batch_id}?start=${startDate}&end=${endDate}`);
   };
@@ -58,141 +88,136 @@ const BatchDetails: React.FC = () => {
 
   return (
     <>
-    <PageHeader 
+      <PageHeader 
         title={formattedBatchDate}
         subtitle={`Batch Details - ${batch.batch_no}`}
         buttonLabel="Back"
         buttonLink="/production"
       />
-    <div className="container-fluid">
-      <div className="col-12 mb-4">
-        <div className="card shadow-sm">
-          <div className="card-body">
-            <h5 className="card-title">Report</h5>
-            <div className="row g-3 align-items-end">
-              <div className="col-12 col-md-4">
-                <DateSelector
-                  label="Start Date"
-                  value={startDate}
-                  onChange={setStartDate}
-                  maxDate={endDate}
-                />
-              </div>
-              <div className="col-12 col-md-4">
-                <DateSelector
-                  label="End Date"
-                  value={endDate}
-                  onChange={setEndDate}
-                  minDate={startDate}
-                  maxDate={new Date().toISOString().split('T')[0]}
-                />
-              </div>
-              <div className="col-12 col-md-4">
-                <button
-                  className="btn btn-info w-100 mb-2"
-                  onClick={handleDownloadReport}
-                >
-                  View Data
-                </button>
+      <div className="container-fluid">
+        <div className="col-12 mb-4">
+          <div className="card shadow-sm">
+            <div className="card-body">
+              <h5 className="card-title">Report</h5>
+              <div className="row g-3 align-items-end">
+                <div className="col-12 col-md-4">
+                  <DateSelector
+                    label="Start Date"
+                    value={startDate}
+                    onChange={setStartDate}
+                    maxDate={endDate}
+                  />
+                </div>
+                <div className="col-12 col-md-4">
+                  <DateSelector
+                    label="End Date"
+                    value={endDate}
+                    onChange={setEndDate}
+                    minDate={startDate}
+                    maxDate={new Date().toISOString().split('T')[0]}
+                  />
+                </div>
+                <div className="col-12 col-md-4">
+                  <button
+                    className="btn btn-info w-100 mb-2"
+                    onClick={handleDownloadReport}
+                  >
+                    View Data
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      
-      <HeaderCardGroup
-        cards={[
-          {
-            title: 'Total Birds',
-            mainValue: batch.closing_count,
-            iconColor: "icon-color-birds",
-            subValues: [
-              { label: 'Opening', value: batch.opening_count },
-              { label: 'Mortality', value: batch.mortality },
-              { label: 'Culls', value: batch.culls },
-            ],
-            icon: 'bi bi-feather',
-          },
-          {
-            title: 'Total Feed',
-            mainValue: totalEggs,
-            iconColor: "icon-color-feed",
-            subValues: [
-              { label: 'Chick Feed', value: 620 }, // Placeholder value
-              { label: 'Layer Feed', value: 470 }, // Placeholder value
-              { label: 'Grower Feed', value: 170 }, // Placeholder value
-            ],
-            icon:'bi-basket',
-          },
-          {
-            title: 'Total Eggs',
-            mainValue: totalEggs,
-            iconColor: "icon-color-eggs",
-            subValues: [
-              { label: 'Normal', value: batch.table_eggs || 0 },
-              { label: 'Jumbo', value: batch.jumbo || 0 },
-              { label: 'Crack', value: batch.cr || 0 },
-            ],
-            icon: 'bi-egg',
-          },
-        ]}
-        loading={false}
-        error={null}
-      />
-      <GraphsSection henDayValue={Number((batch.hd *100).toFixed(2))} loading={false} error={null} />
-      <div className="p-4">
-        <div className="row">
-          {/* <div className="col-12 col-md-6">
-            <div className="row g-3"> */}
-              <div className="col-12 col-md-6 mb-4 mt-4">
-                <label className="form-label">Shed No.</label>
-                <input
-                  type="string"
-                  className="form-control"
-                  value={batch.shed_no}
-                  disabled
-                />
-              </div>
-              <div className="col-12 col-md-6 mb-4 mt-4">
-                <label className="form-label">Age</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  value={batch.age}
-                  disabled
-                />
-              </div>
-              <div className="col-12 col-md-6 mb-4 mt-4">
-                <label className="form-label">Standard Hen Day Percentage</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  value={
-                    batch.standard_hen_day_percentage !== undefined && batch.standard_hen_day_percentage !== null && !isNaN(Number(batch.standard_hen_day_percentage))
-                      ? Number(batch.standard_hen_day_percentage).toFixed(2)
-                      : ''
-                  }
-                  disabled
-                />
-              </div>
-              <div className="col-12 col-md-6 mb-4 mt-4">
-                <label className="form-label">Notes</label>
-                <textarea
-                  className="form-control"
-                  value={batch.notes || ''}
-                  disabled
-                />
-              </div>
-        </div>
-        <div className="mt-4 d-flex justify-content-center">
-          <button type="button" className="btn btn-primary me-2" onClick={() => navigate(`/batch/${batch_id}/${batch_date}/edit`)}>
-            Update
-          </button>
-          <button type="button" className="btn btn-secondary me-2" onClick={() => navigate('/production')}>Back to Production</button>
+
+        <HeaderCardGroup
+          cards={[
+            {
+              title: 'Total Birds',
+              mainValue: batch.closing_count,
+              iconColor: "icon-color-birds",
+              subValues: [
+                { label: 'Opening', value: batch.opening_count },
+                { label: 'Mortality', value: batch.mortality },
+                { label: 'Culls', value: batch.culls },
+              ],
+              icon: 'bi bi-feather',
+            },
+            {
+              title: 'Total Feed (kg)',
+              mainValue: feedUsage ? feedUsage.total_feed : (feedLoading ? 0 : 0),
+              iconColor: "icon-color-feed",
+              subValues: feedUsage && feedUsage.feed_breakdown.length > 0
+                ? feedUsage.feed_breakdown.map(fb => ({ label: fb.feed_type, value: fb.amount }))
+                : (feedLoading ? [{ label: 'Loading...', value: 0 }] : []),
+              icon:'bi-basket',
+            },
+            {
+              title: 'Total Eggs',
+              mainValue: totalEggs,
+              iconColor: "icon-color-eggs",
+              subValues: [
+                { label: 'Normal', value: batch.table_eggs || 0 },
+                { label: 'Jumbo', value: batch.jumbo || 0 },
+                { label: 'Crack', value: batch.cr || 0 },
+              ],
+              icon: 'bi-egg',
+            },
+          ]}
+          loading={false}
+          error={null}
+        />
+        <GraphsSection henDayValue={Number((batch.hd *100).toFixed(2))} loading={false} error={null} />
+        <div className="p-4">
+          <div className="row">
+            <div className="col-12 col-md-6 mb-4 mt-4">
+              <label className="form-label">Shed No.</label>
+              <input
+                type="string"
+                className="form-control"
+                value={batch.shed_no}
+                disabled
+              />
+            </div>
+            <div className="col-12 col-md-6 mb-4 mt-4">
+              <label className="form-label">Age</label>
+              <input
+                type="text"
+                className="form-control"
+                value={batch.age}
+                disabled
+              />
+            </div>
+            <div className="col-12 col-md-6 mb-4 mt-4">
+              <label className="form-label">Standard Hen Day Percentage</label>
+              <input
+                type="number"
+                className="form-control"
+                value={
+                  batch.standard_hen_day_percentage !== undefined && batch.standard_hen_day_percentage !== null && !isNaN(Number(batch.standard_hen_day_percentage))
+                    ? Number(batch.standard_hen_day_percentage).toFixed(2)
+                    : ''
+                }
+                disabled
+              />
+            </div>
+            <div className="col-12 col-md-6 mb-4 mt-4">
+              <label className="form-label">Notes</label>
+              <textarea
+                className="form-control"
+                value={batch.notes || ''}
+                disabled
+              />
+            </div>
+          </div>
+          <div className="mt-4 d-flex justify-content-center">
+            <button type="button" className="btn btn-primary me-2" onClick={() => navigate(`/batch/${batch_id}/${batch_date}/edit`)}>
+              Update
+            </button>
+            <button type="button" className="btn btn-secondary me-2" onClick={() => navigate('/production')}>Back to Production</button>
+          </div>
         </div>
       </div>
-      
-    </div>
     </>
   );
 };
