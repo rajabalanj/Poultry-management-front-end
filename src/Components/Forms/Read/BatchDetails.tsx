@@ -50,10 +50,6 @@ const BatchDetails: React.FC = () => {
       setFeedLoading(true);
       try {
         if (batch && batch.batch_id && batch.batch_date) {
-          const usage = await dailyBatchApi.getDailyBatches(batch.batch_date);
-          // Find the batch for this batch_id
-          const batchObj = usage.find(b => b.batch_id === batch.batch_id);
-          // Use compositionApi.getFeedUsageByDate for this batch and date
           const feedUsageData = await compositionApi.getFeedUsageByDate(batch.batch_date, batch.batch_id);
           setFeedUsage(feedUsageData);
         } else {
