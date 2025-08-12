@@ -40,8 +40,28 @@ export interface EggRoomReportResponse extends EggRoomStockEntry {
 }
 
 export interface EggRoomReportCreate {
-  report_date: string; // Changed from 'date' to 'report_date'
-  // entries: EggRoomStockEntry[]; // Or single entry if that's what your API expects
+  report_date: string;
+  table_opening: number;
+  table_received: number;
+  table_transfer: number;
+  table_damage: number;
+  table_out: number;
+  table_in: number;
+  table_closing: number;
+  grade_c_opening: number;
+  grade_c_shed_received: number;
+  grade_c_room_received: number;
+  grade_c_transfer: number;
+  grade_c_labour: number;
+  grade_c_waste: number;
+  grade_c_closing: number;
+  jumbo_opening: number;
+  jumbo_received: number;
+  jumbo_transfer: number;
+  jumbo_waste: number;
+  jumbo_in: number;
+  jumbo_out: number;
+  jumbo_closing: number;
 }
 
 export interface EggRoomReportUpdate {

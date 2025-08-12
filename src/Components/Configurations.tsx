@@ -113,6 +113,8 @@ const [eggRoomStartDate, setEggRoomStartDate] = useState<string>(''); // YYYY-MM
   const handleEggRoomInitialSetup = async () => {
     setEggRoomSaving(true);
     try {
+      await configApi.updateConfig('system_start_date', eggRoomStartDate);
+      toast.success(`Egg Room setup completed for ${eggRoomStartDate}.`);
       if (!eggRoomStartDate) {
         toast.error("Please select an Egg Room Start Date.");
         return;
@@ -122,39 +124,65 @@ const [eggRoomStartDate, setEggRoomStartDate] = useState<string>(''); // YYYY-MM
         toast.error("Invalid Egg Room Start Date format.");
         return;
       }
-      // Calculate the "day before" date for the dummy report
-      const dayBeforeStartDate = new Date(startDate);
-      dayBeforeStartDate.setDate(startDate.getDate() - 1);
-      const dummyReportDate = format(dayBeforeStartDate, 'yyyy-MM-dd');
-      // 1. Create or update the "dummy" report for the day before the actual start date
-      const initialReportData = {
-        report_date: dummyReportDate,
-        table_opening: 0,
-        table_received: initialTableOpening,
-        table_transfer: 0,
-        table_damage: 0,
-        table_out: 0,
-        table_closing: initialTableOpening,
-        grade_c_opening: 0,
-        grade_c_shed_received: initialGradeCOpening,
-        grade_c_room_received: 0,
-        grade_c_transfer: 0,
-        grade_c_labour: 0,
-        grade_c_waste: 0,
-        grade_c_closing: initialGradeCOpening,
-        jumbo_opening: 0,
-        jumbo_received: initialJumboOpening,
-        jumbo_transfer: 0,
-        jumbo_waste: 0,
-        jumbo_in: 0,
-        jumbo_out: 0,
-        jumbo_closing: initialJumboOpening,
-      };
-      await eggRoomReportApi.initialSetupReport(initialReportData);
-      toast.success(`Initial report updated for ${dummyReportDate}.`);
-      // 2. Update the system_start_date in AppConfig
-      await configApi.updateConfig('system_start_date', eggRoomStartDate);
-      toast.success(`System start date set to ${eggRoomStartDate}.`);
+      const reportDate = format(startDate, 'yyyy-MM-dd');
+      
+      // Try to get existing report or create new one with opening values
+      try {
+        // await eggRoomReportApi.getReport(reportDate);
+        // Update existing report with opening values
+        await eggRoomReportApi.updateReport(reportDate, {
+          report_date: reportDate,
+          table_opening: initialTableOpening,
+          table_received: 0,
+          table_transfer: 0,
+          table_damage: 0,
+          table_out: 0,
+          table_in: 0,
+          table_closing: initialTableOpening,
+          grade_c_opening: initialGradeCOpening,
+          grade_c_shed_received: 0,
+          grade_c_room_received: 0,
+          grade_c_transfer: 0,
+          grade_c_labour: 0,
+          grade_c_waste: 0,
+          grade_c_closing: initialGradeCOpening,
+          jumbo_opening: initialJumboOpening,
+          jumbo_received: 0,
+          jumbo_transfer: 0,
+          jumbo_waste: 0,
+          jumbo_in: 0,
+          jumbo_out: 0,
+          jumbo_closing: initialJumboOpening,
+        });
+      } catch {
+        // Create new report if it doesn't exist
+        await eggRoomReportApi.createReport({
+          report_date: reportDate,
+          table_opening: initialTableOpening,
+          table_received: 0,
+          table_transfer: 0,
+          table_damage: 0,
+          table_out: 0,
+          table_in: 0,
+          table_closing: initialTableOpening,
+          grade_c_opening: initialGradeCOpening,
+          grade_c_shed_received: 0,
+          grade_c_room_received: 0,
+          grade_c_transfer: 0,
+          grade_c_labour: 0,
+          grade_c_waste: 0,
+          grade_c_closing: initialGradeCOpening,
+          jumbo_opening: initialJumboOpening,
+          jumbo_received: 0,
+          jumbo_transfer: 0,
+          jumbo_waste: 0,
+          jumbo_in: 0,
+          jumbo_out: 0,
+          jumbo_closing: initialJumboOpening,
+        });
+      }
+      
+      
     } catch (error) {
       toast.error("Failed to set Egg Room initial configuration.");
       console.error("Egg Room Setup Error:", error);

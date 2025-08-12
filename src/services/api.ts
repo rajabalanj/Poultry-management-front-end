@@ -523,13 +523,6 @@ export const batchApi = {
 // Egg Room Report API
 export const eggRoomReportApi = {
   // POST /egg-room-report/initial-setup
-  initialSetupReport: async (report: EggRoomReportCreate) => {
-    const response = await api.post<EggRoomReportResponse>(
-      '/egg-room-report/initial-setup',
-      report
-    );
-    return response.data;
-  },
   getReport: async (report_date: string): Promise<EggRoomSingleReportResponse> => {
     const response = await api.get<EggRoomSingleReportResponse>(`/egg-room-report/${report_date}`);
     return response.data;
@@ -538,8 +531,7 @@ export const eggRoomReportApi = {
     const response = await api.post<EggRoomReportResponse>('/egg-room-report/', report);
     return response.data;
   },
-  // In api.ts
-updateReport: async (report_date: string, reportData: EggRoomReportUpdate) => { // Renamed 'report' to 'reportData' for clarity
+  updateReport: async (report_date: string, reportData: EggRoomReportUpdate) => {
     if (!report_date || report_date === 'undefined') {
       throw new Error('Invalid date parameter');
     }
@@ -547,7 +539,7 @@ updateReport: async (report_date: string, reportData: EggRoomReportUpdate) => { 
     try {
       const response = await api.put<EggRoomReportResponse>(
         `/egg-room-report/${encodeURIComponent(report_date)}`,
-        reportData // Use reportData here
+        reportData
       );
       return response.data;
     } catch (error) {
