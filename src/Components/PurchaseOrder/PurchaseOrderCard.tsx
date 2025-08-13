@@ -47,7 +47,7 @@ const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = React.memo(
         <div className="card-body p-2">
           <div className="d-flex justify-content-between align-items-center">
             <div>
-              <h6 className="mb-1">PO Number: {po.po_number}</h6>
+              <h6 className="mb-1">PO Number: {po.id}</h6>
               <div className="text-sm">
                 <p className="mb-0">Vendor: {vendorName}</p> {/* Use vendorName */}
                 <p className="mb-0">Total Amount: Rs. {(po.total_amount || 0).toFixed(2)}</p>
@@ -61,7 +61,7 @@ const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = React.memo(
                 className="btn btn-info btn-sm d-flex align-items-center justify-content-center"
                 onClick={() => onView(po.id)}
                 title="View Details"
-                aria-label={`View Details for PO ${po.po_number}`}
+                aria-label={`View Details for PO ${po.id}`}
               >
                 <i className="bi bi-eye me-1"></i>
                 <span className="text-sm">Details</span>
@@ -70,7 +70,7 @@ const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = React.memo(
                 className="btn btn-success btn-sm d-flex align-items-center justify-content-center"
                 onClick={() => onEdit(po.id)}
                 title="Edit PO"
-                aria-label={`Edit PO ${po.po_number}`}
+                aria-label={`Edit PO ${po.id}`}
               >
                 <i className="bi bi-pencil-square me-1"></i>
                 <span className="text-sm">Edit</span>
@@ -79,7 +79,7 @@ const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = React.memo(
                 className="btn btn-danger btn-sm d-flex align-items-center justify-content-center"
                 onClick={() => onDelete(po.id)}
                 title="Delete PO"
-                aria-label={`Delete PO ${po.po_number}`}
+                aria-label={`Delete PO ${po.id}`}
               >
                 <i className="bi bi-trash me-1"></i>
                 <span className="text-sm">Delete</span>
@@ -88,7 +88,7 @@ const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = React.memo(
                 className="btn btn-primary btn-sm d-flex align-items-center justify-content-center"
                 onClick={() => onAddPayment(po.id)}
                 title="Add Payment"
-                aria-label={`Add Payment for PO ${po.po_number}`}
+                aria-label={`Add Payment for PO ${po.id}`}
               >
                 <i className="bi bi-wallet-fill me-1"></i>
                 <span className="text-sm">Add Payment</span>

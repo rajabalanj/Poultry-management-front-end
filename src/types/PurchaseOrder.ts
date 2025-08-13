@@ -30,7 +30,7 @@ export interface PaymentResponse {
 
 export interface PurchaseOrderBase {
   vendor_id: number;
-  po_number: string;
+  
   order_date: string; // ADD THIS FIELD - Date string (YYYY-MM-DD)
   expected_delivery_date?: string; // Date string (YYYY-MM-DD)
   notes?: string;
@@ -42,7 +42,7 @@ export interface PurchaseOrderCreate extends PurchaseOrderBase {
 
 export interface PurchaseOrderUpdate {
   vendor_id?: number;
-  po_number?: string;
+  
   order_date?: string; // Allow updating if needed, or make it not updateable depending on business logic
   expected_delivery_date?: string;
   notes?: string;

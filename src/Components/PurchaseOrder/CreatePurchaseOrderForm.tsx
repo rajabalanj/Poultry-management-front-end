@@ -29,7 +29,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
 
   // Purchase Order states
   const [vendorId, setVendorId] = useState<number | ''>('');
-  const [poNumber, setPoNumber] = useState('');
+  
   const [orderDate, setOrderDate] = useState<Date>(new Date()); // ADD THIS STATE: Default to current date
   const [expectedDeliveryDate, setExpectedDeliveryDate] = useState<Date | null>(null);
   const [notes, setNotes] = useState('');
@@ -102,8 +102,8 @@ const CreatePurchaseOrderForm: React.FC = () => {
     setIsLoading(true);
 
     // Basic Validation
-    if (!vendorId || !poNumber.trim() || items.length === 0) {
-      toast.error('Please select a Vendor, provide a PO Number, and add at least one item.');
+    if (!vendorId || items.length === 0) {
+      toast.error('Please select a Vendor and add at least one item.');
       setIsLoading(false);
       return;
     }
@@ -119,7 +119,6 @@ const CreatePurchaseOrderForm: React.FC = () => {
 
     const newPurchaseOrder: PurchaseOrderCreate = {
       vendor_id: Number(vendorId),
-      po_number: poNumber,
       order_date: format(orderDate, 'yyyy-MM-dd'), // ADD THIS LINE: Format to YYYY-MM-DD
       expected_delivery_date: expectedDeliveryDate ? format(expectedDeliveryDate, 'yyyy-MM-dd') : undefined, // Format expected delivery
       notes: notes || undefined,
@@ -171,19 +170,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
                     <div className="text-danger mt-1">No vendors found. Please add a vendor first.</div>
                   )}
                 </div>
-                <div className="col-md-6">
-                  <label htmlFor="poNumber" className="form-label">PO Number <span className="text-danger">*</span></label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="poNumber"
-                    value={poNumber}
-                    onChange={(e) => setPoNumber(e.target.value)}
-                    placeholder="e.g., PO-2024-001"
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
+                
                 {/* ADD THIS FIELD: Order Date */}
                 <div className="col-md-6">
                   <label htmlFor="orderDate" className="form-label">Order Date <span className="text-danger">*</span></label>

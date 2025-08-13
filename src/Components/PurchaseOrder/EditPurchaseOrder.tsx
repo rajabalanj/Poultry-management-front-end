@@ -40,7 +40,7 @@ const EditPurchaseOrder: React.FC = () => {
 
   // Purchase Order states, initialized from fetched data
   const [vendorId, setVendorId] = useState<number | ''>('');
-  const [poNumber, setPoNumber] = useState('');
+  
   const [orderDate, setOrderDate] = useState<Date | null>(null);
   const [expectedDeliveryDate, setExpectedDeliveryDate] = useState<Date | null>(null);
   const [notes, setNotes] = useState('');
@@ -67,7 +67,7 @@ const EditPurchaseOrder: React.FC = () => {
 
         // Set main PO details
         setVendorId(poData.vendor_id);
-        setPoNumber(poData.po_number);
+        
         setOrderDate(poData.order_date ? new Date(poData.order_date) : null);
         setExpectedDeliveryDate(poData.expected_delivery_date ? new Date(poData.expected_delivery_date) : null);
         setNotes(poData.notes || '');
@@ -165,8 +165,8 @@ const EditPurchaseOrder: React.FC = () => {
     const activeItems = items.filter(item => !item.isDeleted);
 
     // Basic Validation
-    if (!vendorId || !poNumber.trim() || activeItems.length === 0 || orderDate === null) {
-      toast.error('Please select a Vendor, provide a PO Number, an Order Date, and ensure at least one active item.');
+    if (!vendorId || activeItems.length === 0 || orderDate === null) {
+      toast.error('Please select a Vendor, an Order Date, and ensure at least one active item.');
       setIsLoading(false);
       return;
     }
@@ -184,7 +184,6 @@ const EditPurchaseOrder: React.FC = () => {
       // 1. Update main Purchase Order details
       const poUpdateData: PurchaseOrderUpdate = {
         vendor_id: Number(vendorId),
-        po_number: poNumber,
         order_date: orderDate ? format(orderDate, 'yyyy-MM-dd') : undefined,
         expected_delivery_date: expectedDeliveryDate ? format(expectedDeliveryDate, 'yyyy-MM-dd') : undefined,
         notes: notes || undefined,
@@ -231,7 +230,7 @@ const EditPurchaseOrder: React.FC = () => {
 
   return (
     <>
-      <PageHeader title={`Edit PO: ${poNumber || 'Loading...'}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/purchase-orders" />
+      <PageHeader title={`Edit PO: ${po_id || 'Loading...'}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/purchase-orders" />
       <div className="container mt-4">
         <div className="card shadow-sm">
           <div className="card-body">
@@ -258,19 +257,7 @@ const EditPurchaseOrder: React.FC = () => {
                     <div className="text-danger mt-1">No vendors found. Please add a vendor first.</div>
                   )}
                 </div>
-                <div className="col-md-6">
-                  <label htmlFor="poNumber" className="form-label">PO Number <span className="text-danger">*</span></label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="poNumber"
-                    value={poNumber}
-                    onChange={(e) => setPoNumber(e.target.value)}
-                    placeholder="e.g., PO-2024-001"
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
+                
                 <div className="col-md-6">
                   <label htmlFor="orderDate" className="form-label">Order Date <span className="text-danger">*</span></label>
                   <DatePicker
