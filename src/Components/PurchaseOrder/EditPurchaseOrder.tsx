@@ -45,7 +45,9 @@ const EditPurchaseOrder: React.FC = () => {
   
   const [notes, setNotes] = useState('');
   const [status, setStatus] = useState<PurchaseOrderStatus | ''>('');
-  const [items, setItems] = useState<FormPurchaseOrderItem[]>([]); // Array of items for the PO
+  const [items, setItems] = useState<FormPurchaseOrderItem[]>([]);
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [currentReceipt, setCurrentReceipt] = useState<string | null>(null); // Array of items for the PO
 
   // --- Initial Data Fetch (PO, Vendors, Inventory Items) ---
   useEffect(() => {
@@ -72,6 +74,7 @@ const EditPurchaseOrder: React.FC = () => {
         
         setNotes(poData.notes || '');
         setStatus(poData.status);
+        setCurrentReceipt(poData.payment_receipt || null);
 
         // Map existing items to form state, adding tempId for consistency and flags
         const formItems: FormPurchaseOrderItem[] = poData.items?.map(item => ({
@@ -191,6 +194,13 @@ const EditPurchaseOrder: React.FC = () => {
       };
       await purchaseOrderApi.updatePurchaseOrder(Number(po_id), poUpdateData);
 
+      // Upload receipt if file is selected
+      if (receiptFile) {
+        const formData = new FormData();
+        formData.append('file', receiptFile);
+        await purchaseOrderApi.uploadPurchaseOrderReceipt(Number(po_id), formData);
+      }
+
       // 2. Process Purchase Order Items (Add, Update, Delete)
       for (const item of items) {
         if (item.isDeleted && !item.isNew) { // Existing item marked for deletion
@@ -299,6 +309,23 @@ const EditPurchaseOrder: React.FC = () => {
                     placeholder="Any additional notes for the purchase order"
                     disabled={isLoading}
                   ></textarea>
+                </div>
+                <div className="col-12">
+                  <label htmlFor="receiptFile" className="form-label">Payment Receipt</label>
+                  {currentReceipt && (
+                    <div className="mb-2">
+                      <small className="text-muted">Current receipt: {currentReceipt}</small>
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    className="form-control"
+                    id="receiptFile"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
+                    disabled={isLoading}
+                  />
+                  <div className="form-text">Upload new payment receipt (PDF, JPG, PNG) - will replace existing if any</div>
                 </div>
 
                 {/* Purchase Order Items Section */}

@@ -120,6 +120,11 @@ const PurchaseOrderDetails: React.FC = () => {
               <div className="col-12">
                 <strong>Notes:</strong> {purchaseOrder.notes || 'N/A'}
               </div>
+              {purchaseOrder.payment_receipt && (
+                <div className="col-12">
+                  <strong>Payment Receipt:</strong> {purchaseOrder.payment_receipt}
+                </div>
+              )}
               <div className="col-md-6">
                 <strong>Created At:</strong> {new Date(purchaseOrder.created_at).toLocaleString()}
               </div>
@@ -193,6 +198,7 @@ const PurchaseOrderDetails: React.FC = () => {
                       <th>Payment Date</th>
                       <th>Mode</th>
                       <th>Reference</th>
+                      <th>Receipt</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -203,6 +209,7 @@ const PurchaseOrderDetails: React.FC = () => {
                         <td>{format(new Date(payment.payment_date), 'MMM dd, yyyy')}</td>
                         <td>{payment.payment_mode || 'N/A'}</td>
                         <td>{payment.reference_number || 'N/A'}</td>
+                        <td>{payment.payment_receipt || 'N/A'}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -210,7 +217,7 @@ const PurchaseOrderDetails: React.FC = () => {
                     <tr>
                       <td colSpan={1} className="text-end fw-bold">Total Paid:</td>
                       <td className="fw-bold">Rs. {(Number(purchaseOrder.total_amount_paid) || 0).toFixed(2)}</td>
-                      <td colSpan={3}></td>
+                      <td colSpan={4}></td>
                     </tr>
                   </tfoot>
                 </table>

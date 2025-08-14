@@ -34,6 +34,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
   
   const [notes, setNotes] = useState('');
   const [items, setItems] = useState<FormPurchaseOrderItem[]>([]);
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
 
   // ... (rest of the useEffect for fetching initial data remains the same)
   useEffect(() => {
@@ -130,7 +131,15 @@ const CreatePurchaseOrderForm: React.FC = () => {
     };
 
     try {
-      await purchaseOrderApi.createPurchaseOrder(newPurchaseOrder);
+      const poResponse = await purchaseOrderApi.createPurchaseOrder(newPurchaseOrder);
+      
+      // Upload receipt if file is selected
+      if (receiptFile && poResponse.id) {
+        const formData = new FormData();
+        formData.append('file', receiptFile);
+        await purchaseOrderApi.uploadPurchaseOrderReceipt(poResponse.id, formData);
+      }
+      
       toast.success('Purchase Order created successfully!');
       navigate('/purchase-orders');
     } catch (error: any) {
@@ -198,6 +207,18 @@ const CreatePurchaseOrderForm: React.FC = () => {
                     placeholder="Any additional notes for the purchase order"
                     disabled={isLoading}
                   ></textarea>
+                </div>
+                <div className="col-12">
+                  <label htmlFor="receiptFile" className="form-label">Payment Receipt (Optional)</label>
+                  <input
+                    type="file"
+                    className="form-control"
+                    id="receiptFile"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
+                    disabled={isLoading}
+                  />
+                  <div className="form-text">Upload payment receipt (PDF, JPG, PNG)</div>
                 </div>
 
                 {/* Purchase Order Items Section */}

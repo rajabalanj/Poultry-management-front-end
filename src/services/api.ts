@@ -726,6 +726,25 @@ const parsePurchaseOrderResponse = (po: any): PurchaseOrderResponse => {
 };
 
 export const purchaseOrderApi = {
+  uploadPurchaseOrderReceipt: async (poId: number, formData: FormData): Promise<void> => {
+    try {
+      await api.post(`/purchase-orders/${poId}/receipt`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to upload purchase order receipt'));
+    }
+  },
+
+  uploadPaymentReceipt: async (paymentId: number, formData: FormData): Promise<void> => {
+    try {
+      await api.post(`/payments/${paymentId}/receipt`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to upload payment receipt'));
+    }
+  },
   createPurchaseOrder: async (poData: PurchaseOrderCreate): Promise<PurchaseOrderResponse> => {
     try {
       const response = await api.post<PurchaseOrderResponse>("/purchase-orders/", poData);

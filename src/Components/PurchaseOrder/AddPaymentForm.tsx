@@ -25,6 +25,7 @@ const AddPaymentForm: React.FC = () => {
   const [paymentMode, setPaymentMode] = useState<string>('');
   const [referenceNumber, setReferenceNumber] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
 
   // Fetch the PO details to display context
   useEffect(() => {
@@ -96,7 +97,15 @@ const AddPaymentForm: React.FC = () => {
     };
 
     try {
-      await purchaseOrderApi.addPaymentToPurchaseOrder(newPayment);
+      const paymentResponse = await purchaseOrderApi.addPaymentToPurchaseOrder(newPayment);
+      
+      // Upload receipt if file is selected
+      if (receiptFile && (paymentResponse as any).id) {
+        const formData = new FormData();
+        formData.append('file', receiptFile);
+        await purchaseOrderApi.uploadPaymentReceipt((paymentResponse as any).id, formData);
+      }
+      
       toast.success('Payment added successfully!');
       navigate(`/purchase-orders/${po_id}/details`); // Go back to PO details page
     } catch (error: any) {
@@ -196,6 +205,18 @@ const AddPaymentForm: React.FC = () => {
                     placeholder="Any additional notes about this payment"
                     disabled={isLoading}
                   ></textarea>
+                </div>
+                <div className="col-12">
+                  <label htmlFor="receiptFile" className="form-label">Payment Receipt (Optional)</label>
+                  <input
+                    type="file"
+                    className="form-control"
+                    id="receiptFile"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
+                    disabled={isLoading}
+                  />
+                  <div className="form-text">Upload payment receipt (PDF, JPG, PNG)</div>
                 </div>
 
                 <div className="col-12 mt-4">

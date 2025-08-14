@@ -55,6 +55,7 @@ export interface PurchaseOrderResponse extends PurchaseOrderBase {
   total_amount: number; // Ensure this is 'number', not 'number | null' or 'any'
   total_amount_paid: number;   // Ensure this is 'number', not 'number | null' or 'any'
   payment_status: PaymentStatus;
+  payment_receipt?: string; // File path
   created_at: string;
   updated_at?: string;
   vendor?: VendorResponse;
@@ -63,6 +64,7 @@ export interface PurchaseOrderResponse extends PurchaseOrderBase {
 }
 
 export interface PaymentBase {
+    id?: number;
     purchase_order_id: number;
     amount_paid: number;
     payment_date: string; // YYYY-MM-DD
@@ -83,6 +85,7 @@ export interface PaymentUpdate {
 
 export interface PaymentResponse extends PaymentBase {
     id: number;
+    payment_receipt?: string; // File path
     created_at: string;
     updated_at?: string;
 }
