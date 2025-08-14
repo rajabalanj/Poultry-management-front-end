@@ -31,7 +31,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
   const [vendorId, setVendorId] = useState<number | ''>('');
   
   const [orderDate, setOrderDate] = useState<Date>(new Date()); // ADD THIS STATE: Default to current date
-  const [expectedDeliveryDate, setExpectedDeliveryDate] = useState<Date | null>(null);
+  
   const [notes, setNotes] = useState('');
   const [items, setItems] = useState<FormPurchaseOrderItem[]>([]);
 
@@ -120,7 +120,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
     const newPurchaseOrder: PurchaseOrderCreate = {
       vendor_id: Number(vendorId),
       order_date: format(orderDate, 'yyyy-MM-dd'), // ADD THIS LINE: Format to YYYY-MM-DD
-      expected_delivery_date: expectedDeliveryDate ? format(expectedDeliveryDate, 'yyyy-MM-dd') : undefined, // Format expected delivery
+      
       notes: notes || undefined,
       items: items.map(item => ({
         inventory_item_id: item.inventory_item_id,
@@ -173,7 +173,8 @@ const CreatePurchaseOrderForm: React.FC = () => {
                 
                 {/* ADD THIS FIELD: Order Date */}
                 <div className="col-md-6">
-                  <label htmlFor="orderDate" className="form-label">Order Date <span className="text-danger">*</span></label>
+                  <label htmlFor="orderDate" className="form-label">Date <span className="text-danger">*</span></label>
+                  <div>
                   <DatePicker
                     selected={orderDate}
                     onChange={(date: Date | null) => date && setOrderDate(date)} // Ensure date is not null
@@ -183,20 +184,9 @@ const CreatePurchaseOrderForm: React.FC = () => {
                     required
                     disabled={isLoading}
                   />
+                  </div>
                 </div>
-                <div className="col-md-6">
-                  <label htmlFor="expectedDeliveryDate" className="form-label">Expected Delivery Date</label>
-                  <DatePicker
-                    selected={expectedDeliveryDate}
-                    onChange={(date: Date | null) => setExpectedDeliveryDate(date)}
-                    dateFormat="yyyy-MM-dd"
-                    className="form-control"
-                    id="expectedDeliveryDate"
-                    placeholderText="YYYY-MM-DD"
-                    isClearable
-                    disabled={isLoading}
-                  />
-                </div>
+                
                 <div className="col-12">
                   <label htmlFor="notes" className="form-label">Notes</label>
                   <textarea

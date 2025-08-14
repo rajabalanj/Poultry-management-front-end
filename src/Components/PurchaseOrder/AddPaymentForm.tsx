@@ -40,7 +40,7 @@ const AddPaymentForm: React.FC = () => {
         const data = await purchaseOrderApi.getPurchaseOrder(Number(po_id));
         setPurchaseOrder(data);
         // Optionally pre-fill amount with remaining balance
-        const remainingBalance = data.total_amount - data.amount_paid;
+        const remainingBalance = data.total_amount - data.total_amount_paid;
         if (remainingBalance > 0) {
             setAmountPaid(parseFloat(remainingBalance.toFixed(2)));
         }
@@ -80,8 +80,8 @@ const AddPaymentForm: React.FC = () => {
     }
 
     // Optional: Add validation for overpayment
-    if (purchaseOrder && (Number(amountPaid) + purchaseOrder.amount_paid) > purchaseOrder.total_amount + 0.01) { // Add small epsilon for floating point
-        toast.warn(`Amount entered (${amountPaid.toFixed(2)}) would overpay this PO. Total due: Rs. ${(purchaseOrder.total_amount - purchaseOrder.amount_paid).toFixed(2)}.`);
+    if (purchaseOrder && (Number(amountPaid) + purchaseOrder.total_amount_paid) > purchaseOrder.total_amount + 0.01) { // Add small epsilon for floating point
+        toast.warn(`Amount entered (${amountPaid.toFixed(2)}) would overpay this PO. Total due: Rs. ${(purchaseOrder.total_amount - purchaseOrder.total_amount_paid).toFixed(2)}.`);
         // Allow to proceed or return, depending on business logic. For now, warn and allow.
     }
 
@@ -125,9 +125,9 @@ const AddPaymentForm: React.FC = () => {
           <div className="card-body">
             <h5 className="mb-3">Payment Details</h5>
             <div className="alert alert-info" role="alert">
-                <strong>PO Total:</strong> Rs. {(purchaseOrder.total_amount || 0).toFixed(2)} |
-                <strong> Paid So Far:</strong> Rs. {(purchaseOrder.amount_paid || 0).toFixed(2)} |
-                <strong> Remaining Due:</strong> Rs. {(purchaseOrder.total_amount - purchaseOrder.amount_paid).toFixed(2)}
+                  <strong>PO Total:</strong> Rs. {Number(purchaseOrder.total_amount || 0).toFixed(2)} |
+                  <strong> Paid So Far:</strong> Rs. {Number(purchaseOrder.total_amount_paid || 0).toFixed(2)} |
+                  <strong> Remaining Due:</strong> Rs. {(Number(purchaseOrder.total_amount || 0) - Number(purchaseOrder.total_amount_paid || 0)).toFixed(2)}
             </div>
             <form onSubmit={handleSubmit}>
               <div className="row g-3">
@@ -137,7 +137,7 @@ const AddPaymentForm: React.FC = () => {
                     type="number"
                     className="form-control"
                     id="amountPaid"
-                    value={amountPaid}
+                    // value={amountPaid}
                     onChange={(e) => setAmountPaid(Number(e.target.value))}
                     min="0.01"
                     step="0.01"

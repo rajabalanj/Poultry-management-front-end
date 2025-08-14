@@ -32,7 +32,7 @@ export interface PurchaseOrderBase {
   vendor_id: number;
   
   order_date: string; // ADD THIS FIELD - Date string (YYYY-MM-DD)
-  expected_delivery_date?: string; // Date string (YYYY-MM-DD)
+  
   notes?: string;
 }
 
@@ -44,7 +44,7 @@ export interface PurchaseOrderUpdate {
   vendor_id?: number;
   
   order_date?: string; // Allow updating if needed, or make it not updateable depending on business logic
-  expected_delivery_date?: string;
+  
   notes?: string;
   status?: PurchaseOrderStatus;
 }
@@ -53,7 +53,7 @@ export interface PurchaseOrderResponse extends PurchaseOrderBase {
   id: number;
   status: PurchaseOrderStatus;
   total_amount: number; // Ensure this is 'number', not 'number | null' or 'any'
-  amount_paid: number;   // Ensure this is 'number', not 'number | null' or 'any'
+  total_amount_paid: number;   // Ensure this is 'number', not 'number | null' or 'any'
   payment_status: PaymentStatus;
   created_at: string;
   updated_at?: string;
@@ -74,7 +74,7 @@ export interface PaymentBase {
 export interface PaymentCreate extends PaymentBase {} // Simple extension for creation
 
 export interface PaymentUpdate {
-    amount_paid?: number;
+    total_amount_paid?: number;
     payment_date?: string;
     payment_mode?: string;
     reference_number?: string;

@@ -23,7 +23,7 @@ const PurchaseOrderIndexPage: React.FC = () => {
   const [filterVendorId, setFilterVendorId] = useState<number | ''>('');
   const [filterStatus, setFilterStatus] = useState<PurchaseOrderStatus | ''>('');
   const [filterStartDate, setFilterStartDate] = useState<Date | null>(null);
-  const [filterEndDate, setFilterEndDate] = useState<Date | null>(null);
+  
 
   useEffect(() => {
     const fetchVendors = async () => {
@@ -48,7 +48,7 @@ const PurchaseOrderIndexPage: React.FC = () => {
           filterVendorId === '' ? undefined : filterVendorId,
           filterStatus === '' ? undefined : filterStatus,
           filterStartDate ? filterStartDate.toISOString().split('T')[0] : undefined,
-          filterEndDate ? filterEndDate.toISOString().split('T')[0] : undefined
+          
         );
         setPurchaseOrders(response);
       } catch (error: any) {
@@ -59,7 +59,7 @@ const PurchaseOrderIndexPage: React.FC = () => {
       }
     };
     fetchPurchaseOrderList();
-  }, [filterVendorId, filterStatus, filterStartDate, filterEndDate]);
+  }, [filterVendorId, filterStatus, filterStartDate]);
 
   const handleDelete = useCallback((id: number) => {
     setPoToDelete(id);
@@ -138,6 +138,7 @@ const PurchaseOrderIndexPage: React.FC = () => {
             </div>
             <div className="col-md-4">
               <label htmlFor="startDateFilter" className="form-label">Start Date:</label>
+              <div>
               <DatePicker
                 selected={filterStartDate}
                 onChange={(date: Date | null) => setFilterStartDate(date)}
@@ -146,18 +147,9 @@ const PurchaseOrderIndexPage: React.FC = () => {
                 placeholderText="Select start date"
                 isClearable
               />
+              </div>
             </div>
-            <div className="col-md-4">
-              <label htmlFor="endDateFilter" className="form-label">End Date:</label>
-              <DatePicker
-                selected={filterEndDate}
-                onChange={(date: Date | null) => setFilterEndDate(date)}
-                dateFormat="yyyy-MM-dd"
-                className="form-control"
-                placeholderText="Select end date"
-                isClearable
-              />
-            </div>
+            
           </div>
         </div>
 

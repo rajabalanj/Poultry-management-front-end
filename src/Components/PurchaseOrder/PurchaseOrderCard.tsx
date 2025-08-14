@@ -2,7 +2,6 @@
 import React from "react";
 import { PurchaseOrderResponse, PurchaseOrderStatus, PaymentStatus } from "../../types/PurchaseOrder";
 import { VendorResponse } from "../../types/Vendor"; // Import VendorResponse
-import { format } from 'date-fns';
 
 interface PurchaseOrderCardProps {
   po: PurchaseOrderResponse;
@@ -35,9 +34,7 @@ const getStatusBadgeClass = (status: PurchaseOrderStatus | PaymentStatus) => {
 
 const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = React.memo(
   ({ po, vendors, onView, onEdit, onDelete, onAddPayment }) => {
-    const formattedExpectedDeliveryDate = po.expected_delivery_date
-      ? format(new Date(po.expected_delivery_date), 'MMM dd, yyyy')
-      : 'N/A';
+    
 
     // Map vendor_id to vendor name
     const vendorName = vendors.find(v => v.id === po.vendor_id)?.name || 'N/A';
@@ -47,13 +44,13 @@ const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = React.memo(
         <div className="card-body p-2">
           <div className="d-flex justify-content-between align-items-center">
             <div>
-              <h6 className="mb-1">PO Number: {po.id}</h6>
+              <h6 className="mb-1">Purchase ID: {po.id}</h6>
               <div className="text-sm">
                 <p className="mb-0">Vendor: {vendorName}</p> {/* Use vendorName */}
                 <p className="mb-0">Total Amount: Rs. {(po.total_amount || 0).toFixed(2)}</p>
-                <p className="mb-0">Amount Paid: Rs. {(po.amount_paid || 0).toFixed(2)}</p>
+                <p className="mb-0">Amount Paid: Rs. {(po.total_amount_paid || 0).toFixed(2)}</p>
                 <p className="mb-0">Status: <span className={`badge ${getStatusBadgeClass(po.status)}`}>{po.status}</span></p>
-                <p className="mb-0">Expected Delivery: {formattedExpectedDeliveryDate}</p>
+                
               </div>
             </div>
             <div className="d-flex flex-column flex-md-row gap-2">

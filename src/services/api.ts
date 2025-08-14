@@ -715,6 +715,7 @@ const parsePurchaseOrderResponse = (po: any): PurchaseOrderResponse => {
   return {
     ...po,
     total_amount: po.total_amount != null ? parseFloat(po.total_amount) : 0,
+    total_amount_paid: po.total_amount_paid != null ? parseFloat(po.total_amount_paid) : 0,
     items: (po.items || []).map((item: any) => ({
       ...item,
       price_per_unit: item.price_per_unit != null ? parseFloat(item.price_per_unit) : 0,

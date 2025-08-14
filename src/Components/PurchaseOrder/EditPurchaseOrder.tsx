@@ -42,7 +42,7 @@ const EditPurchaseOrder: React.FC = () => {
   const [vendorId, setVendorId] = useState<number | ''>('');
   
   const [orderDate, setOrderDate] = useState<Date | null>(null);
-  const [expectedDeliveryDate, setExpectedDeliveryDate] = useState<Date | null>(null);
+  
   const [notes, setNotes] = useState('');
   const [status, setStatus] = useState<PurchaseOrderStatus | ''>('');
   const [items, setItems] = useState<FormPurchaseOrderItem[]>([]); // Array of items for the PO
@@ -69,7 +69,7 @@ const EditPurchaseOrder: React.FC = () => {
         setVendorId(poData.vendor_id);
         
         setOrderDate(poData.order_date ? new Date(poData.order_date) : null);
-        setExpectedDeliveryDate(poData.expected_delivery_date ? new Date(poData.expected_delivery_date) : null);
+        
         setNotes(poData.notes || '');
         setStatus(poData.status);
 
@@ -166,7 +166,7 @@ const EditPurchaseOrder: React.FC = () => {
 
     // Basic Validation
     if (!vendorId || activeItems.length === 0 || orderDate === null) {
-      toast.error('Please select a Vendor, an Order Date, and ensure at least one active item.');
+      toast.error('Please select a Vendor, an Date, and ensure at least one active item.');
       setIsLoading(false);
       return;
     }
@@ -185,7 +185,7 @@ const EditPurchaseOrder: React.FC = () => {
       const poUpdateData: PurchaseOrderUpdate = {
         vendor_id: Number(vendorId),
         order_date: orderDate ? format(orderDate, 'yyyy-MM-dd') : undefined,
-        expected_delivery_date: expectedDeliveryDate ? format(expectedDeliveryDate, 'yyyy-MM-dd') : undefined,
+        
         notes: notes || undefined,
         status: status as PurchaseOrderStatus, // Cast to expected enum
       };
@@ -259,7 +259,8 @@ const EditPurchaseOrder: React.FC = () => {
                 </div>
                 
                 <div className="col-md-6">
-                  <label htmlFor="orderDate" className="form-label">Order Date <span className="text-danger">*</span></label>
+                  <label htmlFor="orderDate" className="form-label">Date <span className="text-danger">*</span></label>
+                  <div>
                   <DatePicker
                     selected={orderDate}
                     onChange={(date: Date | null) => setOrderDate(date)}
@@ -269,20 +270,9 @@ const EditPurchaseOrder: React.FC = () => {
                     required
                     disabled={isLoading}
                   />
+                  </div>
                 </div>
-                <div className="col-md-6">
-                  <label htmlFor="expectedDeliveryDate" className="form-label">Expected Delivery Date</label>
-                  <DatePicker
-                    selected={expectedDeliveryDate}
-                    onChange={(date: Date | null) => setExpectedDeliveryDate(date)}
-                    dateFormat="yyyy-MM-dd"
-                    className="form-control"
-                    id="expectedDeliveryDate"
-                    placeholderText="YYYY-MM-DD"
-                    isClearable
-                    disabled={isLoading}
-                  />
-                </div>
+                
                 <div className="col-md-6">
                   <label htmlFor="status" className="form-label">Status <span className="text-danger">*</span></label>
                   <select

@@ -99,17 +99,15 @@ const PurchaseOrderDetails: React.FC = () => {
           <div className="card-body">
             <div className="row mb-3">
               <div className="col-md-6">
-                <strong>PO Number:</strong> {purchaseOrder.id}
+                <strong>Purchase ID:</strong> {purchaseOrder.id}
               </div>
               <div className="col-md-6">
                 <strong>Vendor:</strong> {getVendorName(purchaseOrder.vendor_id)}
               </div>
               <div className="col-md-6">
-                <strong>Order Date:</strong> {format(new Date(purchaseOrder.order_date), 'MMM dd, yyyy')}
+                <strong>Date:</strong> {format(new Date(purchaseOrder.order_date), 'MMM dd, yyyy')}
               </div>
-              <div className="col-md-6">
-                <strong>Expected Delivery:</strong> {purchaseOrder.expected_delivery_date ? format(new Date(purchaseOrder.expected_delivery_date), 'MMM dd, yyyy') : 'N/A'}
-              </div>
+              
               <div className="col-md-6">
                 <strong>Status:</strong> <span className={`badge ${getStatusBadgeClass(purchaseOrder.status)}`}>{purchaseOrder.status}</span>
               </div>
@@ -117,7 +115,7 @@ const PurchaseOrderDetails: React.FC = () => {
                 <strong>Total Amount:</strong> Rs. {(Number(purchaseOrder.total_amount) || 0).toFixed(2)}
               </div>
               <div className="col-md-6">
-                <strong>Amount Paid:</strong> Rs. {(Number(purchaseOrder.amount_paid) || 0).toFixed(2)}
+                <strong>Amount Paid:</strong> Rs. {(Number(purchaseOrder.total_amount_paid) || 0).toFixed(2)}
               </div>
               <div className="col-12">
                 <strong>Notes:</strong> {purchaseOrder.notes || 'N/A'}
@@ -157,9 +155,9 @@ const PurchaseOrderDetails: React.FC = () => {
                     {purchaseOrder.items.map((item, index) => (
                       <tr key={item.id || index}>
                         <td>{index + 1}</td>
-                        <td>{getItemName(item.inventory_item_id)}</td> {/* Use getItemName */}
+                        <td>{getItemName(item.inventory_item_id)}</td>
                         <td>{item.quantity}</td>
-                        <td>{getItemUnit(item.inventory_item_id)}</td> {/* Use getItemUnit */}
+                        <td>{getItemUnit(item.inventory_item_id)}</td>
                         <td>{(Number(item.price_per_unit) || 0).toFixed(2)}</td>
                         <td>{(Number(item.line_total) || 0).toFixed(2)}</td>
                       </tr>
@@ -211,7 +209,7 @@ const PurchaseOrderDetails: React.FC = () => {
                   <tfoot>
                     <tr>
                       <td colSpan={1} className="text-end fw-bold">Total Paid:</td>
-                      <td className="fw-bold">Rs. {(Number(purchaseOrder.amount_paid) || 0).toFixed(2)}</td>
+                      <td className="fw-bold">Rs. {(Number(purchaseOrder.total_amount_paid) || 0).toFixed(2)}</td>
                       <td colSpan={3}></td>
                     </tr>
                   </tfoot>
