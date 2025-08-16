@@ -37,7 +37,7 @@ export interface PurchaseOrderBase {
 }
 
 export interface PurchaseOrderCreate extends PurchaseOrderBase {
-  items: PurchaseOrderItemCreate[]; // Array of items to be created with the PO
+  items: PurchaseOrderItemCreate[]; // Array of items to be created with the Purchase
 }
 
 export interface PurchaseOrderUpdate {

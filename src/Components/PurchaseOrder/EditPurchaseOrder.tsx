@@ -38,7 +38,7 @@ const EditPurchaseOrder: React.FC = () => {
   const [vendors, setVendors] = useState<VendorResponse[]>([]);
   const [inventoryItems, setInventoryItems] = useState<InventoryItemResponse[]>([]);
 
-  // Purchase Order states, initialized from fetched data
+  // Purchase states, initialized from fetched data
   const [vendorId, setVendorId] = useState<number | ''>('');
   
   const [orderDate, setOrderDate] = useState<Date | null>(null);
@@ -47,16 +47,16 @@ const EditPurchaseOrder: React.FC = () => {
   const [status, setStatus] = useState<PurchaseOrderStatus | ''>('');
   const [items, setItems] = useState<FormPurchaseOrderItem[]>([]);
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
-  const [currentReceipt, setCurrentReceipt] = useState<string | null>(null); // Array of items for the PO
+  const [currentReceipt, setCurrentReceipt] = useState<string | null>(null); // Array of items for the Purchase
 
-  // --- Initial Data Fetch (PO, Vendors, Inventory Items) ---
+  // --- Initial Data Fetch (Purchase, Vendors, Inventory Items) ---
   useEffect(() => {
     const fetchInitialData = async () => {
       setInitialLoading(true);
       setError(null);
       try {
         if (!po_id) {
-            setError("Purchase Order ID is missing.");
+            setError("Purchase ID is missing.");
             setInitialLoading(false);
             return;
         }
@@ -67,7 +67,7 @@ const EditPurchaseOrder: React.FC = () => {
           inventoryItemApi.getInventoryItems(),
         ]);
 
-        // Set main PO details
+        // Set main Purchase details
         setVendorId(poData.vendor_id);
         
         setOrderDate(poData.order_date ? new Date(poData.order_date) : null);
@@ -92,8 +92,8 @@ const EditPurchaseOrder: React.FC = () => {
 
       } catch (err: any) {
         console.error('Error fetching data for edit:', err);
-        setError(err?.message || 'Failed to load purchase order for editing.');
-        toast.error(err?.message || 'Failed to load purchase order for editing.');
+        setError(err?.message || 'Failed to load purchase for editing.');
+        toast.error(err?.message || 'Failed to load purchase for editing.');
       } finally {
         setInitialLoading(false);
       }
@@ -109,7 +109,7 @@ const EditPurchaseOrder: React.FC = () => {
       quantity: 1,
       price_per_unit: 0,
       id: 0, // No backend ID yet
-      purchase_order_id: Number(po_id), // Link to this PO
+      purchase_order_id: Number(po_id), // Link to this Purchase
       line_total: 0, // Will be calculated by backend
       isNew: true, // Mark as new
       isDeleted: false,
@@ -159,7 +159,7 @@ const EditPurchaseOrder: React.FC = () => {
     setIsLoading(true);
 
     if (!po_id) {
-        toast.error("Purchase Order ID is missing for update.");
+        toast.error("Purchase ID is missing for update.");
         setIsLoading(false);
         return;
     }
@@ -184,7 +184,7 @@ const EditPurchaseOrder: React.FC = () => {
     }
 
     try {
-      // 1. Update main Purchase Order details
+      // 1. Update main Purchase details
       const poUpdateData: PurchaseOrderUpdate = {
         vendor_id: Number(vendorId),
         order_date: orderDate ? format(orderDate, 'yyyy-MM-dd') : undefined,
@@ -201,7 +201,7 @@ const EditPurchaseOrder: React.FC = () => {
         await purchaseOrderApi.uploadPurchaseOrderReceipt(Number(po_id), formData);
       }
 
-      // 2. Process Purchase Order Items (Add, Update, Delete)
+      // 2. Process Purchase Items (Add, Update, Delete)
       for (const item of items) {
         if (item.isDeleted && !item.isNew) { // Existing item marked for deletion
           await purchaseOrderApi.deletePurchaseOrderItem(Number(po_id), item.id);
@@ -225,29 +225,29 @@ const EditPurchaseOrder: React.FC = () => {
         }
       }
 
-      toast.success('Purchase Order updated successfully!');
-      navigate('/purchase-orders'); // Navigate back to the PO list
+      toast.success('Purchase updated successfully!');
+      navigate('/purchase-orders'); // Navigate back to the Purchase list
     } catch (err: any) {
-      toast.error(err?.message || 'Failed to update purchase order.');
-      console.error('Error updating PO:', err);
+      toast.error(err?.message || 'Failed to update purchase.');
+      console.error('Error updating Purchase:', err);
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (initialLoading) return <div className="text-center mt-5">Loading purchase order for editing...</div>;
+  if (initialLoading) return <div className="text-center mt-5">Loading purchase for editing...</div>;
   if (error) return <div className="text-center text-danger mt-5">{error}</div>;
 
   return (
     <>
-      <PageHeader title={`Edit PO: ${po_id || 'Loading...'}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/purchase-orders" />
+      <PageHeader title={`Edit Purchase: ${po_id || 'Loading...'}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/purchase-orders" />
       <div className="container mt-4">
         <div className="card shadow-sm">
           <div className="card-body">
             <form onSubmit={handleSubmit}>
               <div className="row g-3">
-                {/* PO Details Section */}
-                <h5 className="mb-3">Purchase Order Details</h5>
+                {/* Purchase Details Section */}
+                <h5 className="mb-3">Purchase Details</h5>
                 <div className="col-md-6">
                   <label htmlFor="vendorSelect" className="form-label">Vendor <span className="text-danger">*</span></label>
                   <select
@@ -306,7 +306,7 @@ const EditPurchaseOrder: React.FC = () => {
                     rows={3}
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Any additional notes for the purchase order"
+                    placeholder="Any additional notes for the purchase"
                     disabled={isLoading}
                   ></textarea>
                 </div>
@@ -328,7 +328,7 @@ const EditPurchaseOrder: React.FC = () => {
                   <div className="form-text">Upload new payment receipt (PDF, JPG, PNG) - will replace existing if any</div>
                 </div>
 
-                {/* Purchase Order Items Section */}
+                {/* Purchase Items Section */}
                 <h5 className="mt-4 mb-3">Items <span className="text-danger">*</span></h5>
                 {items.filter(item => !item.isDeleted).length === 0 && <p className="col-12 text-muted">No active items. Click "Add Item" to add new ones.</p>}
 
@@ -431,7 +431,7 @@ const EditPurchaseOrder: React.FC = () => {
                     className="btn btn-primary me-2"
                     disabled={isLoading}
                   >
-                    {isLoading ? 'Updating...' : 'Update Purchase Order'}
+                    {isLoading ? 'Updating...' : 'Update Purchase'}
                   </button>
                   <button
                     type="button"

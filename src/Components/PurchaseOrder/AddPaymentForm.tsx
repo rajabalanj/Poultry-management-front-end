@@ -34,7 +34,7 @@ const AddPaymentForm: React.FC = () => {
       setErrorPo(null);
       try {
         if (!po_id) {
-            setErrorPo("Purchase Order ID is missing.");
+            setErrorPo("Purchase ID is missing.");
             setLoadingPo(false);
             return;
         }
@@ -47,9 +47,9 @@ const AddPaymentForm: React.FC = () => {
         }
 
       } catch (err: any) {
-        console.error("Error fetching PO for payment:", err);
-        setErrorPo(err?.message || "Failed to load Purchase Order details.");
-        toast.error(err?.message || "Failed to load Purchase Order details for payment.");
+        console.error("Error fetching Purchase for payment:", err);
+        setErrorPo(err?.message || "Failed to load Purchase details.");
+        toast.error(err?.message || "Failed to load Purchase details for payment.");
       } finally {
         setLoadingPo(false);
       }
@@ -63,7 +63,7 @@ const AddPaymentForm: React.FC = () => {
     setIsLoading(true);
 
     if (!po_id) {
-      toast.error("Purchase Order ID is missing.");
+      toast.error("Purchase ID is missing.");
       setIsLoading(false);
       return;
     }
@@ -82,7 +82,7 @@ const AddPaymentForm: React.FC = () => {
 
     // Optional: Add validation for overpayment
     if (purchaseOrder && (Number(amountPaid) + purchaseOrder.total_amount_paid) > purchaseOrder.total_amount + 0.01) { // Add small epsilon for floating point
-        toast.warn(`Amount entered (${amountPaid.toFixed(2)}) would overpay this PO. Total due: Rs. ${(purchaseOrder.total_amount - purchaseOrder.total_amount_paid).toFixed(2)}.`);
+        toast.warn(`Amount entered (${amountPaid.toFixed(2)}) would overpay this Purchase. Total due: Rs. ${(purchaseOrder.total_amount - purchaseOrder.total_amount_paid).toFixed(2)}.`);
         // Allow to proceed or return, depending on business logic. For now, warn and allow.
     }
 
@@ -107,7 +107,7 @@ const AddPaymentForm: React.FC = () => {
       }
       
       toast.success('Payment added successfully!');
-      navigate(`/purchase-orders/${po_id}/details`); // Go back to PO details page
+      navigate(`/purchase-orders/${po_id}/details`); // Go back to Purchase details page
     } catch (error: any) {
       toast.error(error?.message || 'Failed to add payment.');
       console.error('Error adding payment:', error);
@@ -116,17 +116,17 @@ const AddPaymentForm: React.FC = () => {
     }
   };
 
-  if (loadingPo) return <div className="text-center mt-5">Loading Purchase Order details for payment...</div>;
+  if (loadingPo) return <div className="text-center mt-5">Loading Purchase details for payment...</div>;
   if (errorPo) return <div className="text-center text-danger mt-5">{errorPo}</div>;
-  if (!purchaseOrder) return <div className="text-center mt-5">Purchase Order not found.</div>;
+  if (!purchaseOrder) return <div className="text-center mt-5">Purchase not found.</div>;
 
 
   return (
     <>
       <PageHeader
-        title={`Add Payment for PO: ${purchaseOrder.id}`}
+        title={`Add Payment for Purchase: ${purchaseOrder.id}`}
         buttonVariant="secondary"
-        buttonLabel="Back to PO Details"
+        buttonLabel="Back to Purchase Details"
         buttonLink={`/purchase-orders/${po_id}/details`}
       />
       <div className="container mt-4">
@@ -134,7 +134,7 @@ const AddPaymentForm: React.FC = () => {
           <div className="card-body">
             <h5 className="mb-3">Payment Details</h5>
             <div className="alert alert-info" role="alert">
-                  <strong>PO Total:</strong> Rs. {Number(purchaseOrder.total_amount || 0).toFixed(2)} |
+                  <strong>Purchase Total:</strong> Rs. {Number(purchaseOrder.total_amount || 0).toFixed(2)} |
                   <strong> Paid So Far:</strong> Rs. {Number(purchaseOrder.total_amount_paid || 0).toFixed(2)} |
                   <strong> Remaining Due:</strong> Rs. {(Number(purchaseOrder.total_amount || 0) - Number(purchaseOrder.total_amount_paid || 0)).toFixed(2)}
             </div>

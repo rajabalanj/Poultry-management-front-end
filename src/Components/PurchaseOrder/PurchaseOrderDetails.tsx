@@ -42,7 +42,7 @@ const PurchaseOrderDetails: React.FC = () => {
     const fetchPurchaseOrder = async () => {
       try {
         if (!po_id) {
-          setError("Purchase Order ID is missing.");
+          setError("Purchase ID is missing.");
           setLoading(false);
           return;
         }
@@ -55,9 +55,9 @@ const PurchaseOrderDetails: React.FC = () => {
         setVendors(vendorsData);
         setInventoryItems(inventoryItemsData);
       } catch (err: any) {
-        console.error("Error fetching purchase order:", err);
-        setError(err?.message || "Failed to load purchase order details.");
-        toast.error(err?.message || "Failed to load purchase order details.");
+        console.error("Error fetching Purchase:", err);
+        setError(err?.message || "Failed to load Purchase details.");
+        toast.error(err?.message || "Failed to load Purchase details.");
       } finally {
         setLoading(false);
       }
@@ -84,17 +84,17 @@ const PurchaseOrderDetails: React.FC = () => {
     return item?.unit || 'N/A';
   };
 
-  if (loading) return <div className="text-center mt-5">Loading purchase order details...</div>;
+  if (loading) return <div className="text-center mt-5">Loading Purchase details...</div>;
   if (error) return <div className="text-center text-danger mt-5">{error}</div>;
-  if (!purchaseOrder) return <div className="text-center mt-5">Purchase order not found or data is missing.</div>;
+  if (!purchaseOrder) return <div className="text-center mt-5">Purchase not found or data is missing.</div>;
 
   return (
     <>
-      <PageHeader title={`PO Details: ${purchaseOrder.id}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/purchase-orders" />
+      <PageHeader title={`Purchase Details: ${purchaseOrder.id}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/purchase-orders" />
       <div className="container mt-4">
         <div className="card shadow-sm mb-4">
           <div className="card-header bg-primary text-white">
-            <h4 className="mb-0">Purchase Order Information</h4>
+            <h4 className="mb-0">Purchase Information</h4>
           </div>
           <div className="card-body">
             <div className="row mb-3">
@@ -137,7 +137,7 @@ const PurchaseOrderDetails: React.FC = () => {
           </div>
         </div>
 
-        {/* Purchase Order Items */}
+        {/* Purchase Items */}
         <div className="card shadow-sm mb-4">
           <div className="card-header bg-info text-white">
             <h5 className="mb-0">Ordered Items</h5>
@@ -170,14 +170,14 @@ const PurchaseOrderDetails: React.FC = () => {
                   </tbody>
                   <tfoot>
                     <tr>
-                      <td colSpan={5} className="text-end fw-bold">Total PO Value:</td>
+                      <td colSpan={5} className="text-end fw-bold">Total Purchase Value:</td>
                       <td className="fw-bold">Rs. {(Number(purchaseOrder.total_amount) || 0).toFixed(2)}</td>
                     </tr>
                   </tfoot>
                 </table>
               </div>
             ) : (
-              <p className="p-3">No items found for this purchase order.</p>
+              <p className="p-3">No items found for this Purchase.</p>
             )}
           </div>
         </div>
@@ -223,7 +223,7 @@ const PurchaseOrderDetails: React.FC = () => {
                 </table>
               </div>
             ) : (
-              <p className="p-3">No payments recorded for this purchase order yet.</p>
+              <p className="p-3">No payments recorded for this Purchase yet.</p>
             )}
             <div className="card-footer text-end">
               <button
@@ -250,7 +250,7 @@ const PurchaseOrderDetails: React.FC = () => {
             className="btn btn-primary"
             onClick={() => navigate(`/purchase-orders/${purchaseOrder.id}/edit`)}
           >
-            Edit Purchase Order
+            Edit Purchase
           </button>
         </div>
       </div>

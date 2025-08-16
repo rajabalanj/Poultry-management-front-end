@@ -20,7 +20,7 @@ const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders,
   const handleViewDetails = useCallback(
     (id: number) => {
       if (!id) {
-        console.error("Purchase Order ID is required");
+        console.error("Purchase ID is required");
         return;
       }
       navigate(`/purchase-orders/${id}/details`);
@@ -31,7 +31,7 @@ const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders,
   const handleEdit = useCallback(
     (id: number) => {
       if (!id) {
-        console.error("Purchase Order ID is required");
+        console.error("Purchase ID is required");
         return;
       }
       navigate(`/purchase-orders/${id}/edit`);
@@ -40,10 +40,10 @@ const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders,
   );
 
   const poCards = useMemo(() => {
-    return purchaseOrders.map((po) => (
+    return purchaseOrders.map((Purchase) => (
       <PurchaseOrderCard
-        key={po.id}
-        po={po}
+        key={Purchase.id}
+        Purchase={Purchase}
         vendors={vendors} // Pass vendors to PurchaseOrderCard
         onView={handleViewDetails}
         onEdit={handleEdit}
@@ -53,9 +53,9 @@ const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders,
     ));
   }, [purchaseOrders, vendors, handleViewDetails, handleEdit, onDelete, onAddPayment]); // Add vendors to dependencies
 
-  if (loading) return <div className="text-center">Loading purchase orders...</div>;
+  if (loading) return <div className="text-center">Loading Purchase...</div>;
   if (error) return <div className="text-center text-danger">{error}</div>;
-  if (purchaseOrders.length === 0) return <div className="text-center">No purchase orders found</div>;
+  if (purchaseOrders.length === 0) return <div className="text-center">No Purchase found</div>;
 
   return <div className="px-2">{poCards}</div>;
 };

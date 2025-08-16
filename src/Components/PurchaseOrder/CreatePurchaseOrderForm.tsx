@@ -27,7 +27,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
   const [vendors, setVendors] = useState<VendorResponse[]>([]);
   const [inventoryItems, setInventoryItems] = useState<InventoryItemResponse[]>([]);
 
-  // Purchase Order states
+  // Purchase states
   const [vendorId, setVendorId] = useState<number | ''>('');
   
   const [orderDate, setOrderDate] = useState<Date>(new Date()); // ADD THIS STATE: Default to current date
@@ -140,11 +140,11 @@ const CreatePurchaseOrderForm: React.FC = () => {
         await purchaseOrderApi.uploadPurchaseOrderReceipt(poResponse.id, formData);
       }
       
-      toast.success('Purchase Order created successfully!');
+      toast.success('Purchase created successfully!');
       navigate('/purchase-orders');
     } catch (error: any) {
-      toast.error(error?.message || 'Failed to create purchase order.');
-      console.error('Error creating PO:', error);
+      toast.error(error?.message || 'Failed to create purchase.');
+      console.error('Error creating Purchase:', error);
     } finally {
       setIsLoading(false);
     }
@@ -152,14 +152,14 @@ const CreatePurchaseOrderForm: React.FC = () => {
 
   return (
     <>
-      <PageHeader title="Create New Purchase Order" buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/purchase-orders" />
+      <PageHeader title="Create New Purchase" buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/purchase-orders" />
       <div className="container mt-4">
         <div className="card shadow-sm">
           <div className="card-body">
             <form onSubmit={handleSubmit}>
               <div className="row g-3">
-                {/* PO Details Section */}
-                <h5 className="mb-3">Purchase Order Details</h5>
+                {/* Purchase Details Section */}
+                <h5 className="mb-3">Purchase Details</h5>
                 <div className="col-md-6">
                   <label htmlFor="vendorSelect" className="form-label">Vendor <span className="text-danger">*</span></label>
                   <select
@@ -204,7 +204,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
                     rows={3}
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Any additional notes for the purchase order"
+                    placeholder="Any additional notes for the purchase"
                     disabled={isLoading}
                   ></textarea>
                 </div>
@@ -221,7 +221,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
                   <div className="form-text">Upload payment receipt (PDF, JPG, PNG)</div>
                 </div>
 
-                {/* Purchase Order Items Section */}
+                {/* Purchase Items Section */}
                 <h5 className="mt-4 mb-3">Items <span className="text-danger">*</span></h5>
                 {items.length === 0 && <p className="col-12 text-muted">No items added yet. Click "Add Item" to start.</p>}
                 {items.map((item, index) => (
@@ -307,7 +307,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
                     className="btn btn-primary me-2"
                     disabled={isLoading}
                   >
-                    {isLoading ? 'Creating...' : 'Create Purchase Order'}
+                    {isLoading ? 'Creating...' : 'Create Purchase'}
                   </button>
                   <button
                     type="button"

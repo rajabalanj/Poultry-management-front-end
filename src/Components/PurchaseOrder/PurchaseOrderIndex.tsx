@@ -52,8 +52,8 @@ const PurchaseOrderIndexPage: React.FC = () => {
         );
         setPurchaseOrders(response);
       } catch (error: any) {
-        setError(error?.message || 'Failed to fetch purchase order list');
-        toast.error(error?.message || 'Failed to fetch purchase order list');
+        setError(error?.message || 'Failed to fetch Purchase list');
+        toast.error(error?.message || 'Failed to fetch Purchase list');
       } finally {
         setLoading(false);
       }
@@ -75,10 +75,10 @@ const PurchaseOrderIndexPage: React.FC = () => {
     if (poToDelete !== null) {
       try {
         await purchaseOrderApi.deletePurchaseOrder(poToDelete);
-        setPurchaseOrders((prevPOs) => prevPOs.filter((po) => po.id !== poToDelete));
-        toast.success("Purchase order deleted successfully!");
+        setPurchaseOrders((prevPOs) => prevPOs.filter((Purchase) => Purchase.id !== poToDelete));
+        toast.success("Purchase deleted successfully!");
       } catch (error: any) {
-        const message = error?.message || 'Failed to delete purchase order';
+        const message = error?.message || 'Failed to delete Purchase';
         setDeleteErrorMessage(message);
         toast.error(message);
       } finally {
@@ -99,14 +99,14 @@ const PurchaseOrderIndexPage: React.FC = () => {
   return (
     <>
       <PageHeader
-        title="Purchase Orders"
+        title="Purchase"
         buttonVariant="primary"
-        buttonLabel="Create New PO"
+        buttonLabel="Create New Purchase"
         buttonLink="/purchase-orders/create"
       />
       <div className="container mt-4">
         <div className="card shadow-sm mb-4 p-3">
-          <h5 className="mb-3">Filter Purchase Orders</h5>
+          <h5 className="mb-3">Filter Purchase</h5>
           <div className="row g-3">
             <div className="col-md-4">
               <label htmlFor="vendorFilter" className="form-label">Vendor:</label>
@@ -169,7 +169,7 @@ const PurchaseOrderIndexPage: React.FC = () => {
             {deleteErrorMessage ? (
               <div className="text-danger mb-3">{deleteErrorMessage}</div>
             ) : (
-              "Are you sure you want to delete this purchase order? This action cannot be undone if the PO is not in Draft or Cancelled status."
+              "Are you sure you want to delete this Purchase? This action cannot be undone if the Purchase is not in Draft or Cancelled status."
             )}
           </Modal.Body>
           <Modal.Footer>
