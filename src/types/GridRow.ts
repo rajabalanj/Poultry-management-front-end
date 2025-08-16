@@ -14,4 +14,6 @@ export interface GridRow {
     total_eggs: number;
     hd: number; // Computed field
     standard_hen_day_percentage?: number; // 0-100, default 0, accepts up to 2 decimal places
+    date_range?: string; // Optional field for date range display
+    days_count?: number; // Optional field for days count display
   }

@@ -26,6 +26,8 @@ export const fetchBatchData = async (startDate: string, endDate: string, batchId
       batch_date: batch.batch_date,
       hd: batch.hd,
       standard_hen_day_percentage: batch.standard_hen_day_percentage || 0,
+      date_range: batchId ? undefined : `${startDate} to ${endDate}`,
+      days_count: batchId ? undefined : batch.days_count,
     }));
   } catch (error) {
     console.error('Error fetching data:', error);

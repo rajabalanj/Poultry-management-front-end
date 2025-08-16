@@ -145,15 +145,21 @@ const PreviousDayReport = () => {
       <div className="row mb-4">
         <div className="d-flex flex-column mb-4">
           <div>
-            <span className="me-3">
-              Date Range: {startDate} to {endDate}
-            </span>
-            {batchId && (
-              <span>
-                Batch No: {(() => {
-                  const found = gridData.find(row => String(row.batch_id) === String(batchId));
-                  return found ? found.batch_no : batchId;
-                })()}
+            {batchId ? (
+              <>
+                <span className="me-3">
+                  Date Range: {startDate} to {endDate}
+                </span>
+                <span>
+                  Batch No: {(() => {
+                    const found = gridData.find(row => String(row.batch_id) === String(batchId));
+                    return found ? found.batch_no : batchId;
+                  })()}
+                </span>
+              </>
+            ) : (
+              <span className="me-3">
+                Date Range: {startDate} to {endDate}
               </span>
             )}
           </div>
@@ -181,7 +187,8 @@ const PreviousDayReport = () => {
           <table className="table table-bordered" ref={tableRef}>
             <thead>
               <tr>
-                <th>Batch Date</th>
+                {!batchId && <th>Date Range</th>}
+                {batchId && <th>Batch Date</th>}
                 <th>Shed No</th>
                 <th>Age</th>
                 <th>Opening</th>
@@ -194,6 +201,8 @@ const PreviousDayReport = () => {
                 <th>Total Eggs</th>
                 <th>HD</th>
                 <th>Standard</th>
+                {!batchId && <th>Days Count</th>}
+                {batchId && <th>Edit</th>}
               </tr>
             </thead>
             <tbody>
@@ -220,7 +229,8 @@ const PreviousDayReport = () => {
 
                   return (
                     <tr key={`${row.batch_id}-${row.batch_date}`}>
-                      <td>{row.batch_date}</td>
+                      {!batchId && <td>{row.date_range}</td>}
+                      {batchId && <td>{row.batch_date}</td>}
                       <td>{row.shed_no}</td>
                       <td>{row.age}</td>
                       <td>{row.opening_count}</td>
@@ -231,17 +241,19 @@ const PreviousDayReport = () => {
                       <td>{row.jumbo}</td>
                       <td>{row.cr}</td>
                       <td>{row.total_eggs}</td>
-                      {/* Apply conditional styling to the HD cell */}
                       <td className={hdCellClassName} style={hdCellStyle}>
                         {row.hd !== undefined ? Number(row.hd).toFixed(5) : ''}
                       </td>
                       <td>{row.standard_hen_day_percentage !== undefined ? row.standard_hen_day_percentage.toFixed(2) : ''}</td>
-                      <td>
-                        <button
-                          className="btn btn-sm btn-warning"
-                          onClick={() => handleEdit(row.batch_id, row.batch_date)}
-                        >Edit</button>
-                      </td>
+                      {!batchId && <td>{row.days_count}</td>}
+                      {batchId && (
+                        <td>
+                          <button
+                            className="btn btn-sm btn-warning"
+                            onClick={() => handleEdit(row.batch_id, row.batch_date)}
+                          >Edit</button>
+                        </td>
+                      )}
                     </tr>
                   );
                 })}
