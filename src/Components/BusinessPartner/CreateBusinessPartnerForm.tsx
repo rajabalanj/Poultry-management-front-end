@@ -1,17 +1,18 @@
-// src/components/Vendor/CreateVendorForm.tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import PageHeader from '../Layout/PageHeader'; // Adjust path if necessary
-import { vendorApi } from '../../services/api'; // Adjust path if necessary
-import { VendorCreate } from '../../types/Vendor'; // Import VendorStatus
+import PageHeader from '../Layout/PageHeader';
+import { businessPartnerApi } from '../../services/api';
+import { BusinessPartnerCreate } from '../../types/BusinessPartner';
 
-const CreateVendorForm: React.FC = () => {
+const CreateBusinessPartnerForm: React.FC = () => {
     const [name, setName] = useState('');
     const [contactName, setContactName] = useState('');
     const [phone, setPhone] = useState('');
     const [address, setAddress] = useState('');
     const [email, setEmail] = useState('');
+    const [isVendor, setIsVendor] = useState(false);
+    const [isCustomer, setIsCustomer] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
@@ -19,27 +20,34 @@ const CreateVendorForm: React.FC = () => {
         e.preventDefault();
         setIsLoading(true);
 
-        // Basic validation
         if (!name.trim() || !contactName.trim() || !phone.trim() || !address.trim()) {
             toast.error('Please fill in all required fields (Name, Contact Name, Phone, Address).');
             setIsLoading(false);
             return;
         }
 
-        const newVendor: VendorCreate = {
+        if (!isVendor && !isCustomer) {
+            toast.error('Please select at least one partner type (Vendor or Customer).');
+            setIsLoading(false);
+            return;
+        }
+
+        const newPartner: BusinessPartnerCreate = {
             name,
             contact_name: contactName,
             phone,
             address,
-            email: email || undefined, // Send undefined if empty string
+            email: email || undefined,
+            is_vendor: isVendor,
+            is_customer: isCustomer,
         };
 
         try {
-            await vendorApi.createVendor(newVendor);
-            toast.success('Vendor created successfully!');
-            navigate('/vendors'); // Navigate back to the vendor list
+            await businessPartnerApi.createBusinessPartner(newPartner);
+            toast.success('Business partner created successfully!');
+            navigate('/business-partners');
         } catch (error: any) {
-            toast.error(error?.message || 'Failed to create vendor.');
+            toast.error(error?.message || 'Failed to create business partner.');
         } finally {
             setIsLoading(false);
         }
@@ -47,21 +55,21 @@ const CreateVendorForm: React.FC = () => {
 
     return (
         <>
-            <PageHeader title="Create New Vendor" buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/vendors" />
+            <PageHeader title="Create New Business Partner" buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/business-partners" />
             <div className="container mt-4">
                 <div className="card shadow-sm">
                     <div className="card-body">
                         <form onSubmit={handleSubmit}>
                             <div className="row g-3">
                                 <div className="col-md-6">
-                                    <label htmlFor="vendorName" className="form-label">Vendor Name <span className="text-danger">*</span></label>
+                                    <label htmlFor="partnerName" className="form-label">Partner Name <span className="text-danger">*</span></label>
                                     <input
                                         type="text"
                                         className="form-control"
-                                        id="vendorName"
+                                        id="partnerName"
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
-                                        placeholder="e.g., ABC Suppliers"
+                                        placeholder="e.g., ABC Company"
                                         required
                                     />
                                 </div>
@@ -73,7 +81,7 @@ const CreateVendorForm: React.FC = () => {
                                         id="contactName"
                                         value={contactName}
                                         onChange={(e) => setContactName(e.target.value)}
-                                        placeholder="e.g., John Doe"
+                                        placeholder="e.g., Jane Doe"
                                         required
                                     />
                                 </div>
@@ -97,7 +105,7 @@ const CreateVendorForm: React.FC = () => {
                                         id="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        placeholder="e.g., info@abc.com"
+                                        placeholder="e.g., info@company.com"
                                     />
                                 </div>
                                 <div className="col-12">
@@ -108,9 +116,39 @@ const CreateVendorForm: React.FC = () => {
                                         rows={3}
                                         value={address}
                                         onChange={(e) => setAddress(e.target.value)}
-                                        placeholder="Full address of the vendor"
+                                        placeholder="Full address of the partner"
                                         required
                                     ></textarea>
+                                </div>
+                                
+                                <div className="col-12">
+                                    <label className="form-label">Partner Type <span className="text-danger">*</span></label>
+                                    <div className="d-flex gap-3">
+                                        <div className="form-check">
+                                            <input
+                                                className="form-check-input"
+                                                type="checkbox"
+                                                id="isVendor"
+                                                checked={isVendor}
+                                                onChange={(e) => setIsVendor(e.target.checked)}
+                                            />
+                                            <label className="form-check-label" htmlFor="isVendor">
+                                                Vendor (We buy from them)
+                                            </label>
+                                        </div>
+                                        <div className="form-check">
+                                            <input
+                                                className="form-check-input"
+                                                type="checkbox"
+                                                id="isCustomer"
+                                                checked={isCustomer}
+                                                onChange={(e) => setIsCustomer(e.target.checked)}
+                                            />
+                                            <label className="form-check-label" htmlFor="isCustomer">
+                                                Customer (We sell to them)
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div className="col-12 mt-4">
@@ -119,12 +157,12 @@ const CreateVendorForm: React.FC = () => {
                                         className="btn btn-primary"
                                         disabled={isLoading}
                                     >
-                                        {isLoading ? 'Creating...' : 'Create Vendor'}
+                                        {isLoading ? 'Creating...' : 'Create Business Partner'}
                                     </button>
                                     <button
                                         type="button"
                                         className="btn btn-secondary ms-2"
-                                        onClick={() => navigate('/vendors')}
+                                        onClick={() => navigate('/business-partners')}
                                     >
                                         Cancel
                                     </button>
@@ -138,4 +176,4 @@ const CreateVendorForm: React.FC = () => {
     );
 };
 
-export default CreateVendorForm;
+export default CreateBusinessPartnerForm;

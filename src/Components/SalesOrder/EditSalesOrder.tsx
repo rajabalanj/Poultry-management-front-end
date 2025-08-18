@@ -1,25 +1,24 @@
-// src/components/PurchaseOrder/EditPurchaseOrder.tsx
+// src/components/SalesOrder/EditSalesOrder.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
-import { purchaseOrderApi, inventoryItemApi, businessPartnerApi } from '../../services/api';
+import { salesOrderApi, inventoryItemApi, businessPartnerApi } from '../../services/api';
 import {
-  PurchaseOrderUpdate,
-  PurchaseOrderStatus,
-} from '../../types/PurchaseOrder';
+  SalesOrderUpdate,
+} from '../../types/SalesOrder';
 import {
-  PurchaseOrderItemCreate,
-  PurchaseOrderItemUpdate,
-  PurchaseOrderItemResponse, 
-} from '../../types/PurchaseOrderItem';
+  SalesOrderItemCreate,
+  SalesOrderItemUpdate,
+  SalesOrderItemResponse, 
+} from '../../types/SalesOrderItem';
 import { BusinessPartner } from '../../types/BusinessPartner';
 import { InventoryItemResponse } from '../../types/InventoryItem';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { format } from 'date-fns';
 
-interface FormPurchaseOrderItem extends PurchaseOrderItemResponse {
+interface FormSalesOrderItem extends SalesOrderItemResponse {
   tempId: number; // For new items, to uniquely identify them before they have a backend ID
   isNew?: boolean; // Flag to indicate if this item is newly added
   isDeleted?: boolean; // Flag to indicate if this item is marked for deletion
@@ -28,56 +27,54 @@ interface FormPurchaseOrderItem extends PurchaseOrderItemResponse {
   inventory_item_unit?: string;
 }
 
-const EditPurchaseOrder: React.FC = () => {
-  const { po_id } = useParams<{ po_id: string }>();
+const EditSalesOrder: React.FC = () => {
+  const { so_id } = useParams<{ so_id: string }>();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [vendors, setVendors] = useState<BusinessPartner[]>([]);
+  const [customers, setCustomers] = useState<BusinessPartner[]>([]);
   const [inventoryItems, setInventoryItems] = useState<InventoryItemResponse[]>([]);
 
-  // Purchase states, initialized from fetched data
-  const [vendorId, setVendorId] = useState<number | ''>('');
+  // Sales Order states, initialized from fetched data
+  const [customerId, setCustomerId] = useState<number | ''>('');
   
   const [orderDate, setOrderDate] = useState<Date | null>(null);
   
   const [notes, setNotes] = useState('');
-  const [status, setStatus] = useState<PurchaseOrderStatus | ''>('');
-  const [items, setItems] = useState<FormPurchaseOrderItem[]>([]);
+  const [items, setItems] = useState<FormSalesOrderItem[]>([]);
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
-  const [currentReceipt, setCurrentReceipt] = useState<string | null>(null); // Array of items for the Purchase
+  const [currentReceipt, setCurrentReceipt] = useState<string | null>(null); // Array of items for the SO
 
-  // --- Initial Data Fetch (Purchase, Vendors, Inventory Items) ---
+  // --- Initial Data Fetch (SO, Customers, Inventory Items) ---
   useEffect(() => {
     const fetchInitialData = async () => {
       setInitialLoading(true);
       setError(null);
       try {
-        if (!po_id) {
-            setError("Purchase ID is missing.");
+        if (!so_id) {
+            setError("Sales Order ID is missing.");
             setInitialLoading(false);
             return;
         }
 
-        const [poData, vendorsData, inventoryItemsData] = await Promise.all([
-          purchaseOrderApi.getPurchaseOrder(Number(po_id)),
-          businessPartnerApi.getVendors(),
+        const [soData, customersData, inventoryItemsData] = await Promise.all([
+          salesOrderApi.getSalesOrder(Number(so_id)),
+          businessPartnerApi.getCustomers(),
           inventoryItemApi.getInventoryItems(),
         ]);
 
-        // Set main Purchase details
-        setVendorId(poData.vendor_id);
+        // Set main SO details
+        setCustomerId(soData.customer_id);
         
-        setOrderDate(poData.order_date ? new Date(poData.order_date) : null);
+        setOrderDate(soData.order_date ? new Date(soData.order_date) : null);
         
-        setNotes(poData.notes || '');
-        setStatus(poData.status);
-        setCurrentReceipt(poData.payment_receipt || null);
+        setNotes(soData.notes || '');
+        setCurrentReceipt(soData.payment_receipt || null);
 
         // Map existing items to form state, adding tempId for consistency and flags
-        const formItems: FormPurchaseOrderItem[] = poData.items?.map(item => ({
+        const formItems: FormSalesOrderItem[] = soData.items?.map(item => ({
           ...item,
           tempId: item.id || Date.now() + Math.random(), // Use actual ID or generate temp for safety
           isNew: false, // These are existing items
@@ -87,35 +84,35 @@ const EditPurchaseOrder: React.FC = () => {
         })) || [];
         setItems(formItems);
 
-        setVendors(vendorsData);
+        setCustomers(customersData);
         setInventoryItems(inventoryItemsData);
 
       } catch (err: any) {
         console.error('Error fetching data for edit:', err);
-        setError(err?.message || 'Failed to load purchase for editing.');
-        toast.error(err?.message || 'Failed to load purchase for editing.');
+        setError(err?.message || 'Failed to load sales order for editing.');
+        toast.error(err?.message || 'Failed to load sales order for editing.');
       } finally {
         setInitialLoading(false);
       }
     };
     fetchInitialData();
-  }, [po_id]);
+  }, [so_id]);
 
   // --- Item Management Functions ---
   const handleAddItem = useCallback(() => {
-    const newItem: FormPurchaseOrderItem = {
+    const newItem: FormSalesOrderItem = {
       tempId: Date.now(),
       inventory_item_id: 0, // Placeholder for dropdown selection
       quantity: 1,
       price_per_unit: 0,
       id: 0, // No backend ID yet
-      purchase_order_id: Number(po_id), // Link to this Purchase
+      sales_order_id: Number(so_id), // Link to this SO
       line_total: 0, // Will be calculated by backend
       isNew: true, // Mark as new
       isDeleted: false,
     };
     setItems((prevItems) => [...prevItems, newItem]);
-  }, [po_id]);
+  }, [so_id]);
 
   const handleRemoveItem = useCallback((tempId: number) => {
     setItems((prevItems) =>
@@ -133,7 +130,7 @@ const EditPurchaseOrder: React.FC = () => {
     );
   }, []);
 
-  const handleItemChange = useCallback((tempId: number, field: keyof FormPurchaseOrderItem, value: any) => {
+  const handleItemChange = useCallback((tempId: number, field: keyof FormSalesOrderItem, value: any) => {
     setItems((prevItems) =>
       prevItems.map((item) => {
         if (item.tempId === tempId) {
@@ -158,8 +155,8 @@ const EditPurchaseOrder: React.FC = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    if (!po_id) {
-        toast.error("Purchase ID is missing for update.");
+    if (!so_id) {
+        toast.error("Sales Order ID is missing for update.");
         setIsLoading(false);
         return;
     }
@@ -168,8 +165,8 @@ const EditPurchaseOrder: React.FC = () => {
     const activeItems = items.filter(item => !item.isDeleted);
 
     // Basic Validation
-    if (!vendorId || activeItems.length === 0 || orderDate === null) {
-      toast.error('Please select a Vendor, an Date, and ensure at least one active item.');
+    if (!customerId || activeItems.length === 0 || orderDate === null) {
+      toast.error('Please select a Customer, an Date, and ensure at least one active item.');
       setIsLoading(false);
       return;
     }
@@ -184,87 +181,85 @@ const EditPurchaseOrder: React.FC = () => {
     }
 
     try {
-      // 1. Update main Purchase details
-      const poUpdateData: PurchaseOrderUpdate = {
-        vendor_id: Number(vendorId),
+      // 1. Update main Sales Order details
+      const soUpdateData: SalesOrderUpdate = {
+        customer_id: Number(customerId),
         order_date: orderDate ? format(orderDate, 'yyyy-MM-dd') : undefined,
-        
         notes: notes || undefined,
-        status: status as PurchaseOrderStatus, // Cast to expected enum
       };
-      await purchaseOrderApi.updatePurchaseOrder(Number(po_id), poUpdateData);
+      await salesOrderApi.updateSalesOrder(Number(so_id), soUpdateData);
 
       // Upload receipt if file is selected
       if (receiptFile) {
         const formData = new FormData();
         formData.append('file', receiptFile);
-        await purchaseOrderApi.uploadPurchaseOrderReceipt(Number(po_id), formData);
+        await salesOrderApi.uploadSalesOrderReceipt(Number(so_id), formData);
       }
 
-      // 2. Process Purchase Items (Add, Update, Delete)
+      // 2. Process Sales Order Items (Add, Update, Delete)
       for (const item of items) {
         if (item.isDeleted && !item.isNew) { // Existing item marked for deletion
-          await purchaseOrderApi.deletePurchaseOrderItem(Number(po_id), item.id);
+          await salesOrderApi.deleteSalesOrderItem(Number(so_id), item.id);
         } else if (item.isNew && !item.isDeleted) { // New item not marked for deletion
-          const newItemData: PurchaseOrderItemCreate = {
+          const newItemData: SalesOrderItemCreate = {
             inventory_item_id: item.inventory_item_id,
             quantity: item.quantity,
             price_per_unit: item.price_per_unit,
           };
-          await purchaseOrderApi.addPurchaseOrderItem(Number(po_id), newItemData);
+          await salesOrderApi.addSalesOrderItem(Number(so_id), newItemData);
         } else if (!item.isNew && !item.isDeleted) { // Existing item, potentially updated
           // Check if any fields actually changed before sending update request
           // This requires comparing against original values, which we don't store here.
           // For simplicity, we'll send the update if it's an existing item not deleted.
           // A more robust solution would involve deep comparison or only updating specific fields.
-          const updateItemData: PurchaseOrderItemUpdate = {
+          const updateItemData: SalesOrderItemUpdate = {
             quantity: item.quantity,
             price_per_unit: item.price_per_unit,
           };
-          await purchaseOrderApi.updatePurchaseOrderItem(Number(po_id), item.id, updateItemData);
+          await salesOrderApi.updateSalesOrderItem(Number(so_id), item.id, updateItemData);
         }
       }
 
-      toast.success('Purchase updated successfully!');
-      navigate('/purchase-orders'); // Navigate back to the Purchase list
+      toast.success('Sales Order updated successfully!');
+      navigate('/sales-orders'); // Navigate back to the SO list
     } catch (err: any) {
-      toast.error(err?.message || 'Failed to update purchase.');
-      console.error('Error updating Purchase:', err);
+      toast.error(err?.message || 'Failed to update sales order.');
+      console.error('Error updating SO:', err);
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (initialLoading) return <div className="text-center mt-5">Loading purchase for editing...</div>;
+  if (initialLoading) return <div className="text-center mt-5">Loading sales order for editing...</div>;
   if (error) return <div className="text-center text-danger mt-5">{error}</div>;
 
   return (
     <>
-      <PageHeader title={`Edit Purchase: ${po_id || 'Loading...'}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/purchase-orders" />
+      <PageHeader title={`Edit SO: ${so_id || 'Loading...'}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/sales-orders" />
       <div className="container mt-4">
         <div className="card shadow-sm">
           <div className="card-body">
             <form onSubmit={handleSubmit}>
               <div className="row g-3">
-                {/* Purchase Details Section */}
-                <h5 className="mb-3">Purchase Details</h5>
+                {/* SO Details Section */}
+                <h5 className="mb-3">Sales Order Details</h5>
                 <div className="col-md-6">
-                  <label htmlFor="vendorSelect" className="form-label">Vendor <span className="text-danger">*</span></label>
+                  <label htmlFor="customerSelect" className="form-label">Customer <span className="text-danger">*</span></label>
                   <select
-                    id="vendorSelect"
+                    id="customerSelect"
                     className="form-select"
-                    value={vendorId}
-                    onChange={(e) => setVendorId(Number(e.target.value))}
+                    value={customerId}
+                    onChange={(e) => setCustomerId(Number(e.target.value))}
                     required
-                    disabled={isLoading || vendors.length === 0}
+                    disabled={isLoading || customers.length === 0}
                   >
-                    <option value="">Select a Vendor</option>
-                    {vendors.map((vendor) => (
-                      <option key={vendor.id} value={vendor.id}>{vendor.name}</option>
+                    <option value="">Select a Customer</option>
+                    {customers.map((customer) => (
+                      <option key={customer.id} value={customer.id}>{customer.name}</option>
                     ))}
                   </select>
-                  {vendors.length === 0 && !isLoading && (
-                    <div className="text-danger mt-1">No vendors found. Please add a vendor first.</div>
+                  {customers.length === 0 && !isLoading && (
+                    <div className="text-danger mt-1">No customers found. Please add a customer first.</div>
                   )}
                 </div>
                 
@@ -282,6 +277,7 @@ const EditPurchaseOrder: React.FC = () => {
                   />
                   </div>
                 </div>
+                
                 <div className="col-12">
                   <label htmlFor="notes" className="form-label">Notes</label>
                   <textarea
@@ -290,7 +286,7 @@ const EditPurchaseOrder: React.FC = () => {
                     rows={3}
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Any additional notes for the purchase"
+                    placeholder="Any additional notes for the sales order"
                     disabled={isLoading}
                   ></textarea>
                 </div>
@@ -312,7 +308,7 @@ const EditPurchaseOrder: React.FC = () => {
                   <div className="form-text">Upload new payment receipt (PDF, JPG, PNG) - will replace existing if any</div>
                 </div>
 
-                {/* Purchase Items Section */}
+                {/* Sales Order Items Section */}
                 <h5 className="mt-4 mb-3">Items <span className="text-danger">*</span></h5>
                 {items.filter(item => !item.isDeleted).length === 0 && <p className="col-12 text-muted">No active items. Click "Add Item" to add new ones.</p>}
 
@@ -415,12 +411,12 @@ const EditPurchaseOrder: React.FC = () => {
                     className="btn btn-primary me-2"
                     disabled={isLoading}
                   >
-                    {isLoading ? 'Updating...' : 'Update Purchase'}
+                    {isLoading ? 'Updating...' : 'Update Sales Order'}
                   </button>
                   <button
                     type="button"
                     className="btn btn-secondary"
-                    onClick={() => navigate('/purchase-orders')}
+                    onClick={() => navigate('/sales-orders')}
                     disabled={isLoading}
                   >
                     Cancel
@@ -435,4 +431,4 @@ const EditPurchaseOrder: React.FC = () => {
   );
 };
 
-export default EditPurchaseOrder;
+export default EditSalesOrder;

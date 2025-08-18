@@ -1,53 +1,66 @@
-// src/components/Vendor/VendorCard.tsx
 import React from "react";
-import { VendorResponse } from "../../types/Vendor";
+import { BusinessPartner } from "../../types/BusinessPartner";
 
-interface VendorCardProps {
-  vendor: VendorResponse;
+interface BusinessPartnerCardProps {
+  partner: BusinessPartner;
   onView: (id: number) => void;
   onEdit: (id: number) => void;
   onDelete: (id: number) => void;
 }
 
-const VendorCard: React.FC<VendorCardProps> = React.memo(
-  ({ vendor, onView, onEdit, onDelete }) => {
+const BusinessPartnerCard: React.FC<BusinessPartnerCardProps> = React.memo(
+  ({ partner, onView, onEdit, onDelete }) => {
+    const getPartnerType = () => {
+      if (partner.is_vendor && partner.is_customer) return "Vendor & Customer";
+      if (partner.is_vendor) return "Vendor";
+      if (partner.is_customer) return "Customer";
+      return "Partner";
+    };
+
+    const getTypeBadgeClass = () => {
+      if (partner.is_vendor && partner.is_customer) return "bg-info";
+      if (partner.is_vendor) return "bg-primary";
+      if (partner.is_customer) return "bg-success";
+      return "bg-secondary";
+    };
+
     return (
       <div className="card mb-2 mt-2 border shadow-sm">
         <div className="card-body p-2">
           <div className="d-flex justify-content-between align-items-center">
             <div>
-              <h6 className="mb-1">Name: {vendor.name}</h6>
+              <h6 className="mb-1">
+                {partner.name}
+                <span className={`badge ms-2 ${getTypeBadgeClass()}`}>
+                  {getPartnerType()}
+                </span>
+              </h6>
               <div className="text-sm">
-                <p className="mb-0">Contact: {vendor.contact_name} ({vendor.phone})</p>
-                {/* {vendor.email && <p className="mb-0">Email: {vendor.email}</p>} */}
-                <p className="mb-0">Address: {vendor.address}</p>
-                {/* <p className="mb-0">Status: <span className={`badge ${vendor.status === 'Active' ? 'bg-success' : 'bg-warning'}`}>{vendor.status}</span></p> */}
+                <p className="mb-0">Contact: {partner.contact_name} ({partner.phone})</p>
+                <p className="mb-0">Address: {partner.address}</p>
               </div>
             </div>
             <div className="d-flex flex-column flex-md-row gap-2">
               <button
                 className="btn btn-info btn-sm d-flex align-items-center justify-content-center"
-                onClick={() => onView(vendor.id)}
+                onClick={() => onView(partner.id)}
                 title="View Details"
-                aria-label={`View Details for Vendor ${vendor.name}`}
               >
                 <i className="bi bi-eye me-1"></i>
                 <span className="text-sm">Details</span>
               </button>
               <button
                 className="btn btn-success btn-sm d-flex align-items-center justify-content-center"
-                onClick={() => onEdit(vendor.id)}
-                title="Edit Vendor"
-                aria-label={`Edit Vendor ${vendor.name}`}
+                onClick={() => onEdit(partner.id)}
+                title="Edit Partner"
               >
                 <i className="bi bi-pencil-square me-1"></i>
                 <span className="text-sm">Edit</span>
               </button>
               <button
                 className="btn btn-danger btn-sm d-flex align-items-center justify-content-center"
-                onClick={() => onDelete(vendor.id)}
-                title="Delete Vendor"
-                aria-label={`Delete Vendor ${vendor.name}`}
+                onClick={() => onDelete(partner.id)}
+                title="Delete Partner"
               >
                 <i className="bi bi-trash me-1"></i>
                 <span className="text-sm">Delete</span>
@@ -60,4 +73,4 @@ const VendorCard: React.FC<VendorCardProps> = React.memo(
   }
 );
 
-export default VendorCard;
+export default BusinessPartnerCard;

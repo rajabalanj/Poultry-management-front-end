@@ -1,89 +1,89 @@
-// src/components/PurchaseOrder/PurchaseOrderIndex.tsx
+// src/components/SalesOrder/SalesOrderIndex.tsx
 import React, { useCallback, useEffect, useState } from "react";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import PageHeader from "../Layout/PageHeader";
 import { Modal, Button } from "react-bootstrap";
-import { purchaseOrderApi, businessPartnerApi } from "../../services/api";
-import { PurchaseOrderResponse, PurchaseOrderStatus } from "../../types/PurchaseOrder";
+import { salesOrderApi, businessPartnerApi } from "../../services/api";
+import { SalesOrderResponse, SalesOrderStatus } from "../../types/SalesOrder";
 import { BusinessPartner } from "../../types/BusinessPartner";
 import { toast } from 'react-toastify';
-import PurchaseOrderTable from "./PurchaseOrderTable";
+import SalesOrderTable from "../SalesOrder/SalesOrderTable";
 import DatePicker from 'react-datepicker';
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 
-const PurchaseOrderIndexPage: React.FC = () => {
+const SalesOrderIndexPage: React.FC = () => {
   const navigate = useNavigate(); // Initialize useNavigate
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrderResponse[]>([]);
+  const [salesOrders, setSalesOrders] = useState<SalesOrderResponse[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [poToDelete, setPoToDelete] = useState<number | null>(null);
+  const [soToDelete, setSoToDelete] = useState<number | null>(null);
   const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(null);
-  const [vendors, setVendors] = useState<BusinessPartner[]>([]);
-  const [filterVendorId, setFilterVendorId] = useState<number | ''>('');
-  const [filterStatus, setFilterStatus] = useState<PurchaseOrderStatus | ''>('');
+  const [customers, setCustomers] = useState<BusinessPartner[]>([]);
+  const [filterCustomerId, setFilterCustomerId] = useState<number | ''>('');
+  const [filterStatus, setFilterStatus] = useState<SalesOrderStatus | ''>('');
   const [filterStartDate, setFilterStartDate] = useState<Date | null>(null);
   
 
   useEffect(() => {
-    const fetchVendors = async () => {
+    const fetchCustomers = async () => {
       try {
-        const response = await businessPartnerApi.getVendors();
-        setVendors(response);
+        const response = await businessPartnerApi.getCustomers();
+        setCustomers(response);
       } catch (error: any) {
-        console.error("Failed to fetch vendors for filter:", error);
+        console.error("Failed to fetch customers for filter:", error);
       }
     };
-    fetchVendors();
+    fetchCustomers();
   }, []);
 
   useEffect(() => {
-    const fetchPurchaseOrderList = async () => {
+    const fetchSalesOrderList = async () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await purchaseOrderApi.getPurchaseOrders(
+        const response = await salesOrderApi.getSalesOrders(
           0,
           100,
-          filterVendorId === '' ? undefined : filterVendorId,
+          filterCustomerId === '' ? undefined : filterCustomerId,
           filterStatus === '' ? undefined : filterStatus,
           filterStartDate ? filterStartDate.toISOString().split('T')[0] : undefined,
           
         );
-        setPurchaseOrders(response);
+        setSalesOrders(response);
       } catch (error: any) {
-        setError(error?.message || 'Failed to fetch Purchase list');
-        toast.error(error?.message || 'Failed to fetch Purchase list');
+        setError(error?.message || 'Failed to fetch sales order list');
+        toast.error(error?.message || 'Failed to fetch sales order list');
       } finally {
         setLoading(false);
       }
     };
-    fetchPurchaseOrderList();
-  }, [filterVendorId, filterStatus, filterStartDate]);
+    fetchSalesOrderList();
+  }, [filterCustomerId, filterStatus, filterStartDate]);
 
   const handleDelete = useCallback((id: number) => {
-    setPoToDelete(id);
+    setSoToDelete(id);
     setDeleteErrorMessage(null);
     setShowDeleteModal(true);
   }, []);
 
   const handleAddPayment = useCallback((id: number) => {
-    navigate(`/purchase-orders/${id}/add-payment`);
+    navigate(`/sales-orders/${id}/add-payment`);
   }, [navigate]);
 
   const confirmDelete = async () => {
-    if (poToDelete !== null) {
+    if (soToDelete !== null) {
       try {
-        await purchaseOrderApi.deletePurchaseOrder(poToDelete);
-        setPurchaseOrders((prevPOs) => prevPOs.filter((Purchase) => Purchase.id !== poToDelete));
-        toast.success("Purchase deleted successfully!");
+        await salesOrderApi.deleteSalesOrder(soToDelete);
+        setSalesOrders((prevSOs) => prevSOs.filter((so) => so.id !== soToDelete));
+        toast.success("Sales order deleted successfully!");
       } catch (error: any) {
-        const message = error?.message || 'Failed to delete Purchase';
+        const message = error?.message || 'Failed to delete sales order';
         setDeleteErrorMessage(message);
         toast.error(message);
       } finally {
         if (!deleteErrorMessage) {
-          setPoToDelete(null);
+          setSoToDelete(null);
           setShowDeleteModal(false);
         }
       }
@@ -91,7 +91,7 @@ const PurchaseOrderIndexPage: React.FC = () => {
   };
 
   const cancelDelete = () => {
-    setPoToDelete(null);
+    setSoToDelete(null);
     setShowDeleteModal(false);
     setDeleteErrorMessage(null);
   };
@@ -99,26 +99,26 @@ const PurchaseOrderIndexPage: React.FC = () => {
   return (
     <>
       <PageHeader
-        title="Purchase"
+        title="Sales Orders"
         buttonVariant="primary"
-        buttonLabel="Create New Purchase"
-        buttonLink="/purchase-orders/create"
+        buttonLabel="Create New SO"
+        buttonLink="/sales-orders/create"
       />
       <div className="container mt-4">
         <div className="card shadow-sm mb-4 p-3">
-          <h5 className="mb-3">Filter Purchase</h5>
+          <h5 className="mb-3">Filter Sales Orders</h5>
           <div className="row g-3">
             <div className="col-md-4">
-              <label htmlFor="vendorFilter" className="form-label">Vendor:</label>
+              <label htmlFor="customerFilter" className="form-label">Customer:</label>
               <select
-                id="vendorFilter"
+                id="customerFilter"
                 className="form-select"
-                value={filterVendorId}
-                onChange={(e) => setFilterVendorId(Number(e.target.value) || '')}
+                value={filterCustomerId}
+                onChange={(e) => setFilterCustomerId(Number(e.target.value) || '')}
               >
-                <option value="">All Vendors</option>
-                {vendors.map((vendor) => (
-                  <option key={vendor.id} value={vendor.id}>{vendor.name}</option>
+                <option value="">All Customers</option>
+                {customers.map((customer) => (
+                  <option key={customer.id} value={customer.id}>{customer.name}</option>
                 ))}
               </select>
             </div>
@@ -128,10 +128,10 @@ const PurchaseOrderIndexPage: React.FC = () => {
                 id="statusFilter"
                 className="form-select"
                 value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value as PurchaseOrderStatus | '')}
+                onChange={(e) => setFilterStatus(e.target.value as SalesOrderStatus | '')}
               >
                 <option value="">All Statuses</option>
-                {Object.values(PurchaseOrderStatus).map((status) => (
+                {Object.values(SalesOrderStatus).map((status) => (
                   <option key={status} value={status}>{status}</option>
                 ))}
               </select>
@@ -153,12 +153,12 @@ const PurchaseOrderIndexPage: React.FC = () => {
           </div>
         </div>
 
-        <PurchaseOrderTable
-          purchaseOrders={purchaseOrders}
+        <SalesOrderTable
+          salesOrders={salesOrders}
           loading={loading}
           error={error}
           onDelete={handleDelete}
-          vendors={vendors} // Pass vendors to PurchaseOrderTable
+          customers={customers} // Pass customers to SalesOrderTable
           onAddPayment={handleAddPayment} // Pass the new handler
         />
         <Modal show={showDeleteModal} onHide={cancelDelete}>
@@ -169,7 +169,7 @@ const PurchaseOrderIndexPage: React.FC = () => {
             {deleteErrorMessage ? (
               <div className="text-danger mb-3">{deleteErrorMessage}</div>
             ) : (
-              "Are you sure you want to delete this Purchase? This action cannot be undone if the Purchase is not in Draft or Cancelled status."
+              "Are you sure you want to delete this sales order? This action cannot be undone if the SO is not in Draft or Cancelled status."
             )}
           </Modal.Body>
           <Modal.Footer>
@@ -186,4 +186,4 @@ const PurchaseOrderIndexPage: React.FC = () => {
   );
 };
 
-export default PurchaseOrderIndexPage;
+export default SalesOrderIndexPage;

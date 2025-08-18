@@ -2,7 +2,7 @@
 import React, { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { PurchaseOrderResponse } from "../../types/PurchaseOrder";
-import { VendorResponse } from "../../types/Vendor"; // Import VendorResponse
+import { BusinessPartner } from "../../types/BusinessPartner";
 import PurchaseOrderCard from "./PurchaseOrderCard";
 
 interface PurchaseOrderTableProps {
@@ -10,7 +10,7 @@ interface PurchaseOrderTableProps {
   loading: boolean;
   error: string | null;
   onDelete: (id: number) => void;
-  vendors: VendorResponse[]; // Add vendors prop
+  vendors: BusinessPartner[];
   onAddPayment: (id: number) => void;
 }
 
@@ -44,7 +44,7 @@ const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders,
       <PurchaseOrderCard
         key={Purchase.id}
         Purchase={Purchase}
-        vendors={vendors} // Pass vendors to PurchaseOrderCard
+  vendors={vendors}
         onView={handleViewDetails}
         onEdit={handleEdit}
         onDelete={onDelete}

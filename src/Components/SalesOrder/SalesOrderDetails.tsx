@@ -1,75 +1,75 @@
-// src/components/PurchaseOrder/PurchaseOrderDetails.tsx
+// src/components/SalesOrder/SalesOrderDetails.tsx
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import PageHeader from "../Layout/PageHeader";
-import { purchaseOrderApi, inventoryItemApi, businessPartnerApi } from "../../services/api"; // Add businessPartnerApi
-import { PurchaseOrderResponse, PurchaseOrderStatus, PaymentStatus } from "../../types/PurchaseOrder";
+import { salesOrderApi, inventoryItemApi, businessPartnerApi } from "../../services/api"; // Add businessPartnerApi
+import { SalesOrderResponse, SalesOrderStatus, PaymentStatus } from "../../types/SalesOrder";
 import { BusinessPartner } from "../../types/BusinessPartner";
 import { InventoryItemResponse } from "../../types/InventoryItem"; // Add InventoryItemResponse
 import { format } from 'date-fns';
 
-const getStatusBadgeClass = (status: PurchaseOrderStatus | PaymentStatus) => {
+const getStatusBadgeClass = (status: SalesOrderStatus | PaymentStatus) => {
   switch (status) {
-    case PurchaseOrderStatus.DRAFT:
+    case SalesOrderStatus.DRAFT:
     case PaymentStatus.NOT_PAID:
       return "bg-secondary";
-    case PurchaseOrderStatus.APPROVED:
+    case SalesOrderStatus.APPROVED:
       return "bg-info";
-    case PurchaseOrderStatus.PARTIALLY_PAID:
+    case SalesOrderStatus.PARTIALLY_PAID:
     case PaymentStatus.PARTIALLY_PAID:
       return "bg-warning";
-    case PurchaseOrderStatus.PAID:
+    case SalesOrderStatus.PAID:
     case PaymentStatus.FULLY_PAID:
       return "bg-success";
-    case PurchaseOrderStatus.CANCELLED:
+    case SalesOrderStatus.CANCELLED:
       return "bg-danger";
     default:
       return "bg-light text-dark";
   }
 };
 
-const PurchaseOrderDetails: React.FC = () => {
-  const { po_id } = useParams<{ po_id: string }>();
+const SalesOrderDetails: React.FC = () => {
+  const { so_id } = useParams<{ so_id: string }>();
   const navigate = useNavigate();
-  const [purchaseOrder, setPurchaseOrder] = useState<PurchaseOrderResponse | null>(null);
-  const [businessPartners, setBusinessPartners] = useState<BusinessPartner[]>([]);
+  const [salesOrder, setSalesOrder] = useState<SalesOrderResponse | null>(null);
+  const [customers, setCustomers] = useState<BusinessPartner[]>([]);
   const [inventoryItems, setInventoryItems] = useState<InventoryItemResponse[]>([]); // Add inventoryItems state
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchPurchaseOrder = async () => {
+    const fetchSalesOrder = async () => {
       try {
-        if (!po_id) {
-          setError("Purchase ID is missing.");
+        if (!so_id) {
+          setError("Sales Order ID is missing.");
           setLoading(false);
           return;
         }
-        const [poData, partnersData, inventoryItemsData] = await Promise.all([
-          purchaseOrderApi.getPurchaseOrder(Number(po_id)),
-          businessPartnerApi.getVendors(), // Fetch vendors as business partners
+        const [soData, customersData, inventoryItemsData] = await Promise.all([
+          salesOrderApi.getSalesOrder(Number(so_id)),
+          businessPartnerApi.getCustomers(),
           inventoryItemApi.getInventoryItems(), // Fetch inventory items
         ]);
-        setPurchaseOrder(poData);
-        setBusinessPartners(partnersData);
+        setSalesOrder(soData);
+        setCustomers(customersData);
         setInventoryItems(inventoryItemsData);
       } catch (err: any) {
-        console.error("Error fetching Purchase:", err);
-        setError(err?.message || "Failed to load Purchase details.");
-        toast.error(err?.message || "Failed to load Purchase details.");
+        console.error("Error fetching sales order:", err);
+        setError(err?.message || "Failed to load sales order details.");
+        toast.error(err?.message || "Failed to load sales order details.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPurchaseOrder();
-  }, [po_id]);
+    fetchSalesOrder();
+  }, [so_id]);
 
-  // Map vendor_id to business partner name
-  const getVendorName = (vendorId: number) => {
-    const partner = businessPartners.find(bp => bp.id === vendorId);
-    return partner?.name || 'N/A';
+  // Map customer_id to customer name
+  const getCustomerName = (customerId: number) => {
+    const customer = customers.find(c => c.id === customerId);
+    return customer?.name || 'N/A';
   };
 
   // Map inventory_item_id to item name
@@ -84,66 +84,66 @@ const PurchaseOrderDetails: React.FC = () => {
     return item?.unit || 'N/A';
   };
 
-  if (loading) return <div className="text-center mt-5">Loading Purchase details...</div>;
+  if (loading) return <div className="text-center mt-5">Loading sales order details...</div>;
   if (error) return <div className="text-center text-danger mt-5">{error}</div>;
-  if (!purchaseOrder) return <div className="text-center mt-5">Purchase not found or data is missing.</div>;
+  if (!salesOrder) return <div className="text-center mt-5">Sales order not found or data is missing.</div>;
 
   return (
     <>
-      <PageHeader title={`Purchase Details: ${purchaseOrder.id}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/purchase-orders" />
+      <PageHeader title={`SO Details: ${salesOrder.id}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/sales-orders" />
       <div className="container mt-4">
         <div className="card shadow-sm mb-4">
           <div className="card-header bg-primary text-white">
-            <h4 className="mb-0">Purchase Information</h4>
+            <h4 className="mb-0">Sales Order Information</h4>
           </div>
           <div className="card-body">
             <div className="row mb-3">
               <div className="col-md-6">
-                <strong>Purchase ID:</strong> {purchaseOrder.id}
+                <strong>Sales ID:</strong> {salesOrder.id}
               </div>
               <div className="col-md-6">
-                <strong>Vendor:</strong> {getVendorName(purchaseOrder.vendor_id)}
+                <strong>Customer:</strong> {getCustomerName(salesOrder.customer_id)}
               </div>
               <div className="col-md-6">
-                <strong>Date:</strong> {format(new Date(purchaseOrder.order_date), 'MMM dd, yyyy')}
+                <strong>Date:</strong> {format(new Date(salesOrder.order_date), 'MMM dd, yyyy')}
               </div>
               
               <div className="col-md-6">
-                <strong>Status:</strong> <span className={`badge ${getStatusBadgeClass(purchaseOrder.status)}`}>{purchaseOrder.status}</span>
+                <strong>Status:</strong> <span className={`badge ${getStatusBadgeClass(salesOrder.status)}`}>{salesOrder.status}</span>
               </div>
               <div className="col-md-6">
-                <strong>Total Amount:</strong> Rs. {(Number(purchaseOrder.total_amount) || 0).toFixed(2)}
+                <strong>Total Amount:</strong> Rs. {(Number(salesOrder.total_amount) || 0).toFixed(2)}
               </div>
               <div className="col-md-6">
-                <strong>Amount Paid:</strong> Rs. {(Number(purchaseOrder.total_amount_paid) || 0).toFixed(2)}
+                <strong>Amount Paid:</strong> Rs. {(Number(salesOrder.total_amount_paid) || 0).toFixed(2)}
               </div>
               <div className="col-12">
-                <strong>Notes:</strong> {purchaseOrder.notes || 'N/A'}
+                <strong>Notes:</strong> {salesOrder.notes || 'N/A'}
               </div>
-              {purchaseOrder.payment_receipt && (
+              {salesOrder.payment_receipt && (
                 <div className="col-12">
-                  <strong>Payment Receipt:</strong> {purchaseOrder.payment_receipt}
+                  <strong>Payment Receipt:</strong> {salesOrder.payment_receipt}
                 </div>
               )}
               <div className="col-md-6">
-                <strong>Created At:</strong> {new Date(purchaseOrder.created_at).toLocaleString()}
+                <strong>Created At:</strong> {new Date(salesOrder.created_at).toLocaleString()}
               </div>
-              {purchaseOrder.updated_at && (
+              {salesOrder.updated_at && (
                 <div className="col-md-6">
-                  <strong>Last Updated:</strong> {new Date(purchaseOrder.updated_at).toLocaleString()}
+                  <strong>Last Updated:</strong> {new Date(salesOrder.updated_at).toLocaleString()}
                 </div>
               )}
             </div>
           </div>
         </div>
 
-        {/* Purchase Items */}
+        {/* Sales Order Items */}
         <div className="card shadow-sm mb-4">
           <div className="card-header bg-info text-white">
             <h5 className="mb-0">Ordered Items</h5>
           </div>
           <div className="card-body p-0">
-            {purchaseOrder.items && purchaseOrder.items.length > 0 ? (
+            {salesOrder.items && salesOrder.items.length > 0 ? (
               <div className="table-responsive">
                 <table className="table table-striped table-hover mb-0">
                   <thead>
@@ -157,7 +157,7 @@ const PurchaseOrderDetails: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {purchaseOrder.items.map((item, index) => (
+                    {salesOrder.items.map((item, index) => (
                       <tr key={item.id || index}>
                         <td>{index + 1}</td>
                         <td>{getItemName(item.inventory_item_id)}</td>
@@ -170,14 +170,14 @@ const PurchaseOrderDetails: React.FC = () => {
                   </tbody>
                   <tfoot>
                     <tr>
-                      <td colSpan={5} className="text-end fw-bold">Total Purchase Value:</td>
-                      <td className="fw-bold">Rs. {(Number(purchaseOrder.total_amount) || 0).toFixed(2)}</td>
+                      <td colSpan={5} className="text-end fw-bold">Total SO Value:</td>
+                      <td className="fw-bold">Rs. {(Number(salesOrder.total_amount) || 0).toFixed(2)}</td>
                     </tr>
                   </tfoot>
                 </table>
               </div>
             ) : (
-              <p className="p-3">No items found for this Purchase.</p>
+              <p className="p-3">No items found for this sales order.</p>
             )}
           </div>
         </div>
@@ -188,7 +188,7 @@ const PurchaseOrderDetails: React.FC = () => {
             <h5 className="mb-0">Payments</h5>
           </div>
           <div className="card-body p-0">
-            {purchaseOrder.payments && purchaseOrder.payments.length > 0 ? (
+            {salesOrder.payments && salesOrder.payments.length > 0 ? (
               <div className="table-responsive">
                 <table className="table table-striped table-hover mb-0">
                   <thead>
@@ -202,7 +202,7 @@ const PurchaseOrderDetails: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {purchaseOrder.payments.map((payment, index) => (
+                    {salesOrder.payments.map((payment, index) => (
                       <tr key={payment.id || index}>
                         <td>{index + 1}</td>
                         <td>{(Number(payment.amount_paid) || 0).toFixed(2)}</td>
@@ -216,20 +216,20 @@ const PurchaseOrderDetails: React.FC = () => {
                   <tfoot>
                     <tr>
                       <td colSpan={1} className="text-end fw-bold">Total Paid:</td>
-                      <td className="fw-bold">Rs. {(Number(purchaseOrder.total_amount_paid) || 0).toFixed(2)}</td>
+                      <td className="fw-bold">Rs. {(Number(salesOrder.total_amount_paid) || 0).toFixed(2)}</td>
                       <td colSpan={4}></td>
                     </tr>
                   </tfoot>
                 </table>
               </div>
             ) : (
-              <p className="p-3">No payments recorded for this Purchase yet.</p>
+              <p className="p-3">No payments recorded for this sales order yet.</p>
             )}
             <div className="card-footer text-end">
               <button
                 type="button"
                 className="btn btn-primary btn-sm"
-                onClick={() => navigate(`/purchase-orders/${po_id}/add-payment`)}
+                onClick={() => navigate(`/sales-orders/${so_id}/add-payment`)}
               >
                 <i className="bi bi-wallet-fill me-1"></i> Add Payment
               </button>
@@ -241,16 +241,16 @@ const PurchaseOrderDetails: React.FC = () => {
           <button
             type="button"
             className="btn btn-secondary"
-            onClick={() => navigate('/purchase-orders')}
+            onClick={() => navigate('/sales-orders')}
           >
             Back to List
           </button>
           <button
             type="button"
             className="btn btn-primary"
-            onClick={() => navigate(`/purchase-orders/${purchaseOrder.id}/edit`)}
+            onClick={() => navigate(`/sales-orders/${salesOrder.id}/edit`)}
           >
-            Edit Purchase
+            Edit Sales Order
           </button>
         </div>
       </div>
@@ -258,4 +258,4 @@ const PurchaseOrderDetails: React.FC = () => {
   );
 };
 
-export default PurchaseOrderDetails;
+export default SalesOrderDetails;

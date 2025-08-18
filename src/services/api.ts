@@ -8,7 +8,7 @@ import { FeedAudit } from '../types/feed_audit';
 import { Medicine, MedicineResponse } from '../types/Medicine';
 import { BovansPerformance, PaginatedBovansPerformanceResponse } from "../types/bovans"; // Ensure this import is present
 import { MedicineAudit } from '../types/medicine_audit';
-import { VendorResponse, VendorCreate, VendorUpdate, VendorStatus } from '../types/Vendor'; // NEW IMPORT
+import { BusinessPartner, BusinessPartnerCreate, BusinessPartnerUpdate, PartnerStatus } from '../types/BusinessPartner';
 import { InventoryItemResponse, InventoryItemCreate, InventoryItemUpdate, InventoryItemCategory } from '../types/InventoryItem';
 import {
   PurchaseOrderResponse,
@@ -22,6 +22,19 @@ PurchaseOrderItemResponse,
   PurchaseOrderItemCreate,
   PurchaseOrderItemUpdate,
 } from '../types/PurchaseOrderItem';
+import {
+  SalesOrderResponse,
+  SalesOrderCreate,
+  SalesOrderUpdate,
+  SalesOrderStatus,
+  PaymentCreate as SalesPaymentCreate,
+} from '../types/SalesOrder';
+import {
+  SalesOrderItemResponse,
+  SalesOrderItemCreate,
+  SalesOrderItemUpdate,
+} from '../types/SalesOrderItem';
+// Define types for our data
 // Define types for our data
 
 // Define API response types
@@ -580,72 +593,78 @@ export const bovansApi = {
   },
 };
 
-export const vendorApi = {
-  createVendor: async (vendorData: VendorCreate): Promise<VendorResponse> => {
+export const businessPartnerApi = {
+  createBusinessPartner: async (partnerData: BusinessPartnerCreate): Promise<BusinessPartner> => {
     try {
-      const response = await api.post<VendorResponse>("/vendors/", vendorData);
+      const response = await api.post<BusinessPartner>("/business-partners/", partnerData, {
+        headers: { 'X-User-ID': currentUserId },
+      });
       return response.data;
     } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to create vendor'));
+      throw new Error(getApiErrorMessage(error, 'Failed to create business partner'));
     }
   },
 
-  getVendors: async (
+  getBusinessPartners: async (
     skip: number = 0,
     limit: number = 100,
-    status?: VendorStatus // Optional status filter
-  ): Promise<VendorResponse[]> => {
+    status?: PartnerStatus,
+    isVendor?: boolean,
+    isCustomer?: boolean
+  ): Promise<BusinessPartner[]> => {
     try {
-      const params: { skip: number; limit: number; status?: VendorStatus } = { skip, limit };
-      if (status) {
-        params.status = status;
-      }
-      const response = await api.get<VendorResponse[]>(`/vendors/`, { params });
+      const params: { [key: string]: any } = { skip, limit };
+      if (status) params.status = status;
+      if (isVendor !== undefined) params.is_vendor = isVendor;
+      if (isCustomer !== undefined) params.is_customer = isCustomer;
+      
+      const response = await api.get<BusinessPartner[]>(`/business-partners/`, { params });
       return response.data;
     } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to fetch vendors'));
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch business partners'));
     }
   },
 
-  getVendor: async (id: number): Promise<VendorResponse> => {
+  getBusinessPartner: async (id: number): Promise<BusinessPartner> => {
     try {
-      const response = await api.get<VendorResponse>(`/vendors/${id}`);
+      const response = await api.get<BusinessPartner>(`/business-partners/${id}`);
       return response.data;
     } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to fetch vendor'));
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch business partner'));
     }
   },
 
-  updateVendor: async (id: number, vendorData: VendorUpdate): Promise<VendorResponse> => {
+  updateBusinessPartner: async (id: number, partnerData: BusinessPartnerUpdate): Promise<BusinessPartner> => {
     try {
-      const response = await api.patch<VendorResponse>(`/vendors/${id}`, vendorData);
+      const response = await api.patch<BusinessPartner>(`/business-partners/${id}`, partnerData, {
+        headers: { 'X-User-ID': currentUserId },
+      });
       return response.data;
     } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to update vendor'));
+      throw new Error(getApiErrorMessage(error, 'Failed to update business partner'));
     }
   },
 
-  deleteVendor: async (id: number): Promise<void> => {
+  deleteBusinessPartner: async (id: number): Promise<void> => {
     try {
-      await api.delete(`/vendors/${id}`);
+      await api.delete(`/business-partners/${id}`, {
+        headers: { 'X-User-ID': currentUserId },
+      });
     } catch (error) {
-      // The backend returns 409 for soft delete, which is an error.
-      // We catch it here and check the detail message.
-      const errorMessage = getApiErrorMessage(error, 'Failed to delete vendor');
-      if (errorMessage.includes("has associated purchase orders") && errorMessage.includes("Status changed to Inactive")) {
-          throw new Error("Vendor has associated purchase orders and was marked as Inactive instead of deleted.");
+      const errorMessage = getApiErrorMessage(error, 'Failed to delete business partner');
+      if (errorMessage.includes("has associated") && errorMessage.includes("Status changed to Inactive")) {
+          throw new Error("Business partner has associated records and was marked as Inactive instead of deleted.");
       }
       throw new Error(errorMessage);
     }
   },
 
-  getVendorPurchaseHistory: async (vendorId: number): Promise<any[]> => { // Define a proper type for PurchaseOrder later
-    try {
-      const response = await api.get<any[]>(`/vendors/${vendorId}/purchase-history`);
-      return response.data;
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to fetch vendor purchase history'));
-    }
+  getVendors: async (): Promise<BusinessPartner[]> => {
+    return businessPartnerApi.getBusinessPartners(0, 100, undefined, true, undefined);
+  },
+
+  getCustomers: async (): Promise<BusinessPartner[]> => {
+    return businessPartnerApi.getBusinessPartners(0, 100, undefined, undefined, true);
   },
 };
 
@@ -698,10 +717,10 @@ export const inventoryItemApi = {
     try {
       await api.delete(`/inventory-items/${id}`);
     } catch (error) {
-      // Backend returns 409 if associated with PO items
+      // Backend returns 409 if associated with Purchase items
       const errorMessage = getApiErrorMessage(error, 'Failed to delete inventory item');
-      if (errorMessage.includes("has associated purchase order items")) {
-          throw new Error("Cannot delete item: It is associated with existing purchase orders.");
+      if (errorMessage.includes("has associated Purchase items")) {
+          throw new Error("Cannot delete item: It is associated with existing Purchase.");
       }
       throw new Error(errorMessage);
     }
@@ -709,14 +728,14 @@ export const inventoryItemApi = {
 };
 
 // Helper function to handle backend returning decimal values as strings
-const parsePurchaseOrderResponse = (po: any): PurchaseOrderResponse => {
+const parsePurchaseOrderResponse = (Purchase: any): PurchaseOrderResponse => {
   // The backend may serialize Decimal fields as strings.
   // We parse them into numbers for frontend calculations and display.
   return {
-    ...po,
-    total_amount: po.total_amount != null ? parseFloat(po.total_amount) : 0,
-    total_amount_paid: po.total_amount_paid != null ? parseFloat(po.total_amount_paid) : 0,
-    items: (po.items || []).map((item: any) => ({
+    ...Purchase,
+    total_amount: Purchase.total_amount != null ? parseFloat(Purchase.total_amount) : 0,
+    total_amount_paid: Purchase.total_amount_paid != null ? parseFloat(Purchase.total_amount_paid) : 0,
+    items: (Purchase.items || []).map((item: any) => ({
       ...item,
       price_per_unit: item.price_per_unit != null ? parseFloat(item.price_per_unit) : 0,
       subtotal: item.subtotal != null ? parseFloat(item.subtotal) : 0,
@@ -732,7 +751,7 @@ export const purchaseOrderApi = {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
     } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to upload purchase order receipt'));
+      throw new Error(getApiErrorMessage(error, 'Failed to upload Purchase receipt'));
     }
   },
 
@@ -750,7 +769,7 @@ export const purchaseOrderApi = {
       const response = await api.post<PurchaseOrderResponse>("/purchase-orders/", poData);
       return parsePurchaseOrderResponse(response.data);
     } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to create purchase order'));
+      throw new Error(getApiErrorMessage(error, 'Failed to create Purchase'));
     }
   },
 
@@ -772,7 +791,7 @@ export const purchaseOrderApi = {
       const response = await api.get<PurchaseOrderResponse[]>(`/purchase-orders/`, { params });
       return response.data.map(parsePurchaseOrderResponse);
     } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to fetch purchase orders'));
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch Purchase'));
     }
   },
 
@@ -781,7 +800,7 @@ export const purchaseOrderApi = {
       const response = await api.get<PurchaseOrderResponse>(`/purchase-orders/${id}`);
       return parsePurchaseOrderResponse(response.data);
     } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to fetch purchase order'));
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch Purchase'));
     }
   },
 
@@ -790,7 +809,7 @@ export const purchaseOrderApi = {
       const response = await api.patch<PurchaseOrderResponse>(`/purchase-orders/${id}`, poData);
       return parsePurchaseOrderResponse(response.data);
     } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to update purchase order'));
+      throw new Error(getApiErrorMessage(error, 'Failed to update Purchase'));
     }
   },
 
@@ -798,21 +817,21 @@ export const purchaseOrderApi = {
     try {
       await api.delete(`/purchase-orders/${id}`);
     } catch (error) {
-      const errorMessage = getApiErrorMessage(error, 'Failed to delete purchase order');
+      const errorMessage = getApiErrorMessage(error, 'Failed to delete Purchase');
       if (errorMessage.includes("can only be deleted if its status is DRAFT or CANCELLED")) {
-          throw new Error("Cannot delete purchase order: Only DRAFT or CANCELLED orders can be deleted.");
+          throw new Error("Cannot delete Purchase: Only DRAFT or CANCELLED orders can be deleted.");
       }
       throw new Error(errorMessage);
     }
   },
 
-  // Purchase Order Items (nested endpoints)
+  // Purchase Items (nested endpoints)
   addPurchaseOrderItem: async (poId: number, itemData: PurchaseOrderItemCreate): Promise<PurchaseOrderItemResponse> => {
     try {
       const response = await api.post<PurchaseOrderItemResponse>(`/purchase-orders/${poId}/items`, itemData);
       return response.data;
     } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to add item to purchase order'));
+      throw new Error(getApiErrorMessage(error, 'Failed to add item to Purchase'));
     }
   },
 
@@ -821,7 +840,7 @@ export const purchaseOrderApi = {
       const response = await api.patch<PurchaseOrderItemResponse>(`/purchase-orders/${poId}/items/${itemId}`, itemData);
       return response.data;
     } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to update purchase order item'));
+      throw new Error(getApiErrorMessage(error, 'Failed to update Purchase item'));
     }
   },
 
@@ -829,7 +848,7 @@ export const purchaseOrderApi = {
     try {
       await api.delete(`/purchase-orders/${poId}/items/${itemId}`);
     } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to remove item from purchase order'));
+      throw new Error(getApiErrorMessage(error, 'Failed to remove item from Purchase'));
     }
   },
 
@@ -840,7 +859,143 @@ export const purchaseOrderApi = {
       });
       return response.data;
     } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to add payment to PO'));
+      throw new Error(getApiErrorMessage(error, 'Failed to add payment to Purchase'));
+    }
+  },
+};
+
+// Helper function to handle backend returning decimal values as strings
+const parseSalesOrderResponse = (so: any): SalesOrderResponse => {
+  return {
+    ...so,
+    total_amount: so.total_amount != null ? parseFloat(so.total_amount) : 0,
+    total_amount_paid: so.total_amount_paid != null ? parseFloat(so.total_amount_paid) : 0,
+    items: (so.items || []).map((item: any) => ({
+      ...item,
+      price_per_unit: item.price_per_unit != null ? parseFloat(item.price_per_unit) : 0,
+      subtotal: item.subtotal != null ? parseFloat(item.subtotal) : 0,
+      line_total: item.line_total != null ? parseFloat(item.line_total) : 0,
+    })),
+  } as SalesOrderResponse;
+};
+
+export const salesOrderApi = {
+  createSalesOrder: async (soData: SalesOrderCreate): Promise<SalesOrderResponse> => {
+    try {
+      const response = await api.post<SalesOrderResponse>("/sales-orders/", soData);
+      return parseSalesOrderResponse(response.data);
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to create sales order'));
+    }
+  },
+
+  getSalesOrders: async (
+    skip: number = 0,
+    limit: number = 100,
+    customerId?: number,
+    status?: SalesOrderStatus,
+    startDate?: string, // YYYY-MM-DD
+    endDate?: string,   // YYYY-MM-DD
+  ): Promise<SalesOrderResponse[]> => {
+    try {
+      const params: { [key: string]: any } = { skip, limit };
+      if (customerId) params.customer_id = customerId;
+      if (status) params.status = status;
+      if (startDate) params.start_date = startDate;
+      if (endDate) params.end_date = endDate;
+
+      const response = await api.get<SalesOrderResponse[]>(`/sales-orders/`, { params });
+      return response.data.map(parseSalesOrderResponse);
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch sales orders'));
+    }
+  },
+
+  getSalesOrder: async (id: number): Promise<SalesOrderResponse> => {
+    try {
+      const response = await api.get<SalesOrderResponse>(`/sales-orders/${id}`);
+      return parseSalesOrderResponse(response.data);
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch sales order'));
+    }
+  },
+
+  updateSalesOrder: async (id: number, soData: SalesOrderUpdate): Promise<SalesOrderResponse> => {
+    try {
+      const response = await api.patch<SalesOrderResponse>(`/sales-orders/${id}`, soData);
+      return parseSalesOrderResponse(response.data);
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to update sales order'));
+    }
+  },
+
+  deleteSalesOrder: async (id: number): Promise<void> => {
+    try {
+      await api.delete(`/sales-orders/${id}`);
+    } catch (error) {
+      const errorMessage = getApiErrorMessage(error, 'Failed to delete sales order');
+      if (errorMessage.includes("can only be deleted if its status is DRAFT or CANCELLED")) {
+          throw new Error("Cannot delete sales order: Only DRAFT or CANCELLED orders can be deleted.");
+      }
+      throw new Error(errorMessage);
+    }
+  },
+
+  uploadSalesOrderReceipt: async (soId: number, formData: FormData): Promise<void> => {
+    try {
+      await api.post(`/sales-orders/${soId}/receipt`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to upload sales order receipt'));
+    }
+  },
+
+  uploadSalesPaymentReceipt: async (paymentId: number, formData: FormData): Promise<void> => {
+    try {
+      await api.post(`/sales-payments/${paymentId}/receipt`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to upload sales payment receipt'));
+    }
+  },
+
+  // Sales Order Items (nested endpoints)
+  addSalesOrderItem: async (soId: number, itemData: SalesOrderItemCreate): Promise<SalesOrderItemResponse> => {
+    try {
+      const response = await api.post<SalesOrderItemResponse>(`/sales-orders/${soId}/items`, itemData);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to add item to sales order'));
+    }
+  },
+
+  updateSalesOrderItem: async (soId: number, itemId: number, itemData: SalesOrderItemUpdate): Promise<SalesOrderItemResponse> => {
+    try {
+      const response = await api.patch<SalesOrderItemResponse>(`/sales-orders/${soId}/items/${itemId}`, itemData);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to update sales order item'));
+    }
+  },
+
+  deleteSalesOrderItem: async (soId: number, itemId: number): Promise<void> => {
+    try {
+      await api.delete(`/sales-orders/${soId}/items/${itemId}`);
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to remove item from sales order'));
+    }
+  },
+
+  addPaymentToSalesOrder: async (payment: SalesPaymentCreate): Promise<PaymentResponse> => {
+    try {
+      const response = await api.post<PaymentResponse>(`/sales-payments`, payment, {
+        headers: { 'X-User-ID': currentUserId },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to add payment to SO'));
     }
   },
 };

@@ -28,10 +28,6 @@ import MedicineDetails from './Components/Forms/Read/MedicineDetails';
 import EditMedicine from './Components/Forms/Update/EditMedicine';
 import MedicineListPage from './Components/MedicineIndex';
 import MedicineAuditReport from './Components/MedicineAuditReport';
-import VendorIndexPage from './Components/Vendor/VendorIndex';
-import CreateVendorForm from './Components/Vendor/CreateVendorForm';
-import EditVendor from './Components/Vendor/EditVendor';
-import VendorDetails from './Components/Vendor/VendorDetails';
 import InventoryItemIndexPage from './Components/InventoryItem/InventoryItemIndex';
 import CreateInventoryItemForm from './Components/InventoryItem/CreateInventoryItemForm';
 import InventoryItemDetails from './Components/InventoryItem/InventoryItemDetails';
@@ -42,7 +38,15 @@ import PurchaseOrderDetails from './Components/PurchaseOrder/PurchaseOrderDetail
 import EditPurchaseOrder from './Components/PurchaseOrder/EditPurchaseOrder';
 import AddPaymentForm from './Components/PurchaseOrder/AddPaymentForm';
 import Dashboard from './Components/Dashboard/Dashboard';
-
+import SalesOrderIndexPage from './Components/SalesOrder/SalesOrderIndex';
+import CreateSalesOrderForm from './Components/SalesOrder/CreateSalesOrderForm';
+import SalesOrderDetails from './Components/SalesOrder/SalesOrderDetails';
+import EditSalesOrder from './Components/SalesOrder/EditSalesOrder';
+import AddSalesPaymentForm from './Components/SalesOrder/AddSalesPaymentForm';
+import BusinessPartnerIndexPage from './Components/BusinessPartner/BusinessPartnerIndex';
+import BusinessPartnerDetails from './Components/BusinessPartner/BusinessPartnerDetails';
+import CreateBusinessPartnerForm from './Components/BusinessPartner/CreateBusinessPartnerForm';
+import EditBusinessPartner from './Components/BusinessPartner/EditBusinessPartner';
 
 
 const App: React.FC = () => {
@@ -118,10 +122,6 @@ const App: React.FC = () => {
             />
             <Route path="/feed/:feed_id/audit" element={<FeedAuditReport />} />
             <Route path="/medicine/:medicine_id/audit" element={<MedicineAuditReport />} />
-            <Route path="/vendors" element={<VendorIndexPage />} />
-          <Route path="/create-vendor" element={<CreateVendorForm />} />
-          <Route path="/vendors/:vendor_id/details" element={<VendorDetails />} />
-          <Route path="/vendors/:vendor_id/edit" element={<EditVendor />} />
            {/* NEW: Inventory Item Routes */}
           <Route path="/inventory-items" element={<InventoryItemIndexPage />} />
           <Route path="/inventory-items/create" element={<CreateInventoryItemForm />} />
@@ -132,6 +132,16 @@ const App: React.FC = () => {
           <Route path="/purchase-orders/:po_id/details" element={<PurchaseOrderDetails />} /> {/* NEW ROUTE */}
           <Route path="/purchase-orders/:po_id/edit" element={<EditPurchaseOrder />} /> {/* NEW ROUTE */}
           <Route path="/purchase-orders/:po_id/add-payment" element={<AddPaymentForm />} />
+          <Route path="/sales-orders" element={<SalesOrderIndexPage />} />
+          <Route path="/sales-orders/create" element={<CreateSalesOrderForm />} />
+          <Route path="/sales-orders/:so_id/details" element={<SalesOrderDetails />} />
+          <Route path="/sales-orders/:so_id/edit" element={<EditSalesOrder />} />
+          <Route path="/sales-orders/:so_id/add-payment" element={<AddSalesPaymentForm />} />
+            {/* Business Partner Routes */}
+            <Route path="/business-partners" element={<BusinessPartnerIndexPage />} />
+            <Route path="/business-partners/create" element={<CreateBusinessPartnerForm />} />
+            <Route path="/business-partners/:partner_id/details" element={<BusinessPartnerDetails />} />
+            <Route path="/business-partners/:partner_id/edit" element={<EditBusinessPartner />} />
           </Routes>
         </Layout>
         <ToastContainer position="top-right" autoClose={3000} />

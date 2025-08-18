@@ -1,107 +1,115 @@
-// src/components/Vendor/EditVendor.tsx
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import PageHeader from "../Layout/PageHeader"; // Adjust path if necessary
-import { vendorApi } from "../../services/api"; // Adjust path if necessary
-import { VendorResponse, VendorUpdate } from "../../types/Vendor"; // Import VendorStatus
+import PageHeader from "../Layout/PageHeader";
+import { businessPartnerApi } from "../../services/api";
+import { BusinessPartner, BusinessPartnerUpdate } from "../../types/BusinessPartner";
 
-const EditVendor: React.FC = () => {
-  const { vendor_id } = useParams<{ vendor_id: string }>();
+const EditBusinessPartner: React.FC = () => {
+  const { partner_id } = useParams<{ partner_id: string }>();
   const navigate = useNavigate();
-  const [vendor, setVendor] = useState<VendorResponse | null>(null);
+  const [partner, setPartner] = useState<BusinessPartner | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // States for form fields
   const [name, setName] = useState('');
   const [contactName, setContactName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [email, setEmail] = useState('');
+  const [isVendor, setIsVendor] = useState(false);
+  const [isCustomer, setIsCustomer] = useState(false);
 
   useEffect(() => {
-    const fetchVendor = async () => {
+    const fetchPartner = async () => {
       try {
-        if (!vendor_id) {
-            setError("Vendor ID is missing.");
-            setLoading(false);
-            return;
+        if (!partner_id) {
+          setError("Partner ID is missing.");
+          setLoading(false);
+          return;
         }
-        const data = await vendorApi.getVendor(Number(vendor_id));
-        setVendor(data);
-        // Initialize form states with fetched data
+        const data = await businessPartnerApi.getBusinessPartner(Number(partner_id));
+        setPartner(data);
         setName(data.name);
         setContactName(data.contact_name);
         setPhone(data.phone);
         setAddress(data.address);
         setEmail(data.email || '');
+        setIsVendor(data.is_vendor || false);
+        setIsCustomer(data.is_customer || false);
       } catch (err: any) {
-        console.error("Error fetching vendor:", err);
-        setError(err?.message || "Failed to load vendor for editing.");
-        toast.error(err?.message || "Failed to load vendor for editing.");
+        console.error("Error fetching partner:", err);
+        setError(err?.message || "Failed to load business partner for editing.");
+        toast.error(err?.message || "Failed to load business partner for editing.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchVendor();
-  }, [vendor_id]);
+    fetchPartner();
+  }, [partner_id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true); // Reuse loading state for update operation
+    setLoading(true);
 
-    // Basic validation
     if (!name.trim() || !contactName.trim() || !phone.trim() || !address.trim()) {
-        toast.error('Please fill in all required fields (Name, Contact Name, Phone, Address).');
-        setLoading(false);
-        return;
+      toast.error('Please fill in all required fields (Name, Contact Name, Phone, Address).');
+      setLoading(false);
+      return;
     }
 
-    if (!vendor_id) {
-        toast.error('Vendor ID is missing for update operation.');
-        setLoading(false);
-        return;
+    if (!isVendor && !isCustomer) {
+      toast.error('Please select at least one partner type (Vendor or Customer).');
+      setLoading(false);
+      return;
     }
 
-    const updatedVendor: VendorUpdate = {
-        name,
-        contact_name: contactName,
-        phone,
-        address,
-        email: email || undefined, // Send undefined if empty string
+    if (!partner_id) {
+      toast.error('Partner ID is missing for update operation.');
+      setLoading(false);
+      return;
+    }
+
+    const updatedPartner: BusinessPartnerUpdate = {
+      name,
+      contact_name: contactName,
+      phone,
+      address,
+      email: email || undefined,
+      is_vendor: isVendor,
+      is_customer: isCustomer,
     };
 
     try {
-        await vendorApi.updateVendor(Number(vendor_id), updatedVendor);
-        toast.success('Vendor updated successfully!');
-        navigate('/vendors'); // Navigate back to the vendor list
+      await businessPartnerApi.updateBusinessPartner(Number(partner_id), updatedPartner);
+      toast.success('Business partner updated successfully!');
+      navigate('/business-partners');
     } catch (error: any) {
-        toast.error(error?.message || 'Failed to update vendor.');
+      toast.error(error?.message || 'Failed to update business partner.');
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
-  if (loading && !vendor) return <div className="text-center mt-5">Loading vendor data...</div>;
+  if (loading && !partner) return <div className="text-center mt-5">Loading partner data...</div>;
   if (error) return <div className="text-center text-danger mt-5">{error}</div>;
-  if (!vendor) return <div className="text-center mt-5">Vendor not found.</div>; // Should ideally not happen if error is handled
+  if (!partner) return <div className="text-center mt-5">Business partner not found.</div>;
 
   return (
     <>
-      <PageHeader title={`Edit Vendor: ${vendor.name}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/vendors" />
+      <PageHeader title={`Edit Partner: ${partner.name}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/business-partners" />
       <div className="container mt-4">
         <div className="card shadow-sm">
           <div className="card-body">
             <form onSubmit={handleSubmit}>
               <div className="row g-3">
                 <div className="col-md-6">
-                  <label htmlFor="vendorName" className="form-label">Vendor Name <span className="text-danger">*</span></label>
+                  <label htmlFor="partnerName" className="form-label">Partner Name <span className="text-danger">*</span></label>
                   <input
                     type="text"
                     className="form-control"
-                    id="vendorName"
+                    id="partnerName"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
@@ -150,6 +158,36 @@ const EditVendor: React.FC = () => {
                     required
                   ></textarea>
                 </div>
+                
+                <div className="col-12">
+                  <label className="form-label">Partner Type <span className="text-danger">*</span></label>
+                  <div className="d-flex gap-3">
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="isVendor"
+                        checked={isVendor}
+                        onChange={(e) => setIsVendor(e.target.checked)}
+                      />
+                      <label className="form-check-label" htmlFor="isVendor">
+                        Vendor (We buy from them)
+                      </label>
+                    </div>
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="isCustomer"
+                        checked={isCustomer}
+                        onChange={(e) => setIsCustomer(e.target.checked)}
+                      />
+                      <label className="form-check-label" htmlFor="isCustomer">
+                        Customer (We sell to them)
+                      </label>
+                    </div>
+                  </div>
+                </div>
 
                 <div className="col-12 mt-4">
                   <button
@@ -162,7 +200,7 @@ const EditVendor: React.FC = () => {
                   <button
                     type="button"
                     className="btn btn-secondary ms-2"
-                    onClick={() => navigate('/vendors')}
+                    onClick={() => navigate('/business-partners')}
                   >
                     Cancel
                   </button>
@@ -176,4 +214,4 @@ const EditVendor: React.FC = () => {
   );
 };
 
-export default EditVendor;
+export default EditBusinessPartner;

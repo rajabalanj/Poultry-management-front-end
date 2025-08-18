@@ -1,91 +1,91 @@
-// src/components/PurchaseOrder/PurchaseOrderCard.tsx
+// src/components/SalesOrder/SalesOrderCard.tsx
 import React from "react";
-import { PurchaseOrderResponse, PurchaseOrderStatus, PaymentStatus } from "../../types/PurchaseOrder";
+import { SalesOrderResponse, SalesOrderStatus, PaymentStatus } from "../../types/SalesOrder";
 import { BusinessPartner } from "../../types/BusinessPartner";
 
-interface PurchaseOrderCardProps {
-  Purchase: PurchaseOrderResponse;
-  vendors: BusinessPartner[];
+interface SalesOrderCardProps {
+  so: SalesOrderResponse;
+  customers: BusinessPartner[];
   onView: (id: number) => void;
   onEdit: (id: number) => void;
   onDelete: (id: number) => void;
   onAddPayment: (id: number) => void;
 }
 
-const getStatusBadgeClass = (status: PurchaseOrderStatus | PaymentStatus) => {
+const getStatusBadgeClass = (status: SalesOrderStatus | PaymentStatus) => {
   switch (status) {
-    case PurchaseOrderStatus.DRAFT:
+    case SalesOrderStatus.DRAFT:
     case PaymentStatus.NOT_PAID:
       return "bg-secondary";
-    case PurchaseOrderStatus.APPROVED:
+    case SalesOrderStatus.APPROVED:
       return "bg-info";
-    case PurchaseOrderStatus.PARTIALLY_PAID:
+    case SalesOrderStatus.PARTIALLY_PAID:
     case PaymentStatus.PARTIALLY_PAID:
       return "bg-warning";
-    case PurchaseOrderStatus.PAID:
+    case SalesOrderStatus.PAID:
     case PaymentStatus.FULLY_PAID:
       return "bg-success";
-    case PurchaseOrderStatus.CANCELLED:
+    case SalesOrderStatus.CANCELLED:
       return "bg-danger";
     default:
       return "bg-light text-dark";
   }
 };
 
-const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = React.memo(
-  ({ Purchase, vendors, onView, onEdit, onDelete, onAddPayment }) => {
+const SalesOrderCard: React.FC<SalesOrderCardProps> = React.memo(
+  ({ so, customers, onView, onEdit, onDelete, onAddPayment }) => {
     
 
-  // Map vendor_id to business partner name
-  const vendorName = vendors.find(v => v.id === Purchase.vendor_id)?.name || 'N/A';
+  // Map customer_id to business partner name
+  const customerName = customers.find(c => c.id === so.customer_id)?.name || 'N/A';
 
     return (
       <div className="card mb-2 mt-2 border shadow-sm">
         <div className="card-body p-2">
           <div className="d-flex justify-content-between align-items-center">
             <div>
-              <h6 className="mb-1">Purchase ID: {Purchase.id}</h6>
+              <h6 className="mb-1">Sales ID: {so.id}</h6>
               <div className="text-sm">
-                <p className="mb-0">Vendor: {vendorName}</p> {/* Use vendorName */}
-                <p className="mb-0">Total Amount: Rs. {(Purchase.total_amount || 0).toFixed(2)}</p>
-                <p className="mb-0">Amount Paid: Rs. {(Purchase.total_amount_paid || 0).toFixed(2)}</p>
-                <p className="mb-0">Status: <span className={`badge ${getStatusBadgeClass(Purchase.status)}`}>{Purchase.status}</span></p>
+                <p className="mb-0">Customer: {customerName}</p> {/* Use customerName */}
+                <p className="mb-0">Total Amount: Rs. {(so.total_amount || 0).toFixed(2)}</p>
+                <p className="mb-0">Amount Paid: Rs. {(so.total_amount_paid || 0).toFixed(2)}</p>
+                <p className="mb-0">Status: <span className={`badge ${getStatusBadgeClass(so.status)}`}>{so.status}</span></p>
                 
               </div>
             </div>
             <div className="d-flex flex-column flex-md-row gap-2">
               <button
                 className="btn btn-info btn-sm d-flex align-items-center justify-content-center"
-                onClick={() => onView(Purchase.id)}
+                onClick={() => onView(so.id)}
                 title="View Details"
-                aria-label={`View Details for Purchase ${Purchase.id}`}
+                aria-label={`View Details for SO ${so.id}`}
               >
                 <i className="bi bi-eye me-1"></i>
                 <span className="text-sm">Details</span>
               </button>
               <button
                 className="btn btn-success btn-sm d-flex align-items-center justify-content-center"
-                onClick={() => onEdit(Purchase.id)}
-                title="Edit Purchase"
-                aria-label={`Edit Purchase ${Purchase.id}`}
+                onClick={() => onEdit(so.id)}
+                title="Edit SO"
+                aria-label={`Edit SO ${so.id}`}
               >
                 <i className="bi bi-pencil-square me-1"></i>
                 <span className="text-sm">Edit</span>
               </button>
               <button
                 className="btn btn-danger btn-sm d-flex align-items-center justify-content-center"
-                onClick={() => onDelete(Purchase.id)}
-                title="Delete Purchase"
-                aria-label={`Delete Purchase ${Purchase.id}`}
+                onClick={() => onDelete(so.id)}
+                title="Delete SO"
+                aria-label={`Delete SO ${so.id}`}
               >
                 <i className="bi bi-trash me-1"></i>
                 <span className="text-sm">Delete</span>
               </button>
               <button
                 className="btn btn-primary btn-sm d-flex align-items-center justify-content-center"
-                onClick={() => onAddPayment(Purchase.id)}
+                onClick={() => onAddPayment(so.id)}
                 title="Add Payment"
-                aria-label={`Add Payment for Purchase ${Purchase.id}`}
+                aria-label={`Add Payment for SO ${so.id}`}
               >
                 <i className="bi bi-wallet-fill me-1"></i>
                 <span className="text-sm">Add Payment</span>
@@ -98,4 +98,4 @@ const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = React.memo(
   }
 );
 
-export default PurchaseOrderCard;
+export default SalesOrderCard;

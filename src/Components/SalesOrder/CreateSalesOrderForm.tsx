@@ -1,39 +1,39 @@
-// src/components/PurchaseOrder/CreatePurchaseOrderForm.tsx
+// src/components/SalesOrder/CreateSalesOrderForm.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
-import { purchaseOrderApi, inventoryItemApi, businessPartnerApi } from '../../services/api';
+import { salesOrderApi, inventoryItemApi, businessPartnerApi } from '../../services/api';
 import {
-  PurchaseOrderCreate,
-} from '../../types/PurchaseOrder';
-import { PurchaseOrderItemCreate } from '../../types/PurchaseOrderItem';
+  SalesOrderCreate,
+} from '../../types/SalesOrder';
+import { SalesOrderItemCreate } from '../../types/SalesOrderItem';
 import { BusinessPartner } from '../../types/BusinessPartner';
 import { InventoryItemResponse } from '../../types/InventoryItem';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { format } from 'date-fns'; // Import format for date formatting
 
-interface FormPurchaseOrderItem extends PurchaseOrderItemCreate {
+interface FormSalesOrderItem extends SalesOrderItemCreate {
   tempId: number;
   inventory_item_name?: string;
   inventory_item_unit?: string;
   available_stock?: number;
 }
 
-const CreatePurchaseOrderForm: React.FC = () => {
+const CreateSalesOrderForm: React.FC = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [vendors, setVendors] = useState<BusinessPartner[]>([]);
+  const [customers, setCustomers] = useState<BusinessPartner[]>([]);
   const [inventoryItems, setInventoryItems] = useState<InventoryItemResponse[]>([]);
 
-  // Purchase states
-  const [vendorId, setVendorId] = useState<number | ''>('');
+  // Sales Order states
+  const [customerId, setCustomerId] = useState<number | ''>('');
   
   const [orderDate, setOrderDate] = useState<Date>(new Date()); // ADD THIS STATE: Default to current date
   
   const [notes, setNotes] = useState('');
-  const [items, setItems] = useState<FormPurchaseOrderItem[]>([]);
+  const [items, setItems] = useState<FormSalesOrderItem[]>([]);
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
 
   // ... (rest of the useEffect for fetching initial data remains the same)
@@ -41,18 +41,18 @@ const CreatePurchaseOrderForm: React.FC = () => {
     const fetchInitialData = async () => {
       setIsLoading(true);
       try {
-        const [vendorsData, inventoryItemsData] = await Promise.all([
-          businessPartnerApi.getVendors(),
+        const [customersData, inventoryItemsData] = await Promise.all([
+          businessPartnerApi.getCustomers(),
           inventoryItemApi.getInventoryItems(),
         ]);
-        setVendors(vendorsData);
+        setCustomers(customersData);
         setInventoryItems(inventoryItemsData);
 
-        if (vendorsData.length > 0) {
-          setVendorId(vendorsData[0].id);
+        if (customersData.length > 0) {
+          setCustomerId(customersData[0].id);
         }
       } catch (error: any) {
-        toast.error(error?.message || 'Failed to load necessary data (Vendors, Inventory Items).');
+        toast.error(error?.message || 'Failed to load necessary data (Customers, Inventory Items).');
         console.error('Error fetching initial data:', error);
       } finally {
         setIsLoading(false);
@@ -64,7 +64,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
 
   // --- Item Management Functions ---
   const handleAddItem = useCallback(() => {
-    const newItem: FormPurchaseOrderItem = {
+    const newItem: FormSalesOrderItem = {
       tempId: Date.now(),
       inventory_item_id: 0,
       quantity: 1,
@@ -77,7 +77,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
     setItems((prevItems) => prevItems.filter((item) => item.tempId !== tempId));
   }, []);
 
-  const handleItemChange = useCallback((tempId: number, field: keyof FormPurchaseOrderItem, value: any) => {
+  const handleItemChange = useCallback((tempId: number, field: keyof FormSalesOrderItem, value: any) => {
     setItems((prevItems) =>
       prevItems.map((item) => {
         if (item.tempId === tempId) {
@@ -103,8 +103,8 @@ const CreatePurchaseOrderForm: React.FC = () => {
     setIsLoading(true);
 
     // Basic Validation
-    if (!vendorId || items.length === 0) {
-      toast.error('Please select a Vendor and add at least one item.');
+    if (!customerId || items.length === 0) {
+      toast.error('Please select a Customer and add at least one item.');
       setIsLoading(false);
       return;
     }
@@ -118,8 +118,8 @@ const CreatePurchaseOrderForm: React.FC = () => {
       }
     }
 
-    const newPurchaseOrder: PurchaseOrderCreate = {
-      vendor_id: Number(vendorId),
+    const newSalesOrder: SalesOrderCreate = {
+      customer_id: Number(customerId),
       order_date: format(orderDate, 'yyyy-MM-dd'), // ADD THIS LINE: Format to YYYY-MM-DD
       
       notes: notes || undefined,
@@ -131,20 +131,20 @@ const CreatePurchaseOrderForm: React.FC = () => {
     };
 
     try {
-      const poResponse = await purchaseOrderApi.createPurchaseOrder(newPurchaseOrder);
+      const soResponse = await salesOrderApi.createSalesOrder(newSalesOrder);
       
       // Upload receipt if file is selected
-      if (receiptFile && poResponse.id) {
+      if (receiptFile && soResponse.id) {
         const formData = new FormData();
         formData.append('file', receiptFile);
-        await purchaseOrderApi.uploadPurchaseOrderReceipt(poResponse.id, formData);
+        await salesOrderApi.uploadSalesOrderReceipt(soResponse.id, formData);
       }
       
-      toast.success('Purchase created successfully!');
-      navigate('/purchase-orders');
+      toast.success('Sales Order created successfully!');
+      navigate('/sales-orders');
     } catch (error: any) {
-      toast.error(error?.message || 'Failed to create purchase.');
-      console.error('Error creating Purchase:', error);
+      toast.error(error?.message || 'Failed to create sales order.');
+      console.error('Error creating SO:', error);
     } finally {
       setIsLoading(false);
     }
@@ -152,31 +152,31 @@ const CreatePurchaseOrderForm: React.FC = () => {
 
   return (
     <>
-      <PageHeader title="Create New Purchase" buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/purchase-orders" />
+      <PageHeader title="Create New Sales Order" buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/sales-orders" />
       <div className="container mt-4">
         <div className="card shadow-sm">
           <div className="card-body">
             <form onSubmit={handleSubmit}>
               <div className="row g-3">
-                {/* Purchase Details Section */}
-                <h5 className="mb-3">Purchase Details</h5>
+                {/* SO Details Section */}
+                <h5 className="mb-3">Sales Order Details</h5>
                 <div className="col-md-6">
-                  <label htmlFor="vendorSelect" className="form-label">Vendor <span className="text-danger">*</span></label>
+                  <label htmlFor="customerSelect" className="form-label">Customer <span className="text-danger">*</span></label>
                   <select
-                    id="vendorSelect"
+                    id="customerSelect"
                     className="form-select"
-                    value={vendorId}
-                    onChange={(e) => setVendorId(Number(e.target.value))}
+                    value={customerId}
+                    onChange={(e) => setCustomerId(Number(e.target.value))}
                     required
-                    disabled={isLoading || vendors.length === 0}
+                    disabled={isLoading || customers.length === 0}
                   >
-                    <option value="">Select a Vendor</option>
-                    {vendors.map((vendor) => (
-                      <option key={vendor.id} value={vendor.id}>{vendor.name}</option>
+                    <option value="">Select a Customer</option>
+                    {customers.map((customer) => (
+                      <option key={customer.id} value={customer.id}>{customer.name}</option>
                     ))}
                   </select>
-                  {vendors.length === 0 && !isLoading && (
-                    <div className="text-danger mt-1">No vendors found. Please add a vendor first.</div>
+                  {customers.length === 0 && !isLoading && (
+                    <div className="text-danger mt-1">No customers found. Please add a customer first.</div>
                   )}
                 </div>
                 
@@ -204,7 +204,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
                     rows={3}
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Any additional notes for the purchase"
+                    placeholder="Any additional notes for the sales order"
                     disabled={isLoading}
                   ></textarea>
                 </div>
@@ -221,7 +221,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
                   <div className="form-text">Upload payment receipt (PDF, JPG, PNG)</div>
                 </div>
 
-                {/* Purchase Items Section */}
+                {/* Sales Order Items Section */}
                 <h5 className="mt-4 mb-3">Items <span className="text-danger">*</span></h5>
                 {items.length === 0 && <p className="col-12 text-muted">No items added yet. Click "Add Item" to start.</p>}
                 {items.map((item, index) => (
@@ -307,12 +307,12 @@ const CreatePurchaseOrderForm: React.FC = () => {
                     className="btn btn-primary me-2"
                     disabled={isLoading}
                   >
-                    {isLoading ? 'Creating...' : 'Create Purchase'}
+                    {isLoading ? 'Creating...' : 'Create Sales Order'}
                   </button>
                   <button
                     type="button"
                     className="btn btn-secondary"
-                    onClick={() => navigate('/purchase-orders')}
+                    onClick={() => navigate('/sales-orders')}
                     disabled={isLoading}
                   >
                     Cancel
@@ -327,4 +327,4 @@ const CreatePurchaseOrderForm: React.FC = () => {
   );
 };
 
-export default CreatePurchaseOrderForm;
+export default CreateSalesOrderForm;

@@ -1,0 +1,23 @@
+// src/types/SalesOrderItem.ts
+import { InventoryItemResponse } from './InventoryItem'; // Import InventoryItemResponse
+
+export interface SalesOrderItemBase {
+  inventory_item_id: number;
+  quantity: number;
+  price_per_unit: number;
+}
+
+export interface SalesOrderItemCreate extends SalesOrderItemBase {}
+
+export interface SalesOrderItemUpdate {
+  quantity?: number;
+  price_per_unit?: number;
+}
+
+export interface SalesOrderItemResponse extends SalesOrderItemBase {
+  id: number;
+  sales_order_id: number;
+  line_total: number;
+  // Optionally include the full item details if the backend relationship is loaded
+  inventory_item?: InventoryItemResponse; // The nested inventory item object
+}
