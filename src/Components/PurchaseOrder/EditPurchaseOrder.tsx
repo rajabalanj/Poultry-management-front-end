@@ -4,6 +4,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
 import { purchaseOrderApi, inventoryItemApi, businessPartnerApi } from '../../services/api';
+import CreateBusinessPartnerForm from '../BusinessPartner/CreateBusinessPartnerForm';
+import CreateInventoryItemForm from '../InventoryItem/CreateInventoryItemForm';
 import {
   PurchaseOrderUpdate,
   PurchaseOrderStatus,
@@ -37,6 +39,8 @@ const EditPurchaseOrder: React.FC = () => {
 
   const [vendors, setVendors] = useState<BusinessPartner[]>([]);
   const [inventoryItems, setInventoryItems] = useState<InventoryItemResponse[]>([]);
+  const [showCreateVendorModal, setShowCreateVendorModal] = useState(false);
+  const [showCreateItemModal, setShowCreateItemModal] = useState(false);
 
   // Purchase states, initialized from fetched data
   const [vendorId, setVendorId] = useState<number | ''>('');
@@ -101,21 +105,38 @@ const EditPurchaseOrder: React.FC = () => {
     fetchInitialData();
   }, [po_id]);
 
+  useEffect(() => {
+    if (showCreateVendorModal || showCreateItemModal) document.body.classList.add('modal-open');
+    else document.body.classList.remove('modal-open');
+    return () => document.body.classList.remove('modal-open');
+  }, [showCreateVendorModal, showCreateItemModal]);
+
   // --- Item Management Functions ---
-  const handleAddItem = useCallback(() => {
-    const newItem: FormPurchaseOrderItem = {
-      tempId: Date.now(),
-      inventory_item_id: 0, // Placeholder for dropdown selection
-      quantity: 1,
-      price_per_unit: 0,
-      id: 0, // No backend ID yet
-      purchase_order_id: Number(po_id), // Link to this Purchase
-      line_total: 0, // Will be calculated by backend
-      isNew: true, // Mark as new
-      isDeleted: false,
-    };
-    setItems((prevItems) => [...prevItems, newItem]);
-  }, [po_id]);
+
+  const handleVendorCreatedInline = (vendor: BusinessPartner) => {
+    setVendors((prev) => [...prev, vendor]);
+    setVendorId(vendor.id);
+    setShowCreateVendorModal(false);
+    toast.success(`Vendor "${vendor.name}" added.`);
+  };
+
+  const handleItemCreatedInline = (item: InventoryItemResponse) => {
+    setInventoryItems((prev) => [...prev, item]);
+    setItems((prev) => {
+      if (prev.length === 0) return prev;
+      const updated = [...prev];
+      // assign to last added new row if exists
+      const lastIdx = updated.map(i => i.isNew).lastIndexOf(true);
+      if (lastIdx >= 0) {
+        updated[lastIdx] = { ...updated[lastIdx], inventory_item_id: item.id, inventory_item_name: item.name, inventory_item_unit: item.unit } as any;
+      } else {
+        updated[updated.length - 1] = { ...updated[updated.length - 1], inventory_item_id: item.id, inventory_item_name: item.name, inventory_item_unit: item.unit } as any;
+      }
+      return updated;
+    });
+    setShowCreateItemModal(false);
+    toast.success(`Item "${item.name}" added.`);
+  };
 
   const handleRemoveItem = useCallback((tempId: number) => {
     setItems((prevItems) =>
@@ -250,19 +271,24 @@ const EditPurchaseOrder: React.FC = () => {
                 <h5 className="mb-3">Purchase Details</h5>
                 <div className="col-md-6">
                   <label htmlFor="vendorSelect" className="form-label">Vendor <span className="text-danger">*</span></label>
-                  <select
-                    id="vendorSelect"
-                    className="form-select"
-                    value={vendorId}
-                    onChange={(e) => setVendorId(Number(e.target.value))}
-                    required
-                    disabled={isLoading || vendors.length === 0}
-                  >
-                    <option value="">Select a Vendor</option>
-                    {vendors.map((vendor) => (
-                      <option key={vendor.id} value={vendor.id}>{vendor.name}</option>
-                    ))}
-                  </select>
+                  <div className="d-flex gap-2 align-items-center">
+                    <select
+                      id="vendorSelect"
+                      className="form-select"
+                      value={vendorId}
+                      onChange={(e) => setVendorId(Number(e.target.value))}
+                      required
+                      disabled={isLoading || vendors.length === 0}
+                    >
+                      <option value="">Select a Vendor</option>
+                      {vendors.map((vendor) => (
+                        <option key={vendor.id} value={vendor.id}>{vendor.name}</option>
+                      ))}
+                    </select>
+                    <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => setShowCreateVendorModal(true)} title="Add Vendor">
+                      <i className="bi bi-plus-lg"></i>
+                    </button>
+                  </div>
                   {vendors.length === 0 && !isLoading && (
                     <div className="text-danger mt-1">No vendors found. Please add a vendor first.</div>
                   )}
@@ -332,7 +358,7 @@ const EditPurchaseOrder: React.FC = () => {
                       ) : (
                         <button
                           type="button"
-                          className="btn btn-outline-secondary btn-sm"
+                          className="btn btn-outline-primary btn-sm fw-bold"
                           onClick={() => handleUndoRemoveItem(item.tempId)}
                           disabled={isLoading}
                         >
@@ -344,13 +370,14 @@ const EditPurchaseOrder: React.FC = () => {
                       <div className="row g-2">
                         <div className="col-md-6">
                           <label htmlFor={`itemId-${item.tempId}`} className="form-label">Inventory Item <span className="text-danger">*</span></label>
+                          <div className="d-flex gap-2 align-items-center">
                           <select
                             id={`itemId-${item.tempId}`}
                             className="form-select"
                             value={item.inventory_item_id || ''}
                             onChange={(e) => handleItemChange(item.tempId, 'inventory_item_id', e.target.value)}
                             required
-                            disabled={isLoading || inventoryItems.length === 0 || !item.isNew} 
+                            disabled={true} // disabled on edit page per request
                           >
                             <option value="">Select an Item</option>
                             {inventoryItems.map((invItem) => (
@@ -359,12 +386,12 @@ const EditPurchaseOrder: React.FC = () => {
                               </option>
                             ))}
                           </select>
+                          {/* add-item button removed on edit page */}
+                          </div>
                           {inventoryItems.length === 0 && !isLoading && (
                               <div className="text-danger mt-1">No inventory items found. Please add items first.</div>
                           )}
-                          {!item.isNew && (
-                            <small className="text-muted">Cannot change item for existing entries.</small>
-                          )}
+                          {/* Inventory item can now be changed for existing rows */}
                         </div>
                         <div className="col-md-3">
                           <label htmlFor={`quantity-${item.tempId}`} className="form-label">Quantity <span className="text-danger">*</span></label>
@@ -398,16 +425,7 @@ const EditPurchaseOrder: React.FC = () => {
                   </div>
                 ))}
 
-                <div className="col-12 text-center">
-                  <button
-                    type="button"
-                    className="btn btn-outline-primary btn-sm"
-                    onClick={handleAddItem}
-                    disabled={isLoading}
-                  >
-                    <i className="bi bi-plus-circle me-1"></i> Add New Item
-                  </button>
-                </div>
+                {/* Global add new item removed on edit page */}
 
                 <div className="col-12 mt-4">
                   <button
@@ -431,6 +449,45 @@ const EditPurchaseOrder: React.FC = () => {
           </div>
         </div>
       </div>
+              {/* Create Vendor Modal */}
+              {showCreateVendorModal && (
+                <>
+                  <div className="modal fade show" tabIndex={-1} role="dialog" style={{ display: 'block' }} aria-modal="true">
+                    <div className="modal-dialog modal-lg" role="document">
+                      <div className="modal-content">
+                        <div className="modal-header">
+                          <h5 className="modal-title">Create Vendor</h5>
+                          <button type="button" className="btn-close" aria-label="Close" onClick={() => setShowCreateVendorModal(false)}></button>
+                        </div>
+                        <div className="modal-body">
+                          <CreateBusinessPartnerForm hideHeader onCreated={handleVendorCreatedInline} onCancel={() => setShowCreateVendorModal(false)} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="modal-backdrop fade show"></div>
+                </>
+              )}
+
+              {/* Create Inventory Item Modal */}
+              {showCreateItemModal && (
+                <>
+                  <div className="modal fade show" tabIndex={-1} role="dialog" style={{ display: 'block' }} aria-modal="true">
+                    <div className="modal-dialog modal-lg" role="document">
+                      <div className="modal-content">
+                        <div className="modal-header">
+                          <h5 className="modal-title">Create Inventory Item</h5>
+                          <button type="button" className="btn-close" aria-label="Close" onClick={() => setShowCreateItemModal(false)}></button>
+                        </div>
+                        <div className="modal-body">
+                          <CreateInventoryItemForm hideHeader onCreated={handleItemCreatedInline} onCancel={() => setShowCreateItemModal(false)} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="modal-backdrop fade show"></div>
+                </>
+              )}
     </>
   );
 };

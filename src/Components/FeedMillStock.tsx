@@ -5,6 +5,7 @@ import { FeedResponse } from "../types/Feed";
 import { BatchResponse } from "../types/batch"; // Import BatchResponse
 import CompositionForm from "./CompositionForm";
 import { toast } from "react-toastify";
+import CreateFeedForm from "./Forms/Create/CreateFeedForm";
 
 function FeedMillStock() {
   type ViewState = "view" | "edit" | "add" | "use-composition";
@@ -118,6 +119,29 @@ function FeedMillStock() {
     setNewCompName("");
   };
 
+  // Modal state for creating feed inline
+  const [showCreateFeedModal, setShowCreateFeedModal] = useState(false);
+
+  const handleFeedCreatedInline = (createdFeed: FeedResponse) => {
+    // Append the created feed to feeds so it appears immediately
+    setFeeds((prev) => [...prev, createdFeed]);
+    // Close modal
+    setShowCreateFeedModal(false);
+    toast.success(`Feed "${createdFeed.title}" created and added.`);
+  };
+
+  // Manage body class for Bootstrap modal behavior
+  useEffect(() => {
+    if (showCreateFeedModal) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, [showCreateFeedModal]);
+
   const handleConfirmAddComposition = async () => {
     if (!newCompName.trim()) {
       toast.error("Composition name cannot be empty");
@@ -173,6 +197,8 @@ function FeedMillStock() {
           </button>
         )}
       </div>
+        {/* Create Feed inline modal trigger - only show when adding/editing a composition */}
+  {/* Create Feed button is now inside CompositionForm next to search input */}
       {selectedComposition && viewState !== "edit" && viewState !== "add" && (
         <div className="mt-3">
           <h4>Feeds in Composition</h4>
@@ -307,7 +333,32 @@ function FeedMillStock() {
           onSave={handleConfirmAddComposition}
           saveButtonLabel="Save Composition"
           onCancel={() => setViewState("view")}
+          onOpenCreateFeed={() => setShowCreateFeedModal(true)}
         />
+      )}
+
+      {/* Inline Create Feed Modal */}
+      {showCreateFeedModal && (
+        <>
+          <div className="modal fade show" tabIndex={-1} role="dialog" style={{ display: 'block' }} aria-modal="true">
+            <div className="modal-dialog modal-lg" role="document">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Create Feed</h5>
+                  <button type="button" className="btn-close" aria-label="Close" onClick={() => setShowCreateFeedModal(false)}></button>
+                </div>
+                <div className="modal-body">
+                  <CreateFeedForm
+                    hideHeader
+                    onCreated={(feed) => handleFeedCreatedInline(feed as FeedResponse)}
+                    onCancel={() => setShowCreateFeedModal(false)}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="modal-backdrop fade show"></div>
+        </>
       )}
 
       {viewState === "edit" && (
@@ -326,6 +377,7 @@ function FeedMillStock() {
           onSave={handleSave}
           saveButtonLabel="Save Changes"
           onCancel={() => setViewState("view")}
+          onOpenCreateFeed={() => setShowCreateFeedModal(true)}
         />
       )}
     </div>

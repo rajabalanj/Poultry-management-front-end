@@ -17,6 +17,7 @@ interface CompositionFormProps {
   onSave: () => void;
   saveButtonLabel: string;
   onCancel: () => void;
+  onOpenCreateFeed?: () => void;
 }
 
 function CompositionForm({
@@ -34,6 +35,7 @@ function CompositionForm({
   onSave,
   saveButtonLabel,
   onCancel,
+  onOpenCreateFeed,
 }: CompositionFormProps) {
   return (
     <div className="mt-3">
@@ -84,13 +86,25 @@ function CompositionForm({
           </ul>
         </div>
         <div className="mb-3 col-12 col-md-6">
-          <input
-            type="text"
-            className="form-control form-control-sm mb-2"
-            placeholder="Search Feeds..."
-            value={search}
-            onChange={handleFeedSearch}
-          />
+          <div className="d-flex gap-2 align-items-center mb-2">
+            <input
+              type="text"
+              className="form-control form-control-sm"
+              placeholder="Search Feeds..."
+              value={search}
+              onChange={handleFeedSearch}
+            />
+            {onOpenCreateFeed && (
+              <button
+                type="button"
+                className="btn btn-sm btn-outline-primary"
+                onClick={onOpenCreateFeed}
+                title="Create Feed"
+              >
+                <i className="bi bi-plus-lg"></i>
+              </button>
+            )}
+          </div>
           <div
             className="list-group"
             style={{ maxHeight: '150px', overflowY: 'auto' }}

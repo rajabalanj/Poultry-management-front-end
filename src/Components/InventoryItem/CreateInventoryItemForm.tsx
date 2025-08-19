@@ -4,9 +4,15 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
 import { inventoryItemApi } from '../../services/api';
-import { InventoryItemCreate, InventoryItemUnit, InventoryItemCategory } from '../../types/InventoryItem';
+import { InventoryItemCreate, InventoryItemUnit, InventoryItemCategory, InventoryItemResponse } from '../../types/InventoryItem';
 
-const CreateInventoryItemForm: React.FC = () => {
+interface CreateInventoryItemFormProps {
+    onCreated?: (item: InventoryItemResponse) => void;
+    onCancel?: () => void;
+    hideHeader?: boolean;
+}
+
+const CreateInventoryItemForm: React.FC<CreateInventoryItemFormProps> = ({ onCreated, onCancel, hideHeader }) => {
     const [name, setName] = useState('');
     const [unit, setUnit] = useState<InventoryItemUnit>(InventoryItemUnit.KG);
     const [category, setCategory] = useState<InventoryItemCategory>(InventoryItemCategory.FEED);
@@ -31,9 +37,13 @@ const CreateInventoryItemForm: React.FC = () => {
         };
 
         try {
-            await inventoryItemApi.createInventoryItem(newItem);
+            const created = await inventoryItemApi.createInventoryItem(newItem);
             toast.success('Inventory Item created successfully!');
-            navigate('/inventory-items'); // Navigate back to the list
+            if (onCreated) {
+                onCreated(created);
+            } else {
+                navigate('/inventory-items'); // Navigate back to the list
+            }
         } catch (error: any) {
             toast.error(error?.message || 'Failed to create inventory item.');
         } finally {
@@ -43,8 +53,10 @@ const CreateInventoryItemForm: React.FC = () => {
 
     return (
         <>
-            <PageHeader title="Create New Inventory Item" buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/inventory-items" />
-            <div className="container mt-4">
+            {!hideHeader && (
+              <PageHeader title="Create New Inventory Item" buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/inventory-items" />
+            )}
+            <div className={hideHeader ? undefined : 'container mt-4'}>
                 <div className="card shadow-sm">
                     <div className="card-body">
                         <form onSubmit={handleSubmit}>
@@ -101,7 +113,10 @@ const CreateInventoryItemForm: React.FC = () => {
                                     <button
                                         type="button"
                                         className="btn btn-secondary ms-2"
-                                        onClick={() => navigate('/inventory-items')}
+                                        onClick={() => {
+                                            if (onCancel) onCancel();
+                                            else navigate('/inventory-items');
+                                        }}
                                     >
                                         Cancel
                                     </button>

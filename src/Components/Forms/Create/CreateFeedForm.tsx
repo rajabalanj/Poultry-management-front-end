@@ -5,8 +5,14 @@ import PageHeader from '../../Layout/PageHeader';
 import { Feed } from '../../../types/Feed';
 import {feedApi} from "../../../services/api";
 
+interface CreateFeedFormProps {
+    onCreated?: (feed: Feed) => void;
+    onCancel?: () => void;
+    hideHeader?: boolean;
+}
 
-const CreateFeedForm: React.FC = () => {
+
+const CreateFeedForm: React.FC<CreateFeedFormProps> = ({ onCreated, onCancel, hideHeader }) => {
     const [title, setTitle] = useState('');
     const [quantity, setQuantity] = useState('');
     const [unit, setUnit] = useState('kg'); // Default unit
@@ -49,7 +55,12 @@ const CreateFeedForm: React.FC = () => {
             const createdFeed = await feedApi.createFeed(feedData);
             console.log("Created feed:", createdFeed);
             toast.success(`Feed "${createdFeed.title}" created!`);
-            navigate('/feed');
+            if (onCreated) {
+                // If used inline/modal, call callback and keep user on the page
+                onCreated(createdFeed);
+            } else {
+                navigate('/feed');
+            }
         } catch (error: any) {
             toast.error(error.message || 'Failed to create feed.');
         } finally {
@@ -89,12 +100,14 @@ const CreateFeedForm: React.FC = () => {
     };
 
     return (
-        <div className="container-fluid">
-            <PageHeader
-                title="Add New Feed"
-                buttonLabel="Back to Feeds"
-                buttonLink="/feed"
-            />
+        <div className={hideHeader ? undefined : 'container-fluid'}>
+            {!hideHeader && (
+                <PageHeader
+                    title="Add New Feed"
+                    buttonLabel="Back to Feeds"
+                    buttonLink="/feed"
+                />
+            )}
             <div className="p-4">
                 <form onSubmit={handleSubmit}>
                     <div className="row g-3">
@@ -161,14 +174,16 @@ const CreateFeedForm: React.FC = () => {
                                 type="submit"
                                 className="btn btn-primary"
                                 disabled={isLoading}
-                                onClick={() => navigate('/feed')}
                             >
                                 {isLoading ? 'Adding...' : 'Add Feed'}
                             </button>
                             <button
                                 type="button"
                                 className="btn btn-secondary ms-2"
-                                onClick={() => navigate('/feed')}
+                                onClick={() => {
+                                    if (onCancel) onCancel();
+                                    else navigate('/feed');
+                                }}
                             >
                                 Cancel
                             </button>

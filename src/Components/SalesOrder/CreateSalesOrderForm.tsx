@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
 import { salesOrderApi, inventoryItemApi, businessPartnerApi } from '../../services/api';
+import CreateBusinessPartnerForm from '../BusinessPartner/CreateBusinessPartnerForm';
+import CreateInventoryItemForm from '../InventoryItem/CreateInventoryItemForm';
 import {
   SalesOrderCreate,
 } from '../../types/SalesOrder';
@@ -26,6 +28,8 @@ const CreateSalesOrderForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [customers, setCustomers] = useState<BusinessPartner[]>([]);
   const [inventoryItems, setInventoryItems] = useState<InventoryItemResponse[]>([]);
+  const [showCreateCustomerModal, setShowCreateCustomerModal] = useState(false);
+  const [showCreateItemModal, setShowCreateItemModal] = useState(false);
 
   // Sales Order states
   const [customerId, setCustomerId] = useState<number | ''>('');
@@ -61,6 +65,12 @@ const CreateSalesOrderForm: React.FC = () => {
     fetchInitialData();
   }, []);
 
+  useEffect(() => {
+    if (showCreateCustomerModal || showCreateItemModal) document.body.classList.add('modal-open');
+    else document.body.classList.remove('modal-open');
+    return () => document.body.classList.remove('modal-open');
+  }, [showCreateCustomerModal, showCreateItemModal]);
+
 
   // --- Item Management Functions ---
   const handleAddItem = useCallback(() => {
@@ -72,6 +82,25 @@ const CreateSalesOrderForm: React.FC = () => {
     };
     setItems((prevItems) => [...prevItems, newItem]);
   }, []);
+
+  const handleCustomerCreatedInline = (customer: BusinessPartner) => {
+    setCustomers((prev) => [...prev, customer]);
+    setCustomerId(customer.id);
+    setShowCreateCustomerModal(false);
+    toast.success(`Customer "${customer.name}" added.`);
+  };
+
+  const handleItemCreatedInline = (item: InventoryItemResponse) => {
+    setInventoryItems((prev) => [...prev, item]);
+    setItems((prev) => {
+      if (prev.length === 0) return prev;
+      const updated = [...prev];
+      updated[updated.length - 1] = { ...updated[updated.length - 1], inventory_item_id: item.id, inventory_item_name: item.name, inventory_item_unit: item.unit };
+      return updated;
+    });
+    setShowCreateItemModal(false);
+    toast.success(`Item "${item.name}" added.`);
+  };
 
   const handleRemoveItem = useCallback((tempId: number) => {
     setItems((prevItems) => prevItems.filter((item) => item.tempId !== tempId));
@@ -162,19 +191,24 @@ const CreateSalesOrderForm: React.FC = () => {
                 <h5 className="mb-3">Sales Order Details</h5>
                 <div className="col-md-6">
                   <label htmlFor="customerSelect" className="form-label">Customer <span className="text-danger">*</span></label>
-                  <select
-                    id="customerSelect"
-                    className="form-select"
-                    value={customerId}
-                    onChange={(e) => setCustomerId(Number(e.target.value))}
-                    required
-                    disabled={isLoading || customers.length === 0}
-                  >
-                    <option value="">Select a Customer</option>
-                    {customers.map((customer) => (
-                      <option key={customer.id} value={customer.id}>{customer.name}</option>
-                    ))}
-                  </select>
+                  <div className="d-flex gap-2 align-items-center">
+                    <select
+                      id="customerSelect"
+                      className="form-select"
+                      value={customerId}
+                      onChange={(e) => setCustomerId(Number(e.target.value))}
+                      required
+                      disabled={isLoading || customers.length === 0}
+                    >
+                      <option value="">Select a Customer</option>
+                      {customers.map((customer) => (
+                        <option key={customer.id} value={customer.id}>{customer.name}</option>
+                      ))}
+                    </select>
+                    <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => setShowCreateCustomerModal(true)} title="Add Customer">
+                      <i className="bi bi-plus-lg"></i>
+                    </button>
+                  </div>
                   {customers.length === 0 && !isLoading && (
                     <div className="text-danger mt-1">No customers found. Please add a customer first.</div>
                   )}
@@ -240,21 +274,26 @@ const CreateSalesOrderForm: React.FC = () => {
                     <div className="row g-2">
                       <div className="col-md-6">
                         <label htmlFor={`itemId-${item.tempId}`} className="form-label">Inventory Item <span className="text-danger">*</span></label>
-                        <select
-                          id={`itemId-${item.tempId}`}
-                          className="form-select"
-                          value={item.inventory_item_id || ''}
-                          onChange={(e) => handleItemChange(item.tempId, 'inventory_item_id', e.target.value)}
-                          required
-                          disabled={isLoading || inventoryItems.length === 0}
-                        >
+                          <div className="d-flex gap-2 align-items-center">
+                          <select
+                            id={`itemId-${item.tempId}`}
+                            className="form-select"
+                            value={item.inventory_item_id || ''}
+                            onChange={(e) => handleItemChange(item.tempId, 'inventory_item_id', e.target.value)}
+                            required
+                            disabled={isLoading || inventoryItems.length === 0}
+                          >
                           <option value="">Select an Item</option>
                           {inventoryItems.map((invItem) => (
                             <option key={invItem.id} value={invItem.id}>
                               {invItem.name} ({invItem.unit})
                             </option>
                           ))}
-                        </select>
+                          </select>
+                          <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => setShowCreateItemModal(true)} title="Add Item">
+                            <i className="bi bi-plus-lg"></i>
+                          </button>
+                          </div>
                         {inventoryItems.length === 0 && !isLoading && (
                             <div className="text-danger mt-1">No inventory items found. Please add items first.</div>
                         )}
@@ -323,6 +362,43 @@ const CreateSalesOrderForm: React.FC = () => {
           </div>
         </div>
       </div>
+      {showCreateCustomerModal && (
+        <>
+          <div className="modal fade show" tabIndex={-1} role="dialog" style={{ display: 'block' }} aria-modal="true">
+            <div className="modal-dialog modal-lg" role="document">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Create Customer</h5>
+                  <button type="button" className="btn-close" aria-label="Close" onClick={() => setShowCreateCustomerModal(false)}></button>
+                </div>
+                <div className="modal-body">
+                  <CreateBusinessPartnerForm hideHeader onCreated={handleCustomerCreatedInline} onCancel={() => setShowCreateCustomerModal(false)} />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="modal-backdrop fade show"></div>
+        </>
+      )}
+
+      {showCreateItemModal && (
+        <>
+          <div className="modal fade show" tabIndex={-1} role="dialog" style={{ display: 'block' }} aria-modal="true">
+            <div className="modal-dialog modal-lg" role="document">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Create Inventory Item</h5>
+                  <button type="button" className="btn-close" aria-label="Close" onClick={() => setShowCreateItemModal(false)}></button>
+                </div>
+                <div className="modal-body">
+                  <CreateInventoryItemForm hideHeader onCreated={handleItemCreatedInline} onCancel={() => setShowCreateItemModal(false)} />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="modal-backdrop fade show"></div>
+        </>
+      )}
     </>
   );
 };

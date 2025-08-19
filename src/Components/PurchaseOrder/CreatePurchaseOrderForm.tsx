@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
 import { purchaseOrderApi, inventoryItemApi, businessPartnerApi } from '../../services/api';
+import CreateBusinessPartnerForm from '../BusinessPartner/CreateBusinessPartnerForm';
+import CreateInventoryItemForm from '../InventoryItem/CreateInventoryItemForm';
 import {
   PurchaseOrderCreate,
 } from '../../types/PurchaseOrder';
@@ -26,6 +28,9 @@ const CreatePurchaseOrderForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [vendors, setVendors] = useState<BusinessPartner[]>([]);
   const [inventoryItems, setInventoryItems] = useState<InventoryItemResponse[]>([]);
+  // Modal states
+  const [showCreateVendorModal, setShowCreateVendorModal] = useState(false);
+  const [showCreateItemModal, setShowCreateItemModal] = useState(false);
 
   // Purchase states
   const [vendorId, setVendorId] = useState<number | ''>('');
@@ -61,6 +66,13 @@ const CreatePurchaseOrderForm: React.FC = () => {
     fetchInitialData();
   }, []);
 
+  // Manage body class for bootstrap modal behavior
+  useEffect(() => {
+    if (showCreateVendorModal || showCreateItemModal) document.body.classList.add('modal-open');
+    else document.body.classList.remove('modal-open');
+    return () => document.body.classList.remove('modal-open');
+  }, [showCreateVendorModal, showCreateItemModal]);
+
 
   // --- Item Management Functions ---
   const handleAddItem = useCallback(() => {
@@ -72,6 +84,26 @@ const CreatePurchaseOrderForm: React.FC = () => {
     };
     setItems((prevItems) => [...prevItems, newItem]);
   }, []);
+
+  const handleVendorCreatedInline = (vendor: BusinessPartner) => {
+    setVendors((prev) => [...prev, vendor]);
+    setVendorId(vendor.id);
+    setShowCreateVendorModal(false);
+    toast.success(`Vendor "${vendor.name}" added.`);
+  };
+
+  const handleItemCreatedInline = (item: InventoryItemResponse) => {
+    setInventoryItems((prev) => [...prev, item]);
+    // If there's at least one item row, set the last added row to this item
+    setItems((prev) => {
+      if (prev.length === 0) return prev;
+      const updated = [...prev];
+      updated[updated.length - 1] = { ...updated[updated.length - 1], inventory_item_id: item.id, inventory_item_name: item.name, inventory_item_unit: item.unit };
+      return updated;
+    });
+    setShowCreateItemModal(false);
+    toast.success(`Item "${item.name}" added.`);
+  };
 
   const handleRemoveItem = useCallback((tempId: number) => {
     setItems((prevItems) => prevItems.filter((item) => item.tempId !== tempId));
@@ -162,19 +194,29 @@ const CreatePurchaseOrderForm: React.FC = () => {
                 <h5 className="mb-3">Purchase Details</h5>
                 <div className="col-md-6">
                   <label htmlFor="vendorSelect" className="form-label">Vendor <span className="text-danger">*</span></label>
-                  <select
-                    id="vendorSelect"
-                    className="form-select"
-                    value={vendorId}
-                    onChange={(e) => setVendorId(Number(e.target.value))}
-                    required
-                    disabled={isLoading || vendors.length === 0}
-                  >
-                    <option value="">Select a Vendor</option>
-                    {vendors.map((vendor) => (
-                      <option key={vendor.id} value={vendor.id}>{vendor.name}</option>
-                    ))}
-                  </select>
+                  <div className="d-flex gap-2 align-items-center">
+                    <select
+                      id="vendorSelect"
+                      className="form-select"
+                      value={vendorId}
+                      onChange={(e) => setVendorId(Number(e.target.value))}
+                      required
+                      disabled={isLoading || vendors.length === 0}
+                    >
+                      <option value="">Select a Vendor</option>
+                      {vendors.map((vendor) => (
+                        <option key={vendor.id} value={vendor.id}>{vendor.name}</option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-primary"
+                      onClick={() => setShowCreateVendorModal(true)}
+                      title="Add Vendor"
+                    >
+                      <i className="bi bi-plus-lg"></i>
+                    </button>
+                  </div>
                   {vendors.length === 0 && !isLoading && (
                     <div className="text-danger mt-1">No vendors found. Please add a vendor first.</div>
                   )}
@@ -240,21 +282,31 @@ const CreatePurchaseOrderForm: React.FC = () => {
                     <div className="row g-2">
                       <div className="col-md-6">
                         <label htmlFor={`itemId-${item.tempId}`} className="form-label">Inventory Item <span className="text-danger">*</span></label>
-                        <select
-                          id={`itemId-${item.tempId}`}
-                          className="form-select"
-                          value={item.inventory_item_id || ''}
-                          onChange={(e) => handleItemChange(item.tempId, 'inventory_item_id', e.target.value)}
-                          required
-                          disabled={isLoading || inventoryItems.length === 0}
-                        >
-                          <option value="">Select an Item</option>
-                          {inventoryItems.map((invItem) => (
-                            <option key={invItem.id} value={invItem.id}>
-                              {invItem.name} ({invItem.unit})
-                            </option>
-                          ))}
-                        </select>
+                        <div className="d-flex gap-2 align-items-center">
+                          <select
+                            id={`itemId-${item.tempId}`}
+                            className="form-select"
+                            value={item.inventory_item_id || ''}
+                            onChange={(e) => handleItemChange(item.tempId, 'inventory_item_id', e.target.value)}
+                            required
+                            disabled={isLoading || inventoryItems.length === 0}
+                          >
+                            <option value="">Select an Item</option>
+                            {inventoryItems.map((invItem) => (
+                              <option key={invItem.id} value={invItem.id}>
+                                {invItem.name} ({invItem.unit})
+                              </option>
+                            ))}
+                          </select>
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-primary"
+                            onClick={() => setShowCreateItemModal(true)}
+                            title="Add Item"
+                          >
+                            <i className="bi bi-plus-lg"></i>
+                          </button>
+                        </div>
                         {inventoryItems.length === 0 && !isLoading && (
                             <div className="text-danger mt-1">No inventory items found. Please add items first.</div>
                         )}
@@ -323,6 +375,50 @@ const CreatePurchaseOrderForm: React.FC = () => {
           </div>
         </div>
       </div>
+        {/* Create Vendor Modal */}
+        {showCreateVendorModal && (
+          <>
+            <div className="modal fade show" tabIndex={-1} role="dialog" style={{ display: 'block' }} aria-modal="true">
+              <div className="modal-dialog modal-lg" role="document">
+                <div className="modal-content">
+                  <div className="modal-header">
+                    <h5 className="modal-title">Create Vendor</h5>
+                    <button type="button" className="btn-close" aria-label="Close" onClick={() => setShowCreateVendorModal(false)}></button>
+                  </div>
+                  <div className="modal-body">
+                    {/* lazy import to avoid circular deps */}
+                    <React.Suspense fallback={<div>Loading...</div>}>
+                      <CreateBusinessPartnerForm hideHeader onCreated={handleVendorCreatedInline} onCancel={() => setShowCreateVendorModal(false)} />
+                    </React.Suspense>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="modal-backdrop fade show"></div>
+          </>
+        )}
+
+        {/* Create Inventory Item Modal */}
+        {showCreateItemModal && (
+          <>
+            <div className="modal fade show" tabIndex={-1} role="dialog" style={{ display: 'block' }} aria-modal="true">
+              <div className="modal-dialog modal-lg" role="document">
+                <div className="modal-content">
+                  <div className="modal-header">
+                    <h5 className="modal-title">Create Inventory Item</h5>
+                    <button type="button" className="btn-close" aria-label="Close" onClick={() => setShowCreateItemModal(false)}></button>
+                  </div>
+                  <div className="modal-body">
+                    <React.Suspense fallback={<div>Loading...</div>}>
+                      <CreateInventoryItemForm hideHeader onCreated={handleItemCreatedInline} onCancel={() => setShowCreateItemModal(false)} />
+                    </React.Suspense>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="modal-backdrop fade show"></div>
+          </>
+        )}
     </>
   );
 };

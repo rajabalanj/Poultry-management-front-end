@@ -3,9 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
 import { businessPartnerApi } from '../../services/api';
-import { BusinessPartnerCreate } from '../../types/BusinessPartner';
+import { BusinessPartnerCreate, BusinessPartner } from '../../types/BusinessPartner';
 
-const CreateBusinessPartnerForm: React.FC = () => {
+interface CreateBusinessPartnerFormProps {
+    onCreated?: (partner: BusinessPartner) => void;
+    onCancel?: () => void;
+    hideHeader?: boolean;
+}
+
+const CreateBusinessPartnerForm: React.FC<CreateBusinessPartnerFormProps> = ({ onCreated, onCancel, hideHeader }) => {
     const [name, setName] = useState('');
     const [contactName, setContactName] = useState('');
     const [phone, setPhone] = useState('');
@@ -43,11 +49,15 @@ const CreateBusinessPartnerForm: React.FC = () => {
         };
 
         try {
-            await businessPartnerApi.createBusinessPartner(newPartner);
+            const created = await businessPartnerApi.createBusinessPartner(newPartner);
             toast.success('People created successfully!');
-            navigate('/business-partners');
+            if (onCreated) {
+                onCreated(created);
+            } else {
+                navigate('/business-partners');
+            }
         } catch (error: any) {
-                        toast.error(error?.message || 'Failed to create people.');
+            toast.error(error?.message || 'Failed to create people.');
         } finally {
             setIsLoading(false);
         }
@@ -55,8 +65,10 @@ const CreateBusinessPartnerForm: React.FC = () => {
 
     return (
         <>
-            <PageHeader title="Create New People" buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/business-partners" />
-            <div className="container mt-4">
+            {!hideHeader && (
+              <PageHeader title="Create New People" buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/business-partners" />
+            )}
+            <div className={hideHeader ? undefined : 'container mt-4'}>
                 <div className="card shadow-sm">
                     <div className="card-body">
                         <form onSubmit={handleSubmit}>
@@ -162,7 +174,10 @@ const CreateBusinessPartnerForm: React.FC = () => {
                                     <button
                                         type="button"
                                         className="btn btn-secondary ms-2"
-                                        onClick={() => navigate('/business-partners')}
+                                        onClick={() => {
+                                            if (onCancel) onCancel();
+                                            else navigate('/business-partners');
+                                        }}
                                     >
                                         Cancel
                                     </button>

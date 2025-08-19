@@ -404,3 +404,49 @@
 .accordion-button-white-arrow::after {
   filter: brightness(0) invert(1);
 }
+
+.footer {
+  background-color: #f8f9fa;
+  color: #6c757d;
+  padding: 1rem 0;
+  text-align: center;
+  border-top: 1px solid #e7e7e7;
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+@media (max-width: 768px) {
+  .footer-content {
+    flex-direction: column;
+  }
+}
+
+.footer p {
+  margin: 0;
+}
+
+.powered-by {
+  font-size: 0.9rem;
+}
+
+.sidebar-header {
+  background-color: #F8F9FA;
+  color: #FFC107;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  margin-bottom: 1rem;
+  text-shadow: none;
+  font-size: 1.2rem;
+}
+
+.sidebar-header i {
+  color: #FFC107;
+}
+
