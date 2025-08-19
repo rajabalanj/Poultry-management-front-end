@@ -46,17 +46,13 @@ const Slidebar: React.FC = () => {
   ) {
     setOpenMenu("feed");
   } else if (
-    location.pathname.startsWith("/inventory-items") ||
-    location.pathname.startsWith("/purchase-orders")
+    location.pathname.startsWith("/inventory-items")
   ) {
-    setOpenMenu("purchase");
+    setOpenMenu("inventory");
   } else if (
-    location.pathname.startsWith("/customers") ||
     location.pathname.startsWith("/sales-orders")
   ) {
     setOpenMenu("sales");
-  } else if (location.pathname.startsWith("/vendors")) {
-    setOpenMenu("vendor");
   } else {
     setOpenMenu(null); // No sub-menu related path, so close any open sub-menus
   }
@@ -266,70 +262,49 @@ const Slidebar: React.FC = () => {
                   </Link>
                 </li>
 
-                {/* Purchase Management - Expandable Item */}
-<li className="nav-menu-item">
-  <div
-    className={`nav-menu-link fw-bold expandable ${openMenu === 'purchase' ? 'active' : ''}`}
-    onClick={() => toggleMenu('purchase')}
-  >
-    <i className="bi bi-cart4 me-2 icon-color-sidebar"></i>
-    Purchase Management
-    <i className={`bi bi-chevron-right chevron-icon ${openMenu === 'purchase' ? 'rotated' : ''}`}></i>
-  </div>
-  <ul className={`sub-menu ${openMenu === 'purchase' ? 'open' : ''}`}>
-    <li className="sub-menu-item">
-  <Link
-    to="/inventory-items"
-    className={`nav-menu-link ${location.pathname === "/inventory-items" ? "active-link" : ""}`}
-    onClick={closeSidebarMobile}
-  >
-    Inventory
-  </Link>
-</li>
-<li className="sub-menu-item">
-    <Link
-      to="/purchase-orders"
-      className={`nav-menu-link ${location.pathname === "/purchase-orders" ? "active-link" : ""}`}
-      onClick={closeSidebarMobile}
-    >
-      Purchase
-    </Link>
-  </li>
-  </ul>
-</li>
+                <li className="nav-menu-item fw-bold">
+                  <Link
+                    to="/inventory-items"
+                    className={`nav-menu-link ${location.pathname === "/inventory-items" ? "active-link" : ""}`}
+                    onClick={closeSidebarMobile}
+                  >
+                    <i className="bi bi-box-seam me-2 icon-color-sidebar"></i>
+                    Inventory
+                  </Link>
+                </li>
 
+                <li className="nav-menu-item fw-bold">
+                  <Link
+                    to="/purchase-orders"
+                    className={`nav-menu-link ${location.pathname === "/purchase-orders" ? "active-link" : ""}`}
+                    onClick={closeSidebarMobile}
+                  >
+                    <i className="bi bi-cart4 me-2 icon-color-sidebar"></i>
+                    Purchase
+                  </Link>
+                </li>
+                
+                <li className="nav-menu-item fw-bold">
+                  <Link
+                    to="/sales-orders"
+                    className={`nav-menu-link ${location.pathname === "/sales-orders" ? "active-link" : ""}`}
+                    onClick={closeSidebarMobile}
+                  >
+                    <i className="bi bi-receipt me-2 icon-color-sidebar"></i>
+                    Sales
+                  </Link>
+                </li>
 
-{/* People (Business Partners) - Unified Menu */}
-<li className="nav-menu-item fw-bold">
-  <div
-    className={`nav-menu-link fw-bold expandable ${openMenu === 'people' ? 'active' : ''}`}
-    onClick={() => toggleMenu('people')}
-  >
-    <i className="bi bi-people me-2 icon-color-sidebar"></i>
-    People
-    <i className={`bi bi-chevron-right chevron-icon ${openMenu === 'people' ? 'rotated' : ''}`}></i>
-  </div>
-  <ul className={`sub-menu ${openMenu === 'people' ? 'open' : ''}`}>
-    <li className="sub-menu-item">
-      <Link
-        to="/business-partners"
-        className={`nav-menu-link ${location.pathname === "/business-partners" ? "active-link" : ""}`}
-        onClick={closeSidebarMobile}
-      >
-        All Partners
-      </Link>
-    </li>
-    <li className="sub-menu-item">
-      <Link
-        to="/business-partners/create"
-        className={`nav-menu-link ${location.pathname === "/business-partners/create" ? "active-link" : ""}`}
-        onClick={closeSidebarMobile}
-      >
-        Add Partner
-      </Link>
-    </li>
-  </ul>
-</li>
+                <li className="nav-menu-item fw-bold">
+                  <Link
+                    to="/business-partners"
+                    className={`nav-menu-link ${location.pathname === "/business-partners" ? "active-link" : ""}`}
+                    onClick={closeSidebarMobile}
+                  >
+                    <i className="bi bi-people me-2 icon-color-sidebar"></i>
+                    People
+                  </Link>
+                </li>
 
 
                 {/* Configurations - Simple Link */}

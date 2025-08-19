@@ -601,7 +601,7 @@ export const businessPartnerApi = {
       });
       return response.data;
     } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to create business partner'));
+      throw new Error(getApiErrorMessage(error, 'Failed to create people'));
     }
   },
 
@@ -621,7 +621,7 @@ export const businessPartnerApi = {
       const response = await api.get<BusinessPartner[]>(`/business-partners/`, { params });
       return response.data;
     } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to fetch business partners'));
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch peoples'));
     }
   },
 
@@ -630,7 +630,7 @@ export const businessPartnerApi = {
       const response = await api.get<BusinessPartner>(`/business-partners/${id}`);
       return response.data;
     } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to fetch business partner'));
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch people'));
     }
   },
 
@@ -641,7 +641,7 @@ export const businessPartnerApi = {
       });
       return response.data;
     } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to update business partner'));
+      throw new Error(getApiErrorMessage(error, 'Failed to update people'));
     }
   },
 
@@ -651,9 +651,9 @@ export const businessPartnerApi = {
         headers: { 'X-User-ID': currentUserId },
       });
     } catch (error) {
-      const errorMessage = getApiErrorMessage(error, 'Failed to delete business partner');
+      const errorMessage = getApiErrorMessage(error, 'Failed to delete people');
       if (errorMessage.includes("has associated") && errorMessage.includes("Status changed to Inactive")) {
-          throw new Error("Business partner has associated records and was marked as Inactive instead of deleted.");
+          throw new Error("people has associated records and was marked as Inactive instead of deleted.");
       }
       throw new Error(errorMessage);
     }

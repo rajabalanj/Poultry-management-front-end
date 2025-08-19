@@ -24,8 +24,8 @@ const BusinessPartnerDetails: React.FC = () => {
         setPartner(data);
       } catch (err: any) {
         console.error("Error fetching partner:", err);
-        setError(err?.message || "Failed to load business partner details.");
-        toast.error(err?.message || "Failed to load business partner details.");
+        setError(err?.message || "Failed to load people details.");
+        toast.error(err?.message || "Failed to load people details.");
       } finally {
         setLoading(false);
       }
@@ -52,11 +52,11 @@ const BusinessPartnerDetails: React.FC = () => {
 
   if (loading) return <div className="text-center mt-5">Loading partner details...</div>;
   if (error) return <div className="text-center text-danger mt-5">{error}</div>;
-  if (!partner) return <div className="text-center mt-5">Business partner not found.</div>;
+  if (!partner) return <div className="text-center mt-5">People not found.</div>;
 
   return (
     <>
-      <PageHeader title="Business Partner Details" buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/business-partners" />
+      <PageHeader title="People Details" buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/business-partners" />
       <div className="container mt-4">
         <div className="card shadow-sm">
           <div className="card-header bg-primary text-white">

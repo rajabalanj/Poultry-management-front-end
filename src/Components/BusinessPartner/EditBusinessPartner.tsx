@@ -39,8 +39,8 @@ const EditBusinessPartner: React.FC = () => {
         setIsCustomer(data.is_customer || false);
       } catch (err: any) {
         console.error("Error fetching partner:", err);
-        setError(err?.message || "Failed to load business partner for editing.");
-        toast.error(err?.message || "Failed to load business partner for editing.");
+        setError(err?.message || "Failed to load people for editing.");
+        toast.error(err?.message || "Failed to load people for editing.");
       } finally {
         setLoading(false);
       }
@@ -83,10 +83,10 @@ const EditBusinessPartner: React.FC = () => {
 
     try {
       await businessPartnerApi.updateBusinessPartner(Number(partner_id), updatedPartner);
-      toast.success('Business partner updated successfully!');
+      toast.success('People updated successfully!');
       navigate('/business-partners');
     } catch (error: any) {
-      toast.error(error?.message || 'Failed to update business partner.');
+      toast.error(error?.message || 'Failed to update people.');
     } finally {
       setLoading(false);
     }
@@ -94,7 +94,7 @@ const EditBusinessPartner: React.FC = () => {
 
   if (loading && !partner) return <div className="text-center mt-5">Loading partner data...</div>;
   if (error) return <div className="text-center text-danger mt-5">{error}</div>;
-  if (!partner) return <div className="text-center mt-5">Business partner not found.</div>;
+  if (!partner) return <div className="text-center mt-5">People not found.</div>;
 
   return (
     <>

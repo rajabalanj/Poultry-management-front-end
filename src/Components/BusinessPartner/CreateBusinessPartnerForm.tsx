@@ -44,10 +44,10 @@ const CreateBusinessPartnerForm: React.FC = () => {
 
         try {
             await businessPartnerApi.createBusinessPartner(newPartner);
-            toast.success('Business partner created successfully!');
+            toast.success('People created successfully!');
             navigate('/business-partners');
         } catch (error: any) {
-            toast.error(error?.message || 'Failed to create business partner.');
+            toast.error(error?.message || 'Failed to create People.');
         } finally {
             setIsLoading(false);
         }
@@ -55,7 +55,7 @@ const CreateBusinessPartnerForm: React.FC = () => {
 
     return (
         <>
-            <PageHeader title="Create New Business Partner" buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/business-partners" />
+            <PageHeader title="Create New People" buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/business-partners" />
             <div className="container mt-4">
                 <div className="card shadow-sm">
                     <div className="card-body">
@@ -157,7 +157,7 @@ const CreateBusinessPartnerForm: React.FC = () => {
                                         className="btn btn-primary"
                                         disabled={isLoading}
                                     >
-                                        {isLoading ? 'Creating...' : 'Create Business Partner'}
+                                        {isLoading ? 'Creating...' : 'Create People'}
                                     </button>
                                     <button
                                         type="button"

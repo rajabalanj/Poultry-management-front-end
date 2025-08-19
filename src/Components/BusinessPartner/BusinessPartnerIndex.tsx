@@ -33,8 +33,8 @@ const BusinessPartnerIndexPage = () => {
         const response = await businessPartnerApi.getBusinessPartners(0, 100, undefined, isVendor, isCustomer);
         setPartners(response);
       } catch (error: any) {
-        setError(error?.message || 'Failed to fetch business partners');
-        toast.error(error?.message || 'Failed to fetch business partners');
+        setError(error?.message || 'Failed to fetch peoples');
+        toast.error(error?.message || 'Failed to fetch peoples');
       } finally {
         setLoading(false);
       }
@@ -53,11 +53,11 @@ const BusinessPartnerIndexPage = () => {
       try {
         await businessPartnerApi.deleteBusinessPartner(partnerToDelete);
         setPartners((prev) => prev.filter((partner) => partner.id !== partnerToDelete));
-        toast.success("Business partner deleted successfully!");
+        toast.success("People deleted successfully!");
         setPartnerToDelete(null);
         setShowDeleteModal(false);
       } catch (error: any) {
-        const message = error?.message || 'Failed to delete business partner';
+        const message = error?.message || 'Failed to delete people';
         setDeleteErrorMessage(message);
         toast.error(message);
       }
@@ -72,7 +72,7 @@ const BusinessPartnerIndexPage = () => {
 
   return (
     <>
-      <PageHeader title="Business Partners" buttonVariant="primary" buttonLabel="Create Partner" buttonLink="/business-partners/create" />
+      <PageHeader title="People" buttonVariant="primary" buttonLabel="Create People" buttonLink="/business-partners/create" />
       
       <div className="mb-3">
         <div className="btn-group" role="group">
@@ -112,7 +112,7 @@ const BusinessPartnerIndexPage = () => {
           {deleteErrorMessage ? (
             <div className="text-danger mb-3">{deleteErrorMessage}</div>
           ) : (
-            "Are you sure you want to delete this business partner?"
+            "Are you sure you want to delete this people?"
           )}
         </Modal.Body>
         <Modal.Footer>
