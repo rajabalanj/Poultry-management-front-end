@@ -224,7 +224,7 @@ const EditSalesOrder: React.FC = () => {
       navigate('/sales-orders'); // Navigate back to the SO list
     } catch (err: any) {
       toast.error(err?.message || 'Failed to update sales order.');
-      console.error('Error updating SO:', err);
+      console.error('Error updating Sales:', err);
     } finally {
       setIsLoading(false);
     }
@@ -235,7 +235,7 @@ const EditSalesOrder: React.FC = () => {
 
   return (
     <>
-      <PageHeader title={`Edit SO: ${so_id || 'Loading...'}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/sales-orders" />
+      <PageHeader title={`Edit Sales: ${so_id || 'Loading...'}`} buttonVariant="secondary" buttonLabel="Back"/>
       <div className="container mt-4">
         <div className="card shadow-sm">
           <div className="card-body">

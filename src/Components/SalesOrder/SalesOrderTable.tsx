@@ -53,9 +53,9 @@ const SalesOrderTable: React.FC<SalesOrderTableProps> = ({ salesOrders, loading,
     ));
   }, [salesOrders, customers, handleViewDetails, handleEdit, onDelete, onAddPayment]); // Add customers to dependencies
 
-  if (loading) return <div className="text-center">Loading sales orders...</div>;
+  if (loading) return <div className="text-center">Loading sales...</div>;
   if (error) return <div className="text-center text-danger">{error}</div>;
-  if (salesOrders.length === 0) return <div className="text-center">No sales orders found</div>;
+  if (salesOrders.length === 0) return <div className="text-center">No sales found</div>;
 
   return <div className="px-2">{soCards}</div>;
 };

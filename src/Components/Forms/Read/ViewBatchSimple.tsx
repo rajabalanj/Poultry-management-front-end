@@ -53,7 +53,7 @@ const ViewBatchSimple: React.FC = () => {
               type="date"
               className="form-control"
               value={date || ''}
-              disabled
+              readOnly
             />
           </div>
           <div className="col-md-6">
@@ -62,7 +62,7 @@ const ViewBatchSimple: React.FC = () => {
               type="text"
               className="form-control"
               value={batchNo}
-              disabled
+              readOnly
             />
           </div>
           <div className="col-md-6">
@@ -71,7 +71,7 @@ const ViewBatchSimple: React.FC = () => {
               type="text"
               className="form-control"
               value={shedNo}
-              disabled
+              readOnly
             />
           </div>
           <div className="col-md-6">
@@ -80,7 +80,7 @@ const ViewBatchSimple: React.FC = () => {
               type="number"
               className="form-control"
               value={openingCount}
-              disabled
+              readOnly
             />
           </div>
           <div className="col-md-6">
@@ -89,7 +89,7 @@ const ViewBatchSimple: React.FC = () => {
               type="text"
               className="form-control"
               value={age}
-              disabled
+              readOnly
             />
           </div>
           

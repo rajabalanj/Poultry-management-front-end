@@ -160,7 +160,7 @@ const EditBusinessPartner: React.FC = () => {
                 </div>
                 
                 <div className="col-12">
-                  <label className="form-label">Partner Type <span className="text-danger">*</span></label>
+                  <label className="form-label">People Type <span className="text-danger">*</span></label>
                   <div className="d-flex gap-3">
                     <div className="form-check">
                       <input

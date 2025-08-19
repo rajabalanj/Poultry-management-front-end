@@ -47,7 +47,7 @@ const AddSalesPaymentForm: React.FC = () => {
         }
 
       } catch (err: any) {
-        console.error("Error fetching SO for payment:", err);
+        console.error("Error fetching Sales for payment:", err);
         setErrorSo(err?.message || "Failed to load Sales Order details.");
         toast.error(err?.message || "Failed to load Sales Order details for payment.");
       } finally {
@@ -82,7 +82,7 @@ const AddSalesPaymentForm: React.FC = () => {
 
     // Optional: Add validation for overpayment
     if (salesOrder && (Number(amountPaid) + salesOrder.total_amount_paid) > salesOrder.total_amount + 0.01) { // Add small epsilon for floating point
-        toast.warn(`Amount entered (${Number(amountPaid).toFixed(2)}) would overpay this SO. Total due: Rs. ${(salesOrder.total_amount - salesOrder.total_amount_paid).toFixed(2)}.`);
+        toast.warn(`Amount entered (${Number(amountPaid).toFixed(2)}) would overpay this Sales. Total due: Rs. ${(salesOrder.total_amount - salesOrder.total_amount_paid).toFixed(2)}.`);
         // Allow to proceed or return, depending on business logic. For now, warn and allow.
     }
 
@@ -124,17 +124,16 @@ const AddSalesPaymentForm: React.FC = () => {
   return (
     <>
       <PageHeader
-        title={`Add Payment for SO: ${salesOrder.id}`}
+        title={`Add Payment for Sales: ${salesOrder.id}`}
         buttonVariant="secondary"
-        buttonLabel="Back to SO Details"
-        buttonLink={`/sales-orders/${so_id}/details`}
+        buttonLabel="Back"
       />
       <div className="container mt-4">
         <div className="card shadow-sm">
           <div className="card-body">
             <h5 className="mb-3">Payment Details</h5>
             <div className="alert alert-info" role="alert">
-                  <strong>SO Total:</strong> Rs. {Number(salesOrder.total_amount || 0).toFixed(2)} |
+                  <strong>Sales Total:</strong> Rs. {Number(salesOrder.total_amount || 0).toFixed(2)} |
                   <strong> Paid So Far:</strong> Rs. {Number(salesOrder.total_amount_paid || 0).toFixed(2)} |
                   <strong> Remaining Due:</strong> Rs. {(Number(salesOrder.total_amount || 0) - Number(salesOrder.total_amount_paid || 0)).toFixed(2)}
             </div>

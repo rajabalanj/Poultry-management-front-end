@@ -55,7 +55,7 @@ const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = React.memo(
             </div>
             <div className="d-flex flex-column flex-md-row gap-2">
               <button
-                className="btn btn-info btn-sm d-flex align-items-center justify-content-center"
+                className="btn btn-primary btn-sm d-flex align-items-center justify-content-center"
                 onClick={() => onView(Purchase.id)}
                 title="View Details"
                 aria-label={`View Details for Purchase ${Purchase.id}`}

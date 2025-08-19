@@ -53,7 +53,7 @@ const FeedDetails: React.FC = () => {
                 type="text"
                 className="form-control"
                 value={feed.title}
-                disabled
+                readOnly
               />
             </div>
 
@@ -63,7 +63,7 @@ const FeedDetails: React.FC = () => {
                 type="number"
                 className="form-control"
                 value={feed.quantity}
-                disabled
+                readOnly
               />
             </div>
 
@@ -82,7 +82,7 @@ const FeedDetails: React.FC = () => {
                 type="number"
                 className="form-control"
                 value={feed.warningKgThreshold !== undefined ? feed.warningKgThreshold : ''}
-                disabled
+                readOnly
               />
             </div>
 
@@ -92,7 +92,7 @@ const FeedDetails: React.FC = () => {
                 type="number"
                 className="form-control"
                 value={feed.warningTonThreshold !== undefined ? feed.warningTonThreshold : ''}
-                disabled
+                readOnly
               />
             </div>
 
@@ -102,7 +102,7 @@ const FeedDetails: React.FC = () => {
         <div className="mt-4 d-flex justify-content-center gap-3">
           <button
     type="button"
-    className="btn btn-info"
+    className="btn btn-primary"
     onClick={() => navigate(`/feed/${feed.id}/audit`)}
   >
     View Report

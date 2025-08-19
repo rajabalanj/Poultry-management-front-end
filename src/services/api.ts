@@ -907,7 +907,7 @@ export const salesOrderApi = {
       const response = await api.get<SalesOrderResponse[]>(`/sales-orders/`, { params });
       return response.data.map(parseSalesOrderResponse);
     } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to fetch sales orders'));
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch sales'));
     }
   },
 
@@ -995,7 +995,7 @@ export const salesOrderApi = {
       });
       return response.data;
     } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to add payment to SO'));
+      throw new Error(getApiErrorMessage(error, 'Failed to add payment to Sales'));
     }
   },
 };

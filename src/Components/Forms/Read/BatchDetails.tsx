@@ -115,7 +115,7 @@ const BatchDetails: React.FC = () => {
                 </div>
                 <div className="col-12 col-md-4">
                   <button
-                    className="btn btn-info w-100 mb-2"
+                    className="btn btn-primary w-100 mb-2"
                     onClick={handleDownloadReport}
                   >
                     View Data
@@ -172,7 +172,7 @@ const BatchDetails: React.FC = () => {
                 type="string"
                 className="form-control"
                 value={batch.shed_no}
-                disabled
+                readOnly
               />
             </div>
             <div className="col-12 col-md-6 mb-4 mt-4">
@@ -181,7 +181,7 @@ const BatchDetails: React.FC = () => {
                 type="text"
                 className="form-control"
                 value={batch.age}
-                disabled
+                readOnly
               />
             </div>
             <div className="col-12 col-md-6 mb-4 mt-4">
@@ -194,7 +194,7 @@ const BatchDetails: React.FC = () => {
                     ? Number(batch.standard_hen_day_percentage).toFixed(2)
                     : ''
                 }
-                disabled
+                readOnly
               />
             </div>
             <div className="col-12 col-md-6 mb-4 mt-4">
@@ -202,7 +202,7 @@ const BatchDetails: React.FC = () => {
               <textarea
                 className="form-control"
                 value={batch.notes || ''}
-                disabled
+                readOnly
               />
             </div>
           </div>

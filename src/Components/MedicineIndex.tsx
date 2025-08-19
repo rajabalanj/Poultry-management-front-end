@@ -56,7 +56,7 @@ const MedicineCard: React.FC<{
 </button>
 
             <button
-              className="btn btn-info btn-sm d-flex align-items-center justify-content-center"
+              className="btn btn-primary btn-sm d-flex align-items-center justify-content-center"
               onClick={() => onView(medicine.id)}
               title="View Details"
               aria-label={`View Details for Medicine ${medicine.title}`}

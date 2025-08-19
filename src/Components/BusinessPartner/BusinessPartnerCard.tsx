@@ -42,7 +42,7 @@ const BusinessPartnerCard: React.FC<BusinessPartnerCardProps> = React.memo(
             </div>
             <div className="d-flex flex-column flex-md-row gap-2">
               <button
-                className="btn btn-info btn-sm d-flex align-items-center justify-content-center"
+                className="btn btn-primary btn-sm d-flex align-items-center justify-content-center"
                 onClick={() => onView(partner.id)}
                 title="View Details"
               >

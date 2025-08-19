@@ -220,7 +220,7 @@ const DashboardIndex = () => {
                 </div>
                 <div className="col-12 col-md-4">
                   <button
-                    className="btn btn-info w-100 mb-2"
+                    className="btn btn-primary w-100 mb-2"
                     onClick={handleDownloadReport}
                   >
                     View Data

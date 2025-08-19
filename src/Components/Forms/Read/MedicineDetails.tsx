@@ -56,7 +56,7 @@ const MedicineDetails: React.FC = () => {
                 type="text"
                 className="form-control"
                 value={medicine.title}
-                disabled
+                readOnly
               />
             </div>
 
@@ -66,7 +66,7 @@ const MedicineDetails: React.FC = () => {
                 type="number"
                 className="form-control"
                 value={medicine.quantity}
-                disabled
+                readOnly
               />
             </div>
 
@@ -85,7 +85,7 @@ const MedicineDetails: React.FC = () => {
                 type="number"
                 className="form-control"
                 value={medicine.warningKGThreshold !== undefined ? medicine.warningKGThreshold : ''}
-                disabled
+                readOnly
               />
             </div>
 
@@ -95,7 +95,7 @@ const MedicineDetails: React.FC = () => {
                 type="number"
                 className="form-control"
                 value={medicine.warningGramThreshold !== undefined ? medicine.warningGramThreshold : ''}
-                disabled
+                readOnly
               />
             </div>
 
@@ -105,7 +105,7 @@ const MedicineDetails: React.FC = () => {
         <div className="mt-4 d-flex justify-content-center gap-3">
           <button
     type="button"
-    className="btn btn-info"
+    className="btn btn-primary"
     onClick={() => navigate(`/medicine/${medicine.id}/audit`)}
   >
     View Report

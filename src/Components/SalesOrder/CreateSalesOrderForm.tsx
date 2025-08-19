@@ -144,7 +144,7 @@ const CreateSalesOrderForm: React.FC = () => {
       navigate('/sales-orders');
     } catch (error: any) {
       toast.error(error?.message || 'Failed to create sales order.');
-      console.error('Error creating SO:', error);
+      console.error('Error creating Sales:', error);
     } finally {
       setIsLoading(false);
     }

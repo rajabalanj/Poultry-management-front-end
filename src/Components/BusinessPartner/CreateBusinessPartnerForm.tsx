@@ -47,7 +47,7 @@ const CreateBusinessPartnerForm: React.FC = () => {
             toast.success('People created successfully!');
             navigate('/business-partners');
         } catch (error: any) {
-            toast.error(error?.message || 'Failed to create People.');
+                        toast.error(error?.message || 'Failed to create people.');
         } finally {
             setIsLoading(false);
         }

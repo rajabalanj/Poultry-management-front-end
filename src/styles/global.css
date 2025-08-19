@@ -12,10 +12,10 @@
   --color-sidebar-icon: #071728; /* Emerald Green */
    --sidebar-bg: rgba(255, 255, 255, 0.5); /* Pure white background */
   --sidebar-text: #333333; /* Dark gray for text */
-  --sidebar-hover: #f0f0f0; /* Light gray for hover */
-  --sidebar-active: #f0f0f0; /* Light blue for active items */
+  --sidebar-hover: #dff5ff; /* Light gray for hover */
+  --sidebar-active: #dff5ff; /* Light blue for active items */
   --sidebar-border: #e0e0e0; /* Subtle border color */
-  --sidebar-icon: #325d88; /* Professional blue for icons */
+  --sidebar-icon: #2196F3; /* Professional blue for icons */
   --sidebar-submenu-indicator: #90caf9; /* Lighter blue for submenu indicator */
 }
 
@@ -201,7 +201,7 @@
 
 /* Icon styling */
 .icon-color-sidebar {
-  color: #325d88; /* Green color for icons */
+  color: #2196F3; /* Green color for icons */
   font-size: 1.25rem;
   width: 28px; /* Fixed width for consistent icon alignment */
   min-width: 28px;
@@ -399,25 +399,7 @@
   color: #3A6000 !important;
 }
 
-.btn-secondary {
-  background-color: #495057; /* Your desired background color */
-  border-color: #495057; /* Your desired border color */
-  color: #ffffff; /* Your desired text color */
-}
 
-.btn-secondary:hover {
-  background-color: #8a959e; /* Your desired hover background color */
-  border-color: #3E3F3A; /* Your desired hover border color */
-}
-
-.btn-secondary:focus {
-  box-shadow: 0 0 0 0.25rem rgba(108, 117, 125, 0.5); /* Your desired focus shadow */
-}
-
-.btn-secondary:active {
-  background-color: #3E3F3A; /* Your desired active background color */
-  border-color: #495057; /* Your desired active border color */
-}
 
 .accordion-button-white-arrow::after {
   filter: brightness(0) invert(1);

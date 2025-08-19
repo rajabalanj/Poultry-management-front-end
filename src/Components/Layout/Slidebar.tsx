@@ -35,7 +35,8 @@ const Slidebar: React.FC = () => {
   // Determine which parent menu should be open based on the current path
   if (
     location.pathname.startsWith("/add-batch") ||
-    location.pathname.startsWith("/upload-batch")
+    location.pathname.startsWith("/upload-batch") ||
+    location.pathname.startsWith("/production")
   ) {
     setOpenMenu("batch");
   } else if (location.pathname.startsWith("/egg-room-stock")) {
@@ -98,7 +99,7 @@ const Slidebar: React.FC = () => {
           top: 0,
           left: 0,
           height: "100vh",
-          backgroundColor: "#f8f9fa",
+          backgroundColor: "#ffffff",
           transition: "width 0.3s ease, transform 0.3s ease",
           zIndex: 1030,
           overflowX: "hidden",

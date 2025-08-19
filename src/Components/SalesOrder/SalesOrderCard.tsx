@@ -55,10 +55,10 @@ const SalesOrderCard: React.FC<SalesOrderCardProps> = React.memo(
             </div>
             <div className="d-flex flex-column flex-md-row gap-2">
               <button
-                className="btn btn-info btn-sm d-flex align-items-center justify-content-center"
+                className="btn btn-primary btn-sm d-flex align-items-center justify-content-center"
                 onClick={() => onView(so.id)}
                 title="View Details"
-                aria-label={`View Details for SO ${so.id}`}
+                aria-label={`View Details for Sales ${so.id}`}
               >
                 <i className="bi bi-eye me-1"></i>
                 <span className="text-sm">Details</span>
@@ -66,8 +66,8 @@ const SalesOrderCard: React.FC<SalesOrderCardProps> = React.memo(
               <button
                 className="btn btn-success btn-sm d-flex align-items-center justify-content-center"
                 onClick={() => onEdit(so.id)}
-                title="Edit SO"
-                aria-label={`Edit SO ${so.id}`}
+                title="Edit Sales"
+                aria-label={`Edit Sales ${so.id}`}
               >
                 <i className="bi bi-pencil-square me-1"></i>
                 <span className="text-sm">Edit</span>
@@ -75,8 +75,8 @@ const SalesOrderCard: React.FC<SalesOrderCardProps> = React.memo(
               <button
                 className="btn btn-danger btn-sm d-flex align-items-center justify-content-center"
                 onClick={() => onDelete(so.id)}
-                title="Delete SO"
-                aria-label={`Delete SO ${so.id}`}
+                title="Delete Sales"
+                aria-label={`Delete Sales ${so.id}`}
               >
                 <i className="bi bi-trash me-1"></i>
                 <span className="text-sm">Delete</span>
@@ -85,7 +85,7 @@ const SalesOrderCard: React.FC<SalesOrderCardProps> = React.memo(
                 className="btn btn-primary btn-sm d-flex align-items-center justify-content-center"
                 onClick={() => onAddPayment(so.id)}
                 title="Add Payment"
-                aria-label={`Add Payment for SO ${so.id}`}
+                aria-label={`Add Payment for Sales ${so.id}`}
               >
                 <i className="bi bi-wallet-fill me-1"></i>
                 <span className="text-sm">Add Payment</span>

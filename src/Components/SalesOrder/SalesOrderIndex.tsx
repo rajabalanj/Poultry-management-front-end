@@ -99,14 +99,14 @@ const SalesOrderIndexPage: React.FC = () => {
   return (
     <>
       <PageHeader
-        title="Sales Orders"
+        title="Sales"
         buttonVariant="primary"
-        buttonLabel="Create New SO"
+        buttonLabel="Create New"
         buttonLink="/sales-orders/create"
       />
       <div className="container mt-4">
         <div className="card shadow-sm mb-4 p-3">
-          <h5 className="mb-3">Filter Sales Orders</h5>
+          <h5 className="mb-3">Filter Sales</h5>
           <div className="row g-3">
             <div className="col-md-4">
               <label htmlFor="customerFilter" className="form-label">Customer:</label>
@@ -169,7 +169,7 @@ const SalesOrderIndexPage: React.FC = () => {
             {deleteErrorMessage ? (
               <div className="text-danger mb-3">{deleteErrorMessage}</div>
             ) : (
-              "Are you sure you want to delete this sales order? This action cannot be undone if the SO is not in Draft or Cancelled status."
+              "Are you sure you want to delete this sales? This action cannot be undone if the Sales is not in Draft or Cancelled status."
             )}
           </Modal.Body>
           <Modal.Footer>

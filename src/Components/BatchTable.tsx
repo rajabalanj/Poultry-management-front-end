@@ -20,7 +20,7 @@ const BatchCard: React.FC<{
         </div>
         <div className="d-flex flex-column flex-md-row gap-2">
           <button
-            className="btn btn-info btn-sm d-flex align-items-center justify-content-center"
+            className="btn btn-primary btn-sm d-flex align-items-center justify-content-center"
             onClick={() => onView(batch.batch_id, batch.batch_date)}
             title="View Details"
             aria-label={`View Details for Batch ${batch.batch_no}`}
