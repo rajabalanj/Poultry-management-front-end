@@ -354,7 +354,7 @@ const EditSalesOrder: React.FC = () => {
                       ) : (
                         <button
                           type="button"
-                          className="btn btn-outline-secondary btn-sm"
+                          className="btn btn-outline-primary btn-sm fw-bold"
                           onClick={() => handleUndoRemoveItem(item.tempId)}
                           disabled={isLoading}
                         >
