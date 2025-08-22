@@ -138,6 +138,26 @@ const EditPurchaseOrder: React.FC = () => {
     toast.success(`Item "${item.name}" added.`);
   };
 
+  const handleAddItem = useCallback(() => {
+    if (!po_id) {
+      toast.error("Cannot add item without a purchase order ID.");
+      return;
+    }
+    const newItem: FormPurchaseOrderItem = {
+      tempId: Date.now(),
+      id: 0, // Placeholder for new item
+      purchase_order_id: Number(po_id),
+      inventory_item_id: 0,
+      quantity: 1,
+      price_per_unit: 0,
+      isNew: true,
+      isDeleted: false,
+      line_total: 0,
+      inventory_item: undefined
+    };
+    setItems((prevItems) => [...prevItems, newItem]);
+  }, [po_id]);
+
   const handleRemoveItem = useCallback((tempId: number) => {
     setItems((prevItems) =>
       prevItems.map((item) =>
@@ -373,11 +393,11 @@ const EditPurchaseOrder: React.FC = () => {
                           <div className="d-flex gap-2 align-items-center">
                           <select
                             id={`itemId-${item.tempId}`}
-                            className="form-select"
+                            className="form-select" 
                             value={item.inventory_item_id || ''}
                             onChange={(e) => handleItemChange(item.tempId, 'inventory_item_id', e.target.value)}
                             required
-                            disabled={true} // disabled on edit page per request
+                            disabled={!item.isNew || isLoading}
                           >
                             <option value="">Select an Item</option>
                             {inventoryItems.map((invItem) => (
@@ -425,7 +445,16 @@ const EditPurchaseOrder: React.FC = () => {
                   </div>
                 ))}
 
-                {/* Global add new item removed on edit page */}
+                <div className="col-12 text-center">
+                  <button
+                    type="button"
+                    className="btn btn-outline-primary btn-sm"
+                    onClick={handleAddItem}
+                    disabled={isLoading}
+                  >
+                    <i className="bi bi-plus-circle me-1"></i> Add Item
+                  </button>
+                </div>
 
                 <div className="col-12 mt-4">
                   <button

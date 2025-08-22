@@ -115,7 +115,7 @@ const SalesOrderDetails: React.FC = () => {
                 <strong>Total Amount:</strong> Rs. {(Number(salesOrder.total_amount) || 0).toFixed(2)}
               </div>
               <div className="col-md-6">
-                <strong>Amount Paid:</strong> Rs. {(Number(salesOrder.total_amount_paid) || 0).toFixed(2)}
+                <strong>Amount Received:</strong> Rs. {(Number(salesOrder.total_amount_paid) || 0).toFixed(2)}
               </div>
               <div className="col-12">
                 <strong>Notes:</strong> {salesOrder.notes || 'N/A'}
@@ -194,7 +194,7 @@ const SalesOrderDetails: React.FC = () => {
                   <thead>
                     <tr>
                       <th>#</th>
-                      <th>Amount Paid (Rs.)</th>
+                      <th>Amount Received (Rs.)</th>
                       <th>Payment Date</th>
                       <th>Mode</th>
                       <th>Reference</th>
@@ -215,7 +215,7 @@ const SalesOrderDetails: React.FC = () => {
                   </tbody>
                   <tfoot>
                     <tr>
-                      <td colSpan={1} className="text-end fw-bold">Total Paid:</td>
+                      <td colSpan={1} className="text-end fw-bold">Total Received:</td>
                       <td className="fw-bold">Rs. {(Number(salesOrder.total_amount_paid) || 0).toFixed(2)}</td>
                       <td colSpan={4}></td>
                     </tr>

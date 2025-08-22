@@ -243,7 +243,7 @@ const CreateSalesOrderForm: React.FC = () => {
                   ></textarea>
                 </div>
                 <div className="col-12">
-                  <label htmlFor="receiptFile" className="form-label">Payment Receipt (Optional)</label>
+                  <label htmlFor="receiptFile" className="form-label">Receipt (Optional)</label>
                   <input
                     type="file"
                     className="form-control"
@@ -252,7 +252,7 @@ const CreateSalesOrderForm: React.FC = () => {
                     onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
                     disabled={isLoading}
                   />
-                  <div className="form-text">Upload payment receipt (PDF, JPG, PNG)</div>
+                  <div className="form-text">Upload receipt (PDF, JPG, PNG)</div>
                 </div>
 
                 {/* Sales Order Items Section */}

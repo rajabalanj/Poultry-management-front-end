@@ -69,7 +69,7 @@ const AddSalesPaymentForm: React.FC = () => {
     }
 
     if (amountPaid === '' || amountPaid <= 0) {
-      toast.error('Please enter a valid amount paid (greater than 0).');
+      toast.error('Please enter a valid amount received (greater than 0).');
       setIsLoading(false);
       return;
     }
@@ -134,13 +134,13 @@ const AddSalesPaymentForm: React.FC = () => {
             <h5 className="mb-3">Payment Details</h5>
             <div className="alert alert-info" role="alert">
                   <strong>Sales Total:</strong> Rs. {Number(salesOrder.total_amount || 0).toFixed(2)} |
-                  <strong> Paid So Far:</strong> Rs. {Number(salesOrder.total_amount_paid || 0).toFixed(2)} |
+                  <strong> Received So Far:</strong> Rs. {Number(salesOrder.total_amount_paid || 0).toFixed(2)} |
                   <strong> Remaining Due:</strong> Rs. {(Number(salesOrder.total_amount || 0) - Number(salesOrder.total_amount_paid || 0)).toFixed(2)}
             </div>
             <form onSubmit={handleSubmit}>
               <div className="row g-3">
                 <div className="col-md-6">
-                  <label htmlFor="amountPaid" className="form-label">Amount Paid (Rs.) <span className="text-danger">*</span></label>
+                  <label htmlFor="amountPaid" className="form-label">Amount Received (Rs.) <span className="text-danger">*</span></label>
                   <input
                     type="number"
                     className="form-control"
