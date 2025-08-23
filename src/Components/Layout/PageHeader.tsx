@@ -19,7 +19,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   const navigate = useNavigate();
 
   return (
-    <div className="page-header d-flex justify-content-between align-items-center px-4 py-3 text-primary fw-bold">
+    <div className="page-header d-flex justify-content-between align-items-center px-4 py-3 text-primary fw-bold shadow-sm border-bottom bg-light mb-4">
       <div>
         {title && <h4 className="mb-1 fw-semibold ms-4 mt-1 h4">{title}</h4>} {/* Date */}
         {subtitle && <h4 className="mb-0 ms-4">{subtitle}</h4>}       {/* Batch Info */}

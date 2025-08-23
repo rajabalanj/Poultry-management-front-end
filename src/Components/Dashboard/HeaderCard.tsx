@@ -20,7 +20,7 @@ const HeaderCard: React.FC<HeaderCardProps> = ({ title, mainValue, subValues, ic
       <div className="card-body p-2 p-sm-3">
         <div className="d-flex align-items-center mb-1 mb-sm-2">
           {icon && <i className={`bi ${icon} me-1 me-sm-2 icon-sm ${iconColor ? iconColor : ''}`}></i>}
-          <h6 className="card-title mb-0 fw-bold text-sm">{title}</h6>
+          <h6 className="card-title mb-0 fw-bold text-base">{title}</h6>
         </div>
         
         <div className="fw-bold mb-1 mb-sm-2 text-md">

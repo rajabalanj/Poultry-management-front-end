@@ -10,7 +10,7 @@ interface StockFormSectionProps {
     fields: Array<{
       key: keyof EggRoomStockEntry;
       label: string;
-      disabled?: boolean; // Add disabled property
+      readonly?: boolean; // Add disabled property
       controlledBy?: keyof EggRoomStockEntry; // Add controlledBy property
     }>;
   };
@@ -41,7 +41,7 @@ export const StockFormSection: React.FC<StockFormSectionProps> = ({
           <span className="flex-grow-1">{title}</span>
         </div>
         <div className="mt-2">
-          {fields.map(({ key, label, disabled, controlledBy }) => (
+          {fields.map(({ key, label, readonly, controlledBy }) => (
             <div className="mb-2" key={key}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <label className="form-label text-capitalize mb-0" style={{ minWidth: maxLabelWidth }}>
@@ -49,13 +49,13 @@ export const StockFormSection: React.FC<StockFormSectionProps> = ({
                 </label>
                 <input
                   type="number"
-                  className="form-control"
+                  className={`form-control ${readonly ? 'is-readonly' : ''}`}
                   style={{ flex: 1 }}
                   // Use value from 'controlledBy' if specified, otherwise use its own value
                   value={controlledBy ? (values[controlledBy] as number || '') : (values[key] as number || '')}
                   onChange={(e) => onChange(key, e.target.value)}
                   min={0}
-                  disabled={disabled} // Apply disabled property
+                  readOnly={readonly} // Apply readonly property
                 />
               </div>
             </div>
@@ -67,9 +67,9 @@ export const StockFormSection: React.FC<StockFormSectionProps> = ({
               </label>
               <input
                 type="number"
-                className="form-control bg-light"
+                className="form-control is-readonly"
                 value={calculateClosing(values)}
-                disabled
+                readOnly
                 style={{ flex: 1 }}
               />
             </div>
@@ -86,17 +86,17 @@ export const StockFormSection: React.FC<StockFormSectionProps> = ({
         {title}
       </div>
       <div className="row g-2 align-items-end">
-        {fields.map(({ key, label, disabled, controlledBy }) => (
+        {fields.map(({ key, label, readonly, controlledBy }) => (
           <div className="col" key={key}>
             <label className="form-label text-capitalize">{label}</label>
             <input
               type="number"
-              className="form-control"
+              className={`form-control ${readonly ? 'is-readonly' : ''}`}
               // Use value from 'controlledBy' if specified, otherwise use its own value
               value={controlledBy ? (values[controlledBy] as number || '') : (values[key] as number || '')}
               onChange={(e) => onChange(key, e.target.value)}
               min={0}
-              disabled={disabled} // Apply disabled property
+              readOnly={readonly} // Apply disabled property
             />
           </div>
         ))}
@@ -104,9 +104,9 @@ export const StockFormSection: React.FC<StockFormSectionProps> = ({
           <label className="form-label">Closing</label>
           <input
             type="number"
-            className="form-control bg-light"
+            className="form-control is-readonly"
             value={calculateClosing(values)}
-            disabled
+            readOnly
           />
         </div>
       </div>

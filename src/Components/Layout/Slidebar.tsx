@@ -114,7 +114,7 @@ const Slidebar: React.FC = () => {
       >
         <div className="px-3">
           <div style={{ marginTop: isDesktop ? "0" : "-15px" }}>
-          <h5 className="sidebar-header ms-4 fw-bold d-flex align-items-center">
+          <h5 className="sidebar-header ms-4 fw-bold d-flex align-items-center bg-light mb-4 p-2" style={{ borderRadius: '8px' }}>
               <i className="bi bi-egg me-2"></i>
               Annamalaiyar Agro
             </h5>            

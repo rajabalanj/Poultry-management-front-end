@@ -1,13 +1,15 @@
 // src/components/SalesOrder/CreateSalesOrderForm.tsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
 import { salesOrderApi, inventoryItemApi, businessPartnerApi } from '../../services/api';
 import CreateBusinessPartnerForm from '../BusinessPartner/CreateBusinessPartnerForm';
 import CreateInventoryItemForm from '../InventoryItem/CreateInventoryItemForm';
-import {
+import type {
   SalesOrderCreate,
+  SalesOrderResponse,
+  PaymentCreate,
 } from '../../types/SalesOrder';
 import { SalesOrderItemCreate } from '../../types/SalesOrderItem';
 import { BusinessPartner } from '../../types/BusinessPartner';
@@ -40,6 +42,23 @@ const CreateSalesOrderForm: React.FC = () => {
   const [items, setItems] = useState<FormSalesOrderItem[]>([]);
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
 
+  // Step management
+  const [formStep, setFormStep] = useState<'createOrder' | 'addPayment'>('createOrder');
+  const [newSalesOrder, setNewSalesOrder] = useState<SalesOrderResponse | null>(null);
+
+  // Payment states
+  const [amountPaid, setAmountPaid] = useState<number | ''>('');
+  const [paymentDate, setPaymentDate] = useState<Date>(new Date());
+  const [paymentMode, setPaymentMode] = useState<string>('');
+  const [referenceNumber, setReferenceNumber] = useState<string>('');
+  const [paymentNotes, setPaymentNotes] = useState<string>('');
+  const [paymentReceiptFile, setPaymentReceiptFile] = useState<File | null>(null);
+  const paymentModes = ["Cash", "Bank Transfer", "Cheque", "Online Payment", "Other"];
+
+  const grandTotal = useMemo(() => {
+    return items.reduce((sum, item) => sum + (item.quantity * item.price_per_unit), 0);
+  }, [items]);
+
   // ... (rest of the useEffect for fetching initial data remains the same)
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -55,9 +74,10 @@ const CreateSalesOrderForm: React.FC = () => {
         if (customersData.length > 0) {
           setCustomerId(customersData[0].id);
         }
-      } catch (error: any) {
-        toast.error(error?.message || 'Failed to load necessary data (Customers, Inventory Items).');
-        console.error('Error fetching initial data:', error);
+      } catch (error) {
+        const err = error as { message?: string };
+        toast.error(err.message || 'Failed to load necessary data (Customers, Inventory Items).');
+        console.error('Error fetching initial data:', err);
       } finally {
         setIsLoading(false);
       }
@@ -106,7 +126,7 @@ const CreateSalesOrderForm: React.FC = () => {
     setItems((prevItems) => prevItems.filter((item) => item.tempId !== tempId));
   }, []);
 
-  const handleItemChange = useCallback((tempId: number, field: keyof FormSalesOrderItem, value: any) => {
+  const handleItemChange = useCallback((tempId: number, field: keyof FormSalesOrderItem, value: string | number) => {
     setItems((prevItems) =>
       prevItems.map((item) => {
         if (item.tempId === tempId) {
@@ -147,10 +167,9 @@ const CreateSalesOrderForm: React.FC = () => {
       }
     }
 
-    const newSalesOrder: SalesOrderCreate = {
+    const newSalesOrderData: SalesOrderCreate = {
       customer_id: Number(customerId),
-      order_date: format(orderDate, 'yyyy-MM-dd'), // ADD THIS LINE: Format to YYYY-MM-DD
-      
+      order_date: format(orderDate, 'yyyy-MM-dd'),
       notes: notes || undefined,
       items: items.map(item => ({
         inventory_item_id: item.inventory_item_id,
@@ -160,7 +179,7 @@ const CreateSalesOrderForm: React.FC = () => {
     };
 
     try {
-      const soResponse = await salesOrderApi.createSalesOrder(newSalesOrder);
+      const soResponse = await salesOrderApi.createSalesOrder(newSalesOrderData);
       
       // Upload receipt if file is selected
       if (receiptFile && soResponse.id) {
@@ -169,196 +188,321 @@ const CreateSalesOrderForm: React.FC = () => {
         await salesOrderApi.uploadSalesOrderReceipt(soResponse.id, formData);
       }
       
-      toast.success('Sales Order created successfully!');
-      navigate('/sales-orders');
-    } catch (error: any) {
-      toast.error(error?.message || 'Failed to create sales order.');
-      console.error('Error creating Sales:', error);
+      toast.success('Sales Order created successfully! Proceeding to payment.');
+      setNewSalesOrder(soResponse); // Set the new sales order
+      setFormStep('addPayment'); // Move to the next step
+
+    } catch (error) {
+      const err = error as { message?: string };
+      toast.error(err.message || 'Failed to create sales order.');
+      console.error('Error creating Sales:', err);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handlePaymentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!newSalesOrder || !newSalesOrder.id) {
+        toast.error("No sales order created yet.");
+        return;
+    }
+
+    if (!amountPaid || amountPaid <= 0 || !paymentMode) {
+        toast.error("Please provide a valid amount and payment mode.");
+        return;
+    }
+
+    setIsLoading(true);
+
+    const paymentData: PaymentCreate = {
+        sales_order_id: newSalesOrder.id,
+        amount_paid: Number(amountPaid),
+        payment_date: format(paymentDate, 'yyyy-MM-dd'),
+        payment_mode: paymentMode,
+        reference_number: referenceNumber || undefined,
+        notes: paymentNotes || undefined,
+    };
+
+    try {
+        const paymentResponse = await salesOrderApi.addPaymentToSalesOrder(paymentData);
+
+    if (paymentReceiptFile) {
+      const formData = new FormData();
+      formData.append('file', paymentReceiptFile);
+      await salesOrderApi.uploadSalesPaymentReceipt((paymentResponse as any).id, formData);
+    }
+
+        toast.success("Payment added successfully!");
+        navigate(`/sales-orders/${newSalesOrder.id}/details`);
+
+    } catch (error) {
+        const err = error as { message?: string };
+        toast.error(err.message || "Failed to add payment.");
+        console.error("Error adding payment:", err);
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
   return (
     <>
-      <PageHeader title="Create New Sales Order" buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/sales-orders" />
+      <PageHeader title={formStep === 'createOrder' ? "Create New Sales Order" : `Add Payment for SO #${newSalesOrder?.id}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/sales-orders" />
       <div className="container mt-4">
         <div className="card shadow-sm">
           <div className="card-body">
-            <form onSubmit={handleSubmit}>
-              <div className="row g-3">
-                {/* SO Details Section */}
-                <h5 className="mb-3">Sales Order Details</h5>
-                <div className="col-md-6">
-                  <label htmlFor="customerSelect" className="form-label">Customer <span className="text-danger">*</span></label>
-                  <div className="d-flex gap-2 align-items-center">
-                    <select
-                      id="customerSelect"
-                      className="form-select"
-                      value={customerId}
-                      onChange={(e) => setCustomerId(Number(e.target.value))}
-                      required
-                      disabled={isLoading || customers.length === 0}
-                    >
-                      <option value="">Select a Customer</option>
-                      {customers.map((customer) => (
-                        <option key={customer.id} value={customer.id}>{customer.name}</option>
-                      ))}
-                    </select>
-                    <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => setShowCreateCustomerModal(true)} title="Add Customer">
-                      <i className="bi bi-plus-lg"></i>
-                    </button>
-                  </div>
-                  {customers.length === 0 && !isLoading && (
-                    <div className="text-danger mt-1">No customers found. Please add a customer first.</div>
-                  )}
-                </div>
-                
-                {/* ADD THIS FIELD: Order Date */}
-                <div className="col-md-6">
-                  <label htmlFor="orderDate" className="form-label">Date <span className="text-danger">*</span></label>
-                  <div>
-                  <DatePicker
-                    selected={orderDate}
-                    onChange={(date: Date | null) => date && setOrderDate(date)} // Ensure date is not null
-                    dateFormat="yyyy-MM-dd"
-                    className="form-control"
-                    id="orderDate"
-                    required
-                    disabled={isLoading}
-                  />
-                  </div>
-                </div>
-                
-                <div className="col-12">
-                  <label htmlFor="notes" className="form-label">Notes</label>
-                  <textarea
-                    className="form-control"
-                    id="notes"
-                    rows={3}
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Any additional notes for the sales order"
-                    disabled={isLoading}
-                  ></textarea>
-                </div>
-                <div className="col-12">
-                  <label htmlFor="receiptFile" className="form-label">Receipt (Optional)</label>
-                  <input
-                    type="file"
-                    className="form-control"
-                    id="receiptFile"
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
-                    disabled={isLoading}
-                  />
-                  <div className="form-text">Upload receipt (PDF, JPG, PNG)</div>
-                </div>
-
-                {/* Sales Order Items Section */}
-                <h5 className="mt-4 mb-3">Items <span className="text-danger">*</span></h5>
-                {items.length === 0 && <p className="col-12 text-muted">No items added yet. Click "Add Item" to start.</p>}
-                {items.map((item, index) => (
-                  <div key={item.tempId} className="col-12 border p-3 mb-3 rounded bg-light">
-                    <div className="d-flex justify-content-between align-items-center mb-2">
-                      <h6>Item {index + 1}</h6>
-                      <button
-                        type="button"
-                        className="btn btn-outline-danger btn-sm"
-                        onClick={() => handleRemoveItem(item.tempId)}
-                        disabled={isLoading}
+            {formStep === 'createOrder' ? (
+              <form onSubmit={handleSubmit}>
+                <div className="row g-3">
+                  <h5 className="mb-3">Step 1: Sales Order Details</h5>
+                  <div className="col-md-6">
+                    <label htmlFor="customerSelect" className="form-label">Customer <span className="text-danger">*</span></label>
+                    <div className="d-flex gap-2 align-items-center">
+                      <select
+                        id="customerSelect"
+                        className="form-select"
+                        value={customerId}
+                        onChange={(e) => setCustomerId(Number(e.target.value))}
+                        required
+                        disabled={isLoading || customers.length === 0}
                       >
-                        <i className="bi bi-x-lg"></i> Remove
+                        <option value="">Select a Customer</option>
+                        {customers.map((customer) => (
+                          <option key={customer.id} value={customer.id}>{customer.name}</option>
+                        ))}
+                      </select>
+                      <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => setShowCreateCustomerModal(true)} title="Add Customer">
+                        <i className="bi bi-plus-lg"></i>
                       </button>
                     </div>
-                    <div className="row g-2">
-                      <div className="col-md-6">
-                        <label htmlFor={`itemId-${item.tempId}`} className="form-label">Inventory Item <span className="text-danger">*</span></label>
-                          <div className="d-flex gap-2 align-items-center">
-                          <select
-                            id={`itemId-${item.tempId}`}
-                            className="form-select"
-                            value={item.inventory_item_id || ''}
-                            onChange={(e) => handleItemChange(item.tempId, 'inventory_item_id', e.target.value)}
-                            required
-                            disabled={isLoading || inventoryItems.length === 0}
-                          >
-                          <option value="">Select an Item</option>
-                          {inventoryItems.map((invItem) => (
-                            <option key={invItem.id} value={invItem.id}>
-                              {invItem.name} ({invItem.unit})
-                            </option>
-                          ))}
-                          </select>
-                          <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => setShowCreateItemModal(true)} title="Add Item">
-                            <i className="bi bi-plus-lg"></i>
-                          </button>
-                          </div>
-                        {inventoryItems.length === 0 && !isLoading && (
-                            <div className="text-danger mt-1">No inventory items found. Please add items first.</div>
-                        )}
-                      </div>
-                      <div className="col-md-3">
-                        <label htmlFor={`quantity-${item.tempId}`} className="form-label">Quantity <span className="text-danger">*</span></label>
-                        <input
-                          type="number"
-                          className="form-control"
-                          id={`quantity-${item.tempId}`}
-                          value={item.quantity}
-                          onChange={(e) => handleItemChange(item.tempId, 'quantity', Number(e.target.value))}
-                          min="1"
-                          required
-                          disabled={isLoading}
-                        />
-                      </div>
-                      <div className="col-md-3">
-                        <label htmlFor={`pricePerUnit-${item.tempId}`} className="form-label">Price per Unit <span className="text-danger">*</span></label>
-                        <input
-                          type="number"
-                          className="form-control"
-                          id={`pricePerUnit-${item.tempId}`}
-                          value={item.price_per_unit}
-                          onChange={(e) => handleItemChange(item.tempId, 'price_per_unit', Number(e.target.value))}
-                          min="0.01"
-                          step="0.01"
-                          required
-                          disabled={isLoading}
-                        />
-                      </div>
+                    {customers.length === 0 && !isLoading && (
+                      <div className="text-danger mt-1">No customers found. Please add a customer first.</div>
+                    )}
+                  </div>
+                  
+                  <div className="col-md-6">
+                    <label htmlFor="orderDate" className="form-label">Date <span className="text-danger">*</span></label>
+                    <div>
+                    <DatePicker
+                      selected={orderDate}
+                      onChange={(date: Date | null) => date && setOrderDate(date)}
+                      dateFormat="yyyy-MM-dd"
+                      className="form-control"
+                      id="orderDate"
+                      required
+                      disabled={isLoading}
+                    />
                     </div>
                   </div>
-                ))}
+                  
+                  <div className="col-12">
+                    <label htmlFor="notes" className="form-label">Notes</label>
+                    <textarea
+                      className="form-control"
+                      id="notes"
+                      rows={3}
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder="Any additional notes for the sales order"
+                      disabled={isLoading}
+                    ></textarea>
+                  </div>
+                  <div className="col-12">
+                    <label htmlFor="receiptFile" className="form-label">Receipt (Optional)</label>
+                    <input
+                      type="file"
+                      className="form-control"
+                      id="receiptFile"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
+                      disabled={isLoading}
+                    />
+                    <div className="form-text">Upload receipt (PDF, JPG, PNG)</div>
+                  </div>
 
-                <div className="col-12 text-center">
-                  <button
-                    type="button"
-                    className="btn btn-outline-primary btn-sm"
-                    onClick={handleAddItem}
-                    disabled={isLoading}
-                  >
-                    <i className="bi bi-plus-circle me-1"></i> Add Item
-                  </button>
+                  <h5 className="mt-4 mb-3">Items <span className="text-danger">*</span></h5>
+                  {items.length === 0 && <p className="col-12 text-muted">No items added yet. Click "Add Item" to start.</p>}
+                  {items.map((item, index) => (
+                    <div key={item.tempId} className="col-12 border p-3 mb-3 rounded bg-light">
+                      <div className="d-flex justify-content-between align-items-center mb-2">
+                        <h6>Item {index + 1}</h6>
+                        <button
+                          type="button"
+                          className="btn btn-outline-danger btn-sm"
+                          onClick={() => handleRemoveItem(item.tempId)}
+                          disabled={isLoading}
+                        >
+                          <i className="bi bi-x-lg"></i> Remove
+                        </button>
+                      </div>
+                      <div className="row g-2">
+                        <div className="col-md-6">
+                          <label htmlFor={`itemId-${item.tempId}`} className="form-label">Inventory Item <span className="text-danger">*</span></label>
+                            <div className="d-flex gap-2 align-items-center">
+                            <select
+                              id={`itemId-${item.tempId}`}
+                              className="form-select"
+                              value={item.inventory_item_id || ''}
+                              onChange={(e) => handleItemChange(item.tempId, 'inventory_item_id', e.target.value)}
+                              required
+                              disabled={isLoading || inventoryItems.length === 0}
+                            >
+                            <option value="">Select an Item</option>
+                            {inventoryItems.map((invItem) => (
+                              <option key={invItem.id} value={invItem.id}>
+                                {invItem.name} ({invItem.unit})
+                              </option>
+                            ))}
+                            </select>
+                            <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => setShowCreateItemModal(true)} title="Add Item">
+                              <i className="bi bi-plus-lg"></i>
+                            </button>
+                            </div>
+                          {inventoryItems.length === 0 && !isLoading && (
+                              <div className="text-danger mt-1">No inventory items found. Please add items first.</div>
+                          )}
+                        </div>
+                        <div className="col-md-3">
+                          <label htmlFor={`quantity-${item.tempId}`} className="form-label">Quantity <span className="text-danger">*</span></label>
+                          <input
+                            type="number"
+                            className="form-control"
+                            id={`quantity-${item.tempId}`}
+                            value={item.quantity}
+                            onChange={(e) => handleItemChange(item.tempId, 'quantity', Number(e.target.value))}
+                            min="1"
+                            required
+                            disabled={isLoading}
+                          />
+                        </div>
+                        <div className="col-md-3">
+                          <label htmlFor={`pricePerUnit-${item.tempId}`} className="form-label">Price per Unit <span className="text-danger">*</span></label>
+                          <input
+                            type="number"
+                            className="form-control"
+                            id={`pricePerUnit-${item.tempId}`}
+                            value={item.price_per_unit}
+                            onChange={(e) => handleItemChange(item.tempId, 'price_per_unit', Number(e.target.value))}
+                            min="0.01"
+                            step="0.01"
+                            required
+                            disabled={isLoading}
+                          />
+                        </div>
+
+                        <div className="col-md-12">
+                          <p className="text-end mb-0">
+                            Line Total: <strong>Rs. {(item.quantity * item.price_per_unit).toFixed(2)}</strong>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {items.length > 0 && (
+                    <div className="col-12 text-end">
+                      <h4>Grand Total: <strong>Rs. {grandTotal.toFixed(2)}</strong></h4>
+                    </div>
+                  )}
+
+                  <div className="col-12 text-center">
+                    <button
+                      type="button"
+                      className="btn btn-outline-primary btn-sm"
+                      onClick={handleAddItem}
+                      disabled={isLoading}
+                    >
+                      <i className="bi bi-plus-circle me-1"></i> Add Item
+                    </button>
+                  </div>
+
+                  <div className="col-12 mt-4">
+                    <button
+                      type="submit"
+                      className="btn btn-primary me-2"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? 'Creating...' : 'Proceed to Add Payment'}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => navigate('/sales-orders')}
+                      disabled={isLoading}
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </div>
-
+              </form>
+            ) : (
+              <form onSubmit={handlePaymentSubmit}>
+                <h5 className="mb-3">Step 2: Add Payment</h5>
+                {newSalesOrder && (
+                  <div className="alert alert-info">
+                    <strong>SO Total:</strong> Rs. {Number(newSalesOrder.total_amount || 0).toFixed(2)} | 
+                    <strong>Paid:</strong> Rs. {Number(newSalesOrder.total_amount_paid || 0).toFixed(2)} | 
+                    <strong>Due:</strong> Rs. {(Number(newSalesOrder.total_amount || 0) - Number(newSalesOrder.total_amount_paid || 0)).toFixed(2)}
+                  </div>
+                )}
+                <div className="row g-3">
+                  <div className="col-md-6">
+                    <label htmlFor="amountPaid" className="form-label">Amount Paid (Rs.) <span className="text-danger">*</span></label>
+                    <input
+                      type="number"
+                      className="form-control"
+                      id="amountPaid"
+                      value={amountPaid}
+                      onChange={(e) => setAmountPaid(Number(e.target.value))}
+                      min="0.01"
+                      step="0.01"
+                      required
+                      disabled={isLoading}
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label htmlFor="paymentDate" className="form-label">Payment Date <span className="text-danger">*</span></label>
+                    <DatePicker
+                      selected={paymentDate}
+                      onChange={(date: Date | null) => date && setPaymentDate(date)}
+                      dateFormat="yyyy-MM-dd"
+                      className="form-control"
+                      id="paymentDate"
+                      required
+                      disabled={isLoading}
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label htmlFor="paymentMode" className="form-label">Payment Mode <span className="text-danger">*</span></label>
+                    <select id="paymentMode" className="form-select" value={paymentMode} onChange={(e) => setPaymentMode(e.target.value)} required disabled={isLoading}>
+                      <option value="">Select Mode</option>
+                      {paymentModes.map(mode => <option key={mode} value={mode}>{mode}</option>)}
+                    </select>
+                  </div>
+                  <div className="col-md-6">
+                    <label htmlFor="referenceNumber" className="form-label">Reference Number</label>
+                    <input type="text" className="form-control" id="referenceNumber" value={referenceNumber} onChange={(e) => setReferenceNumber(e.target.value)} disabled={isLoading} />
+                  </div>
+                  <div className="col-12">
+                    <label htmlFor="paymentNotes" className="form-label">Notes</label>
+                    <textarea className="form-control" id="paymentNotes" rows={3} value={paymentNotes} onChange={(e) => setPaymentNotes(e.target.value)} disabled={isLoading}></textarea>
+                  </div>
+                  <div className="col-12">
+                    <label htmlFor="paymentReceiptFile" className="form-label">Payment Receipt (Optional)</label>
+                    <input type="file" className="form-control" id="paymentReceiptFile" onChange={(e) => setPaymentReceiptFile(e.target.files?.[0] || null)} disabled={isLoading} />
+                  </div>
+                </div>
                 <div className="col-12 mt-4">
-                  <button
-                    type="submit"
-                    className="btn btn-primary me-2"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? 'Creating...' : 'Create Sales Order'}
+                  <button type="submit" className="btn btn-primary me-2" disabled={isLoading}>
+                    {isLoading ? 'Saving Payment...' : 'Save Payment'}
                   </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => navigate('/sales-orders')}
-                    disabled={isLoading}
-                  >
-                    Cancel
+                  <button type="button" className="btn btn-secondary" onClick={() => navigate(`/sales-orders/${newSalesOrder?.id}/details`)} disabled={isLoading}>
+                    Skip & Finish
                   </button>
                 </div>
-              </div>
-            </form>
+              </form>
+            )}
           </div>
         </div>
       </div>

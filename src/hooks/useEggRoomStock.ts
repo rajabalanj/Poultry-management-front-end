@@ -137,11 +137,19 @@ export const useEggRoomStock = () => {
 
 
   const handleChange = useCallback((field: keyof EggRoomStockEntry, value: number | string) => {
+    // Prevent changes to opening fields
+    if (field === 'table_opening' || field === 'jumbo_opening' || field === 'grade_c_opening') {
+      return;
+    }
+
     setForm(prev => ({
       ...prev,
-      [field]: typeof value === 'string' && field !== 'report_date' ? Number(value) : value // Use report_date
+      [field]: typeof value === 'string' && field !== 'report_date' ? Number(value) : value
     }));
-    if (field === 'report_date') setSelectedDate(value as string); // Use report_date
+
+    if (field === 'report_date') {
+      setSelectedDate(value as string);
+    }
   }, []);
 
   const handleSave = async (e: React.FormEvent) => {

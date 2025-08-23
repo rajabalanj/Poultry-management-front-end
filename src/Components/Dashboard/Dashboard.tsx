@@ -23,7 +23,7 @@ const Dashboard: React.FC = () => {
             </button>
           </div>
           <div className="col-md-4 mb-3">
-            <button className="btn btn-info w-100 p-3" onClick={() => alert('Sales action coming soon!')}>
+            <button className="btn btn-info w-100 p-3" onClick={() => navigate('/sales-orders/create')}>
               <i className="bi bi-graph-up-arrow me-2"></i>
               Sales
             </button>
@@ -35,7 +35,7 @@ const Dashboard: React.FC = () => {
             </button>
           </div>
           <div className="col-md-4 mb-3">
-            <button className="btn btn-secondary w-100 p-3" onClick={() => alert('Amount Received action coming soon!')}>
+            <button className="btn btn-secondary w-100 p-3" onClick={() => navigate('/sales-orders')}>
               <i className="bi bi-cash-stack me-2"></i>
               Amount Received
             </button>

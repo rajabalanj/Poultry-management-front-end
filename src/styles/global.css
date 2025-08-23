@@ -437,7 +437,6 @@
 }
 
 .sidebar-header {
-  background-color: #F8F9FA;
   color: #FFC107;
   padding: 0.5rem;
   border-radius: 0.25rem;
@@ -449,4 +448,7 @@
 .sidebar-header i {
   color: #FFC107;
 }
-
+.is-readonly {
+  background-color: #e9ecef;
+  cursor: not-allowed;
+}

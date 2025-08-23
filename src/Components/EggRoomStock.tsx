@@ -14,7 +14,7 @@ import { toast } from 'react-toastify';
 type StockFieldConfig = {
   key: keyof EggRoomStockEntry;
   label: string;
-  disabled?: boolean;
+  readOnly?: boolean;
   controlledBy?: keyof EggRoomStockEntry;
 };
 
@@ -31,12 +31,12 @@ const sectionConfigs: Array<{
     icon: 'bi-box-seam',
     color: 'primary',
     fields: [
-      { key: 'table_opening', label: 'Opening', disabled: true },
+      { key: 'table_opening', label: 'Opening', readOnly: true },
       { key: 'table_received', label: 'Received' },
       { key: 'table_transfer', label: 'Transfer' },
       { key: 'table_damage', label: 'Damage' },
       { key: 'table_out', label: 'Out (To Jumbo)' },
-      { key: 'table_in', label: 'In (From Jumbo)', disabled: true, controlledBy: 'jumbo_out' },
+      { key: 'table_in', label: 'In (From Jumbo)', readOnly: true, controlledBy: 'jumbo_out' },
     ],
   },
   {
@@ -45,11 +45,11 @@ const sectionConfigs: Array<{
     icon: 'bi-egg-fried',
     color: 'primary',
     fields: [
-      { key: 'jumbo_opening', label: 'Opening', disabled: true },
+      { key: 'jumbo_opening', label: 'Opening', readOnly: true },
       { key: 'jumbo_received', label: 'Received' },
       { key: 'jumbo_transfer', label: 'Transfer' },
       { key: 'jumbo_waste', label: 'Waste' },
-      { key: 'jumbo_in', label: 'In (From Table)', disabled: true, controlledBy: 'table_out' },
+      { key: 'jumbo_in', label: 'In (From Table)', readOnly: true, controlledBy: 'table_out' },
       { key: 'jumbo_out', label: 'Out (To Table)' },
     ],
   },
@@ -59,9 +59,9 @@ const sectionConfigs: Array<{
     icon: 'bi-award',
     color: 'primary',
     fields: [
-      { key: 'grade_c_opening', label: 'Opening', disabled: true },
+      { key: 'grade_c_opening', label: 'Opening', readOnly: true },
       { key: 'grade_c_shed_received', label: 'Shed Received' },
-      { key: 'grade_c_room_received', label: 'Room Received', disabled: true, controlledBy: 'table_damage' },
+      { key: 'grade_c_room_received', label: 'Room Received', readOnly: true, controlledBy: 'table_damage' },
       { key: 'grade_c_transfer', label: 'Transfer' },
       { key: 'grade_c_labour', label: 'Labour' },
       { key: 'grade_c_waste', label: 'Waste' },

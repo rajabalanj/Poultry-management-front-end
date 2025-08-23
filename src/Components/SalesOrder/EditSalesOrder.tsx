@@ -1,5 +1,5 @@
 // src/components/SalesOrder/EditSalesOrder.tsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
@@ -50,6 +50,10 @@ const EditSalesOrder: React.FC = () => {
   const [items, setItems] = useState<FormSalesOrderItem[]>([]);
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [currentReceipt, setCurrentReceipt] = useState<string | null>(null); // Array of items for the SO
+
+  const grandTotal = useMemo(() => {
+    return items.filter(item => !item.isDeleted).reduce((sum, item) => sum + (item.quantity * item.price_per_unit), 0);
+  }, [items]);
 
   // --- Initial Data Fetch (SO, Customers, Inventory Items) ---
   useEffect(() => {
@@ -436,10 +440,22 @@ const EditSalesOrder: React.FC = () => {
                             disabled={isLoading}
                           />
                         </div>
+
+                        <div className="col-md-12">
+                          <p className="text-end mb-0">
+                            Line Total: <strong>Rs. {(item.quantity * item.price_per_unit).toFixed(2)}</strong>
+                          </p>
+                        </div>
                       </div>
                     )}
                   </div>
                 ))}
+
+                {items.filter(item => !item.isDeleted).length > 0 && (
+                  <div className="col-12 text-end">
+                    <h4>Grand Total: <strong>Rs. {grandTotal.toFixed(2)}</strong></h4>
+                  </div>
+                )}
 
                 <div className="col-12 text-center">
                   <button
