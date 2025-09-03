@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import "bootstrap-icons/font/bootstrap-icons.min.css";
+
 // import './Slidebar.css'; // Make sure you have this import for the new CSS
 
 const SIDEBAR_WIDTH = "250px";
@@ -323,7 +324,9 @@ const Slidebar: React.FC = () => {
                     Configurations
                   </Link>
                 </li>
+                
               </ul>
+              {/* </ul> */}
             </div>
           </div>
         </div>

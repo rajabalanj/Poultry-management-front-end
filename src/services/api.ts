@@ -61,12 +61,24 @@ export const setUserId = (userId: string) => {
   currentUserId = userId;
 };
 
-// Update api instance to include user ID header when available
+// JWT token storage
+let accessToken: string | null = null;
+
+export const setAccessToken = (token: string | null) => {
+  accessToken = token;
+};
+
+export const getAccessToken = () => accessToken;
+
+// Update api instance to include user ID header and JWT token when available
 api.interceptors.request.use(
   (config) => {
     console.log('Request URL:', config.url);
     if (currentUserId) {
       config.headers['x-user-id'] = currentUserId;
+    }
+    if (accessToken) {
+      config.headers['Authorization'] = `Bearer ${accessToken}`;
     }
     return config;
   },
@@ -76,13 +88,18 @@ api.interceptors.request.use(
   }
 );
 
-// Add response interceptor for error handling
+// Add response interceptor for error handling and token refresh
 api.interceptors.response.use(
   (response) => {
     console.log('Raw API Response:', response); // Debug log
     return response;
   },
   (error: AxiosError) => {
+    if (error.response?.status === 401) {
+      // Token expired or invalid - trigger re-authentication
+      accessToken = null;
+      window.dispatchEvent(new CustomEvent('auth:token-expired'));
+    }
     if (error.response) {
       console.error('Error response:', error.response.data);
       console.error('Error status:', error.response.status);
