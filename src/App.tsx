@@ -113,7 +113,6 @@ const App: React.FC = () => {
                 path="/compositions/:compositionId/usage-history"
                 element={<CompositionUsageHistory />}
               />
-              <Route path="/configurations" element={<Configurations />} />
               <Route path="/egg-room-stock" element={<EggRoomStock />} />
               <Route
                 path="/egg-room-stock/report"
@@ -140,6 +139,14 @@ const App: React.FC = () => {
               <Route path="/business-partners/:partner_id/details" element={<BusinessPartnerDetails />} />
               <Route path="/business-partners/:partner_id/edit" element={<EditBusinessPartner />} />
             </Route>
+            <Route
+              path="/configurations"
+              element={
+                <ProtectedRoute roles={['admin']}>
+                  <Configurations />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/logout" element={<LogoutPage />} />
             <Route path="/callback" element={<Callback />} />
           </Routes>

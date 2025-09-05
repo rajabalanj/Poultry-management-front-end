@@ -3,10 +3,12 @@ import { useAuth } from '../../hooks/useAuth';
 
 interface ProtectedRouteProps {
   children: React.ReactElement;
+  roles?: string[];
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, roles }) => {
   const auth = useAuth();
+  const { user } = auth;
 
   if (auth.isLoading) {
     return <div>Loading...</div>;
@@ -29,6 +31,16 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
     auth.login();
     return <div>Redirecting to login...</div>;
+  }
+
+  if (roles && roles.length > 0) {
+    const groups = user?.profile?.['cognito:groups'];
+    const userGroups: string[] = Array.isArray(groups) ? groups : [];
+    const hasRole = roles.some(role => userGroups.includes(role));
+
+    if (!hasRole) {
+      return <div>Access Denied</div>; // Or redirect to an unauthorized page
+    }
   }
 
   return children;

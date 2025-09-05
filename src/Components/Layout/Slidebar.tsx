@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import "bootstrap-icons/font/bootstrap-icons.min.css";
+import { useAuth } from "../../hooks/useAuth";
 
 // import './Slidebar.css'; // Make sure you have this import for the new CSS
 
@@ -8,6 +9,9 @@ const SIDEBAR_WIDTH = "250px";
 const DESKTOP_BREAKPOINT = 992;
 
 const Slidebar: React.FC = () => {
+  const { user } = useAuth();
+    const groups = user?.profile?.['cognito:groups'];
+  const userGroups: string[] = Array.isArray(groups) ? groups : [];
   const [isOpen, setIsOpen] = useState(window.innerWidth >= DESKTOP_BREAKPOINT);
   const location = useLocation();
   const isDesktop = window.innerWidth >= DESKTOP_BREAKPOINT;
@@ -135,7 +139,7 @@ const Slidebar: React.FC = () => {
                     Dashboard
                   </Link>
                 </li>
-                
+                <hr className="my-2 text-primary" />
                 
 
                 {/* Batch Management - Expandable Item */}
@@ -178,6 +182,7 @@ const Slidebar: React.FC = () => {
                     </li>
                   </ul>
                 </li>
+                <hr className="my-2 text-primary" />
 
                 <li className="nav-menu-item fw-bold">
                       <Link
@@ -189,6 +194,7 @@ const Slidebar: React.FC = () => {
                         Egg Room Stock
                       </Link>
                     </li>
+                    <hr className="my-2 text-primary" />
 
                 
 
@@ -256,6 +262,7 @@ const Slidebar: React.FC = () => {
                     </li>
                   </ul>
                 </li>
+                <hr className="my-2 text-primary" />
 
                 <li className="nav-menu-item fw-bold">
                   <Link
@@ -267,6 +274,7 @@ const Slidebar: React.FC = () => {
                     Medicine Management
                   </Link>
                 </li>
+                <hr className="my-2 text-primary" />
 
                 <li className="nav-menu-item fw-bold">
                   <Link
@@ -278,6 +286,7 @@ const Slidebar: React.FC = () => {
                     Inventory
                   </Link>
                 </li>
+                <hr className="my-2 text-primary" />
 
                 <li className="nav-menu-item fw-bold">
                   <Link
@@ -289,6 +298,7 @@ const Slidebar: React.FC = () => {
                     Purchase
                   </Link>
                 </li>
+                <hr className="my-2 text-primary" />
                 
                 <li className="nav-menu-item fw-bold">
                   <Link
@@ -300,6 +310,7 @@ const Slidebar: React.FC = () => {
                     Sales
                   </Link>
                 </li>
+                <hr className="my-2 text-primary" />
 
                 <li className="nav-menu-item fw-bold">
                   <Link
@@ -311,9 +322,11 @@ const Slidebar: React.FC = () => {
                     People
                   </Link>
                 </li>
+                <hr className="my-2 text-primary" />
 
 
                 {/* Configurations - Simple Link */}
+                {userGroups.includes('admin') && (
                 <li className="nav-menu-item fw-bold">
                   <Link
                     to="/configurations"
@@ -324,6 +337,8 @@ const Slidebar: React.FC = () => {
                     Configurations
                   </Link>
                 </li>
+                )}
+                <hr className="my-2 text-primary" />
                 
               </ul>
               {/* </ul> */}
