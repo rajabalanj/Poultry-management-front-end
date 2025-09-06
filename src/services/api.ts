@@ -55,11 +55,8 @@ const api = axios.create({
 
 
 // Add user ID header handling
-let currentUserId: string | null = null;
 
-export const setUserId = (userId: string) => {
-  currentUserId = userId;
-};
+
 
 // JWT token storage
 let accessToken: string | null = null;
@@ -74,9 +71,6 @@ export const getAccessToken = () => accessToken;
 api.interceptors.request.use(
   (config) => {
     console.log('Request URL:', config.url);
-    if (currentUserId) {
-      config.headers['x-user-id'] = currentUserId;
-    }
     if (accessToken) {
       config.headers['Authorization'] = `Bearer ${accessToken}`;
     }
@@ -613,9 +607,7 @@ export const bovansApi = {
 export const businessPartnerApi = {
   createBusinessPartner: async (partnerData: BusinessPartnerCreate): Promise<BusinessPartner> => {
     try {
-      const response = await api.post<BusinessPartner>("/business-partners/", partnerData, {
-        headers: { 'X-User-ID': currentUserId },
-      });
+      const response = await api.post<BusinessPartner>("/business-partners/", partnerData);
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to create people'));
@@ -653,9 +645,7 @@ export const businessPartnerApi = {
 
   updateBusinessPartner: async (id: number, partnerData: BusinessPartnerUpdate): Promise<BusinessPartner> => {
     try {
-      const response = await api.patch<BusinessPartner>(`/business-partners/${id}`, partnerData, {
-        headers: { 'X-User-ID': currentUserId },
-      });
+      const response = await api.patch<BusinessPartner>(`/business-partners/${id}`, partnerData);
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to update people'));
@@ -664,9 +654,7 @@ export const businessPartnerApi = {
 
   deleteBusinessPartner: async (id: number): Promise<void> => {
     try {
-      await api.delete(`/business-partners/${id}`, {
-        headers: { 'X-User-ID': currentUserId },
-      });
+      await api.delete(`/business-partners/${id}`);
     } catch (error) {
       const errorMessage = getApiErrorMessage(error, 'Failed to delete people');
       if (errorMessage.includes("has associated") && errorMessage.includes("Status changed to Inactive")) {
@@ -871,9 +859,7 @@ export const purchaseOrderApi = {
 
   addPaymentToPurchaseOrder: async (payment: PaymentCreate): Promise<PaymentResponse> => {
     try {
-      const response = await api.post<PaymentResponse>(`/payments`, payment, {
-        headers: { 'X-User-ID': currentUserId },
-      });
+      const response = await api.post<PaymentResponse>(`/payments`, payment);
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to add payment to Purchase'));
@@ -1007,9 +993,7 @@ export const salesOrderApi = {
 
   addPaymentToSalesOrder: async (payment: SalesPaymentCreate): Promise<PaymentResponse> => {
     try {
-      const response = await api.post<PaymentResponse>(`/sales-payments`, payment, {
-        headers: { 'X-User-ID': currentUserId },
-      });
+      const response = await api.post<PaymentResponse>(`/sales-payments`, payment);
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to add payment to Sales'));
