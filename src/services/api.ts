@@ -859,7 +859,7 @@ export const purchaseOrderApi = {
 
   addPaymentToPurchaseOrder: async (payment: PaymentCreate): Promise<PaymentResponse> => {
     try {
-      const response = await api.post<PaymentResponse>(`/payments`, payment);
+      const response = await api.post<PaymentResponse>(`/payments/`, payment);
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to add payment to Purchase'));
