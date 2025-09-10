@@ -1,4 +1,5 @@
 import React from 'react';
+import { Button } from 'react-bootstrap';
 
 interface SubValue {
   label: string;
@@ -12,9 +13,17 @@ interface HeaderCardProps {
   subValues?: SubValue[];
   icon?: string;
   iconColor?: string; // Optional prop for icon color
+  onViewDetails?: (title: string, items: string[]) => void; // New prop for modal
 }
 
-const HeaderCard: React.FC<HeaderCardProps> = ({ title, mainValue, subValues, icon, iconColor }) => {
+const HeaderCard: React.FC<HeaderCardProps> = ({ title, mainValue, subValues, icon, iconColor, onViewDetails }) => {
+  const handleViewDetailsClick = () => {
+    if (onViewDetails && subValues) {
+      const itemsToDisplay = subValues.map(sub => `${sub.label}: ${sub.value.toLocaleString()}${sub.subValue ? ` (${sub.subValue.toLocaleString()})` : ''}`);
+      onViewDetails(title, itemsToDisplay);
+    }
+  };
+
   return (
     <div className="card h-100 shadow-sm">
       <div className="card-body p-2 p-sm-3">
@@ -30,9 +39,8 @@ const HeaderCard: React.FC<HeaderCardProps> = ({ title, mainValue, subValues, ic
         {subValues && subValues.length > 0 && (
           <div 
             className="text-sm"
-            style={subValues.length > 3 ? { maxHeight: '80px', overflowY: 'auto' } : {}}
           >
-            {subValues.map((sub, index) => (
+            {subValues.slice(0, 3).map((sub, index) => (
               <div key={index} className="d-flex justify-content-between mb-1 border-bottom pb-1">
                 <span className="text-nowrap text-muted">{sub.label}</span>
                 <div className="ms-1 ms-sm-2">
@@ -43,6 +51,13 @@ const HeaderCard: React.FC<HeaderCardProps> = ({ title, mainValue, subValues, ic
                 </div>
               </div>
             ))}
+            {subValues.length > 3 && (
+              <div className="text-end mt-2">
+                <Button variant="link" size="sm" onClick={handleViewDetailsClick}>
+                  View All ({subValues.length})
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -1,21 +1,20 @@
 import axios, { AxiosError } from 'axios';
-import { Feed, FeedResponse } from '../types/Feed';
 import { CompositionResponse } from '../types/compositon';
 import { DailyBatch } from '../types/daily_batch';
 import { Batch, BatchResponse, BatchUpdate } from '../types/batch';
 import { EggRoomReportResponse, EggRoomReportCreate, EggRoomReportUpdate, EggRoomSingleReportResponse } from '../types/eggRoomReport';
-import { FeedAudit } from '../types/feed_audit';
-import { Medicine, MedicineResponse } from '../types/Medicine';
 import { BovansPerformance, PaginatedBovansPerformanceResponse } from "../types/bovans"; // Ensure this import is present
-import { MedicineAudit } from '../types/medicine_audit';
 import { BusinessPartner, BusinessPartnerCreate, BusinessPartnerUpdate, PartnerStatus } from '../types/BusinessPartner';
 import { InventoryItemResponse, InventoryItemCreate, InventoryItemUpdate, InventoryItemCategory } from '../types/InventoryItem';
+import { InventoryItemAudit } from '../types/InventoryItemAudit';
 import {
   PurchaseOrderResponse,
   PurchaseOrderCreate,
   PurchaseOrderUpdate,
   PurchaseOrderStatus,
   PaymentCreate, // NEW
+  PaymentResponse, // NEW
+  PaymentUpdate, // NEW
 } from '../types/PurchaseOrder'; // NEW IMPORT
 import {
 PurchaseOrderItemResponse,
@@ -229,136 +228,10 @@ export const dailyBatchApi = {
   
 };
 
-export const feedApi = {
-  createFeed: async (feedData: Feed): Promise<Feed> => {
-    console.log('Request body:', feedData);
-    try {
-      const response = await api.post<Feed>("/feed/", feedData);
-      return response.data;
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to create feed'));
-    }
-  },
-
-  getFeeds: async (skip: number = 0, limit: number = 100): Promise<FeedResponse[]> => {
-    try {
-      const response = await api.get<FeedResponse[]>(`/feed/all/?skip=${skip}&limit=${limit}`);
-      console.log('Response data:', response.data); // Debug log
-      return response.data;
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to fetch feeds'));
-    }
-  },
-
-  getFeed: async (id: number): Promise<FeedResponse> => {
-    try {
-      const response = await api.get<FeedResponse>(`/feed/${id}`);
-      return response.data;
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to fetch feed'));
-    }
-  },
-
-  updateFeed: async (id: number, feedData: FeedResponse): Promise<FeedResponse> => {
-    try {
-      const response = await api.patch<FeedResponse>(`/feed/${id}`, feedData);
-      return response.data;
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to update feed'));
-    }
-  },
-
-  deleteFeed: async (id: number): Promise<void> => {
-    try {
-      await api.delete(`/feed/${id}`);
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to delete feed'));
-    }
-  },
-  getFeedAudit: async (feed_id: number): Promise<FeedAudit[]> => {
-  try {
-    const response = await api.get<FeedAudit[]>(`/feed/${feed_id}/audit/`);
-    return response.data;
-  } catch (error) {
-    throw new Error(getApiErrorMessage(error, 'Failed to fetch feed audit report'));
-  }
-},
-};
-
-export const medicineApi = {
-  createMedicine: async (medicineData: Medicine): Promise<Medicine> => {
-    console.log('Request body:', medicineData);
-    try {
-      const response = await api.post<Medicine>("/medicine/", medicineData);
-      return response.data;
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to create medicine'));
-    }
-  },
-
-  getMedicines: async (skip: number = 0, limit: number = 100): Promise<MedicineResponse[]> => {
-    try {
-      const response = await api.get<MedicineResponse[]>(`/medicine/all/?skip=${skip}&limit=${limit}`);
-      console.log('Response data:', response.data); // Debug log
-      return response.data;
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to fetch medicines'));
-    }
-  },
-
-  getMedicine: async (id: number): Promise<MedicineResponse> => {
-    try {
-      const response = await api.get<MedicineResponse>(`/medicine/${id}`);
-      return response.data;
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to fetch medicine'));
-    }
-  },
-
-  updateMedicine: async (id: number, medicineData: MedicineResponse): Promise<MedicineResponse> => {
-    try {
-      const response = await api.patch<MedicineResponse>(`/medicine/${id}`, medicineData);
-      return response.data;
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to update medicine'));
-    }
-  },
-
-  deleteMedicine: async (id: number): Promise<void> => {
-    try {
-      await api.delete(`/medicine/${id}`);
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to delete medicine'));
-    }
-  },
-  getMedicineAudit: async (medicine_id: number): Promise<MedicineAudit[]> => {
-  try {
-    const response = await api.get<MedicineAudit[]>(`/medicine/${medicine_id}/audit/`);
-    return response.data;
-  } catch (error) {
-    throw new Error(getApiErrorMessage(error, 'Failed to fetch medicine audit report'));
-  }
-},
-useMedicine: async (data: {
-  medicine_id: number;
-  batch_id: number;
-  used_quantity_grams: number;
-  used_at?: string;
-}): Promise<any> => {
-  try {
-    const response = await api.post("/medicine/use-medicine", data);
-    return response.data;
-  } catch (error) {
-    throw new Error(getApiErrorMessage(error, "Failed to record medicine usage"));
-  }
-},
-
-};
-
 // Composition API for create, read, update, delete
 
 export const compositionApi = {
-  createComposition: async (composition: Omit<CompositionResponse, 'id'>): Promise<CompositionResponse> => {
+  createComposition: async (composition: { name: string, inventory_items: { inventory_item_id: number, weight: number }[] }): Promise<CompositionResponse> => {
     try {
       const response = await api.post<CompositionResponse>('/compositions/', composition);
       return response.data;
@@ -382,7 +255,7 @@ export const compositionApi = {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch composition'));
     }
   },
-  updateComposition: async (id: number, composition: Omit<CompositionResponse, 'id'>): Promise<CompositionResponse> => {
+  updateComposition: async (id: number, composition: { name: string, inventory_items: { inventory_item_id: number, weight: number }[] }): Promise<CompositionResponse> => {
     try {
       const response = await api.patch<CompositionResponse>(`/compositions/${id}`, composition);
       return response.data;
@@ -730,6 +603,15 @@ export const inventoryItemApi = {
       throw new Error(errorMessage);
     }
   },
+
+  getInventoryItemAudit: async (id: number): Promise<InventoryItemAudit[]> => {
+    try {
+      const response = await api.get<InventoryItemAudit[]>(`/inventory-items/${id}/audit`);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch inventory item audit'));
+    }
+  },
 };
 
 // Helper function to handle backend returning decimal values as strings
@@ -863,6 +745,23 @@ export const purchaseOrderApi = {
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to add payment to Purchase'));
+    }
+  },
+
+  updatePayment: async (paymentId: number, paymentData: PaymentUpdate): Promise<PaymentResponse> => {
+    try {
+      const response = await api.patch<PaymentResponse>(`/payments/${paymentId}`, paymentData);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to update payment'));
+    }
+  },
+
+  deletePayment: async (paymentId: number): Promise<void> => {
+    try {
+      await api.delete(`/payments/${paymentId}`);
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to delete payment'));
     }
   },
 };

@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import PageHeader from "../Layout/PageHeader";
 import { inventoryItemApi } from "../../services/api";
 import { InventoryItemResponse } from "../../types/InventoryItem";
+import InventoryItemAuditModal from "./InventoryItemAuditModal"; // Import the modal
 
 const InventoryItemDetails: React.FC = () => {
   const { item_id } = useParams<{ item_id: string }>();
@@ -12,6 +13,7 @@ const InventoryItemDetails: React.FC = () => {
   const [item, setItem] = useState<InventoryItemResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showAuditModal, setShowAuditModal] = useState(false); // State for modal visibility
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -59,6 +61,12 @@ const InventoryItemDetails: React.FC = () => {
                 <strong>Category:</strong> {item.category}
               </div>
               <div className="col-md-6 mb-3">
+                <strong>Current Stock:</strong> {item.current_stock}
+              </div>
+              <div className="col-md-6 mb-3">
+                <strong>Average Cost:</strong> {item.average_cost}
+              </div>
+              <div className="col-md-6 mb-3">
                 <strong>Created At:</strong> {new Date(item.created_at).toLocaleString()}
               </div>
               {item.updated_at && (
@@ -73,6 +81,13 @@ const InventoryItemDetails: React.FC = () => {
         <div className="mt-4 d-flex justify-content-center gap-3">
           <button
             type="button"
+            className="btn btn-info"
+            onClick={() => setShowAuditModal(true)} // Open modal
+          >
+            Show Audit Trail
+          </button>
+          <button
+            type="button"
             className="btn btn-secondary"
             onClick={() => navigate(-1)}
           >
@@ -80,6 +95,13 @@ const InventoryItemDetails: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Audit Modal */}
+      {item_id && <InventoryItemAuditModal
+        show={showAuditModal}
+        onHide={() => setShowAuditModal(false)}
+        itemId={Number(item_id)}
+      />}
     </>
   );
 };

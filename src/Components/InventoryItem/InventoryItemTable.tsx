@@ -9,9 +9,13 @@ interface InventoryItemTableProps {
   loading: boolean;
   error: string | null;
   onDelete: (id: number) => void;
+  thresholds: {
+    lowKgThreshold: number;
+    medicineLowKgThreshold: number;
+  };
 }
 
-const InventoryItemTable: React.FC<InventoryItemTableProps> = ({ items, loading, error, onDelete }) => {
+const InventoryItemTable: React.FC<InventoryItemTableProps> = ({ items, loading, error, onDelete, thresholds }) => {
   const navigate = useNavigate();
 
   const handleViewDetails = useCallback(
@@ -44,9 +48,10 @@ const InventoryItemTable: React.FC<InventoryItemTableProps> = ({ items, loading,
         onView={handleViewDetails}
         onEdit={handleEdit}
         onDelete={onDelete}
+        thresholds={thresholds}
       />
     ));
-  }, [items, handleViewDetails, handleEdit, onDelete]);
+  }, [items, handleViewDetails, handleEdit, onDelete, thresholds]);
 
   if (loading) return <div className="text-center">Loading inventory items...</div>;
   if (error) return <div className="text-center text-danger">{error}</div>;

@@ -1,10 +1,10 @@
-export interface FeedInComposition {
-  feed_id: number;
+export interface InventoryItemInComposition {
+  inventory_item_id: number;
   weight: number;
 }
 
 export interface CompositionResponse {
   id: number;
   name: string;
-  feeds: FeedInComposition[];
+  inventory_items: InventoryItemInComposition[];
 }

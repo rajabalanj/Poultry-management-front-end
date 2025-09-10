@@ -17,6 +17,7 @@ const EditInventoryItem: React.FC = () => {
   const [name, setName] = useState('');
   const [unit, setUnit] = useState<InventoryItemUnit>(InventoryItemUnit.KG);
   const [category, setCategory] = useState<InventoryItemCategory>(InventoryItemCategory.FEED);
+  const [reorderLevel, setReorderLevel] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -32,6 +33,7 @@ const EditInventoryItem: React.FC = () => {
         setName(data.name);
         setUnit(data.unit);
         setCategory(data.category);
+        setReorderLevel(data.reorder_level);
       } catch (err: any) {
         console.error("Error fetching inventory item:", err);
         setError(err?.message || "Failed to load inventory item for editing.");
@@ -65,6 +67,7 @@ const EditInventoryItem: React.FC = () => {
         name,
         unit,
         category,
+        reorder_level: reorderLevel,
     };
 
     try {
@@ -128,6 +131,16 @@ const EditInventoryItem: React.FC = () => {
                       <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
+                </div>
+                <div className="col-md-6">
+                  <label htmlFor="reorderLevel" className="form-label">Reorder Level ({unit})</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    id="reorderLevel"
+                    value={reorderLevel || ''}
+                    onChange={(e) => setReorderLevel(Number(e.target.value))}
+                  />
                 </div>
 
                 <div className="col-12 mt-4">

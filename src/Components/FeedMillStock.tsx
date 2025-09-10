@@ -1,52 +1,47 @@
-// FeedMillStock.tsx
 import { useEffect, useState } from "react";
-import { compositionApi, batchApi } from "../services/api"; // Import batchApi
-import { FeedResponse } from "../types/Feed";
-import { BatchResponse } from "../types/batch"; // Import BatchResponse
+import { compositionApi, batchApi, inventoryItemApi } from "../services/api";
+import { InventoryItemResponse, InventoryItemCategory } from "../types/InventoryItem";
+import { BatchResponse } from "../types/batch";
 import CompositionForm from "./CompositionForm";
 import { toast } from "react-toastify";
-import CreateFeedForm from "./Forms/Create/CreateFeedForm";
+import { useNavigate } from 'react-router-dom';
 
 function FeedMillStock() {
   type ViewState = "view" | "edit" | "add" | "use-composition";
   const [viewState, setViewState] = useState<ViewState>("view");
-  const [feeds, setFeeds] = useState<FeedResponse[]>([]);
+  const [inventoryItems, setInventoryItems] = useState<InventoryItemResponse[]>([]);
   const [compositions, setCompositions] = useState<any[]>([]);
   const SELECTED_COMPOSITION_KEY = 'feedmill_selected_composition_id';
   const [selectedCompositionId, setSelectedCompositionId] = useState<number | null>(() => {
     const stored = localStorage.getItem(SELECTED_COMPOSITION_KEY);
     return stored ? Number(stored) : null;
   });
-  const [editFeeds, setEditFeeds] = useState<any[]>([]);
+  const [editItems, setEditItems] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [newCompName, setNewCompName] = useState("");
   const [timesToUse, setTimesToUse] = useState(1);
-  const [editCompName, setEditCompName] = useState(""); // State for editing composition name
-  const [batches, setBatches] = useState<BatchResponse[]>([]); // State to store batches
-  const [selectedShedNo, setSelectedShedNo] = useState<string>(''); // State for selected shed_no
+  const [editCompName, setEditCompName] = useState("");
+  const [batches, setBatches] = useState<BatchResponse[]>([]);
+  const [selectedShedNo, setSelectedShedNo] = useState<string>('');
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch feeds from API
-    import("../services/api").then(({ feedApi }) => {
-      feedApi.getFeeds().then((feedResponses: FeedResponse[]) => {
-        setFeeds(feedResponses);
-      });
+    inventoryItemApi.getInventoryItems(0, 1000, InventoryItemCategory.FEED).then((items) => {
+      setInventoryItems(items);
     });
     compositionApi.getCompositions().then((comps) => {
       const mappedComps = comps.map((comp) => ({
         ...comp,
-        feeds: comp.feeds.map((f: any) => ({
+        inventory_items: comp.inventory_items.map((f: any) => ({
           ...f,
-          feed_id: f.feed_id ?? f.feed_id,
+          inventory_item_id: f.inventory_item_id ?? f.inventory_item_id,
         })),
       }));
       setCompositions(mappedComps);
     });
 
-    // Fetch batches
     batchApi.getBatches().then((fetchedBatches: BatchResponse[]) => {
       setBatches(fetchedBatches);
-      // Set a default selectedShedNo if available, e.g., the first one
       if (fetchedBatches.length > 0) {
         setSelectedShedNo(fetchedBatches[0].shed_no);
       }
@@ -60,8 +55,8 @@ function FeedMillStock() {
     }
   }, [selectedCompositionId]);
 
-  const filteredFeeds = feeds.filter((f) =>
-    f.title.toLowerCase().includes(search.toLowerCase())
+  const filteredItems = inventoryItems.filter((i) =>
+    i.name.toLowerCase().includes(search.toLowerCase())
   );
 
   const selectedComposition = compositions.find(
@@ -74,29 +69,29 @@ function FeedMillStock() {
 
   const handleEdit = () => {
     if (!selectedComposition) return;
-    setEditFeeds(selectedComposition.feeds.map((f: any) => ({ ...f })));
+    setEditItems(selectedComposition.inventory_items.map((i: any) => ({ ...i })));
     setEditCompName(selectedComposition.name);
     setViewState("edit");
   };
 
-  const handleFeedWeightChange = (feed_id: number, weight: number) => {
-    setEditFeeds(
-      editFeeds.map((f: any) => (f.feed_id === feed_id ? { ...f, weight } : f))
+  const handleItemWeightChange = (item_id: number, weight: number) => {
+    setEditItems(
+      editItems.map((i: any) => (i.inventory_item_id === item_id ? { ...i, weight } : i))
     );
   };
 
-  const handleFeedSearch = (e: React.ChangeEvent<HTMLInputElement>) =>
+  const handleItemSearch = (e: React.ChangeEvent<HTMLInputElement>) =>
     setSearch(e.target.value);
 
-  const handleAddFeed = (feed: { id?: number; title?: string }) => {
-    if (!feed.id) return;
-    if (!editFeeds.some((f: any) => f.feed_id === feed.id)) {
-      setEditFeeds([...editFeeds, { feed_id: feed.id, weight: 0 }]);
+  const handleAddItem = (item: { id?: number; name?: string }) => {
+    if (!item.id) return;
+    if (!editItems.some((i: any) => i.inventory_item_id === item.id)) {
+      setEditItems([...editItems, { inventory_item_id: item.id, weight: 0 }]);
     }
   };
 
-  const handleRemoveFeed = (feed_id: number) => {
-    setEditFeeds(editFeeds.filter((f: any) => f.feed_id !== feed_id));
+  const handleRemoveItem = (item_id: number) => {
+    setEditItems(editItems.filter((i: any) => i.inventory_item_id !== item_id));
   };
 
   const handleSave = async () => {
@@ -105,7 +100,7 @@ function FeedMillStock() {
       selectedComposition.id,
       {
         name: editCompName,
-        feeds: editFeeds,
+        inventory_items: editItems,
       }
     );
     const updated = await compositionApi.getCompositions();
@@ -115,32 +110,13 @@ function FeedMillStock() {
 
   const handleAddComposition = async () => {
     setViewState("add");
-    setEditFeeds([]);
+    setEditItems([]);
     setNewCompName("");
   };
 
-  // Modal state for creating feed inline
-  const [showCreateFeedModal, setShowCreateFeedModal] = useState(false);
-
-  const handleFeedCreatedInline = (createdFeed: FeedResponse) => {
-    // Append the created feed to feeds so it appears immediately
-    setFeeds((prev) => [...prev, createdFeed]);
-    // Close modal
-    setShowCreateFeedModal(false);
-    toast.success(`Feed "${createdFeed.title}" created and added.`);
+  const handleOpenCreateItem = () => {
+    navigate('/inventory/create');
   };
-
-  // Manage body class for Bootstrap modal behavior
-  useEffect(() => {
-    if (showCreateFeedModal) {
-      document.body.classList.add('modal-open');
-    } else {
-      document.body.classList.remove('modal-open');
-    }
-    return () => {
-      document.body.classList.remove('modal-open');
-    };
-  }, [showCreateFeedModal]);
 
   const handleConfirmAddComposition = async () => {
     if (!newCompName.trim()) {
@@ -149,13 +125,13 @@ function FeedMillStock() {
     }
     await compositionApi.createComposition({
       name: newCompName,
-      feeds: editFeeds,
+      inventory_items: editItems,
     });
     const updated = await compositionApi.getCompositions();
     setCompositions(updated);
     setSelectedCompositionId(updated[updated.length - 1]?.id || null);
     setNewCompName("");
-    setEditFeeds([]);
+    setEditItems([]);
     setViewState("view");
   };
 
@@ -197,23 +173,21 @@ function FeedMillStock() {
           </button>
         )}
       </div>
-        {/* Create Feed inline modal trigger - only show when adding/editing a composition */}
-  {/* Create Feed button is now inside CompositionForm next to search input */}
       {selectedComposition && viewState !== "edit" && viewState !== "add" && (
         <div className="mt-3">
-          <h4>Feeds in Composition</h4>
+          <h4>Items in Composition</h4>
           <ul className="list-group">
-            {selectedComposition.feeds.map((f: any) => {
-              const feed = feeds.find((fd) => fd.id === f.feed_id);
-              if (!feed) return null;
+            {selectedComposition.inventory_items.map((i: any) => {
+              const item = inventoryItems.find((id) => id.id === i.inventory_item_id);
+              if (!item) return null;
               return (
                 <li
-                  key={f.feed_id}
+                  key={i.inventory_item_id}
                   className="list-group-item d-flex justify-content-between align-items-center"
                 >
-                  <span>{feed.title}</span>
+                  <span>{item.name}</span>
                   <span className="badge bg-secondary rounded-pill">
-                    {f.weight} kg
+                    {i.weight} kg
                   </span>
                 </li>
               );
@@ -221,11 +195,10 @@ function FeedMillStock() {
             <li className="list-group-item d-flex justify-content-between align-items-center">
               <strong>Total Weight</strong>
               <span className="badge bg-primary rounded-pill">
-                {selectedComposition.feeds.reduce((sum: number, f: any) => sum + f.weight, 0)} kg
+                {selectedComposition.inventory_items.reduce((sum: number, i: any) => sum + i.weight, 0)} kg
               </span>
             </li>
           </ul>
-          {/* Use Composition Controls */}
           <div className="mt-3 d-flex align-items-center gap-2">
             <button
               className="btn btn-primary btn-sm"
@@ -247,7 +220,6 @@ function FeedMillStock() {
         </div>
       )}
 
-      {/* Use Composition Modal/Controls */}
       {viewState === "use-composition" && selectedComposition && (
         <div className="card p-3 mt-3">
           <h5>Use Composition</h5>
@@ -267,7 +239,6 @@ function FeedMillStock() {
               +
             </button>
           </div>
-          {/* Shed Number Selection */}
           <div className="mb-3">
             <label htmlFor="shedNoSelect" className="form-label">Select Shed Number:</label>
             <select
@@ -299,7 +270,7 @@ function FeedMillStock() {
                     compositionId: selectedComposition.id,
                     times: timesToUse,
                     usedAt,
-                    shedNo: selectedShedNo, // Pass the selected shed_no
+                    shedNo: selectedShedNo,
                   });
                   toast.success(`Used composition ${selectedComposition.name} ${timesToUse} time(s) for Shed ${selectedShedNo}`);
                   const updated = await compositionApi.getCompositions();
@@ -323,42 +294,18 @@ function FeedMillStock() {
           initialCompName={newCompName}
           onCompNameChange={(e) => setNewCompName(e.target.value)}
           search={search}
-          handleFeedSearch={handleFeedSearch}
-          filteredFeeds={filteredFeeds}
-          editFeeds={editFeeds}
-          feeds={feeds}
-          handleAddFeed={handleAddFeed}
-          handleRemoveFeed={handleRemoveFeed}
-          handleFeedWeightChange={handleFeedWeightChange}
+          handleItemSearch={handleItemSearch}
+          filteredItems={filteredItems}
+          editItems={editItems}
+          items={inventoryItems}
+          handleAddItem={handleAddItem}
+          handleRemoveItem={handleRemoveItem}
+          handleItemWeightChange={handleItemWeightChange}
           onSave={handleConfirmAddComposition}
           saveButtonLabel="Save Composition"
           onCancel={() => setViewState("view")}
-          onOpenCreateFeed={() => setShowCreateFeedModal(true)}
+          onOpenCreateItem={handleOpenCreateItem}
         />
-      )}
-
-      {/* Inline Create Feed Modal */}
-      {showCreateFeedModal && (
-        <>
-          <div className="modal fade show" tabIndex={-1} role="dialog" style={{ display: 'block' }} aria-modal="true">
-            <div className="modal-dialog modal-lg" role="document">
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title">Create Feed</h5>
-                  <button type="button" className="btn-close" aria-label="Close" onClick={() => setShowCreateFeedModal(false)}></button>
-                </div>
-                <div className="modal-body">
-                  <CreateFeedForm
-                    hideHeader
-                    onCreated={(feed) => handleFeedCreatedInline(feed as FeedResponse)}
-                    onCancel={() => setShowCreateFeedModal(false)}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="modal-backdrop fade show"></div>
-        </>
       )}
 
       {viewState === "edit" && (
@@ -367,17 +314,17 @@ function FeedMillStock() {
           initialCompName={editCompName}
           onCompNameChange={(e) => setEditCompName(e.target.value)}
           search={search}
-          handleFeedSearch={handleFeedSearch}
-          filteredFeeds={filteredFeeds}
-          editFeeds={editFeeds}
-          feeds={feeds}
-          handleAddFeed={handleAddFeed}
-          handleRemoveFeed={handleRemoveFeed}
-          handleFeedWeightChange={handleFeedWeightChange}
+          handleItemSearch={handleItemSearch}
+          filteredItems={filteredItems}
+          editItems={editItems}
+          items={inventoryItems}
+          handleAddItem={handleAddItem}
+          handleRemoveItem={handleRemoveItem}
+          handleItemWeightChange={handleItemWeightChange}
           onSave={handleSave}
           saveButtonLabel="Save Changes"
           onCancel={() => setViewState("view")}
-          onOpenCreateFeed={() => setShowCreateFeedModal(true)}
+          onOpenCreateItem={handleOpenCreateItem}
         />
       )}
     </div>

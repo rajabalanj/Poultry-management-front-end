@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import "bootstrap-icons/font/bootstrap-icons.min.css";
 import { useAuth } from "../../hooks/useAuth";
+import annamalaiyarlogo from "../../styles/annamalaiyarlogo.png"; // Import the image
 
 // import './Slidebar.css'; // Make sure you have this import for the new CSS
 
@@ -119,9 +120,10 @@ const Slidebar: React.FC = () => {
       >
         <div className="px-3">
           <div style={{ marginTop: isDesktop ? "0" : "-15px" }}>
-          <h5 className="sidebar-header ms-4 fw-bold d-flex align-items-center bg-light mb-4 p-2" style={{ borderRadius: '8px' }}>
-              <i className="bi bi-egg me-2"></i>
-              Annamalaiyar Agro
+          <h5 className="sidebar-header ms-4 d-flex align-items-center mb-4 p-2" style={{ borderRadius: '8px' }}>
+              <div className="text-center">
+              <img src={annamalaiyarlogo} alt="Annamalaiyar Logo" style={{ width: '50%', height: 'auto'}} className="rounded" />
+            </div>
             </h5>            
             <h5 className="ms-4 fw-bold">Menu</h5>
             
@@ -199,79 +201,16 @@ const Slidebar: React.FC = () => {
                 
 
 
-                {/* Egg Room Management - Expandable Item */}
-                {/* <li className="nav-menu-item">
-                  <div
-                    className={`nav-menu-link fw-bold expandable ${openMenu === 'egg' ? 'active' : ''}`}
-                    onClick={() => toggleMenu('egg')}
-                  >
-                    <i className="bi bi-egg me-2 icon-color-sidebar"></i>
-                    Egg Room Management
-                    <i className={`bi bi-chevron-right chevron-icon ${openMenu === 'egg' ? 'rotated' : ''}`}></i>
-                  </div>
-                  <ul className={`sub-menu ${openMenu === 'egg' ? 'open' : ''}`}>
-                    <li className="sub-menu-item">
-                      <Link
-                        to="/egg-room-stock"
-                        className={`nav-menu-link ${location.pathname === "/egg-room-stock" ? "active-link" : ""}`}
-                        onClick={closeSidebarMobile}
-                      >
-                        Egg Room Stock
-                      </Link>
-                    </li>
-                    <li className="sub-menu-item">
-                      <Link
-                        to="/egg-room-stock/report"
-                        className={`nav-menu-link ${location.pathname === "/egg-room-stock/report" ? "active-link" : ""}`}
-                        onClick={closeSidebarMobile}
-                      >
-                        Egg Room Stock Report
-                      </Link>
-                    </li>
-                  </ul>
-                </li> */}
-
-                {/* Feed Management - Expandable Item */}
-                <li className="nav-menu-item">
-                  <div
-                    className={`nav-menu-link fw-bold expandable ${openMenu === 'feed' ? 'active' : ''}`}
-                    onClick={() => toggleMenu('feed')}
-                  >
-                    <i className="bi bi-bag me-2 icon-color-sidebar"></i>
-                    Feed Management
-                    <i className={`bi bi-chevron-right chevron-icon ${openMenu === 'feed' ? 'rotated' : ''}`}></i>
-                  </div>
-                  <ul className={`sub-menu ${openMenu === 'feed' ? 'open' : ''}`}>
-                    <li className="sub-menu-item">
-                      <Link
-                        to="/feed"
-                        className={`nav-menu-link ${location.pathname === "/feed" ? "active-link" : ""}`}
-                        onClick={closeSidebarMobile}
-                      >
-                        Feeds
-                      </Link>
-                    </li>
-                    <li className="sub-menu-item">
-                      <Link
-                        to="/feed-mill-stock"
-                        className={`nav-menu-link ${location.pathname === "/feed-mill-stock" ? "active-link" : ""}`}
-                        onClick={closeSidebarMobile}
-                      >
-                        Feed Compositions
-                      </Link>
-                    </li>
-                  </ul>
-                </li>
-                <hr className="my-2 text-primary" />
+                
 
                 <li className="nav-menu-item fw-bold">
                   <Link
-                    to="/medicine"
-                    className={`nav-menu-link ${location.pathname === "/medicine" ? "active-link" : ""}`}
+                    to="/feed-mill-stock"
+                    className={`nav-menu-link ${location.pathname === "/feed-mill-stock" ? "active-link" : ""}`}
                     onClick={closeSidebarMobile}
                   >
-                    <i className="bi bi-file-medical me-2 icon-color-sidebar"></i>
-                    Medicine Management
+                    <i className="bi bi-bag me-2 icon-color-sidebar"></i>
+                    Feed Compositions
                   </Link>
                 </li>
                 <hr className="my-2 text-primary" />

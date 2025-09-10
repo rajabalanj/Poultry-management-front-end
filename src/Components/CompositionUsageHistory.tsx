@@ -4,6 +4,7 @@ import { compositionApi } from "../services/api";
 import PageHeader from "./Layout/PageHeader";
 import { Modal, Button } from "react-bootstrap";
 import { toast } from "react-toastify";
+import { CompositionResponse } from "../types/compositon";
 
 interface UsageHistoryItem {
   id: number;
@@ -13,18 +14,12 @@ interface UsageHistoryItem {
   shed_no: string;
 }
 
-interface Composition {
-  id: number;
-  name: string;
-  feeds: { feed_id: number; weight: number }[];
-}
-
 const CompositionUsageHistory = () => {
   const { compositionId } = useParams<{ compositionId: string }>();
   const [history, setHistory] = useState<UsageHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [composition, setComposition] = useState<Composition | null>(null);
+  const [composition, setComposition] = useState<CompositionResponse | null>(null);
   const [showRevertModal, setShowRevertModal] = useState(false);
   const [usageToRevert, setUsageToRevert] = useState<number | null>(null);
 
@@ -35,16 +30,13 @@ const CompositionUsageHistory = () => {
       try {
         if (!compositionId) return;
         setLoading(true);
-        // Fetch history and composition details in parallel
-        // Note: Assumes a `getComposition` method exists in your API service.
         const [historyData, compositionData] = await Promise.all([
           compositionApi.getCompositionUsageHistoryById(Number(compositionId)),
-          compositionApi.getComposition(Number(compositionId)), // Assuming this exists
+          compositionApi.getComposition(Number(compositionId)),
         ]);
         setHistory(historyData);
-        // console.log("Fetched composition usage history:", historyData);
         setComposition(compositionData);
-        console.log("Fetched composition usage history:", historyData);  // <-- Add this
+        console.log("Fetched composition usage history:", historyData);
       } catch (err) {
         setError("Failed to load usage history or composition details");
       } finally {
@@ -56,7 +48,7 @@ const CompositionUsageHistory = () => {
 
   const compositionUnitWeight = useMemo(() => {
     if (!composition) return 0;
-    return composition.feeds.reduce((sum, feed) => sum + feed.weight, 0);
+    return composition.inventory_items.reduce((sum, item) => sum + item.weight, 0);
   }, [composition]);
 
   return (
@@ -79,7 +71,7 @@ const CompositionUsageHistory = () => {
                 <th>Times Used</th>
                 <th>Total Weight (kg)</th>
                 <th>Shed</th>
-                <th>Actions</th> {/* New column for the button */}
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>

@@ -1,25 +1,48 @@
-// src/components/InventoryItem/InventoryItemCard.tsx
 import React from "react";
-import { InventoryItemResponse } from "../../types/InventoryItem";
+import { InventoryItemResponse, InventoryItemCategory } from "../../types/InventoryItem";
 
 interface InventoryItemCardProps {
   item: InventoryItemResponse;
   onView: (id: number) => void;
   onEdit: (id: number) => void;
   onDelete: (id: number) => void;
+  thresholds: {
+    lowKgThreshold: number;
+    medicineLowKgThreshold: number;
+  };
 }
 
 const InventoryItemCard: React.FC<InventoryItemCardProps> = React.memo(
-  ({ item, onView, onEdit, onDelete }) => {
+  ({ item, onView, onEdit, onDelete, thresholds }) => {
+    const getCardBackground = () => {
+      const currentStock = parseFloat(String(item.current_stock));
+      const reorderLevel = item.reorder_level ? parseFloat(String(item.reorder_level)) : 0;
+
+      if (reorderLevel > 0) {
+        if (currentStock < reorderLevel) {
+          return "bg-danger-subtle";
+        }
+      } else {
+        if (item.category === InventoryItemCategory.FEED && currentStock < thresholds.lowKgThreshold) {
+          return "bg-danger-subtle";
+        }
+        if (item.category === InventoryItemCategory.MEDICINE && currentStock < thresholds.medicineLowKgThreshold) {
+          return "bg-danger-subtle";
+        }
+      }
+      return "";
+    };
+
     return (
-      <div className="card mb-2 mt-2 border shadow-sm">
+      <div className={`card mb-2 mt-2 border shadow-sm ${getCardBackground()}`}>
         <div className="card-body p-2">
           <div className="d-flex justify-content-between align-items-center">
             <div>
               <h6 className="mb-1">Name: {item.name}</h6>
               <div className="text-sm">
                 <p className="mb-0">Unit: {item.unit}</p>
-                <p className="mb-0">Category: {item.category}</p>
+                
+                <p className="mb-0">Quantity: {item.current_stock}</p>
               </div>
             </div>
             <div className="d-flex flex-column flex-md-row gap-2">

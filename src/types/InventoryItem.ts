@@ -21,6 +21,7 @@ export interface InventoryItemBase {
   name: string;
   unit: InventoryItemUnit;
   category: InventoryItemCategory;
+  reorder_level?: number;
 }
 
 export interface InventoryItemCreate extends InventoryItemBase {}
@@ -30,11 +31,14 @@ export interface InventoryItemUpdate {
   name?: string;
   unit?: InventoryItemUnit;
   category?: InventoryItemCategory;
+  reorder_level?: number;
 }
 
 // Response from backend will include ID and timestamps
 export interface InventoryItemResponse extends InventoryItemBase {
   id: number;
+  current_stock: number;
+  average_cost: number;
   created_at: string; // ISO format string
   updated_at?: string; // ISO format string, optional
 }

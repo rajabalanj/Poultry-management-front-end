@@ -8,6 +8,7 @@ import PageHeader from '../../Layout/PageHeader';
 import HeaderCardGroup from '../../Dashboard/HeaderCardGroup';
 import GraphsSection from '../../Dashboard/GraphsSection';
 import { DateSelector } from '../../DateSelector';
+import ListModal from '../../Common/ListModal'; // Import ListModal
 
 const BatchDetails: React.FC = () => {
   const navigate = useNavigate();
@@ -20,6 +21,23 @@ const BatchDetails: React.FC = () => {
   // Feed usage state
   const [feedUsage, setFeedUsage] = useState<{ total_feed: number, feed_breakdown: { feed_type: string, amount: number }[] } | null>(null);
   const [feedLoading, setFeedLoading] = useState(false);
+
+  // Modal state for feed details
+  const [showFeedModal, setShowFeedModal] = useState(false);
+  const [feedModalTitle, setFeedModalTitle] = useState('');
+  const [feedModalItems, setFeedModalItems] = useState<string[]>([]);
+
+  const handleViewFeedDetails = (title: string, items: string[]) => {
+    setFeedModalTitle(title);
+    setFeedModalItems(items);
+    setShowFeedModal(true);
+  };
+
+  const handleCloseFeedModal = () => {
+    setShowFeedModal(false);
+    setFeedModalTitle('');
+    setFeedModalItems([]);
+  };
 
   useEffect(() => {
     const fetchBatch = async () => {
@@ -162,6 +180,7 @@ const BatchDetails: React.FC = () => {
           ]}
           loading={false}
           error={null}
+          onViewDetails={handleViewFeedDetails}
         />
         <GraphsSection henDayValue={Number((batch.hd *100).toFixed(2))} loading={false} error={null} />
         <div className="p-4">
@@ -214,6 +233,13 @@ const BatchDetails: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <ListModal
+        show={showFeedModal}
+        onHide={handleCloseFeedModal}
+        title={feedModalTitle}
+        items={feedModalItems}
+      />
     </>
   );
 };

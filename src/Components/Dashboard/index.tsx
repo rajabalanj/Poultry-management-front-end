@@ -6,6 +6,7 @@ import BatchTable from '../BatchTable';
 import { dailyBatchApi, compositionApi } from '../../services/api';
 import { DailyBatch } from '../../types/daily_batch';
 import { DateSelector } from '../DateSelector'; // Your component
+import ListModal from '../Common/ListModal'; // Import ListModal
 
 const BATCH_DATE_KEY = 'dashboard_batch_date';
 
@@ -26,6 +27,23 @@ const DashboardIndex = () => {
   const [feedUsage, setFeedUsage] = useState<{ total_feed: number, feed_breakdown: { feed_type: string, amount: number }[] } | null>(null);
   const [feedLoading, setFeedLoading] = useState(false);
   // Removed unused feedError
+
+  // Modal state for feed details
+  const [showFeedModal, setShowFeedModal] = useState(false);
+  const [feedModalTitle, setFeedModalTitle] = useState('');
+  const [feedModalItems, setFeedModalItems] = useState<string[]>([]);
+
+  const handleViewFeedDetails = (title: string, items: string[]) => {
+    setFeedModalTitle(title);
+    setFeedModalItems(items);
+    setShowFeedModal(true);
+  };
+
+  const handleCloseFeedModal = () => {
+    setShowFeedModal(false);
+    setFeedModalTitle('');
+    setFeedModalItems([]);
+  };
 
   const handleDownloadReport = () => {
     const start = new Date(startDate);
@@ -174,7 +192,7 @@ const DashboardIndex = () => {
 
         {/* Header Cards */}
         <div className="col-12">
-          <HeaderCardGroup cards={cards} loading={loading} error={error} />
+          <HeaderCardGroup cards={cards} loading={loading} error={error} onViewDetails={handleViewFeedDetails} />
         </div>
 
         {/* Graphs Section */}
@@ -236,6 +254,13 @@ const DashboardIndex = () => {
           </div>
         </div>
       </div>
+
+      <ListModal
+        show={showFeedModal}
+        onHide={handleCloseFeedModal}
+        title={feedModalTitle}
+        items={feedModalItems}
+      />
     </div>
   );
 };

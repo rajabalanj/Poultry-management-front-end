@@ -3,11 +3,12 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import PageHeader from "../Layout/PageHeader";
-import { purchaseOrderApi, inventoryItemApi, businessPartnerApi } from "../../services/api"; // Add businessPartnerApi
-import { PurchaseOrderResponse, PurchaseOrderStatus, PaymentStatus } from "../../types/PurchaseOrder";
+import { purchaseOrderApi, inventoryItemApi, businessPartnerApi } from "../../services/api";
+import { PurchaseOrderResponse, PurchaseOrderStatus, PaymentStatus, PaymentResponse, PaymentUpdate } from "../../types/PurchaseOrder";
 import { BusinessPartner } from "../../types/BusinessPartner";
-import { InventoryItemResponse } from "../../types/InventoryItem"; // Add InventoryItemResponse
+import { InventoryItemResponse } from "../../types/InventoryItem";
 import { format } from 'date-fns';
+import { Modal, Button, Form } from 'react-bootstrap';
 
 const getStatusBadgeClass = (status: PurchaseOrderStatus | PaymentStatus) => {
   switch (status) {
@@ -34,54 +35,107 @@ const PurchaseOrderDetails: React.FC = () => {
   const navigate = useNavigate();
   const [purchaseOrder, setPurchaseOrder] = useState<PurchaseOrderResponse | null>(null);
   const [businessPartners, setBusinessPartners] = useState<BusinessPartner[]>([]);
-  const [inventoryItems, setInventoryItems] = useState<InventoryItemResponse[]>([]); // Add inventoryItems state
+  const [inventoryItems, setInventoryItems] = useState<InventoryItemResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchPurchaseOrder = async () => {
-      try {
-        if (!po_id) {
-          setError("Purchase ID is missing.");
-          setLoading(false);
-          return;
-        }
-        const [poData, partnersData, inventoryItemsData] = await Promise.all([
-          purchaseOrderApi.getPurchaseOrder(Number(po_id)),
-          businessPartnerApi.getVendors(), // Fetch vendors as business partners
-          inventoryItemApi.getInventoryItems(), // Fetch inventory items
-        ]);
-        setPurchaseOrder(poData);
-        setBusinessPartners(partnersData);
-        setInventoryItems(inventoryItemsData);
-      } catch (err: any) {
-        console.error("Error fetching Purchase:", err);
-        setError(err?.message || "Failed to load Purchase details.");
-        toast.error(err?.message || "Failed to load Purchase details.");
-      } finally {
-        setLoading(false);
-      }
-    };
+  // State for payment modals
+  const [showEditPaymentModal, setShowEditPaymentModal] = useState(false);
+  const [showDeletePaymentModal, setShowDeletePaymentModal] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState<PaymentResponse | null>(null);
+  const [editPaymentForm, setEditPaymentForm] = useState<PaymentUpdate>({
+    amount_paid: 0,
+    payment_date: '',
+    payment_mode: '',
+    reference_number: '',
+    notes: '',
+  });
 
-    fetchPurchaseOrder();
+  const fetchPurchaseOrderDetails = async () => {
+    try {
+      if (!po_id) {
+        setError("Purchase ID is missing.");
+        setLoading(false);
+        return;
+      }
+      const [poData, partnersData, inventoryItemsData] = await Promise.all([
+        purchaseOrderApi.getPurchaseOrder(Number(po_id)),
+        businessPartnerApi.getVendors(),
+        inventoryItemApi.getInventoryItems(),
+      ]);
+      setPurchaseOrder(poData);
+      setBusinessPartners(partnersData);
+      setInventoryItems(inventoryItemsData);
+    } catch (err: any) {
+      console.error("Error fetching Purchase:", err);
+      setError(err?.message || "Failed to load Purchase details.");
+      toast.error(err?.message || "Failed to load Purchase details.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPurchaseOrderDetails();
   }, [po_id]);
 
-  // Map vendor_id to business partner name
   const getVendorName = (vendorId: number) => {
     const partner = businessPartners.find(bp => bp.id === vendorId);
     return partner?.name || 'N/A';
   };
 
-  // Map inventory_item_id to item name
   const getItemName = (itemId: number) => {
     const item = inventoryItems.find(i => i.id === itemId);
     return item?.name || 'N/A';
   };
 
-  // Map inventory_item_id to item unit
   const getItemUnit = (itemId: number) => {
     const item = inventoryItems.find(i => i.id === itemId);
     return item?.unit || 'N/A';
+  };
+
+  const handleEditPayment = (payment: PaymentResponse) => {
+    setSelectedPayment(payment);
+    setEditPaymentForm({
+      amount_paid: payment.amount_paid,
+      payment_date: format(new Date(payment.payment_date), 'yyyy-MM-dd'),
+      payment_mode: payment.payment_mode,
+      reference_number: payment.reference_number || '',
+      notes: payment.notes || '',
+    });
+    setShowEditPaymentModal(true);
+  };
+
+  const handleDeletePayment = (payment: PaymentResponse) => {
+    setSelectedPayment(payment);
+    setShowDeletePaymentModal(true);
+  };
+
+  const confirmDeletePayment = async () => {
+    if (selectedPayment) {
+      try {
+        await purchaseOrderApi.deletePayment(selectedPayment.id);
+        toast.success("Payment deleted successfully!");
+        setShowDeletePaymentModal(false);
+        fetchPurchaseOrderDetails(); // Refresh data
+      } catch (err: any) {
+        toast.error(err?.message || "Failed to delete payment.");
+      }
+    }
+  };
+
+  const handleUpdatePayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selectedPayment) {
+      try {
+        await purchaseOrderApi.updatePayment(selectedPayment.id, editPaymentForm);
+        toast.success("Payment updated successfully!");
+        setShowEditPaymentModal(false);
+        fetchPurchaseOrderDetails(); // Refresh data
+      } catch (err: any) {
+        toast.error(err?.message || "Failed to update payment.");
+      }
+    }
   };
 
   if (loading) return <div className="text-center mt-5">Loading Purchase details...</div>;
@@ -199,6 +253,7 @@ const PurchaseOrderDetails: React.FC = () => {
                       <th>Mode</th>
                       <th>Reference</th>
                       <th>Receipt</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -210,6 +265,20 @@ const PurchaseOrderDetails: React.FC = () => {
                         <td>{payment.payment_mode || 'N/A'}</td>
                         <td>{payment.reference_number || 'N/A'}</td>
                         <td>{payment.payment_receipt || 'N/A'}</td>
+                        <td>
+                          <Button
+                            variant="info" size="sm" className="me-2"
+                            onClick={() => handleEditPayment(payment)}
+                          >
+                            <i className="bi bi-pencil"></i>
+                          </Button>
+                          <Button
+                            variant="danger" size="sm"
+                            onClick={() => handleDeletePayment(payment)}
+                          >
+                            <i className="bi bi-trash"></i>
+                          </Button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -217,7 +286,7 @@ const PurchaseOrderDetails: React.FC = () => {
                     <tr>
                       <td colSpan={1} className="text-end fw-bold">Total Paid:</td>
                       <td className="fw-bold">Rs. {(Number(purchaseOrder.total_amount_paid) || 0).toFixed(2)}</td>
-                      <td colSpan={4}></td>
+                      <td colSpan={5}></td>
                     </tr>
                   </tfoot>
                 </table>
@@ -254,6 +323,86 @@ const PurchaseOrderDetails: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Edit Payment Modal */}
+      <Modal show={showEditPaymentModal} onHide={() => setShowEditPaymentModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Edit Payment</Modal.Title>
+        </Modal.Header>
+        <Form onSubmit={handleUpdatePayment}>
+          <Modal.Body>
+            <Form.Group className="mb-3">
+              <Form.Label>Amount Paid</Form.Label>
+              <Form.Control
+                type="number" step="0.01"
+                value={editPaymentForm.amount_paid}
+                onChange={(e) => setEditPaymentForm({ ...editPaymentForm, amount_paid: Number(e.target.value) })}
+                required
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Payment Date</Form.Label>
+              <Form.Control
+                type="date"
+                value={editPaymentForm.payment_date}
+                onChange={(e) => setEditPaymentForm({ ...editPaymentForm, payment_date: e.target.value })}
+                required
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Payment Mode</Form.Label>
+              <Form.Control
+                type="text"
+                value={editPaymentForm.payment_mode}
+                onChange={(e) => setEditPaymentForm({ ...editPaymentForm, payment_mode: e.target.value })}
+                required
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Reference Number</Form.Label>
+              <Form.Control
+                type="text"
+                value={editPaymentForm.reference_number}
+                onChange={(e) => setEditPaymentForm({ ...editPaymentForm, reference_number: e.target.value })}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Notes</Form.Label>
+              <Form.Control
+                as="textarea" rows={3}
+                value={editPaymentForm.notes}
+                onChange={(e) => setEditPaymentForm({ ...editPaymentForm, notes: e.target.value })}
+              />
+            </Form.Group>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowEditPaymentModal(false)}>
+              Cancel
+            </Button>
+            <Button variant="primary" type="submit">
+              Save Changes
+            </Button>
+          </Modal.Footer>
+        </Form>
+      </Modal>
+
+      {/* Delete Payment Confirmation Modal */}
+      <Modal show={showDeletePaymentModal} onHide={() => setShowDeletePaymentModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Delete</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Are you sure you want to delete this payment?
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDeletePaymentModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={confirmDeletePayment}>
+            Delete
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </>
   );
 };
