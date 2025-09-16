@@ -8,7 +8,7 @@ export const cognitoConfig = {
   redirect_uri: import.meta.env.VITE_COGNITO_REDIRECT_URI,
   post_logout_redirect_uri: import.meta.env.VITE_COGNITO_POST_LOGOUT_REDIRECT_URI,
   response_type: "code",
-  scope: "openid email phone",
+  scope: "openid email phone profile",
   automaticSilentRenew: false,
   loadUserInfo: true,
   // If a hosted UI domain is configured, override or provide the oauth2

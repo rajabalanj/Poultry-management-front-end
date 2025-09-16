@@ -59,6 +59,12 @@ const api = axios.create({
 
 // JWT token storage
 let accessToken: string | null = null;
+let tenantId: string | null = null;
+
+export const setTenantId = (id: string | null) => {
+  console.log("Setting Tenant ID:", id);
+  tenantId = id;
+};
 
 export const setAccessToken = (token: string | null) => {
   accessToken = token;
@@ -69,17 +75,20 @@ export const getAccessToken = () => accessToken;
 // Update api instance to include user ID header and JWT token when available
 api.interceptors.request.use(
   (config) => {
-    console.log('Request URL:', config.url);
     if (accessToken) {
       config.headers['Authorization'] = `Bearer ${accessToken}`;
     }
+    if (tenantId) {
+      config.headers['X-Tenant-ID'] = tenantId;
+    }
+    console.log("Request config with Tenant ID:", config.headers['X-Tenant-ID']);
     return config;
   },
   (error) => {
     console.error('Request error:', error);
     return Promise.reject(error);
   }
-);
+);  
 
 // Add response interceptor for error handling and token refresh
 api.interceptors.response.use(
@@ -219,7 +228,7 @@ export const dailyBatchApi = {
 
   getDailyBatches: async (batch_date: string): Promise<DailyBatch[]> => {
     try {
-      const response = await api.get<DailyBatch[]>(`/daily-batch/?batch_date=${batch_date}`);
+      const response = await api.post<DailyBatch[]>(`/daily-batch/?batch_date=${batch_date}`, null);
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch daily batches'));

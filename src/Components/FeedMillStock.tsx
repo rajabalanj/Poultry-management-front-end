@@ -30,14 +30,18 @@ function FeedMillStock() {
       setInventoryItems(items);
     });
     compositionApi.getCompositions().then((comps) => {
-      const mappedComps = comps.map((comp) => ({
-        ...comp,
-        inventory_items: comp.inventory_items.map((f: any) => ({
-          ...f,
-          inventory_item_id: f.inventory_item_id ?? f.inventory_item_id,
-        })),
-      }));
-      setCompositions(mappedComps);
+      if (Array.isArray(comps)) {
+        const mappedComps = comps.map((comp) => ({
+          ...comp,
+          inventory_items: (comp.inventory_items || []).map((f: any) => ({
+            ...f,
+            inventory_item_id: f.inventory_item_id ?? f.inventory_item_id,
+          })),
+        }));
+        setCompositions(mappedComps);
+      } else {
+        setCompositions([]);
+      }
     });
 
     batchApi.getBatches().then((fetchedBatches: BatchResponse[]) => {

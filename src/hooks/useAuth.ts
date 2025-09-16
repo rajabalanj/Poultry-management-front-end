@@ -1,17 +1,27 @@
 import { useAuth as useOidcAuth } from 'react-oidc-context';
-import { useEffect } from 'react';
-import { setAccessToken } from '../services/api';
+import { useEffect, useState } from 'react';
+import { setAccessToken, setTenantId } from '../services/api';
 
 export const useAuth = () => {
   const auth = useOidcAuth();
+  const [isAuthReady, setIsAuthReady] = useState(false);
   
   useEffect(() => {
-    if (auth.user?.access_token) {
+    if (auth.user) {
+      console.log("Auth user object:", auth.user);
+      const organizationId = auth.user.profile['custom:organization'] as string | undefined;
+      console.log("Organization ID from profile:", organizationId);
+      setTenantId(organizationId || null);
       setAccessToken(auth.user.access_token);
-    } else {
+      setIsAuthReady(true);
+    } else if (!auth.isLoading) {
+      // If there's no user and auth is not loading, it's ready
+      console.log("Auth: No user found and not loading.");
+      setTenantId(null);
       setAccessToken(null);
+      setIsAuthReady(true);
     }
-  }, [auth.user?.access_token]);
+  }, [auth.user, auth.isLoading]);
 
   useEffect(() => {
     const handleTokenExpired = () => {
@@ -24,8 +34,9 @@ export const useAuth = () => {
   
   return {
     isAuthenticated: auth.isAuthenticated,
-    isLoading: auth.isLoading,
+    isLoading: auth.isLoading || !isAuthReady, // Combine isLoading with isAuthReady
     user: auth.user,
+    isAuthReady, // Expose the ready state
     login: () => auth.signinRedirect(),
                 logout: () => {
       const domain = import.meta.env.VITE_COGNITO_DOMAIN;
