@@ -62,7 +62,6 @@ let accessToken: string | null = null;
 let tenantId: string | null = null;
 
 export const setTenantId = (id: string | null) => {
-  console.log("Setting Tenant ID:", id);
   tenantId = id;
 };
 

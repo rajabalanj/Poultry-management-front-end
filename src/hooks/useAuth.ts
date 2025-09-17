@@ -8,9 +8,7 @@ export const useAuth = () => {
   
   useEffect(() => {
     if (auth.user) {
-      console.log("Auth user object:", auth.user);
       const organizationId = auth.user.profile['custom:organization'] as string | undefined;
-      console.log("Organization ID from profile:", organizationId);
       setTenantId(organizationId || null);
       setAccessToken(auth.user.access_token);
       setIsAuthReady(true);
