@@ -70,6 +70,8 @@ export const setAccessToken = (token: string | null) => {
 };
 
 export const getAccessToken = () => accessToken;
+export const getTenantId = () => tenantId;
+
 
 // Update api instance to include user ID header and JWT token when available
 api.interceptors.request.use(
@@ -239,7 +241,7 @@ export const dailyBatchApi = {
 // Composition API for create, read, update, delete
 
 export const compositionApi = {
-  createComposition: async (composition: { name: string, inventory_items: { inventory_item_id: number, weight: number }[] }): Promise<CompositionResponse> => {
+  createComposition: async (composition: { name: string, inventory_items: { inventory_item_id: number, weight: number, tenant_id: string }[], tenant_id: string }): Promise<CompositionResponse> => {
     try {
       const response = await api.post<CompositionResponse>('/compositions/', composition);
       return response.data;
@@ -263,7 +265,7 @@ export const compositionApi = {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch composition'));
     }
   },
-  updateComposition: async (id: number, composition: { name: string, inventory_items: { inventory_item_id: number, weight: number }[] }): Promise<CompositionResponse> => {
+  updateComposition: async (id: number, composition: { name: string, inventory_items: { inventory_item_id: number, weight: number, tenant_id: string }[], tenant_id: string }): Promise<CompositionResponse> => {
     try {
       const response = await api.patch<CompositionResponse>(`/compositions/${id}`, composition);
       return response.data;

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { compositionApi, batchApi, inventoryItemApi } from "../services/api";
+import { compositionApi, batchApi, inventoryItemApi, getTenantId } from "../services/api";
 import { InventoryItemResponse, InventoryItemCategory } from "../types/InventoryItem";
 import { BatchResponse } from "../types/batch";
 import CompositionForm from "./CompositionForm";
@@ -100,11 +100,17 @@ function FeedMillStock() {
 
   const handleSave = async () => {
     if (!selectedComposition) return;
+    const tenantId = getTenantId();
+    if (!tenantId) {
+      toast.error("Tenant ID not found. Please log in again.");
+      return;
+    }
     await compositionApi.updateComposition(
       selectedComposition.id,
       {
         name: editCompName,
-        inventory_items: editItems,
+        inventory_items: editItems.map(item => ({ ...item, tenant_id: tenantId })),
+        tenant_id: tenantId,
       }
     );
     const updated = await compositionApi.getCompositions();
@@ -127,9 +133,15 @@ function FeedMillStock() {
       toast.error("Composition name cannot be empty");
       return;
     }
+    const tenantId = getTenantId();
+    if (!tenantId) {
+      toast.error("Tenant ID not found. Please log in again.");
+      return;
+    }
     await compositionApi.createComposition({
       name: newCompName,
-      inventory_items: editItems,
+      inventory_items: editItems.map(item => ({ ...item, tenant_id: tenantId })),
+      tenant_id: tenantId,
     });
     const updated = await compositionApi.getCompositions();
     setCompositions(updated);
