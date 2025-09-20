@@ -169,7 +169,7 @@ const SalesOrderIndexPage: React.FC = () => {
             {deleteErrorMessage ? (
               <div className="text-danger mb-3">{deleteErrorMessage}</div>
             ) : (
-              "Are you sure you want to delete this sales? This action cannot be undone if the Sales is not in Draft or Cancelled status."
+              "Are you sure you want to delete this sales? This action cannot be undone."
             )}
           </Modal.Body>
           <Modal.Footer>

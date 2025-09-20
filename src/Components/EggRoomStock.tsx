@@ -174,7 +174,8 @@ const EggRoomStock: React.FC = () => {
 
   const handleConfirmDateChange = () => {
     if (suggestedStartDate) {
-      setSelectedDate(suggestedStartDate);
+      setStartDate(suggestedStartDate);
+      fetchReports(suggestedStartDate);
     }
     setShowDateModal(false);
   };

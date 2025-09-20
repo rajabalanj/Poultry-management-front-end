@@ -8,7 +8,6 @@ import CreateBusinessPartnerForm from '../BusinessPartner/CreateBusinessPartnerF
 import CreateInventoryItemForm from '../InventoryItem/CreateInventoryItemForm';
 import {
   PurchaseOrderUpdate,
-  PurchaseOrderStatus,
 } from '../../types/PurchaseOrder';
 import {
   PurchaseOrderItemCreate,
@@ -48,7 +47,7 @@ const EditPurchaseOrder: React.FC = () => {
   const [orderDate, setOrderDate] = useState<Date | null>(null);
   
   const [notes, setNotes] = useState('');
-  const [status, setStatus] = useState<PurchaseOrderStatus | ''>('');
+  
   const [items, setItems] = useState<FormPurchaseOrderItem[]>([]);
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [currentReceipt, setCurrentReceipt] = useState<string | null>(null); // Array of items for the Purchase
@@ -81,7 +80,7 @@ const EditPurchaseOrder: React.FC = () => {
         setOrderDate(poData.order_date ? new Date(poData.order_date) : null);
         
         setNotes(poData.notes || '');
-        setStatus(poData.status);
+        
         setCurrentReceipt(poData.payment_receipt || null);
 
         // Map existing items to form state, adding tempId for consistency and flags
@@ -235,7 +234,7 @@ const EditPurchaseOrder: React.FC = () => {
         order_date: orderDate ? format(orderDate, 'yyyy-MM-dd') : undefined,
         
         notes: notes || undefined,
-        status: status as PurchaseOrderStatus, // Cast to expected enum
+        
       };
       await purchaseOrderApi.updatePurchaseOrder(Number(po_id), poUpdateData);
 

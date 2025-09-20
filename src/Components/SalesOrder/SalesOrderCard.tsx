@@ -17,16 +17,12 @@ const getStatusBadgeClass = (status: SalesOrderStatus | PaymentStatus) => {
     case SalesOrderStatus.DRAFT:
     case PaymentStatus.NOT_PAID:
       return "bg-secondary";
-    case SalesOrderStatus.APPROVED:
-      return "bg-info";
     case SalesOrderStatus.PARTIALLY_PAID:
     case PaymentStatus.PARTIALLY_PAID:
       return "bg-warning";
     case SalesOrderStatus.PAID:
     case PaymentStatus.FULLY_PAID:
       return "bg-success";
-    case SalesOrderStatus.CANCELLED:
-      return "bg-danger";
     default:
       return "bg-light text-dark";
   }

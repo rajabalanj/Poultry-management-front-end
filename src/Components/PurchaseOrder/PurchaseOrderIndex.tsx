@@ -169,7 +169,7 @@ const PurchaseOrderIndexPage: React.FC = () => {
             {deleteErrorMessage ? (
               <div className="text-danger mb-3">{deleteErrorMessage}</div>
             ) : (
-              "Are you sure you want to delete this Purchase? This action cannot be undone if the Purchase is not in Draft or Cancelled status."
+              "Are you sure you want to delete this Purchase? This action cannot be undone."
             )}
           </Modal.Body>
           <Modal.Footer>
