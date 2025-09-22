@@ -32,8 +32,8 @@ const sectionConfigs: Array<{
     color: 'primary',
     fields: [
       { key: 'table_opening', label: 'Opening', readOnly: true },
-      { key: 'table_received', label: 'Received' },
-      { key: 'table_transfer', label: 'Transfer' },
+      { key: 'table_received', label: 'Received', readOnly: true },
+      { key: 'table_transfer', label: 'Transfer', readOnly: true },
       { key: 'table_damage', label: 'Damage' },
       { key: 'table_out', label: 'Out (To Jumbo)' },
       { key: 'table_in', label: 'In (From Jumbo)', readOnly: true, controlledBy: 'jumbo_out' },
@@ -46,8 +46,8 @@ const sectionConfigs: Array<{
     color: 'primary',
     fields: [
       { key: 'jumbo_opening', label: 'Opening', readOnly: true },
-      { key: 'jumbo_received', label: 'Received' },
-      { key: 'jumbo_transfer', label: 'Transfer' },
+      { key: 'jumbo_received', label: 'Received', readOnly: true },
+      { key: 'jumbo_transfer', label: 'Transfer', readOnly: true },
       { key: 'jumbo_waste', label: 'Waste' },
       { key: 'jumbo_in', label: 'In (From Table)', readOnly: true, controlledBy: 'table_out' },
       { key: 'jumbo_out', label: 'Out (To Table)' },
@@ -60,9 +60,9 @@ const sectionConfigs: Array<{
     color: 'primary',
     fields: [
       { key: 'grade_c_opening', label: 'Opening', readOnly: true },
-      { key: 'grade_c_shed_received', label: 'Shed Received' },
+      { key: 'grade_c_shed_received', label: 'Shed Received', readOnly: true },
       { key: 'grade_c_room_received', label: 'Room Received', readOnly: true, controlledBy: 'table_damage' },
-      { key: 'grade_c_transfer', label: 'Transfer' },
+      { key: 'grade_c_transfer', label: 'Transfer', readOnly: true },
       { key: 'grade_c_labour', label: 'Labour' },
       { key: 'grade_c_waste', label: 'Waste' },
     ],
@@ -104,6 +104,7 @@ const EggRoomStock: React.FC = () => {
   const [suggestedStartDate, setSuggestedStartDate] = useState<string | null>(null);
 
   const [activeTab, setActiveTab] = useState<string>('table');
+  const stockFormSectionToShareRef = useRef<HTMLDivElement>(null); // New ref for the stock form section
 
   useEffect(() => {
     if (dateError) {
@@ -237,6 +238,87 @@ const EggRoomStock: React.FC = () => {
     }
   };
 
+  const handleShareStockForm = async () => {
+    if (!stockFormSectionToShareRef.current) {
+      toast.error("Stock Form section element not found.");
+      return;
+    }
+
+    if (!navigator.share) {
+      toast.error("Web Share API is not supported in your browser.");
+      return;
+    }
+
+    const stockFormNode = stockFormSectionToShareRef.current;
+    setIsSharing(true);
+
+    // Store original inline styles to restore them later
+    let originalStockFormStyle = {
+      width: stockFormNode.style.width,
+      minWidth: stockFormNode.style.minWidth,
+      whiteSpace: stockFormNode.style.whiteSpace,
+    };
+
+    // Store original icon elements to restore them later
+    const originalIcons = new Map<HTMLElement, ChildNode>();
+
+    try {
+      const iconElements = stockFormNode.querySelectorAll('i[class*="bi-"]');
+      iconElements.forEach((iconElement: Element) => {
+        const placeholder = document.createElement('div');
+        placeholder.style.width = '16px';
+        placeholder.style.height = '16px';
+        placeholder.style.backgroundColor = 'lightgray';
+        placeholder.style.display = 'inline-block';
+        placeholder.style.marginRight = '5px';
+        if (iconElement.parentNode) {
+          iconElement.parentNode.replaceChild(placeholder, iconElement);
+          originalIcons.set(placeholder, iconElement);
+        }
+      });
+
+      // Temporarily apply styles for a consistent, wide image
+      stockFormNode.style.width = 'auto';
+      stockFormNode.style.minWidth = '1500px'; // Adjust as needed
+      stockFormNode.style.whiteSpace = 'nowrap';
+
+      const dataUrl = await htmlToImage.toPng(stockFormNode, {
+        backgroundColor: '#ffffff',
+      });
+      const blob = await (await fetch(dataUrl)).blob();
+      const file = new File([blob], `egg-room-stock-form-${selectedDate}.png`, { type: 'image/png' });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title: 'Egg Room Stock Form',
+          text: `Egg Room Stock Form for ${selectedDate}.`,
+          files: [file],
+        });
+        toast.success("Stock Form details shared successfully!");
+      } else {
+        toast.error("Sharing files is not supported on this device.");
+      }
+    } catch (error: any) {
+      if (error.name !== 'AbortError') { // User cancellation should not be treated as an error
+        console.error('Sharing failed', error);
+        toast.error(`Failed to share stock form details: ${error.message}`);
+      }
+    } finally {
+      // Restore original styles
+      stockFormNode.style.width = originalStockFormStyle.width;
+      stockFormNode.style.minWidth = originalStockFormStyle.minWidth;
+      stockFormNode.style.whiteSpace = originalStockFormStyle.whiteSpace;
+
+      // Restore original icon elements
+      originalIcons.forEach((originalIcon: ChildNode, placeholder: HTMLElement) => {
+        if (placeholder.parentNode) {
+          placeholder.parentNode.replaceChild(originalIcon, placeholder);
+        }
+      });
+      setIsSharing(false);
+    }
+  };
+
   return (
     <>
     <PageHeader title="Egg Room Stock" />
@@ -244,28 +326,30 @@ const EggRoomStock: React.FC = () => {
       {error && <div className="alert alert-danger text-center">{error}</div>}
 
       <form onSubmit={handleSave} className="card p-3 mb-4 mt-2">
-        <DateSelector
-          value={selectedDate}
-          onChange={setSelectedDate}
-          maxDate={new Date().toISOString().slice(0, 10)}
-          disabled={loading}
-          label='Report Date'
-        />
+        <div ref={stockFormSectionToShareRef}>
+          <DateSelector
+            value={selectedDate}
+            onChange={setSelectedDate}
+            maxDate={new Date().toISOString().slice(0, 10)}
+            disabled={loading}
+            label='Report Date'
+          />
 
-        {sectionConfigs.map((config) => (
-        <StockFormSection
-          key={config.id}
-          config={config}
-          values={form}
-          onChange={handleFormChange}
-          calculateClosing={(values) => {
-            const closingKey = closingFields[config.id];
-            const value = calculateClosings(values)[closingKey];
-            return typeof value === 'number' ? value : 0;
-        }}
-          isMobile={isMobile}
-        />
-      ))}
+          {sectionConfigs.map((config) => (
+          <StockFormSection
+            key={config.id}
+            config={config}
+            values={form}
+            onChange={handleFormChange}
+            calculateClosing={(values) => {
+              const closingKey = closingFields[config.id];
+              const value = calculateClosings(values)[closingKey];
+              return typeof value === 'number' ? value : 0;
+          }}
+            isMobile={isMobile}
+          />
+        ))}
+        </div>
 
         <SaveControls
           editing={editing}
@@ -273,6 +357,13 @@ const EggRoomStock: React.FC = () => {
           onSave={handleSave}
           onDelete={handleDelete}
         />
+        <button
+          className="btn btn-info w-100 mt-2"
+          onClick={handleShareStockForm}
+          disabled={isSharing}
+        >
+          {isSharing ? 'Generating...' : 'Share Stock Form as Image'}
+        </button>
       </form>
 
       <div className="card p-3 mb-4 mt-2">

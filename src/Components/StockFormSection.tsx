@@ -10,13 +10,13 @@ interface StockFormSectionProps {
     fields: Array<{
       key: keyof EggRoomStockEntry;
       label: string;
-      readonly?: boolean; // Add disabled property
-      controlledBy?: keyof EggRoomStockEntry; // Add controlledBy property
+      readOnly?: boolean; // Changed from readonly
+      controlledBy?: keyof EggRoomStockEntry;
     }>;
   };
   values: EggRoomStockEntry;
   onChange: (field: keyof EggRoomStockEntry, value: number | string) => void;
-  calculateClosing: (values: EggRoomStockEntry) => number; // Ensure this returns only number
+  calculateClosing: (values: EggRoomStockEntry) => number;
   isMobile?: boolean;
 }
 
@@ -41,7 +41,7 @@ export const StockFormSection: React.FC<StockFormSectionProps> = ({
           <span className="flex-grow-1">{title}</span>
         </div>
         <div className="mt-2">
-          {fields.map(({ key, label, readonly, controlledBy }) => (
+          {fields.map(({ key, label, readOnly, controlledBy }) => (
             <div className="mb-2" key={key}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <label className="form-label text-capitalize mb-0" style={{ minWidth: maxLabelWidth }}>
@@ -49,13 +49,12 @@ export const StockFormSection: React.FC<StockFormSectionProps> = ({
                 </label>
                 <input
                   type="number"
-                  className={`form-control ${readonly ? 'is-readonly' : ''}`}
+                  className={`form-control ${readOnly ? 'is-readonly' : ''}`}
                   style={{ flex: 1 }}
-                  // Use value from 'controlledBy' if specified, otherwise use its own value
                   value={controlledBy ? (values[controlledBy] as number || '') : (values[key] as number || '')}
                   onChange={(e) => onChange(key, e.target.value)}
                   min={0}
-                  readOnly={readonly} // Apply readonly property
+                  readOnly={readOnly} // Apply readOnly property
                 />
               </div>
             </div>
@@ -86,17 +85,16 @@ export const StockFormSection: React.FC<StockFormSectionProps> = ({
         {title}
       </div>
       <div className="row g-2 align-items-end">
-        {fields.map(({ key, label, readonly, controlledBy }) => (
+        {fields.map(({ key, label, readOnly, controlledBy }) => (
           <div className="col" key={key}>
             <label className="form-label text-capitalize">{label}</label>
             <input
               type="number"
-              className={`form-control ${readonly ? 'is-readonly' : ''}`}
-              // Use value from 'controlledBy' if specified, otherwise use its own value
+              className={`form-control ${readOnly ? 'is-readonly' : ''}`}
               value={controlledBy ? (values[controlledBy] as number || '') : (values[key] as number || '')}
               onChange={(e) => onChange(key, e.target.value)}
               min={0}
-              readOnly={readonly} // Apply disabled property
+              readOnly={readOnly} // Apply readOnly property
             />
           </div>
         ))}

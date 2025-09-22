@@ -137,8 +137,21 @@ export const useEggRoomStock = () => {
 
 
   const handleChange = useCallback((field: keyof EggRoomStockEntry, value: number | string) => {
-    // Prevent changes to opening fields
-    if (field === 'table_opening' || field === 'jumbo_opening' || field === 'grade_c_opening') {
+    // Prevent changes to read-only fields
+    if (
+      field === 'table_opening' ||
+      field === 'jumbo_opening' ||
+      field === 'grade_c_opening' ||
+      field === 'table_received' ||
+      field === 'jumbo_received' ||
+      field === 'grade_c_shed_received' ||
+      field === 'table_in' ||
+      field === 'jumbo_in' ||
+      field === 'grade_c_room_received' ||
+      field === 'table_transfer' ||
+      field === 'jumbo_transfer' ||
+      field === 'grade_c_transfer'
+    ) {
       return;
     }
 
@@ -176,6 +189,11 @@ export const useEggRoomStock = () => {
     setLoading(true);
   try {
     const apiEntry = calculateClosings(form);
+
+    // As per requirement, these fields are calculated in backend
+    delete (apiEntry as Partial<EggRoomStockEntry>).table_received;
+    delete (apiEntry as Partial<EggRoomStockEntry>).jumbo_received;
+    delete (apiEntry as Partial<EggRoomStockEntry>).grade_c_shed_received;
 
     // Debug log to verify the date
     console.log('Sending report for report_date:', apiEntry.report_date); // Use report_date
