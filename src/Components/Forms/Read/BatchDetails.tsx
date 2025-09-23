@@ -19,7 +19,7 @@ const BatchDetails: React.FC = () => {
   const [startDate, setStartDate] = useState<string>(batch_date || '');
   const [endDate, setEndDate] = useState<string>(batch_date || '');
   // Feed usage state
-  const [feedUsage, setFeedUsage] = useState<{ total_feed: number, feed_breakdown: { feed_type: string, amount: number }[] } | null>(null);
+  const [feedUsage, setFeedUsage] = useState<{ total_feed: number, feed_breakdown: { feed_type: string, amount: number, composition_name?: string, composition_items?: { inventory_item_id: number, inventory_item_name?: string, weight: number, unit?: string }[] }[] } | null>(null);
   const [feedLoading, setFeedLoading] = useState(false);
 
   // Modal state for feed details
@@ -162,7 +162,14 @@ const BatchDetails: React.FC = () => {
               mainValue: feedUsage ? feedUsage.total_feed : (feedLoading ? 0 : 0),
               iconColor: "icon-color-feed",
               subValues: feedUsage && feedUsage.feed_breakdown.length > 0
-                ? feedUsage.feed_breakdown.map(fb => ({ label: fb.feed_type, value: fb.amount }))
+                ? feedUsage.feed_breakdown.map(fb => ({
+                    label: fb.composition_name || fb.feed_type,
+                    value: fb.amount,
+                    // If composition_items exists, present them as a string list in subValue for modal display
+                    subValue: fb.composition_items && fb.composition_items.length > 0
+                      ? fb.composition_items.map(ci => `${ci.inventory_item_name || ci.inventory_item_id}: ${ci.weight}${ci.unit ? ` ${ci.unit}` : ''}`).join(', ')
+                      : undefined,
+                  }))
                 : (feedLoading ? [{ label: 'Loading...', value: 0 }] : []),
               icon:'bi-basket',
             },

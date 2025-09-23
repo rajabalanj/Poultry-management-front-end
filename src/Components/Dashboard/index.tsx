@@ -24,7 +24,7 @@ const DashboardIndex = () => {
   const [shedNos, setShedNos] = useState<string[]>([]);
   const [selectedShedNo, setSelectedShedNo] = useState<string>("");
   // Feed usage state
-  const [feedUsage, setFeedUsage] = useState<{ total_feed: number, feed_breakdown: { feed_type: string, amount: number }[] } | null>(null);
+  const [feedUsage, setFeedUsage] = useState<{ total_feed: number, feed_breakdown: { feed_type: string, amount: number, composition_name?: string, composition_items?: { inventory_item_id: number, inventory_item_name?: string, weight: number, unit?: string }[] }[] } | null>(null);
   const [feedLoading, setFeedLoading] = useState(false);
   // Removed unused feedError
 
@@ -140,7 +140,13 @@ const DashboardIndex = () => {
       icon: "bi bi-basket",
       iconColor: "icon-color-feed",
       subValues: feedUsage && feedUsage.feed_breakdown.length > 0
-        ? feedUsage.feed_breakdown.map(fb => ({ label: fb.feed_type, value: fb.amount }))
+        ? feedUsage.feed_breakdown.map(fb => ({
+            label: fb.composition_name || fb.feed_type,
+            value: fb.amount,
+            subValue: fb.composition_items && fb.composition_items.length > 0
+              ? fb.composition_items.map(ci => `${ci.inventory_item_name || ci.inventory_item_id}: ${ci.weight}${ci.unit ? ` ${ci.unit}` : ''}`).join(', ')
+              : undefined,
+          }))
         : (feedLoading ? [{ label: 'Loading...', value: 0 }] : [])
     },
     {

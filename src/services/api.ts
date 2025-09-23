@@ -287,7 +287,7 @@ export const compositionApi = {
         compositionId,
         times,
         usedAt,
-        shed_no: shedNo, // Include shed_no here
+        shed_no: shedNo,
       });
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to use composition'));
@@ -326,9 +326,9 @@ export const compositionApi = {
      * Get feed usage summary by date (and optional batch_id)
      * @param usageDate - string (YYYY-MM-DD)
      * @param batchId - optional number
-     * @returns { total_feed: number, feed_breakdown: Array<{feed_type: string, amount: number}> }
+     * @returns { total_feed: number, feed_breakdown: Array<{feed_type: string, amount: number, composition_name?: string, composition_items?: Array<{inventory_item_id: number, weight: number}>}> }
      */
-    getFeedUsageByDate: async (usageDate: string, batchId?: number): Promise<{ total_feed: number, feed_breakdown: { feed_type: string, amount: number }[] }> => {
+      getFeedUsageByDate: async (usageDate: string, batchId?: number): Promise<{ total_feed: number, feed_breakdown: { feed_type: string, amount: number, composition_name?: string, composition_items?: { inventory_item_id: number, inventory_item_name?: string, weight: number, unit?: string }[] }[] }> => {
       try {
         const response = await api.get(`/compositions/usage-by-date/`, {
           params: {

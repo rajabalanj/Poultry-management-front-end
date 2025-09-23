@@ -23,6 +23,7 @@ function FeedMillStock() {
   const [editCompName, setEditCompName] = useState("");
   const [batches, setBatches] = useState<BatchResponse[]>([]);
   const [selectedShedNo, setSelectedShedNo] = useState<string>('');
+  const [batchDate, setBatchDate] = useState<string>('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -271,6 +272,16 @@ function FeedMillStock() {
               ))}
             </select>
           </div>
+          <div className="mb-3">
+            <label htmlFor="batchDate" className="form-label">Batch Date:</label>
+            <input
+              id="batchDate"
+              type="date"
+              className="form-control form-control-sm"
+              value={batchDate}
+              onChange={(e) => setBatchDate(e.target.value)}
+            />
+          </div>
 
           <div className="d-flex gap-2">
             <button
@@ -280,12 +291,15 @@ function FeedMillStock() {
                   toast.error("Please select a Shed Number");
                   return;
                 }
-                const usedAt = new Date().toISOString().split('T')[0];
+                if (!batchDate) {
+                  toast.error("Please select a Batch Date");
+                  return;
+                }
                 try {
                   await compositionApi.useComposition({
                     compositionId: selectedComposition.id,
                     times: timesToUse,
-                    usedAt,
+                    usedAt: batchDate,
                     shedNo: selectedShedNo,
                   });
                   toast.success(`Used composition ${selectedComposition.name} ${timesToUse} time(s) for Shed ${selectedShedNo}`);

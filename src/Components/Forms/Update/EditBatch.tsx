@@ -81,7 +81,9 @@ const EditBatch: React.FC = () => {
       return;
     }
 
-    const usedAt = new Date().toISOString().split('T')[0];
+  // Use the batch's date so the composition usage is recorded for the batch day,
+  // not necessarily today's date.
+  const usedAt = batch.batch_date;
     try {
       await compositionApi.useComposition({
         compositionId: selectedComposition.id,

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { compositionApi } from "../services/api";
 import PageHeader from "./Layout/PageHeader";
@@ -12,6 +12,8 @@ interface UsageHistoryItem {
   times: number;
   used_at: string;
   shed_no: string;
+  composition_name?: string;
+  composition_items?: { inventory_item_id: number; inventory_item_name?: string; weight: number; unit?: string }[];
 }
 
 const CompositionUsageHistory = () => {
@@ -46,15 +48,21 @@ const CompositionUsageHistory = () => {
     fetchHistory();
   }, [compositionId]);
 
-  const compositionUnitWeight = useMemo(() => {
-    if (!composition) return 0;
-    return composition.inventory_items.reduce((sum, item) => sum + item.weight, 0);
-  }, [composition]);
+  const getCompositionWeight = (item: UsageHistoryItem) => {
+    if (item.composition_items) {
+      return item.composition_items.reduce((sum, compItem) => sum + compItem.weight, 0);
+    }
+    // Fallback to fetched composition if composition_items not available
+    if (composition) {
+      return composition.inventory_items.reduce((sum, compItem) => sum + compItem.weight, 0);
+    }
+    return 0;
+  };
 
   return (
     <>
     <PageHeader
-        title={composition ? `Usage History for "${composition.name}"` : "Composition Usage History"}
+        title={composition ? `Usage History for "${composition.name}"` : (history.length > 0 && history[0].composition_name ? `Usage History for "${history[0].composition_name}"` : "Composition Usage History")}
         buttonLabel="Back to Feed Mill"
         buttonLink="/feed-mill-stock"
       />
@@ -84,7 +92,7 @@ const CompositionUsageHistory = () => {
                   <tr key={item.id}>
                     <td>{new Date(item.used_at).toLocaleDateString()}</td>
                     <td>{item.times}</td>
-                    <td>{compositionUnitWeight * item.times}</td>
+                    <td>{getCompositionWeight(item) * item.times}</td>
                     <td>{item.shed_no}</td>
                     <td>
                       <button

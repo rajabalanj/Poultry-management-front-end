@@ -7,7 +7,8 @@ export interface HeaderCardData {
   mainValue: number;
   icon: string;
   iconColor?: string;
-  subValues?: { label: string; value: number; subValue?: number }[]; // Ensure subValue is included
+  // subValue can be a number (secondary numeric value) or a string (extra info like a list)
+  subValues?: { label: string; value: number; subValue?: number | string }[]; // Ensure subValue is included
 }
 
 interface HeaderCardGroupProps {
@@ -18,12 +19,14 @@ interface HeaderCardGroupProps {
 }
 
 
-const HeaderCardGroup: React.FC<HeaderCardGroupProps> = ({ cards, loading, error }) => {
+const HeaderCardGroup: React.FC<HeaderCardGroupProps> = ({ cards, loading, error, onViewDetails }) => {
+  // If a parent provided onViewDetails, forward to HeaderCard. Otherwise use local modal fallback.
   const [showModal, setShowModal] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalItems, setModalItems] = useState<string[]>([]);
 
   const handleViewDetails = (title: string, items: string[]) => {
+    if (onViewDetails) return onViewDetails(title, items);
     setModalTitle(title);
     setModalItems(items);
     setShowModal(true);

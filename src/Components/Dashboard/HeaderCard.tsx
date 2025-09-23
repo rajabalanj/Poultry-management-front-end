@@ -4,7 +4,8 @@ import { Button } from 'react-bootstrap';
 interface SubValue {
   label: string;
   value: number;
-  subValue?: number;
+  // subValue can be a number (secondary numeric value) or a string (extra info like a list)
+  subValue?: number | string;
 }
 
 interface HeaderCardProps {
@@ -19,7 +20,17 @@ interface HeaderCardProps {
 const HeaderCard: React.FC<HeaderCardProps> = ({ title, mainValue, subValues, icon, iconColor, onViewDetails }) => {
   const handleViewDetailsClick = () => {
     if (onViewDetails && subValues) {
-      const itemsToDisplay = subValues.map(sub => `${sub.label}: ${sub.value.toLocaleString()}${sub.subValue ? ` (${sub.subValue.toLocaleString()})` : ''}`);
+      const itemsToDisplay = subValues.map(sub => {
+        const main = `${sub.label}: ${sub.value.toLocaleString()}`;
+        if (sub.subValue !== undefined && sub.subValue !== null) {
+          if (typeof sub.subValue === 'number') {
+            return `${main} (${sub.subValue.toLocaleString()})`;
+          }
+          // string or other
+          return `${main} (${String(sub.subValue)})`;
+        }
+        return main;
+      });
       onViewDetails(title, itemsToDisplay);
     }
   };
