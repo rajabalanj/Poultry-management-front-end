@@ -175,9 +175,9 @@ function getApiErrorMessage(error: unknown, fallback: string) {
 
 // Move the `getSnapshot` function to a new `dailyBatchApi` object
 export const dailyBatchApi = {
-  getSnapshot: async (startDate: string, endDate: string, batchId?: number): Promise<DailyBatch[]> => {
+  getSnapshot: async (startDate: string, endDate: string, batchId?: number): Promise<{ details: DailyBatch[], summary: DailyBatch }> => {
     try {
-      const response = await api.get<DailyBatch[]>(`/reports/snapshot`, {
+      const response = await api.get<{ details: DailyBatch[], summary: DailyBatch }>(`/reports/snapshot`, {
         params: {
           start_date: startDate,
           end_date: endDate,

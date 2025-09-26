@@ -2,15 +2,17 @@ import { dailyBatchApi } from '../services/api';
 import { toast } from 'react-toastify';
 import { saveAs } from 'file-saver';
 import { GridRow } from '../types/GridRow';
+import { DailyBatch } from '../types/daily_batch';
 
-export const fetchBatchData = async (startDate: string, endDate: string, batchId?: string): Promise<GridRow[]> => {
+export const fetchBatchData = async (startDate: string, endDate: string, batchId?: string): Promise<{ details: GridRow[], summary: DailyBatch }> => {
   try {
     const response = await dailyBatchApi.getSnapshot(
       startDate,
       endDate,
       batchId ? Number(batchId) : undefined
     );
-    return response.map((batch) => ({
+
+    const details = response.details.map((batch: DailyBatch) => ({
       batch_id: batch.batch_id,
       shed_no: batch.shed_no,
       batch_no: batch.batch_no,
@@ -29,6 +31,8 @@ export const fetchBatchData = async (startDate: string, endDate: string, batchId
       date_range: batchId ? undefined : `${startDate} to ${endDate}`,
       days_count: batchId ? undefined : batch.days_count,
     }));
+
+    return { details, summary: response.summary };
   } catch (error) {
     console.error('Error fetching data:', error);
     throw new Error('Failed to fetch data');

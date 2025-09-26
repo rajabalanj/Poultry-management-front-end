@@ -15,7 +15,8 @@ const PreviousDayReport = () => {
   // Get dates from URL or use defaults
   const startDate = searchParams.get('start') || '';
   const endDate = searchParams.get('end') || '';
-  const [gridData, setGridData] = useState<GridRow[]>([]);
+    const [gridData, setGridData] = useState<GridRow[]>([]);
+  const [summaryData, setSummaryData] = useState<GridRow | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const rowsPerPage = 10;
   const [error, setError] = useState<string | null>(null);
@@ -37,12 +38,13 @@ const PreviousDayReport = () => {
 
   const fetchData = async () => {
     try {
-      const data = await fetchBatchData(
+      const { details, summary } = await fetchBatchData(
         startDate,
         endDate,
         batchId // Pass undefined if batchId doesn't exist
       );
-      setGridData(data);
+      setGridData(details);
+      setSummaryData(summary);
       setError(null);
     } catch (error: any) {
       setError(error?.message || 'Failed to fetch data');
@@ -280,6 +282,23 @@ const PreviousDayReport = () => {
               </button>
             </div>
           )}
+        </div>
+      )}
+      {summaryData && (
+        <div className="mt-4 p-3 border rounded bg-light">
+          <h5 className="mb-3">Report Summary</h5>
+          <div className="row g-3">
+            <div className="col-md-3"><span className="fw-bold">Total Opening:</span> {summaryData.opening_count}</div>
+            <div className="col-md-3"><span className="fw-bold">Total Mortality:</span> {summaryData.mortality}</div>
+            <div className="col-md-3"><span className="fw-bold">Total Culls:</span> {summaryData.culls}</div>
+            <div className="col-md-3"><span className="fw-bold">Total Closing:</span> {summaryData.closing_count}</div>
+            <div className="col-md-3"><span className="fw-bold">Total Table Eggs:</span> {summaryData.table_eggs}</div>
+            <div className="col-md-3"><span className="fw-bold">Total Jumbo Eggs:</span> {summaryData.jumbo}</div>
+            <div className="col-md-3"><span className="fw-bold">Total CR Eggs:</span> {summaryData.cr}</div>
+            <div className="col-md-3"><span className="fw-bold">Total Eggs:</span> {summaryData.total_eggs}</div>
+            <div className="col-md-3"><span className="fw-bold">Average HD:</span> {summaryData.hd}%</div>
+            <div className="col-md-3"><span className="fw-bold">Average Standard HD:</span> {summaryData.standard_hen_day_percentage}%</div>
+          </div>
         </div>
       )}
     </div>
