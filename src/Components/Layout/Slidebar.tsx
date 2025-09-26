@@ -18,7 +18,7 @@ const Slidebar: React.FC = () => {
   const isDesktop = window.innerWidth >= DESKTOP_BREAKPOINT;
 
   // State to manage which sub-menu is open
-  const [openMenu, setOpenMenu] = useState<string | null>(null); // 'batch', 'egg', 'feed' or null
+  const [openMenu, setOpenMenu] = useState<string | null>(null); // 'batch', 'egg', 'feed', 'finance' etc.
 
   useEffect(() => {
     const handleResize = () => {
@@ -263,6 +263,16 @@ const Slidebar: React.FC = () => {
                 </li>
                 <hr className="my-2 text-primary" />
 
+                <li className="nav-menu-item fw-bold">
+                  <Link
+                    to="/financial-reports"
+                    className={`nav-menu-link ${location.pathname === "/financial-reports" ? "active-link" : ""}`}
+                    onClick={closeSidebarMobile}
+                  >
+                    <i className="bi bi-graph-up me-2 icon-color-sidebar"></i>
+                    Financial Reports
+                  </Link>
+                </li>
 
                 {/* Configurations - Simple Link */}
                 {userGroups.includes('admin') && (

@@ -39,6 +39,8 @@ import EditBusinessPartner from './Components/BusinessPartner/EditBusinessPartne
 import Callback from './Components/Auth/Callback';
 import ProtectedRoute from './Components/Auth/ProtectedRoute';
 import LogoutPage from './Components/Auth/LogoutPage';
+import FinancialReports from './Components/FinancialReports';
+import ErrorBoundary from './Components/ErrorBoundary';
 
 const ProtectedRoutes = () => (
   <ProtectedRoute>
@@ -117,6 +119,7 @@ const App: React.FC = () => {
               <Route path="/business-partners/create" element={<CreateBusinessPartnerForm />} />
               <Route path="/business-partners/:partner_id/details" element={<BusinessPartnerDetails />} />
               <Route path="/business-partners/:partner_id/edit" element={<EditBusinessPartner />} />
+              <Route path="/financial-reports" element={<ErrorBoundary><FinancialReports /></ErrorBoundary>} />
             </Route>
             <Route
               path="/configurations"

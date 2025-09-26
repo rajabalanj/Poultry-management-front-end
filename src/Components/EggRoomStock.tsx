@@ -327,13 +327,27 @@ const EggRoomStock: React.FC = () => {
 
       <form onSubmit={handleSave} className="card p-3 mb-4 mt-2">
         <div ref={stockFormSectionToShareRef}>
-          <DateSelector
-            value={selectedDate}
-            onChange={setSelectedDate}
-            maxDate={new Date().toISOString().slice(0, 10)}
-            disabled={loading}
-            label='Report Date'
-          />
+          <div className="row g-3 align-items-end">
+            <div className="col-md-6">
+              <DateSelector
+                value={selectedDate}
+                onChange={setSelectedDate}
+                maxDate={new Date().toISOString().slice(0, 10)}
+                disabled={loading}
+                label='Report Date'
+              />
+            </div>
+            <div className="col-md-6">
+              <button
+                type="button" // Add type="button" to prevent form submission
+                className="btn btn-info float-end"
+                onClick={handleShareStockForm}
+                disabled={isSharing}
+              >
+                {isSharing ? 'Generating...' : 'Share as Image'}
+              </button>
+            </div>
+          </div>
 
           {sectionConfigs.map((config) => (
           <StockFormSection
@@ -357,13 +371,6 @@ const EggRoomStock: React.FC = () => {
           onSave={handleSave}
           onDelete={handleDelete}
         />
-        <button
-          className="btn btn-info w-100 mt-2"
-          onClick={handleShareStockForm}
-          disabled={isSharing}
-        >
-          {isSharing ? 'Generating...' : 'Share Stock Form as Image'}
-        </button>
       </form>
 
       <div className="card p-3 mb-4 mt-2">

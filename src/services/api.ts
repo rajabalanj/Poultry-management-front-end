@@ -33,6 +33,7 @@ import {
   SalesOrderItemCreate,
   SalesOrderItemUpdate,
 } from '../types/SalesOrderItem';
+import { ProfitAndLoss, BalanceSheet } from '../types/financialReports'; // NEW IMPORT
 // Define types for our data
 // Define types for our data
 
@@ -906,6 +907,30 @@ export const salesOrderApi = {
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to add payment to Sales'));
+    }
+  },
+};
+
+export const financialReportsApi = {
+  getProfitAndLoss: async (startDate: string, endDate: string): Promise<ProfitAndLoss> => {
+    try {
+      const response = await api.get<ProfitAndLoss>('/financial-reports/profit-and-loss', {
+        params: { start_date: startDate, end_date: endDate },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch Profit and Loss report'));
+    }
+  },
+
+  getBalanceSheet: async (asOfDate: string): Promise<BalanceSheet> => {
+    try {
+      const response = await api.get<BalanceSheet>('/financial-reports/balance-sheet', {
+        params: { as_of_date: asOfDate },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch Balance Sheet report'));
     }
   },
 };
