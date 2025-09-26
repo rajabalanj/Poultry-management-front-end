@@ -327,7 +327,7 @@ const EggRoomStock: React.FC = () => {
 
       <form onSubmit={handleSave} className="card p-3 mb-4 mt-2">
         <div ref={stockFormSectionToShareRef}>
-          <div className="row g-3 align-items-end">
+          <div className="row g-3 align-items-end mb-3">
             <div className="col-md-6">
               <DateSelector
                 value={selectedDate}
@@ -340,7 +340,7 @@ const EggRoomStock: React.FC = () => {
             <div className="col-md-6">
               <button
                 type="button" // Add type="button" to prevent form submission
-                className="btn btn-info float-end"
+                className="btn btn-info w-100"
                 onClick={handleShareStockForm}
                 disabled={isSharing}
               >
