@@ -161,8 +161,8 @@ const CreatePurchaseOrderForm: React.FC = () => {
 
     // Validate each item
     for (const item of items) {
-      if (!item.inventory_item_id || item.quantity <= 0 || item.price_per_unit <= 0) {
-        toast.error('Please ensure all items have a selected Inventory Item, quantity > 0, and price per unit > 0.');
+      if (!item.inventory_item_id || item.quantity <= 0) {
+        toast.error('Please ensure all items have a selected Inventory Item and quantity > 0.');
         setIsLoading(false);
         return;
       }
@@ -176,7 +176,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
       items: items.map(item => ({
         inventory_item_id: item.inventory_item_id,
         quantity: item.quantity,
-        price_per_unit: item.price_per_unit,
+        price_per_unit: item.price_per_unit || 0,
       })),
     };
 
@@ -395,16 +395,14 @@ const CreatePurchaseOrderForm: React.FC = () => {
                           />
                         </div>
                         <div className="col-md-3">
-                          <label htmlFor={`pricePerUnit-${item.tempId}`} className="form-label">Price per Unit <span className="text-danger">*</span></label>
+                          <label htmlFor={`pricePerUnit-${item.tempId}`} className="form-label">Price per Unit</label>
                           <input
                             type="number"
                             className="form-control"
                             id={`pricePerUnit-${item.tempId}`}
                             value={item.price_per_unit}
                             onChange={(e) => handleItemChange(item.tempId, 'price_per_unit', Number(e.target.value))}
-                            min="0.01"
-                                step="0.01"
-                            required
+                            step="0.01"
                             disabled={isLoading}
                           />
                         </div>

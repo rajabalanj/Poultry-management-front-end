@@ -212,8 +212,8 @@ const EditSalesOrder: React.FC = () => {
 
     // Validate each active item
     for (const item of activeItems) {
-      if (!item.inventory_item_id || item.quantity <= 0 || item.price_per_unit <= 0) {
-        toast.error('Please ensure all active items have a selected Inventory Item, quantity > 0, and price per unit > 0.');
+      if (!item.inventory_item_id || item.quantity <= 0) {
+        toast.error('Please ensure all active items have a selected Inventory Item and quantity > 0.');
         setIsLoading(false);
         return;
       }
@@ -243,7 +243,7 @@ const EditSalesOrder: React.FC = () => {
           const newItemData: SalesOrderItemCreate = {
             inventory_item_id: item.inventory_item_id,
             quantity: item.quantity,
-            price_per_unit: item.price_per_unit,
+            price_per_unit: item.price_per_unit || 0,
           };
           await salesOrderApi.addSalesOrderItem(Number(so_id), newItemData);
         } else if (!item.isNew && !item.isDeleted) { // Existing item, potentially updated
@@ -253,7 +253,7 @@ const EditSalesOrder: React.FC = () => {
           // A more robust solution would involve deep comparison or only updating specific fields.
           const updateItemData: SalesOrderItemUpdate = {
             quantity: item.quantity,
-            price_per_unit: item.price_per_unit,
+            price_per_unit: item.price_per_unit || 0,
           };
           await salesOrderApi.updateSalesOrderItem(Number(so_id), item.id, updateItemData);
         }
@@ -427,16 +427,14 @@ const EditSalesOrder: React.FC = () => {
                           />
                         </div>
                         <div className="col-md-3">
-                          <label htmlFor={`pricePerUnit-${item.tempId}`} className="form-label">Price per Unit <span className="text-danger">*</span></label>
+                          <label htmlFor={`pricePerUnit-${item.tempId}`} className="form-label">Price per Unit</label>
                           <input
                             type="number"
                             className="form-control"
                             id={`pricePerUnit-${item.tempId}`}
                             value={item.price_per_unit}
                             onChange={(e) => handleItemChange(item.tempId, 'price_per_unit', Number(e.target.value))}
-                            min="0.01"
                             step="0.01"
-                            required
                             disabled={isLoading}
                           />
                         </div>
