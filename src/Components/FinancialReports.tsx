@@ -87,18 +87,18 @@
            <div className="col-md-6">
              <h5>Assets</h5>
              <ul className="list-group">
-               <li className="list-group-item d-flex justify-content-between ps-4"><span>Cash</span> <span>Rs. {Number(bsData.assets?.current_assets?.cash ?? 0).toFixed(2)}</span></li>
-               <li className="list-group-item d-flex justify-content-between ps-4"><span>Accounts Receivable</span> <span>Rs. {Number(bsData.assets?.current_assets?.accounts_receivable ?? 0).toFixed(2)}</span></li>
-               <li className="list-group-item d-flex justify-content-between ps-4"><span>Inventory</span> <span>Rs. {Number(bsData.assets?.current_assets?.inventory ?? 0).toFixed(2)}</span></li>
-               <li className="list-group-item d-flex justify-content-between"><strong>Total Current Assets</strong> <strong>Rs. {totalCurrentAssets.toFixed(2)}</strong></li>
+               <li className="list-group-item d-flex justify-content-between"><span>Cash</span> <span>{Number(bsData.assets?.current_assets?.cash ?? 0).toFixed(2)}</span></li>
+               <li className="list-group-item d-flex justify-content-between"><span>Accounts Receivable</span> <span>{Number(bsData.assets?.current_assets?.accounts_receivable ?? 0).toFixed(2)}</span></li>
+               <li className="list-group-item d-flex justify-content-between"><span>Inventory</span> <span>{Number(bsData.assets?.current_assets?.inventory ?? 0).toFixed(2)}</span></li>
+               <li className="list-group-item d-flex justify-content-between"><strong>Total Current Assets</strong> <strong>{totalCurrentAssets.toFixed(2)}</strong></li>
                <li className="list-group-item d-flex justify-content-between active"><strong>Total Assets</strong> <strong>Rs. {totalAssets.toFixed(2)}</strong></li>
              </ul>
            </div>
            <div className="col-md-6">
              <h5>Liabilities & Equity</h5>
              <ul className="list-group mb-3">
-               <li className="list-group-item d-flex justify-content-between ps-4"><span>Accounts Payable</span> <span>Rs. {Number(bsData.liabilities?.current_liabilities?.accounts_payable ?? 0).toFixed(2)}</span></li>
-               <li className="list-group-item d-flex justify-content-between"><strong>Total Current Liabilities</strong> <strong>Rs. {totalLiabilities.toFixed(2)}</strong></li>
+               <li className="list-group-item d-flex justify-content-between"><span>Accounts Payable</span> <span>{Number(bsData.liabilities?.current_liabilities?.accounts_payable ?? 0).toFixed(2)}</span></li>
+               <li className="list-group-item d-flex justify-content-between"><strong>Total Current Liabilities</strong> <strong>{totalLiabilities.toFixed(2)}</strong></li>
                <li className="list-group-item d-flex justify-content-between active"><strong>Total Liabilities</strong> <strong>Rs. {totalLiabilities.toFixed(2)}</strong></li>
              </ul>
              <ul className="list-group">

@@ -4,7 +4,14 @@ import { dailyBatchApi, compositionApi } from "../../../services/api";
 import { DailyBatch } from "../../../types/daily_batch";
 import { toast } from "react-toastify";
 import PageHeader from "../../Layout/PageHeader";
+import { Modal, Button } from "react-bootstrap";
 import { CompositionResponse } from "../../../types/compositon";
+
+interface UsageHistoryItem {
+  id: number;
+  composition_name: string;
+  times: number;
+}
 
 const EditBatch: React.FC = () => {
   const navigate = useNavigate();
@@ -16,6 +23,9 @@ const EditBatch: React.FC = () => {
   const [compositions, setCompositions] = useState<CompositionResponse[]>([]);
   const [selectedCompositionId, setSelectedCompositionId] = useState<number | null>(null);
   const [timesToUse, setTimesToUse] = useState(1);
+  const [usageHistory, setUsageHistory] = useState<UsageHistoryItem[]>([]);
+  const [showRevertModal, setShowRevertModal] = useState(false);
+  const [usageToRevert, setUsageToRevert] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchBatch = async () => {
@@ -39,6 +49,21 @@ const EditBatch: React.FC = () => {
     };
     fetchBatch();
   }, [batchId, batch_date]);
+
+  const fetchUsageHistory = async () => {
+    if (!batchId || !batch_date) return;
+    try {
+      const history = await compositionApi.getFilteredCompositionUsageHistory(
+        batch_date,
+        Number(batchId)
+      );
+      setUsageHistory(history);
+    } catch (error) {
+      toast.error("Failed to fetch feed usage history.");
+    }
+  };
+
+  useEffect(() => { fetchUsageHistory(); }, [batchId, batch_date]);
 
   useEffect(() => {
     compositionApi.getCompositions().then((comps) => {
@@ -92,6 +117,7 @@ const EditBatch: React.FC = () => {
         shedNo: batch.shed_no, // Pass batch.shed_no as shedNo
       });
       toast.success(`Used composition ${selectedComposition.name} ${timesToUse} time(s) for Batch ${batch?.batch_no}`);
+      fetchUsageHistory(); // Refresh history
     } catch (err) {
       toast.error("Failed to use composition");
     }
@@ -283,13 +309,72 @@ const EditBatch: React.FC = () => {
                   Confirm
                 </button>
               </div>
+
+              {usageHistory.length > 0 && (
+                <div className="mt-4">
+                  <h6 className="mb-3">Feed Usage for this day</h6>
+                  <div className="table-responsive">
+                    <table className="table table-sm table-bordered">
+                      <thead>
+                        <tr>
+                          <th>Composition</th>
+                          <th>Times Used</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {usageHistory.map((item) => (
+                          <tr key={item.id}>
+                            <td>{item.composition_name}</td>
+                            <td>{item.times}</td>
+                            <td>
+                              <button
+                                className="btn btn-sm btn-outline-danger"
+                                onClick={() => {
+                                  setUsageToRevert(item.id);
+                                  setShowRevertModal(true);
+                                }}
+                              >
+                                Revert
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
+      <Modal show={showRevertModal} onHide={() => setShowRevertModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Revert</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Are you sure you want to revert this composition usage? This action will restore the used feed quantities.
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowRevertModal(false)}>Cancel</Button>
+          <Button variant="danger" onClick={async () => {
+            if (!usageToRevert) return;
+            try {
+              await compositionApi.revertCompositionUsage(usageToRevert);
+              setUsageHistory(prev => prev.filter(h => h.id !== usageToRevert));
+              toast.success("Reverted successfully");
+            } catch (err: any) {
+              toast.error(err.message || "Failed to revert");
+            } finally {
+              setShowRevertModal(false);
+              setUsageToRevert(null);
+            }
+          }}>Revert</Button>
+        </Modal.Footer>
+      </Modal>
     </>
   );
 };
 
 export default EditBatch;
-

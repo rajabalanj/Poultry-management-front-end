@@ -124,7 +124,7 @@ const AddPaymentForm: React.FC = () => {
   return (
     <>
       <PageHeader
-        title={`Add Payment for Purchase: ${purchaseOrder.id}`}
+        title={`Add Payment for Purchase: ${purchaseOrder.po_number}`}
         buttonVariant="secondary"
         buttonLabel="Back to Purchase Details"
         buttonLink={`/purchase-orders/${po_id}/details`}

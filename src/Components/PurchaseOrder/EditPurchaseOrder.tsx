@@ -35,6 +35,7 @@ const EditPurchaseOrder: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [poNumber, setPoNumber] = useState<string>('');
 
   const [vendors, setVendors] = useState<BusinessPartner[]>([]);
   const [inventoryItems, setInventoryItems] = useState<InventoryItemResponse[]>([]);
@@ -76,6 +77,7 @@ const EditPurchaseOrder: React.FC = () => {
 
         // Set main Purchase details
         setVendorId(poData.vendor_id);
+        setPoNumber(poData.po_number);
         
         setOrderDate(poData.order_date ? new Date(poData.order_date) : null);
         
@@ -284,7 +286,7 @@ const EditPurchaseOrder: React.FC = () => {
 
   return (
     <>
-      <PageHeader title={`Edit Purchase: ${po_id || 'Loading...'}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/purchase-orders" />
+      <PageHeader title={`Edit Purchase: ${poNumber || 'Loading...'}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/purchase-orders" />
       <div className="container mt-4">
         <div className="card shadow-sm">
           <div className="card-body">

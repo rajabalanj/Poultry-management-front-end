@@ -49,6 +49,7 @@ export interface PurchaseOrderUpdate {
 
 export interface PurchaseOrderResponse extends PurchaseOrderBase {
   id: number;
+  po_number: string;
   status: PurchaseOrderStatus;
   total_amount: number; // Ensure this is 'number', not 'number | null' or 'any'
   total_amount_paid: number;   // Ensure this is 'number', not 'number | null' or 'any'

@@ -86,7 +86,7 @@ const SalesOrderDetails: React.FC = () => {
 
   return (
     <>
-      <PageHeader title={`Sales Details: ${salesOrder.id}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/sales-orders" />
+      <PageHeader title={`Sales Details: ${salesOrder.so_number}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/sales-orders" />
       <div className="container mt-4">
         <div className="card shadow-sm mb-4">
           <div className="card-header bg-primary text-white">
@@ -95,7 +95,7 @@ const SalesOrderDetails: React.FC = () => {
           <div className="card-body">
             <div className="row mb-3">
               <div className="col-md-6">
-                <strong>Sales ID:</strong> {salesOrder.id}
+                <strong>Sales ID:</strong> {salesOrder.so_number}
               </div>
               <div className="col-md-6">
                 <strong>Customer:</strong> {getCustomerName(salesOrder.customer_id)}

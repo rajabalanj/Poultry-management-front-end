@@ -140,7 +140,7 @@ const PurchaseOrderDetails: React.FC = () => {
 
   return (
     <>
-      <PageHeader title={`Purchase Details: ${purchaseOrder.id}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/purchase-orders" />
+      <PageHeader title={`Purchase Details: ${purchaseOrder.po_number}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/purchase-orders" />
       <div className="container mt-4">
         <div className="card shadow-sm mb-4">
           <div className="card-header bg-primary text-white">
@@ -149,7 +149,7 @@ const PurchaseOrderDetails: React.FC = () => {
           <div className="card-body">
             <div className="row mb-3">
               <div className="col-md-6">
-                <strong>Purchase ID:</strong> {purchaseOrder.id}
+                <strong>Purchase ID:</strong> {purchaseOrder.po_number}
               </div>
               <div className="col-md-6">
                 <strong>Vendor:</strong> {getVendorName(purchaseOrder.vendor_id)}

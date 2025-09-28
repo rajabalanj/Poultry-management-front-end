@@ -295,6 +295,21 @@ export const compositionApi = {
     }
   },
 
+  getFilteredCompositionUsageHistory: async (batchDate: string, batchId?: number): Promise<any[]> => {
+    try {
+      const response = await api.get('/compositions/usage-history/filtered', {
+        params: {
+          batch_date: batchDate,
+          batch_id: batchId || undefined,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch filtered composition usage history'));
+    }
+  },
+
+
   getCompositionUsageHistory: async (compositionId?: number) => {
     try {
       const response = await api.get('/compositions/usage-history', {

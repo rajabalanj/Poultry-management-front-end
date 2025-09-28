@@ -51,6 +51,7 @@ export interface SalesOrderUpdate {
 
 export interface SalesOrderResponse extends SalesOrderBase {
   id: number;
+  so_number: string;
   status: SalesOrderStatus;
   total_amount: number; // Ensure this is 'number', not 'number | null' or 'any'
   total_amount_paid: number;   // Ensure this is 'number', not 'number | null' or 'any'

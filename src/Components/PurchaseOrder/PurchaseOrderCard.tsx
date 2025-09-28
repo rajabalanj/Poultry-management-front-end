@@ -40,7 +40,7 @@ const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = React.memo(
         <div className="card-body p-2">
           <div className="d-flex justify-content-between align-items-center">
             <div>
-              <h6 className="mb-1">Purchase ID: {Purchase.id}</h6>
+              <h6 className="mb-1">Purchase: {Purchase.po_number}</h6>
               <div className="text-sm">
                 <p className="mb-0">Vendor: {vendorName}</p> {/* Use vendorName */}
                 <p className="mb-0">Total Amount: Rs. {(Purchase.total_amount || 0).toFixed(2)}</p>
@@ -54,7 +54,7 @@ const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = React.memo(
                 className="btn btn-primary btn-sm d-flex align-items-center justify-content-center"
                 onClick={() => onView(Purchase.id)}
                 title="View Details"
-                aria-label={`View Details for Purchase ${Purchase.id}`}
+                aria-label={`View Details for Purchase ${Purchase.po_number}`}
               >
                 <i className="bi bi-eye me-1"></i>
                 <span className="text-sm">Details</span>
@@ -63,7 +63,7 @@ const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = React.memo(
                 className="btn btn-success btn-sm d-flex align-items-center justify-content-center"
                 onClick={() => onEdit(Purchase.id)}
                 title="Edit Purchase"
-                aria-label={`Edit Purchase ${Purchase.id}`}
+                aria-label={`Edit Purchase ${Purchase.po_number}`}
               >
                 <i className="bi bi-pencil-square me-1"></i>
                 <span className="text-sm">Edit</span>
@@ -72,7 +72,7 @@ const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = React.memo(
                 className="btn btn-danger btn-sm d-flex align-items-center justify-content-center"
                 onClick={() => onDelete(Purchase.id)}
                 title="Delete Purchase"
-                aria-label={`Delete Purchase ${Purchase.id}`}
+                aria-label={`Delete Purchase ${Purchase.po_number}`}
               >
                 <i className="bi bi-trash me-1"></i>
                 <span className="text-sm">Delete</span>
@@ -81,7 +81,7 @@ const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = React.memo(
                 className="btn btn-primary btn-sm d-flex align-items-center justify-content-center"
                 onClick={() => onAddPayment(Purchase.id)}
                 title="Add Payment"
-                aria-label={`Add Payment for Purchase ${Purchase.id}`}
+                aria-label={`Add Payment for Purchase ${Purchase.po_number}`}
               >
                 <i className="bi bi-wallet-fill me-1"></i>
                 <span className="text-sm">Add Payment</span>
