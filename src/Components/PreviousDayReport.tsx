@@ -189,10 +189,9 @@ const PreviousDayReport = () => {
           <table className="table table-bordered" ref={tableRef}>
             <thead>
               <tr>
-                {!batchId && <th>Date Range</th>}
                 {batchId && <th>Batch Date</th>}
                 <th>Shed No</th>
-                <th>Age</th>
+                <th>{!batchId ? "Highest Age" : "Age"}</th>
                 <th>Opening</th>
                 <th>Mortality</th>
                 <th>Culls</th>
@@ -203,7 +202,6 @@ const PreviousDayReport = () => {
                 <th>Total Eggs</th>
                 <th>HD</th>
                 <th>Standard</th>
-                {!batchId && <th>Days Count</th>}
                 {batchId && <th>Edit</th>}
               </tr>
             </thead>
@@ -230,11 +228,10 @@ const PreviousDayReport = () => {
                   }
 
                   return (
-                    <tr key={`${row.batch_id}-${row.batch_date}`}>
-                      {!batchId && <td>{row.date_range}</td>}
+                    <tr key={!batchId ? row.batch_id : `${row.batch_id}-${row.batch_date}`}>
                       {batchId && <td>{row.batch_date}</td>}
                       <td>{row.shed_no}</td>
-                      <td>{row.age}</td>
+                      <td>{!batchId ? row.highest_age : row.age}</td>
                       <td>{row.opening_count}</td>
                       <td>{row.mortality}</td>
                       <td>{row.culls}</td>
@@ -247,12 +244,11 @@ const PreviousDayReport = () => {
                         {row.hd !== undefined ? Number(row.hd).toFixed(5) : ''}
                       </td>
                       <td>{row.standard_hen_day_percentage !== undefined ? row.standard_hen_day_percentage.toFixed(2) : ''}</td>
-                      {!batchId && <td>{row.days_count}</td>}
                       {batchId && (
                         <td>
                           <button
                             className="btn btn-sm btn-warning"
-                            onClick={() => handleEdit(row.batch_id, row.batch_date)}
+                            onClick={() => handleEdit(row.batch_id, row.batch_date!)}
                           >Edit</button>
                         </td>
                       )}

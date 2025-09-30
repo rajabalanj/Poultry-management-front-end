@@ -155,23 +155,52 @@ const EditBatch: React.FC = () => {
         subtitle={`Update Data ${batch.batch_no}`}
         buttonLabel="Back"
       />
-      <div className="container-fluid">
-        <div className="p-4">
-          <div className="card shadow-sm mb-4">
-            <div className="card-header bg-primary text-white fw-bold d-flex justify-content-between align-items-center">
-              <h5 className="mb-0">Update Birds and Eggs</h5>
-            </div>
-            <div className="card-body">
-              <form onSubmit={handleSubmit}>
-                <div className="row">
-                  {batch_type === 'Layer' && (
-                    <>
-                      <h4 className="mb-3 border-bottom pb-1 text-primary">
-                        Eggs
-                      </h4>
-                      <div className="col-12 col-md-6">
-                        <div className="row g-3 mb-4">
-                          <div className="col-6">
+      <div className="container mt-4">
+        <div className="card shadow-sm mb-4">
+          <div className="card-body">
+            <form onSubmit={handleSubmit}>
+              <div className="row">
+                {/* Birds Section */}
+                <div className="col-lg-6">
+                  <div className="card shadow-sm mb-4">
+                    <div className="card-header bg-primary text-white">
+                      <h5 className="mb-0">Birds</h5>
+                    </div>
+                    <div className="card-body">
+                      <div className="mb-3">
+                        <label className="form-label">Mortality</label>
+                        <input
+                          type="number"
+                          className="form-control"
+                          value={batch.mortality}
+                          min="0"
+                          onChange={(e) => handleNumberInput(e.target.value, "mortality")}
+                        />
+                      </div>
+                      <div className="mb-3">
+                        <label className="form-label">Culls</label>
+                        <input
+                          type="number"
+                          className="form-control"
+                          value={batch.culls}
+                          min="0"
+                          onChange={(e) => handleNumberInput(e.target.value, "culls")}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Eggs Section */}
+                {batch_type === 'Layer' && (
+                  <div className="col-lg-6">
+                    <div className="card shadow-sm mb-4">
+                      <div className="card-header bg-primary text-white">
+                        <h5 className="mb-0">Eggs</h5>
+                      </div>
+                      <div className="card-body">
+                        <div className="row g-3">
+                          <div className="col-md-4">
                             <label className="form-label">Table</label>
                             <input
                               type="number"
@@ -181,7 +210,7 @@ const EditBatch: React.FC = () => {
                               onChange={(e) => handleNumberInput(e.target.value, "table_eggs")}
                             />
                           </div>
-                          <div className="col-6">
+                          <div className="col-md-4">
                             <label className="form-label">Jumbo</label>
                             <input
                               type="number"
@@ -191,160 +220,146 @@ const EditBatch: React.FC = () => {
                               onChange={(e) => handleNumberInput(e.target.value, "jumbo")}
                             />
                           </div>
+                          <div className="col-md-4">
+                            <label className="form-label">CR</label>
+                            <input
+                              type="number"
+                              className="form-control"
+                              value={batch.cr}
+                              min="0"
+                              onChange={(e) => handleNumberInput(e.target.value, "cr")}
+                            />
+                          </div>
                         </div>
-                        <div className="mb-4">
-                          <label className="form-label">CR</label>
-                          <input
-                            type="number"
-                            className="form-control"
-                            value={batch.cr}
-                            min="0"
-                            onChange={(e) => handleNumberInput(e.target.value, "cr")}
-                          />
-                        </div>
-                        <div className="bg-light p-4 rounded mb-4">
+                        <div className="bg-light p-3 rounded mt-3">
                           <div className="d-flex justify-content-between align-items-center">
-                            <h5 className="mb-0">Total Eggs</h5>
-                            <span className="h4 text-primary mb-0">{totalEggs}</span>
+                            <h6 className="mb-0">Total Eggs</h6>
+                            <span className="h5 text-primary mb-0">{totalEggs}</span>
                           </div>
                         </div>
                       </div>
-                    </>
-                  )}
-                  <h4 className="mb-3 border-bottom pb-1 text-primary">
-                    Birds
-                  </h4>
-                  <div className="col-12 col-md-6">
-                    <div className="mb-4">
-                      <label className="form-label">Mortality</label>
-                      <input
-                        type="number"
-                        className="form-control"
-                        value={batch.mortality}
-                        min="0"
-                        onChange={(e) => handleNumberInput(e.target.value, "mortality")}
-                      />
-                    </div>
-                    <div className="mb-4">
-                      <label className="form-label">Culls</label>
-                      <input
-                        type="number"
-                        className="form-control"
-                        value={batch.culls}
-                        min="0"
-                        onChange={(e) => handleNumberInput(e.target.value, "culls")}
-                      />
                     </div>
                   </div>
-                  <div className="mb-4">
-                    <label className="form-label">Notes</label>
-                    <textarea
-                      className="form-control"
-                      value={batch.notes}
-                      onChange={(e) => setBatch((prev) => (prev ? { ...prev, notes: e.target.value } : null))}
-                    />
-                  </div>
+                )}
 
+                {/* Notes Section */}
+                <div className="col-12">
+                  <div className="card shadow-sm mb-4">
+                    <div className="card-header bg-light">
+                      <h5 className="mb-0">Notes</h5>
+                    </div>
+                    <div className="card-body">
+                      <textarea
+                        className="form-control"
+                        value={batch.notes}
+                        onChange={(e) => setBatch((prev) => (prev ? { ...prev, notes: e.target.value } : null))}
+                        rows={3}
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div className="mt-4 d-flex justify-content-center">
-                  <button type="submit" className="btn btn-primary me-2">
-                    Save Changes
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => navigate(-1)}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
+              </div>
+
+              <div className="mt-3 d-flex justify-content-center">
+                <button type="submit" className="btn btn-primary me-2">
+                  Save Changes
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => navigate(-1)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
           </div>
+        </div>
 
-          <div className="card shadow-sm">
-            <div className="card-header bg-primary text-white fw-bold d-flex justify-content-between align-items-center">
-              <h5 className="mb-0">Update Feed</h5>
-            </div>
-            <div className="card-body">
-              <div className="mb-3">
-                <label htmlFor="compositionSelect" className="form-label">Select Composition:</label>
-                <select
-                  id="compositionSelect"
-                  className="form-select form-select-sm"
-                  value={selectedCompositionId || ""}
-                  onChange={(e) => setSelectedCompositionId(Number(e.target.value))}
-                >
-                  <option value="">Select a Composition</option>
-                  {compositions.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="d-flex align-items-center gap-2 mb-2">
-                <span>Times:</span>
+        {/* Update Feed Section */}
+        <div className="card shadow-sm mb-4">
+          <div className="card-header bg-primary text-white">
+            <h5 className="mb-0">Update Feed</h5>
+          </div>
+          <div className="card-body">
+            <div className="row">
+              <div className="col-md-6">
+                <div className="mb-3">
+                  <label htmlFor="compositionSelect" className="form-label">Select Composition:</label>
+                  <select
+                    id="compositionSelect"
+                    className="form-select"
+                    value={selectedCompositionId || ""}
+                    onChange={(e) => setSelectedCompositionId(Number(e.target.value))}
+                  >
+                    <option value="">Select a Composition</option>
+                    {compositions.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="d-flex align-items-center gap-2 mb-3">
+                  <span>Times:</span>
+                  <button
+                    className="btn btn-danger btn-sm"
+                    onClick={() => setTimesToUse((prev) => Math.max(1, prev - 1))}
+                  >
+                    -
+                  </button>
+                  <span>{timesToUse}</span>
+                  <button
+                    className="btn btn-success btn-sm"
+                    onClick={() => setTimesToUse((prev) => prev + 1)}
+                  >
+                    +
+                  </button>
+                </div>
                 <button
-                  className="btn btn-danger btn-sm"
-                  onClick={() => setTimesToUse((prev) => Math.max(1, prev - 1))}
-                >
-                  -
-                </button>
-                <span>{timesToUse}</span>
-                <button
-                  className="btn btn-success btn-sm"
-                  onClick={() => setTimesToUse((prev) => prev + 1)}
-                >
-                  +
-                </button>
-              </div>
-
-              <div className="d-flex gap-2">
-                <button
-                  className="btn btn-primary btn-sm"
+                  className="btn btn-primary"
                   onClick={handleUseComposition}
                 >
                   Confirm
                 </button>
               </div>
-
-              {usageHistory.length > 0 && (
-                <div className="mt-4">
-                  <h6 className="mb-3">Feed Usage for this day</h6>
-                  <div className="table-responsive">
-                    <table className="table table-sm table-bordered">
-                      <thead>
-                        <tr>
-                          <th>Composition</th>
-                          <th>Times Used</th>
-                          <th>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {usageHistory.map((item) => (
-                          <tr key={item.id}>
-                            <td>{item.composition_name}</td>
-                            <td>{item.times}</td>
-                            <td>
-                              <button
-                                className="btn btn-sm btn-outline-danger"
-                                onClick={() => {
-                                  setUsageToRevert(item.id);
-                                  setShowRevertModal(true);
-                                }}
-                              >
-                                Revert
-                              </button>
-                            </td>
+              <div className="col-md-6">
+                {usageHistory.length > 0 && (
+                  <div className="mt-3 mt-md-0">
+                    <h6 className="mb-3">Feed Usage for this day</h6>
+                    <div className="table-responsive">
+                      <table className="table table-sm table-bordered">
+                        <thead>
+                          <tr>
+                            <th>Composition</th>
+                            <th>Times Used</th>
+                            <th>Actions</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {usageHistory.map((item) => (
+                            <tr key={item.id}>
+                              <td>{item.composition_name}</td>
+                              <td>{item.times}</td>
+                              <td>
+                                <button
+                                  className="btn btn-sm btn-outline-danger"
+                                  onClick={() => {
+                                    setUsageToRevert(item.id);
+                                    setShowRevertModal(true);
+                                  }}
+                                >
+                                  Revert
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>

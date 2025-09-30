@@ -28,19 +28,21 @@ const CompositionUsageHistory = () => {
 
   useEffect(() => {
     const fetchHistory = async () => {
-      console.log("compositionId:", compositionId);
       try {
-        if (!compositionId) return;
         setLoading(true);
-        const [historyData, compositionData] = await Promise.all([
-          compositionApi.getCompositionUsageHistoryById(Number(compositionId)),
-          compositionApi.getComposition(Number(compositionId)),
-        ]);
-        setHistory(historyData);
-        setComposition(compositionData);
-        console.log("Fetched composition usage history:", historyData);
+        if (compositionId) {
+          const [historyData, compositionData] = await Promise.all([
+            compositionApi.getCompositionUsageHistoryById(Number(compositionId)),
+            compositionApi.getComposition(Number(compositionId)),
+          ]);
+          setHistory(historyData);
+          setComposition(compositionData);
+        } else {
+          const historyData = await compositionApi.getCompositionUsageHistory();
+          setHistory(historyData);
+        }
       } catch (err) {
-        setError("Failed to load usage history or composition details");
+        setError("Failed to load usage history");
       } finally {
         setLoading(false);
       }
@@ -62,7 +64,7 @@ const CompositionUsageHistory = () => {
   return (
     <>
     <PageHeader
-        title={composition ? `Usage History for "${composition.name}"` : (history.length > 0 && history[0].composition_name ? `Usage History for "${history[0].composition_name}"` : "Composition Usage History")}
+        title={composition ? `Usage History for "${composition.name}"` : "Composition Usage History"}
         buttonLabel="Back to Feed Mill"
         buttonLink="/feed-mill-stock"
       />
@@ -76,6 +78,7 @@ const CompositionUsageHistory = () => {
             <thead>
               <tr>
                 <th>Date</th>
+                {!compositionId && <th>Composition</th>}
                 <th>Times Used</th>
                 <th>Total Weight (kg)</th>
                 <th>Shed</th>
@@ -85,12 +88,13 @@ const CompositionUsageHistory = () => {
             <tbody>
               {history.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center">No usage history found.</td>
+                  <td colSpan={compositionId ? 5 : 6} className="text-center">No usage history found.</td>
                 </tr>
               ) : (
                 history.map((item) => (
                   <tr key={item.id}>
                     <td>{new Date(item.used_at).toLocaleDateString()}</td>
+                    {!compositionId && <td>{item.composition_name}</td>}
                     <td>{item.times}</td>
                     <td>{getCompositionWeight(item) * item.times}</td>
                     <td>{item.shed_no}</td>

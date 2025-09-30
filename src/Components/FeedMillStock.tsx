@@ -189,6 +189,12 @@ function FeedMillStock() {
             <i className="bi bi-plus-lg me-1"></i>Create
           </button>
         )}
+        <button
+          onClick={() => navigate('/compositions/usage-history')}
+          className="btn btn-sm btn-info"
+        >
+          View All Usage
+        </button>
       </div>
       {selectedComposition && viewState !== "edit" && viewState !== "add" && (
         <div className="mt-3">

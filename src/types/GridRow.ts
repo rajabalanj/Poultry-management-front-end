@@ -2,8 +2,9 @@ export interface GridRow {
     batch_id: number;
     shed_no: string;
     batch_no: string;
-    batch_date: string;
-    age: string;
+    batch_date?: string;
+    age?: string;
+    highest_age?: number;
     opening_count: number;
     mortality: number;
     culls: number;

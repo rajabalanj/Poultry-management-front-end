@@ -93,6 +93,10 @@ const App: React.FC = () => {
                 element={<PreviousDayReport />}
               />
               <Route
+                path="/compositions/usage-history"
+                element={<CompositionUsageHistory />}
+              />
+              <Route
                 path="/compositions/:compositionId/usage-history"
                 element={<CompositionUsageHistory />}
               />

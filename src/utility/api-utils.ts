@@ -12,11 +12,12 @@ export const fetchBatchData = async (startDate: string, endDate: string, batchId
       batchId ? Number(batchId) : undefined
     );
 
-    const details = response.details.map((batch: DailyBatch) => ({
+    const details = response.details.map((batch: any) => ({
       batch_id: batch.batch_id,
       shed_no: batch.shed_no,
       batch_no: batch.batch_no,
       age: batch.age,
+      highest_age: batch.highest_age,
       opening_count: batch.opening_count,
       mortality: batch.mortality,
       culls: batch.culls,
@@ -28,8 +29,6 @@ export const fetchBatchData = async (startDate: string, endDate: string, batchId
       batch_date: batch.batch_date,
       hd: batch.hd,
       standard_hen_day_percentage: batch.standard_hen_day_percentage || 0,
-      date_range: batchId ? undefined : `${startDate} to ${endDate}`,
-      days_count: batchId ? undefined : batch.days_count,
     }));
 
     return { details, summary: response.summary };
