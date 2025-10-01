@@ -54,13 +54,13 @@ const BatchCard: React.FC<{
       </div>
       <div className="mt-2 text-sm">
         <div className="row">
-          <div className="col d-flex align-items-center">
-            <strong className="me-2">Feed (A/S kg):</strong>
+          <div className="col d-flex align-items-center my-2 md-my-0">
+            <strong className="me-2">Feed (Actual/Standard, kg):</strong>
             {getPerformanceIndicator(batch.feed_in_kg, batch.standard_feed_in_kg)}
             <span className="ms-1"> {batch.feed_in_kg ?? 'N/A'} / {batch.standard_feed_in_kg ?? 'N/A'}</span>
           </div>
           <div className="col d-flex align-items-center">
-            <strong className="me-2">HD% (A/S):</strong>
+            <strong className="me-2">HD% (Actual/Standard):</strong>
             {getPerformanceIndicator(batch.hd, batch.standard_hen_day_percentage, 100)}
             <span className="ms-1"> {(batch.hd !== undefined && batch.hd !== null) ? (batch.hd * 100).toFixed(2) : 'N/A'} / {batch.standard_hen_day_percentage ?? 'N/A'}</span>
           </div>
