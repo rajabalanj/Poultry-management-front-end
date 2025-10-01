@@ -3,6 +3,19 @@ import { useNavigate } from "react-router-dom";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { DailyBatch } from "../types/daily_batch";
 
+const getPerformanceIndicator = (actual?: number, standard?: number, actualMultiplier = 1) => {
+  if (actual === undefined || standard === undefined || actual === null || standard === null) {
+    return <span className="text-muted">-</span>;
+  }
+
+  const actualValue = actual * actualMultiplier;
+
+  if (actualValue >= standard) {
+    return <i className="bi bi-arrow-up-circle text-success" title="Above or at standard"></i>;
+  }
+  return <i className="bi bi-arrow-down-circle text-danger" title="Below standard"></i>;
+};
+
 const BatchCard: React.FC<{
   batch: DailyBatch;
   onView: (batch_id: number, batchDate: string) => void;
@@ -37,6 +50,20 @@ const BatchCard: React.FC<{
             <i className="bi bi-journal-text me-1"></i>
             <span className="text-sm">Record Daily Data</span>
           </button>
+        </div>
+      </div>
+      <div className="mt-2 text-sm">
+        <div className="row">
+          <div className="col d-flex align-items-center">
+            <strong className="me-2">Feed (A/S kg):</strong>
+            {getPerformanceIndicator(batch.feed_in_kg, batch.standard_feed_in_kg)}
+            <span className="ms-1"> {batch.feed_in_kg ?? 'N/A'} / {batch.standard_feed_in_kg ?? 'N/A'}</span>
+          </div>
+          <div className="col d-flex align-items-center">
+            <strong className="me-2">HD% (A/S):</strong>
+            {getPerformanceIndicator(batch.hd, batch.standard_hen_day_percentage, 100)}
+            <span className="ms-1"> {(batch.hd !== undefined && batch.hd !== null) ? (batch.hd * 100).toFixed(2) : 'N/A'} / {batch.standard_hen_day_percentage ?? 'N/A'}</span>
+          </div>
         </div>
       </div>
     </div>

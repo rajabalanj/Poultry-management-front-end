@@ -202,6 +202,8 @@ const PreviousDayReport = () => {
                 <th>Total Eggs</th>
                 <th>HD</th>
                 <th>Standard</th>
+                <th>Actual Feed</th>
+                <th>Standard Feed</th>
                 {batchId && <th>Edit</th>}
               </tr>
             </thead>
@@ -244,6 +246,8 @@ const PreviousDayReport = () => {
                         {row.hd !== undefined ? Number(row.hd).toFixed(5) : ''}
                       </td>
                       <td>{row.standard_hen_day_percentage !== undefined ? row.standard_hen_day_percentage.toFixed(2) : ''}</td>
+                      <td>{row.actual_feed_consumed}</td>
+                      <td>{row.standard_feed_consumption}</td>
                       {batchId && (
                         <td>
                           <button
@@ -294,6 +298,8 @@ const PreviousDayReport = () => {
             <div className="col-md-3"><span className="fw-bold">Total Eggs:</span> {summaryData.total_eggs}</div>
             <div className="col-md-3"><span className="fw-bold">Average HD:</span> {summaryData.hd}%</div>
             <div className="col-md-3"><span className="fw-bold">Average Standard HD:</span> {summaryData.standard_hen_day_percentage}%</div>
+            {summaryData.actual_feed_consumed && <div className="col-md-3"><span className="fw-bold">Total Actual Feed Consumed:</span> {summaryData.actual_feed_consumed}</div>}
+            {summaryData.standard_feed_consumption && <div className="col-md-3"><span className="fw-bold">Total Standard Feed Consumption:</span> {summaryData.standard_feed_consumption}</div>}
           </div>
         </div>
       )}

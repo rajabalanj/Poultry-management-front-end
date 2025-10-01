@@ -16,6 +16,8 @@ export interface DailyBatch {
   hd: number; // Computed field
   notes?: string;
   standard_hen_day_percentage?: number; // 0-100, default 0, accepts up to 2 decimal places
+  feed_in_kg?: number;
+  standard_feed_in_kg?: number;
   batch_type?: 'Chick' | 'Layer' | 'Grower';
   date_range?: string; // Optional field for date range display
   days_count?: number; // Optional field for days count display

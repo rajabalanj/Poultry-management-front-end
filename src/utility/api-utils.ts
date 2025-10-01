@@ -29,6 +29,8 @@ export const fetchBatchData = async (startDate: string, endDate: string, batchId
       batch_date: batch.batch_date,
       hd: batch.hd,
       standard_hen_day_percentage: batch.standard_hen_day_percentage || 0,
+      actual_feed_consumed: batch.actual_feed_consumed,
+      standard_feed_consumption: batch.standard_feed_consumption,
     }));
 
     return { details, summary: response.summary };
@@ -60,6 +62,8 @@ export const exportBatchDataToExcel = (gridData: GridRow[], batchId?: string): v
       'Total Eggs',
       'HD',
       'Standard HD Percentage',
+      'Actual Feed Consumed',
+      'Standard Feed Consumption',
     ],
     ...gridData.map((row) => [
       row.batch_no,
@@ -76,6 +80,8 @@ export const exportBatchDataToExcel = (gridData: GridRow[], batchId?: string): v
       row.total_eggs,
       row.hd,
       row.standard_hen_day_percentage?.toFixed(2), // Ensure 2 decimal places
+      row.actual_feed_consumed,
+      row.standard_feed_consumption,
     ]),
   ]
     .map((e) => e.join(','))
