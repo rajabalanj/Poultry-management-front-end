@@ -1,10 +1,12 @@
  import React, { useState } from 'react';
  import { toast } from 'react-toastify';
+ import { Modal, Button } from 'react-bootstrap';
  import PageHeader from './Layout/PageHeader';
  import { DateSelector } from './DateSelector';
- import { financialReportsApi } from '../services/api';
- import { ProfitAndLoss, BalanceSheet } from '../types/financialReports';
- 
+ import { financialReportsApi, operationalExpenseApi } from '../services/api';
+ import { BalanceSheet, ProfitAndLoss } from '../types/financialReports';
+ import { OperationalExpense } from '../types/operationalExpense';
+
  type ReportType = 'pnl' | 'balance-sheet';
  
  const FinancialReports: React.FC = () => {
@@ -16,11 +18,17 @@
    const [pnlEndDate, setPnlEndDate] = useState(today);
    const [pnlData, setPnlData] = useState<ProfitAndLoss | null>(null);
    const [pnlLoading, setPnlLoading] = useState(false);
- 
+
    // Balance Sheet State
    const [bsAsOfDate, setBsAsOfDate] = useState(today);
    const [bsData, setBsData] = useState<BalanceSheet | null>(null);
    const [bsLoading, setBsLoading] = useState(false);
+
+   // Operational Expenses Modal State
+   const [showOpExModal, setShowOpExModal] = useState(false);
+   const [opExDetails, setOpExDetails] = useState<OperationalExpense[]>([]);
+   const [opExLoading, setOpExLoading] = useState(false);
+   const [opExError, setOpExError] = useState<string | null>(null);
  
    const handleFetchPnl = async () => {
      if (new Date(pnlStartDate) > new Date(pnlEndDate)) {
@@ -52,6 +60,22 @@
      }
    };
  
+   const handleShowOpExDetails = async () => {
+     setShowOpExModal(true);
+     setOpExLoading(true);
+     setOpExError(null);
+     try {
+       const data = await operationalExpenseApi.getOperationalExpenses(pnlStartDate, pnlEndDate);
+       setOpExDetails(data);
+     } catch (error: any) {
+       const message = error.message || 'Failed to fetch operational expense details.';
+       setOpExError(message);
+       toast.error(message);
+     } finally {
+       setOpExLoading(false);
+     }
+   };
+
    const renderPnlReport = () => {
      if (pnlLoading) return <div className="text-center p-4"><span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...</div>;
      if (!pnlData) return <p className="text-center text-muted p-4">Select a date range and click "Get Report" to view the Profit & Loss statement.</p>;
@@ -64,7 +88,13 @@
            <div className="list-group-item d-flex justify-content-between"><span>Revenue</span> <strong>Rs. {Number(pnlData.revenue || 0).toFixed(2)}</strong></div>
            <div className="list-group-item d-flex justify-content-between"><span>Cost of Goods Sold (COGS)</span> <strong>- Rs. {Number(pnlData.cogs || 0).toFixed(2)}</strong></div>
            <div className="list-group-item d-flex justify-content-between list-group-item-primary"><span>Gross Profit</span> <strong>Rs. {Number(pnlData.gross_profit || 0).toFixed(2)}</strong></div>
-           <div className="list-group-item d-flex justify-content-between"><span>Operating Expenses</span> <strong>- Rs. {Number(pnlData.operating_expenses || 0).toFixed(2)}</strong></div>
+           <div className="list-group-item d-flex justify-content-between align-items-center">
+             <div>
+               <span>Operating Expenses</span>
+               <a href="#" onClick={handleShowOpExDetails} className="ms-2 small">(View Details)</a>
+             </div>
+             <strong>- Rs. {Number(pnlData.operating_expenses || 0).toFixed(2)}</strong>
+           </div>
            <div className="list-group-item d-flex justify-content-between list-group-item-success"><span>Net Income</span> <strong>Rs. {Number(pnlData.net_income || 0).toFixed(2)}</strong></div>
          </div>
        </div>
@@ -165,6 +195,45 @@
              )}
            </div>
          </div>
+
+         <Modal show={showOpExModal} onHide={() => setShowOpExModal(false)} centered size="lg">
+           <Modal.Header closeButton>
+             <Modal.Title>Operational Expense Details</Modal.Title>
+           </Modal.Header>
+           <Modal.Body>
+             {opExLoading ? (
+               <div className="text-center">Loading...</div>
+             ) : opExError ? (
+               <div className="alert alert-danger">{opExError}</div>
+             ) : opExDetails.length > 0 ? (
+               <div className="table-responsive">
+                 <table className="table table-striped">
+                   <thead>
+                     <tr>
+                       <th>Date</th>
+                       <th>Expense Type</th>
+                       <th>Amount</th>
+                     </tr>
+                   </thead>
+                   <tbody>
+                     {opExDetails.map(expense => (
+                       <tr key={expense.id}>
+                         <td>{new Date(expense.date).toLocaleDateString()}</td>
+                         <td>{expense.expense_type}</td>
+                         <td>{Number(expense.amount).toFixed(2)}</td>
+                       </tr>
+                     ))}
+                   </tbody>
+                 </table>
+               </div>
+             ) : (
+               <p>No operational expenses found for the selected period.</p>
+             )}
+           </Modal.Body>
+           <Modal.Footer>
+             <Button variant="secondary" onClick={() => setShowOpExModal(false)}>Close</Button>
+           </Modal.Footer>
+         </Modal>
        </div>
      </>
    );

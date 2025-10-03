@@ -33,6 +33,7 @@ import {
   SalesOrderItemCreate,
   SalesOrderItemUpdate,
 } from '../types/SalesOrderItem';
+import { OperationalExpense } from '../types/operationalExpense';
 import { ProfitAndLoss, BalanceSheet } from '../types/financialReports'; // NEW IMPORT
 // Define types for our data
 // Define types for our data
@@ -946,6 +947,55 @@ export const financialReportsApi = {
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch Balance Sheet report'));
+    }
+  },
+};
+
+// NEW EXPORT
+export const operationalExpenseApi = {
+  createOperationalExpense: async (expenseData: Omit<OperationalExpense, 'id' | 'tenant_id'>): Promise<OperationalExpense> => {
+    try {
+      const response = await api.post<OperationalExpense>("/operational-expenses/", expenseData);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to create operational expense'));
+    }
+  },
+
+  getOperationalExpenses: async (startDate: string, endDate: string): Promise<OperationalExpense[]> => {
+    try {
+      const response = await api.get<OperationalExpense[]>("/operational-expenses/", {
+        params: { start_date: startDate, end_date: endDate },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch operational expenses'));
+    }
+  },
+
+  getOperationalExpense: async (expense_id: number): Promise<OperationalExpense> => {
+    try {
+      const response = await api.get<OperationalExpense>(`/operational-expenses/${expense_id}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch operational expense'));
+    }
+  },
+
+  updateOperationalExpense: async (expense_id: number, expenseData: Partial<Omit<OperationalExpense, 'id' | 'tenant_id'>>): Promise<OperationalExpense> => {
+    try {
+      const response = await api.put<OperationalExpense>(`/operational-expenses/${expense_id}`, expenseData);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to update operational expense'));
+    }
+  },
+
+  deleteOperationalExpense: async (expense_id: number): Promise<void> => {
+    try {
+      await api.delete(`/operational-expenses/${expense_id}`);
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to delete operational expense'));
     }
   },
 };

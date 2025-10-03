@@ -60,6 +60,11 @@ const Slidebar: React.FC = () => {
     location.pathname.startsWith("/sales-orders")
   ) {
     setOpenMenu("sales");
+  } else if (
+    location.pathname.startsWith("/financial-reports") ||
+    location.pathname.startsWith("/operational-expenses")
+  ) {
+    setOpenMenu("finance");
   } else {
     setOpenMenu(null); // No sub-menu related path, so close any open sub-menus
   }
@@ -263,15 +268,36 @@ const Slidebar: React.FC = () => {
                 </li>
                 <hr className="my-2 text-primary" />
 
-                <li className="nav-menu-item fw-bold">
-                  <Link
-                    to="/financial-reports"
-                    className={`nav-menu-link ${location.pathname === "/financial-reports" ? "active-link" : ""}`}
-                    onClick={closeSidebarMobile}
+                {/* Finance - Expandable Item */}
+                <li className="nav-menu-item">
+                  <div
+                    className={`nav-menu-link fw-bold expandable ${openMenu === 'finance' ? 'active' : ''}`}
+                    onClick={() => toggleMenu('finance')}
                   >
-                    <i className="bi bi-graph-up me-2 icon-color-sidebar"></i>
-                    Financial Reports
-                  </Link>
+                    <i className="bi bi-cash-coin me-2 icon-color-sidebar"></i>
+                    Finance
+                    <i className={`bi bi-chevron-right chevron-icon ${openMenu === 'finance' ? 'rotated' : ''}`}></i>
+                  </div>
+                  <ul className={`sub-menu ${openMenu === 'finance' ? 'open' : ''}`}>
+                    <li className="sub-menu-item">
+                      <Link
+                        to="/financial-reports"
+                        className={`nav-menu-link ${location.pathname === "/financial-reports" ? "active-link" : ""}`}
+                        onClick={closeSidebarMobile}
+                      >
+                        Financial Reports
+                      </Link>
+                    </li>
+                    <li className="sub-menu-item">
+                      <Link
+                        to="/operational-expenses"
+                        className={`nav-menu-link ${location.pathname === "/operational-expenses" ? "active-link" : ""}`}
+                        onClick={closeSidebarMobile}
+                      >
+                        Operational Expenses
+                      </Link>
+                    </li>
+                  </ul>
                 </li>
 
                 {/* Configurations - Simple Link */}

@@ -41,6 +41,9 @@ import ProtectedRoute from './Components/Auth/ProtectedRoute';
 import LogoutPage from './Components/Auth/LogoutPage';
 import FinancialReports from './Components/FinancialReports';
 import ErrorBoundary from './Components/ErrorBoundary';
+import OperationalExpensesIndexPage from './Components/OperationalExpenses/OperationalExpensesIndex';
+import CreateOperationalExpenseForm from './Components/OperationalExpenses/CreateOperationalExpenseForm';
+import EditOperationalExpense from './Components/OperationalExpenses/EditOperationalExpense';
 
 const ProtectedRoutes = () => (
   <ProtectedRoute>
@@ -124,6 +127,9 @@ const App: React.FC = () => {
               <Route path="/business-partners/:partner_id/details" element={<BusinessPartnerDetails />} />
               <Route path="/business-partners/:partner_id/edit" element={<EditBusinessPartner />} />
               <Route path="/financial-reports" element={<ErrorBoundary><FinancialReports /></ErrorBoundary>} />
+              <Route path="/operational-expenses" element={<OperationalExpensesIndexPage />} />
+              <Route path="/operational-expenses/create" element={<CreateOperationalExpenseForm />} />
+              <Route path="/operational-expenses/:expense_id/edit" element={<EditOperationalExpense />} />
             </Route>
             <Route
               path="/configurations"
