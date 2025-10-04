@@ -3,17 +3,24 @@ import { useNavigate } from "react-router-dom";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { DailyBatch } from "../types/daily_batch";
 
-const getPerformanceIndicator = (actual?: number, standard?: number, actualMultiplier = 1) => {
+const getPerformanceIndicator = (
+  actual?: number,
+  standard?: number,
+  actualMultiplier = 1,
+  lowerIsBetter = false
+) => {
   if (actual === undefined || standard === undefined || actual === null || standard === null) {
     return <span className="text-muted">-</span>;
   }
 
   const actualValue = actual * actualMultiplier;
 
-  if (actualValue >= standard) {
-    return <i className="bi bi-arrow-up-circle text-success" title="Above or at standard"></i>;
+  const isGood = lowerIsBetter ? actualValue <= standard : actualValue >= standard;
+
+  if (isGood) {
+    return <i className="bi bi-circle-fill text-success" title="Good performance"></i>;
   }
-  return <i className="bi bi-arrow-down-circle text-danger" title="Below standard"></i>;
+  return <i className="bi bi-circle-fill text-danger" title="Needs attention"></i>;
 };
 
 const BatchCard: React.FC<{
@@ -26,7 +33,7 @@ const BatchCard: React.FC<{
       <div className="d-flex justify-content-between align-items-center">
         <div>
           <h6 className="mb-1 text-base">Batch {batch.batch_no}</h6>
-          <div className="text-sm">
+          <div className="text-base">
             <span className="me-2">Shed: {batch.shed_no}</span>
             <span>Age: {batch.age}</span>
           </div>
@@ -55,14 +62,18 @@ const BatchCard: React.FC<{
       <div className="mt-2 text-sm">
         <div className="row">
           <div className="col d-flex align-items-center my-2 md-my-0">
-            <strong className="me-2">Feed (Actual/Standard, kg):</strong>
-            {getPerformanceIndicator(batch.feed_in_kg, batch.standard_feed_in_kg)}
-            <span className="ms-1"> {batch.feed_in_kg ?? 'N/A'} / {batch.standard_feed_in_kg ?? 'N/A'}</span>
+            <strong className="me-2">Feed:</strong>
+            {batch.batch_type === 'Layer' 
+              ? getPerformanceIndicator(batch.feed_in_kg, batch.standard_feed_in_kg, 1, true)
+              : <span className="text-muted">-</span>
+            }
           </div>
           <div className="col d-flex align-items-center">
-            <strong className="me-2">HD% (Actual/Standard):</strong>
-            {getPerformanceIndicator(batch.hd, batch.standard_hen_day_percentage, 100)}
-            <span className="ms-1"> {(batch.hd !== undefined && batch.hd !== null) ? (batch.hd * 100).toFixed(2) : 'N/A'} / {batch.standard_hen_day_percentage ?? 'N/A'}</span>
+            <strong className="me-2">HD%:</strong>
+            {batch.batch_type === 'Layer' 
+              ? getPerformanceIndicator(batch.hd, batch.standard_hen_day_percentage, 100)
+              : <span className="text-muted">-</span>
+            }
           </div>
         </div>
       </div>

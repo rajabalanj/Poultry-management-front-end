@@ -4,7 +4,7 @@ import { saveAs } from 'file-saver';
 import { GridRow } from '../types/GridRow';
 import { DailyBatch } from '../types/daily_batch';
 
-export const fetchBatchData = async (startDate: string, endDate: string, batchId?: string): Promise<{ details: GridRow[], summary: DailyBatch }> => {
+export const fetchBatchData = async (startDate: string, endDate: string, batchId?: string): Promise<{ details: GridRow[], summary: DailyBatch | null }> => {
   try {
     const response = await dailyBatchApi.getSnapshot(
       startDate,
@@ -12,10 +12,14 @@ export const fetchBatchData = async (startDate: string, endDate: string, batchId
       batchId ? Number(batchId) : undefined
     );
 
-    const details = response.details.map((batch: any) => ({
+    let details: GridRow[];
+    let summary: DailyBatch | null = null;
+
+    const mapBatchToGridRow = (batch: any): GridRow => ({
       batch_id: batch.batch_id,
       shed_no: batch.shed_no,
       batch_no: batch.batch_no,
+      batch_type: batch.batch_type,
       age: batch.age,
       highest_age: batch.highest_age,
       opening_count: batch.opening_count,
@@ -31,9 +35,18 @@ export const fetchBatchData = async (startDate: string, endDate: string, batchId
       standard_hen_day_percentage: batch.standard_hen_day_percentage || 0,
       actual_feed_consumed: batch.actual_feed_consumed,
       standard_feed_consumption: batch.standard_feed_consumption,
-    }));
+    });
 
-    return { details, summary: response.summary };
+    if (Array.isArray(response)) {
+      // Case where batchId is provided and API returns an array
+      details = response.map(mapBatchToGridRow);
+    } else {
+      // Case where batchId is not provided and API returns an object
+      details = response.details.map(mapBatchToGridRow);
+      summary = response.summary;
+    }
+
+    return { details, summary };
   } catch (error) {
     console.error('Error fetching data:', error);
     throw new Error('Failed to fetch data');

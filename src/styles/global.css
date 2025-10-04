@@ -395,10 +395,6 @@
   margin: 1rem 0.5rem;
 }
 
-.text-success{
-  color: #3A6000 !important;
-}
-
 
 
 .accordion-button-white-arrow::after {
@@ -451,4 +447,10 @@
 .is-readonly {
   background-color: #e9ecef;
   cursor: not-allowed;
+}
+
+/* Custom extra small button */
+.btn-xs {
+  --bs-btn-padding-y: .1rem;
+  --bs-btn-padding-x: .4rem;
 }

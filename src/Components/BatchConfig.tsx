@@ -18,8 +18,8 @@ const BatchConfigCard: React.FC<{
     <div className="card-body p-2">
       <div className="d-flex justify-content-between align-items-center">
         <div>
-          <h6 className="mb-1 text-sm">Batch {batch.batch_no}</h6>
-          <div className="text-sm">
+          <h6 className="mb-1 text-base">Batch {batch.batch_no}</h6>
+          <div className="text-base">
             <span className="me-2">Shed: {batch.shed_no}</span>
             <span>Age: {batch.age}</span>
           </div>

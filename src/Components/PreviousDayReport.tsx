@@ -22,7 +22,7 @@ const PreviousDayReport = () => {
   const [error, setError] = useState<string | null>(null);
   const [isSharing, setIsSharing] = useState(false);
   const navigate = useNavigate(); // Initialize useNavigate
-  const tableRef = useRef<HTMLTableElement>(null);
+  const reportContentRef = useRef<HTMLDivElement>(null);
 
   const validGridData = gridData.filter(row => row && Object.keys(row).length > 0);
   const totalPages = validGridData.length > 0 ? Math.ceil(validGridData.length / rowsPerPage) : 0;
@@ -61,7 +61,7 @@ const PreviousDayReport = () => {
   };
 
   const handleShare = async () => {
-    if (!tableRef.current) {
+    if (!reportContentRef.current) {
       toast.error("Table element not found.");
       return;
     }
@@ -70,13 +70,20 @@ const PreviousDayReport = () => {
       toast.error("Web Share API is not supported in your browser.");
       return;
     }
-
-    const tableNode = tableRef.current;
+    
+    const contentNode = reportContentRef.current;
     setIsSharing(true);
     const files: File[] = [];
     const originalPage = currentPage;
+
+    const tableNode = contentNode.querySelector('table');
+    if (!tableNode) {
+      toast.error("Table element not found inside report content.");
+      setIsSharing(false);
+      return;
+    }
     // Store original inline styles to restore them later
-    const originalTableStyle = {
+    const originalTableStyle: { width: string; minWidth: string; whiteSpace: string } = {
       width: tableNode.style.width,
       minWidth: tableNode.style.minWidth,
       whiteSpace: tableNode.style.whiteSpace,
@@ -97,7 +104,7 @@ const PreviousDayReport = () => {
           setCurrentPage(i);
         });
 
-        const dataUrl = await htmlToImage.toPng(tableNode, {
+        const dataUrl = await htmlToImage.toPng(contentNode, {
           backgroundColor: '#ffffff', // Set a white background for the image
         });
         const blob = await (await fetch(dataUrl)).blob();
@@ -167,7 +174,7 @@ const PreviousDayReport = () => {
           </div>
           <div className="d-flex gap-2 mt-2 align-self-end">
             <button
-              className="btn btn-primary"
+              className="btn btn-info"
               onClick={handleShare}
               disabled={gridData.length === 0 || isSharing}
             >
@@ -185,8 +192,8 @@ const PreviousDayReport = () => {
       </div>
 
       {validGridData.length > 0 && (
-        <div className="table-responsive">
-          <table className="table table-bordered" ref={tableRef}>
+        <div ref={reportContentRef}>
+          <table className="table table-bordered">
             <thead>
               <tr>
                 {batchId && <th>Batch Date</th>}
@@ -213,21 +220,41 @@ const PreviousDayReport = () => {
                 .map((row) => {
                   let hdCellClassName = '';
                   let hdCellStyle = {};
+                  let feedCellClassName = '';
+                  let feedCellStyle = {};
 
-                  // Apply conditional styling for HD cell
-                  if (row.hd !== undefined && row.standard_hen_day_percentage !== undefined) {
-                    const actualHDPercentage = Number(row.hd) * 100;
-                    const standardHDPercentage = Number(row.standard_hen_day_percentage);
-                    const difference = standardHDPercentage - actualHDPercentage;
-
-                    if (henDayDeviation >= difference) { // Difference is -10 or more (meaning actual HD is at most 10% less than standard, or higher)
-                      hdCellClassName = 'text-success fw-bold';
-                      hdCellStyle = { backgroundColor: '#E8F8D9 ' }; // Light green background
-                    } else { // Difference is between -20 and -10 (actual HD is 10-20% less than standard)
-                      hdCellClassName = 'text-danger fw-bold';
-                      hdCellStyle = { backgroundColor: '#fff9f5' }; // Light yellow background
-                    } 
+                  // Only apply styling for Layer batches
+                  if (row.batch_type === 'Layer') {
+                    // Apply conditional styling for HD cell
+                    if (row.hd !== undefined && row.standard_hen_day_percentage !== undefined) {
+                      const actualHDPercentage = Number(row.hd) * 100;
+                      const standardHDPercentage = Number(row.standard_hen_day_percentage);
+                      const difference = standardHDPercentage - actualHDPercentage;
+  
+                      if (henDayDeviation >= difference) { // Difference is within deviation (e.g., -10 or more)
+                        hdCellClassName = 'text-success fw-bold';
+                        hdCellStyle = { backgroundColor: '#f5fff9' }; // Light green background
+                      } else { // Difference is outside deviation
+                        hdCellClassName = 'text-danger fw-bold';
+                        hdCellStyle = { backgroundColor: '#fff9f5' }; // Light yellow background
+                      }
+                    }
+  
+                    // Apply conditional styling for Feed cell
+                    if (row.actual_feed_consumed !== undefined && row.standard_feed_consumption !== undefined) {
+                      const actualFeed = Number(row.actual_feed_consumed);
+                      const standardFeed = Number(row.standard_feed_consumption);
+  
+                      if (actualFeed <= standardFeed) { // Good performance: actual is less than or equal to standard
+                        feedCellClassName = 'text-success fw-bold';
+                        feedCellStyle = { backgroundColor: '#f5fff9' }; // Light green background
+                      } else { // Needs attention: actual is greater than standard
+                        feedCellClassName = 'text-danger fw-bold';
+                        feedCellStyle = { backgroundColor: '#fff9f5' }; // Light yellow background
+                      }
+                    }
                   }
+
 
                   return (
                     <tr key={!batchId ? row.batch_id : `${row.batch_id}-${row.batch_date}`}>
@@ -243,11 +270,15 @@ const PreviousDayReport = () => {
                       <td>{row.cr}</td>
                       <td>{row.total_eggs}</td>
                       <td className={hdCellClassName} style={hdCellStyle}>
-                        {row.hd !== undefined ? Number(row.hd).toFixed(5) : ''}
+                        {row.hd !== undefined ? (Number(row.hd) * 100).toFixed(2) : ''}
                       </td>
                       <td>{row.standard_hen_day_percentage !== undefined ? row.standard_hen_day_percentage.toFixed(2) : ''}</td>
-                      <td>{row.actual_feed_consumed}</td>
-                      <td>{row.standard_feed_consumption}</td>
+                      <td className={feedCellClassName} style={feedCellStyle}>
+                        {row.actual_feed_consumed !== undefined ? Number(row.actual_feed_consumed).toFixed(2) : ''}
+                      </td>
+                      <td>
+                        {row.standard_feed_consumption !== undefined ? Number(row.standard_feed_consumption).toFixed(2) : ''}
+                      </td>
                       {batchId && (
                         <td>
                           <button
@@ -261,46 +292,46 @@ const PreviousDayReport = () => {
                 })}
             </tbody>
           </table>
-          {totalPages > 1 && (
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <button
-                className="btn btn-secondary"
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-              >
-                Previous
-              </button>
-              <span>
-                Page {currentPage} of {totalPages}
-              </span>
-              <button
-                className="btn btn-secondary"
-                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-              >
-                Next
-              </button>
+          {summaryData && (
+            <div className="mt-4 p-3 border rounded bg-light">
+              <h5 className="mb-3">Report Summary</h5>
+              <div className="row g-3">
+                <div className="col-md-3"><span className="fw-bold">Total Opening:</span> {summaryData.opening_count}</div>
+                <div className="col-md-3"><span className="fw-bold">Total Mortality:</span> {summaryData.mortality}</div>
+                <div className="col-md-3"><span className="fw-bold">Total Culls:</span> {summaryData.culls}</div>
+                <div className="col-md-3"><span className="fw-bold">Total Closing:</span> {summaryData.closing_count}</div>
+                <div className="col-md-3"><span className="fw-bold">Total Table Eggs:</span> {summaryData.table_eggs}</div>
+                <div className="col-md-3"><span className="fw-bold">Total Jumbo:</span> {summaryData.jumbo}</div>
+                <div className="col-md-3"><span className="fw-bold">Total CR:</span> {summaryData.cr}</div>
+                <div className="col-md-3"><span className="fw-bold">Total Eggs:</span> {summaryData.total_eggs}</div>
+                <div className="col-md-3"><span className="fw-bold">Average HD:</span> {Number(summaryData.hd).toFixed(2)}%</div>
+                <div className="col-md-3"><span className="fw-bold">Average Standard HD:</span> {Number(summaryData.standard_hen_day_percentage).toFixed(2)}%</div>
+                {summaryData.actual_feed_consumed && <div className="col-md-3"><span className="fw-bold">Total Actual Feed Consumed:</span> {Number(summaryData.actual_feed_consumed).toFixed(2)}</div>}
+                {summaryData.standard_feed_consumption && <div className="col-md-3"><span className="fw-bold">Total Standard Feed Consumption:</span> {Number(summaryData.standard_feed_consumption).toFixed(2)}</div>}
+              </div>
             </div>
           )}
         </div>
       )}
-      {summaryData && (
-        <div className="mt-4 p-3 border rounded bg-light">
-          <h5 className="mb-3">Report Summary</h5>
-          <div className="row g-3">
-            <div className="col-md-3"><span className="fw-bold">Total Opening:</span> {summaryData.opening_count}</div>
-            <div className="col-md-3"><span className="fw-bold">Total Mortality:</span> {summaryData.mortality}</div>
-            <div className="col-md-3"><span className="fw-bold">Total Culls:</span> {summaryData.culls}</div>
-            <div className="col-md-3"><span className="fw-bold">Total Closing:</span> {summaryData.closing_count}</div>
-            <div className="col-md-3"><span className="fw-bold">Total Table Eggs:</span> {summaryData.table_eggs}</div>
-            <div className="col-md-3"><span className="fw-bold">Total Jumbo Eggs:</span> {summaryData.jumbo}</div>
-            <div className="col-md-3"><span className="fw-bold">Total CR Eggs:</span> {summaryData.cr}</div>
-            <div className="col-md-3"><span className="fw-bold">Total Eggs:</span> {summaryData.total_eggs}</div>
-            <div className="col-md-3"><span className="fw-bold">Average HD:</span> {summaryData.hd}%</div>
-            <div className="col-md-3"><span className="fw-bold">Average Standard HD:</span> {summaryData.standard_hen_day_percentage}%</div>
-            {summaryData.actual_feed_consumed && <div className="col-md-3"><span className="fw-bold">Total Actual Feed Consumed:</span> {summaryData.actual_feed_consumed}</div>}
-            {summaryData.standard_feed_consumption && <div className="col-md-3"><span className="fw-bold">Total Standard Feed Consumption:</span> {summaryData.standard_feed_consumption}</div>}
-          </div>
+      {totalPages > 1 && (
+        <div className="d-flex justify-content-between align-items-center mt-3">
+          <button
+            className="btn btn-secondary"
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </button>
+          <span>
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            className="btn btn-secondary"
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </button>
         </div>
       )}
     </div>

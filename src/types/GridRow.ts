@@ -2,6 +2,7 @@ export interface GridRow {
     batch_id: number;
     shed_no: string;
     batch_no: string;
+    batch_type?: string;
     batch_date?: string;
     age?: string;
     highest_age?: number;
