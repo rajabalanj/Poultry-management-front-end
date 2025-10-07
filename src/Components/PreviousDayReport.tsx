@@ -4,7 +4,7 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from './Layout/PageHeader';
 import { GridRow } from '../types/GridRow';
-import { fetchBatchData, exportBatchDataToExcel } from '../utility/api-utils';
+import { fetchBatchData, exportBatchDataToExcel, fetchWeeklyLayerReport } from '../utility/api-utils';
 import { configApi } from '../services/api';
 import * as htmlToImage from 'html-to-image';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
@@ -15,7 +15,9 @@ const PreviousDayReport = () => {
   // Get dates from URL or use defaults
   const startDate = searchParams.get('start') || '';
   const endDate = searchParams.get('end') || '';
-    const [gridData, setGridData] = useState<GridRow[]>([]);
+  const week = searchParams.get('week') || '';
+
+  const [gridData, setGridData] = useState<GridRow[]>([]);
   const [summaryData, setSummaryData] = useState<GridRow | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const rowsPerPage = 10;
@@ -23,6 +25,11 @@ const PreviousDayReport = () => {
   const [isSharing, setIsSharing] = useState(false);
   const navigate = useNavigate(); // Initialize useNavigate
   const reportContentRef = useRef<HTMLDivElement>(null);
+
+  // New state for weekly report
+  const [weekData, setWeekData] = useState<number | null>(null);
+  const [ageRange, setAgeRange] = useState<string | null>(null);
+  const [henHousing, setHenHousing] = useState<number | null>(null);
 
   const validGridData = gridData.filter(row => row && Object.keys(row).length > 0);
   const totalPages = validGridData.length > 0 ? Math.ceil(validGridData.length / rowsPerPage) : 0;
@@ -38,14 +45,27 @@ const PreviousDayReport = () => {
 
   const fetchData = async () => {
     try {
-      const { details, summary } = await fetchBatchData(
-        startDate,
-        endDate,
-        batchId // Pass undefined if batchId doesn't exist
-      );
-      setGridData(details);
-      setSummaryData(summary);
-      setError(null);
+      if (week && batchId) {
+        const { details, summary, week: responseWeek, age_range, hen_housing } = await fetchWeeklyLayerReport(
+          batchId,
+          week
+        );
+        setGridData(details);
+        setSummaryData(summary);
+        setWeekData(responseWeek);
+        setAgeRange(age_range);
+        setHenHousing(hen_housing);
+        setError(null);
+      } else {
+        const { details, summary } = await fetchBatchData(
+          startDate,
+          endDate,
+          batchId // Pass undefined if batchId doesn't exist
+        );
+        setGridData(details);
+        setSummaryData(summary);
+        setError(null);
+      }
     } catch (error: any) {
       setError(error?.message || 'Failed to fetch data');
       toast.error(error?.message || 'Failed to fetch data');
@@ -54,7 +74,7 @@ const PreviousDayReport = () => {
 
   useEffect(() => {
     fetchData();
-  }, [startDate, endDate, batchId]);
+  }, [startDate, endDate, batchId, week]);
 
   const handleExport = () => {
     exportBatchDataToExcel(gridData, batchId);
@@ -154,7 +174,25 @@ const PreviousDayReport = () => {
       <div className="row mb-4">
         <div className="d-flex flex-column mb-4">
           <div>
-            {batchId ? (
+            {weekData ? (
+              <>
+                <span className="me-3">
+                  Week: {weekData}
+                </span>
+                <span className="me-3">
+                  Age Range: {ageRange}
+                </span>
+                <span className="me-3">
+                  Hen Housing: {henHousing}
+                </span>
+                <span>
+                  Batch No: {(() => {
+                    const found = gridData.find(row => String(row.batch_id) === String(batchId));
+                    return found ? found.batch_no : batchId;
+                  })()}
+                </span>
+              </>
+            ) : batchId ? (
               <>
                 <span className="me-3">
                   Date Range: {startDate} to {endDate}
@@ -303,7 +341,7 @@ const PreviousDayReport = () => {
                 <div className="col-md-3"><span className="fw-bold">Total Table Eggs:</span> {summaryData.table_eggs}</div>
                 <div className="col-md-3"><span className="fw-bold">Total Jumbo:</span> {summaryData.jumbo}</div>
                 <div className="col-md-3"><span className="fw-bold">Total CR:</span> {summaryData.cr}</div>
-                <div className="col-md-3"><span className="fw-bold">Total Eggs:</span> {summaryData.total_eggs}</div>
+                <div className="col-.md-3"><span className="fw-bold">Total Eggs:</span> {summaryData.total_eggs}</div>
                 <div className="col-md-3"><span className="fw-bold">Average HD:</span> {Number(summaryData.hd).toFixed(2)}%</div>
                 <div className="col-md-3"><span className="fw-bold">Average Standard HD:</span> {Number(summaryData.standard_hen_day_percentage).toFixed(2)}%</div>
                 {summaryData.actual_feed_consumed && <div className="col-md-3"><span className="fw-bold">Total Actual Feed Consumed:</span> {Number(summaryData.actual_feed_consumed).toFixed(2)}</div>}

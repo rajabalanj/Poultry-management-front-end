@@ -18,6 +18,9 @@ const BatchDetails: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [startDate, setStartDate] = useState<string>(batch_date || '');
   const [endDate, setEndDate] = useState<string>(batch_date || '');
+  const [reportType, setReportType] = useState('daily'); // 'daily' or 'weekly'
+  const [week, setWeek] = useState('');
+
   // Feed usage state
   const [feedUsage, setFeedUsage] = useState<{ total_feed: number, feed_breakdown: { feed_type: string, amount: number, composition_name?: string, composition_items?: { inventory_item_id: number, inventory_item_name?: string, weight: number, unit?: string }[] }[] } | null>(null);
   const [feedLoading, setFeedLoading] = useState(false);
@@ -85,7 +88,15 @@ const BatchDetails: React.FC = () => {
   }, [batch]);
 
   const handleDownloadReport = () => {
-    navigate(`/previous-day-report/${batch_id}?start=${startDate}&end=${endDate}`);
+    if (reportType === 'weekly') {
+      if (week) {
+        navigate(`/previous-day-report/${batch_id}?week=${week}`);
+      } else {
+        toast.error('Please enter a week number for the weekly report.');
+      }
+    } else {
+      navigate(`/previous-day-report/${batch_id}?start=${startDate}&end=${endDate}`);
+    }
   };
 
   if (isLoading) {
@@ -113,24 +124,66 @@ const BatchDetails: React.FC = () => {
           <div className="card shadow-sm">
             <div className="card-body">
               <h5 className="card-title">Report</h5>
+              <div className="btn-group mb-3" role="group" aria-label="Report type">
+                <input
+                  type="radio"
+                  className="btn-check"
+                  name="reportType"
+                  id="dailyRadio"
+                  autoComplete="off"
+                  checked={reportType === 'daily'}
+                  onChange={() => setReportType('daily')}
+                />
+                <label className="btn btn-outline-primary" htmlFor="dailyRadio">
+                  Daily Report
+                </label>
+
+                <input
+                  type="radio"
+                  className="btn-check"
+                  name="reportType"
+                  id="weeklyRadio"
+                  autoComplete="off"
+                  checked={reportType === 'weekly'}
+                  onChange={() => setReportType('weekly')}
+                />
+                <label className="btn btn-outline-primary" htmlFor="weeklyRadio">
+                  Weekly Report
+                </label>
+              </div>
               <div className="row g-3 align-items-end">
-                <div className="col-12 col-md-4">
-                  <DateSelector
-                    label="Start Date"
-                    value={startDate}
-                    onChange={setStartDate}
-                    maxDate={endDate}
-                  />
-                </div>
-                <div className="col-12 col-md-4">
-                  <DateSelector
-                    label="End Date"
-                    value={endDate}
-                    onChange={setEndDate}
-                    minDate={startDate}
-                    maxDate={new Date().toISOString().split('T')[0]}
-                  />
-                </div>
+                {reportType === 'daily' ? (
+                  <>
+                    <div className="col-12 col-md-4">
+                      <DateSelector
+                        label="Start Date"
+                        value={startDate}
+                        onChange={setStartDate}
+                        maxDate={endDate}
+                      />
+                    </div>
+                    <div className="col-12 col-md-4">
+                      <DateSelector
+                        label="End Date"
+                        value={endDate}
+                        onChange={setEndDate}
+                        minDate={startDate}
+                        maxDate={new Date().toISOString().split('T')[0]}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div className="col-12 col-md-8">
+                    <label className="form-label">Week</label>
+                    <input
+                      type="number"
+                      className="form-control"
+                      value={week}
+                      onChange={(e) => setWeek(e.target.value)}
+                      placeholder="e.g., 18"
+                    />
+                  </div>
+                )}
                 <div className="col-12 col-md-4">
                   <button
                     className="btn btn-primary w-100 mb-2"

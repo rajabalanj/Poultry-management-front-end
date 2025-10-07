@@ -75,6 +75,13 @@ const AddBatch: React.FC = () => {
     }
   };
 
+  const handleBatchNoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (/^\d*$/.test(value)) {
+      setBatchNo(value);
+    }
+  };
+
   return (
     <>
     <PageHeader 
@@ -97,10 +104,10 @@ const AddBatch: React.FC = () => {
             <div className="col-md-6">
               <label className="form-label">Batch Number</label>
               <input
-                type="integer"
+                type="number"
                 className="form-control"
                 value={batch_no}
-                onChange={(e) => setBatchNo(e.target.value)}
+                onChange={handleBatchNoChange}
                 required
                 min="1"
               />

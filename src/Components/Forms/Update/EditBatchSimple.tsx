@@ -86,7 +86,7 @@ const EditBatchSimple: React.FC = () => {
             <div className="col-md-6">
               <label className="form-label">Batch Number</label>
               <input
-                type="text"
+                type="number"
                 className="form-control"
                 value={batchNo}
                 onChange={e => setBatchNo(e.target.value)}

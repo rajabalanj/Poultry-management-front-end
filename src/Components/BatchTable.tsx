@@ -46,16 +46,16 @@ const BatchCard: React.FC<{
             aria-label={`View Details for Batch ${batch.batch_no}`}
           >
             <i className="bi bi-eye me-1"></i>
-            <span className="text-sm">Batch Overview</span>
+            <span className="text-sm">Overview</span>
           </button>
           <button
             className="btn btn-success btn-sm d-flex align-items-center justify-content-center"
             onClick={() => onEdit(batch.batch_id, batch.batch_date)}
-            title="Record Daily Data"
-            aria-label={`Record Daily Data for Batch ${batch.batch_no}`}
+            title="Record Data"
+            aria-label={`Record Data for Batch ${batch.batch_no}`}
           >
             <i className="bi bi-journal-text me-1"></i>
-            <span className="text-sm">Record Daily Data</span>
+            <span className="text-sm">Record Data</span>
           </button>
         </div>
       </div>

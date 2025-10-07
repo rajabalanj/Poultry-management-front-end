@@ -163,7 +163,7 @@ export const calculateTotalEggs = (
   return table_eggs + jumbo + cr;
 };
 
-// Helper to extract error message
+// Helper function to extract error message
 function getApiErrorMessage(error: unknown, fallback: string) {
   if (axios.isAxiosError(error)) {
     return error.response?.data?.detail || error.message || fallback;
@@ -173,6 +173,22 @@ function getApiErrorMessage(error: unknown, fallback: string) {
   }
   return fallback;
 }
+
+export const reportsApi = {
+  getWeeklyLayerReport: async (batch_id: number, week: number): Promise<any> => {
+    try {
+      const response = await api.get(`/reports/weekly-layer-report`, {
+        params: {
+          batch_id,
+          week,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch weekly layer report'));
+    }
+  },
+};
 
 // Move the `getSnapshot` function to a new `dailyBatchApi` object
 export const dailyBatchApi = {
