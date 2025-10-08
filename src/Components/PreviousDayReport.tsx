@@ -1,55 +1,89 @@
 import { useEffect, useState, useRef } from 'react';
-import { flushSync } from 'react-dom'; // Import flushSync
-import { useParams, useSearchParams } from 'react-router-dom';
+import { flushSync } from 'react-dom';
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from './Layout/PageHeader';
 import { GridRow } from '../types/GridRow';
 import { fetchBatchData, exportBatchDataToExcel, fetchWeeklyLayerReport, CumulativeReport } from '../utility/api-utils';
-import { configApi } from '../services/api';
+import { configApi, batchApi } from '../services/api';
 import * as htmlToImage from 'html-to-image';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { DateSelector } from './DateSelector';
+import { BatchResponse } from '../types/batch';
 
 const PreviousDayReport = () => {
-  const { batchId } = useParams<{ batchId?: string }>();
+  const { batchId: batchIdFromUrl } = useParams<{ batchId?: string }>();
   const [searchParams] = useSearchParams();
-  // Get dates from URL or use defaults
-  const startDate = searchParams.get('start') || '';
-  const endDate = searchParams.get('end') || '';
-  const week = searchParams.get('week') || '';
+  const navigate = useNavigate();
 
+  // Component state for data display
   const [gridData, setGridData] = useState<GridRow[]>([]);
   const [summaryData, setSummaryData] = useState<GridRow | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const rowsPerPage = 10;
   const [error, setError] = useState<string | null>(null);
   const [isSharing, setIsSharing] = useState(false);
-  const navigate = useNavigate(); // Initialize useNavigate
   const reportContentRef = useRef<HTMLDivElement>(null);
+  const [henDayDeviation, setHenDayDeviation] = useState(10);
 
-  // New state for weekly report
+  // State for weekly report specific data
   const [weekData, setWeekData] = useState<number | null>(null);
   const [ageRange, setAgeRange] = useState<string | null>(null);
   const [henHousing, setHenHousing] = useState<number | null>(null);
   const [cumulativeReportData, setCumulativeReportData] = useState<CumulativeReport | null>(null);
 
+  // State for the report generation form
+  const [reportType, setReportType] = useState<'daily' | 'weekly'>(searchParams.get('week') ? 'weekly' : 'daily');
+  const [startDate, setStartDate] = useState(searchParams.get('start') || '');
+  const [endDate, setEndDate] = useState(searchParams.get('end') || '');
+  const [week, setWeek] = useState(searchParams.get('week') || '');
+  const [batchNo, setBatchNo] = useState('');
+  const [batches, setBatches] = useState<BatchResponse[]>([]);
+  
+  const rowsPerPage = 10;
   const validGridData = gridData.filter(row => row && Object.keys(row).length > 0);
   const totalPages = validGridData.length > 0 ? Math.ceil(validGridData.length / rowsPerPage) : 0;
-  const [henDayDeviation, setHenDayDeviation] = useState(10); // default fallback
 
   useEffect(() => {
-    // Fetch config on mount
     configApi.getAllConfigs().then(configs => {
       const hdConfig = configs.find(c => c.name === 'henDayDeviation');
       setHenDayDeviation(hdConfig ? Number(hdConfig.value) : 10);
     });
-  }, []);
 
-  const fetchData = async () => {
+    batchApi.getBatches(0, 1000).then(batchData => {
+        const validBatches = Array.isArray(batchData) ? batchData : [];
+        setBatches(validBatches);
+        if (batchIdFromUrl) {
+            const foundBatch = validBatches.find(b => String(b.id) === batchIdFromUrl);
+            if (foundBatch) {
+                setBatchNo(foundBatch.batch_no);
+            }
+        }
+    }).catch(err => {
+        toast.error(err.message || "Failed to load batches.");
+    });
+  }, [batchIdFromUrl]);
+
+  const fetchData = async (batchIdToFetch?: string, start?: string, end?: string, weekToFetch?: string) => {
     try {
-      if (week && batchId) {
+      // Reset previous data and errors
+      setGridData([]);
+      setSummaryData(null);
+      setWeekData(null);
+      setAgeRange(null);
+      setHenHousing(null);
+      setCumulativeReportData(null);
+      setError(null);
+
+      if (reportType === 'weekly') {
+        if (!batchIdToFetch || !weekToFetch) {
+            const msg = 'Batch number and week are required for weekly reports.';
+            toast.error(msg);
+            setError(msg);
+            return;
+        }
+        
         const { details, summary, week: responseWeek, age_range, hen_housing, cumulative_report } = await fetchWeeklyLayerReport(
-          batchId,
-          week
+          batchIdToFetch,
+          weekToFetch
         );
         setGridData(details);
         setSummaryData(summary);
@@ -57,29 +91,60 @@ const PreviousDayReport = () => {
         setAgeRange(age_range);
         setHenHousing(hen_housing);
         setCumulativeReportData(cumulative_report);
-        setError(null);
       } else {
         const { details, summary } = await fetchBatchData(
-          startDate,
-          endDate,
-          batchId // Pass undefined if batchId doesn't exist
+          start || '',
+          end || '',
+          batchIdToFetch
         );
         setGridData(details);
         setSummaryData(summary);
-        setError(null);
       }
     } catch (error: any) {
-      setError(error?.message || 'Failed to fetch data');
-      toast.error(error?.message || 'Failed to fetch data');
+      const errorMsg = error?.message || 'Failed to fetch data';
+      setError(errorMsg);
+      toast.error(errorMsg);
     }
   };
 
+  // Initial data fetch based on URL parameters
   useEffect(() => {
-    fetchData();
-  }, [startDate, endDate, batchId, week]);
+    fetchData(batchIdFromUrl, searchParams.get('start') || '', searchParams.get('end') || '', searchParams.get('week') || '');
+  }, [batchIdFromUrl, searchParams]);
+
+  const handleViewReport = () => {
+    let batchIdToFetch: string | undefined;
+
+    if (batchNo) {
+        const foundBatch = batches.find(b => b.batch_no.toLowerCase() === batchNo.toLowerCase().trim());
+        if (foundBatch) {
+            batchIdToFetch = String(foundBatch.id);
+        } else {
+          if (batchNo) { // only error if a batchNo was actually selected/entered
+            toast.error(`Batch with number "${batchNo}" not found.`);
+            return;
+          }
+        }
+    }
+
+    const params = new URLSearchParams();
+    if (reportType === 'weekly') {
+        if (week) params.set('week', week);
+    } else {
+        if (startDate) params.set('start', startDate);
+        if (endDate) params.set('end', endDate);
+    }
+    
+    const path = batchIdToFetch ? `/previous-day-report/${batchIdToFetch}` : '/previous-day-report';
+    navigate(`${path}?${params.toString()}`);
+    
+    // We call fetchData directly instead of relying on useEffect from navigation
+    fetchData(batchIdToFetch, startDate, endDate, week);
+  };
 
   const handleExport = () => {
-    exportBatchDataToExcel(gridData, batchId);
+    const batchIdForExport = batchNo ? batches.find(b => b.batch_no.toLowerCase() === batchNo.toLowerCase().trim())?.id : undefined;
+    exportBatchDataToExcel(gridData, String(batchIdForExport) || '');
   };
 
   const handleShare = async () => {
@@ -104,7 +169,6 @@ const PreviousDayReport = () => {
       setIsSharing(false);
       return;
     }
-    // Store original inline styles to restore them later
     const originalTableStyle: { width: string; minWidth: string; whiteSpace: string } = {
       width: tableNode.style.width,
       minWidth: tableNode.style.minWidth,
@@ -112,33 +176,27 @@ const PreviousDayReport = () => {
     };
 
     try {
-      // Temporarily apply styles to ensure the table is rendered wide and without text wrapping.
-      // This creates a consistent, desktop-like image regardless of the user's screen size.
-      tableNode.style.width = 'auto'; // Let content determine width
-      tableNode.style.minWidth = '1200px'; // Force a wide layout
-      tableNode.style.whiteSpace = 'nowrap'; // Prevent text wrapping in cells
+      tableNode.style.width = 'auto';
+      tableNode.style.minWidth = '1200px';
+      tableNode.style.whiteSpace = 'nowrap';
 
-      // Loop through each page of the table
       for (let i = 1; i <= totalPages; i++) {
-        // Use flushSync to force a synchronous state update and DOM re-render.
-        // This is much faster and more reliable than using a timeout.
         flushSync(() => {
           setCurrentPage(i);
         });
 
         const dataUrl = await htmlToImage.toPng(contentNode, {
-          backgroundColor: '#ffffff', // Set a white background for the image
+          backgroundColor: '#ffffff',
         });
         const blob = await (await fetch(dataUrl)).blob();
         const file = new File([blob], `report-page-${i}.png`, { type: 'image/png' });
         files.push(file);
       }
 
-      // Use the Web Share API to share the generated files
       if (navigator.canShare && navigator.canShare({ files })) {
         await navigator.share({
           title: 'Batch Report',
-          text: `Batch report from ${startDate} to ${endDate}.`,
+          text: `Batch report.`,
           files: files,
         });
         toast.success("Report shared successfully!");
@@ -146,17 +204,16 @@ const PreviousDayReport = () => {
         toast.error("Sharing files is not supported on this device.");
       }
     } catch (error: any) {
-      if (error.name !== 'AbortError') { // User cancellation should not be treated as an error
+      if (error.name !== 'AbortError') {
         console.error('Sharing failed', error);
         toast.error(`Failed to share report: ${error.message}`);
       }
     } finally {
-      // Restore the original styles to avoid affecting the user's view
       tableNode.style.width = originalTableStyle.width;
       tableNode.style.minWidth = originalTableStyle.minWidth;
       tableNode.style.whiteSpace = originalTableStyle.whiteSpace;
 
-      setCurrentPage(originalPage); // Restore the original page view
+      setCurrentPage(originalPage);
       setIsSharing(false);
     }
   };
@@ -171,45 +228,121 @@ const PreviousDayReport = () => {
     <>
     <PageHeader title="Batch Overview" buttonLabel='Back' buttonVariant='secondary'/>
     <div className="container-fluid">
-      {/* Error message */}
+        <div className="col-12 mb-4">
+          <div className="card shadow-sm">
+            <div className="card-body">
+              <h5 className="card-title">Report</h5>
+              <div className="row g-3 align-items-end">
+                <div className="col-12 col-md-4">
+                    <label htmlFor="batchNoSelect" className="form-label">Batch Number</label>
+                    <select
+                        className="form-select"
+                        id="batchNoSelect"
+                        value={batchNo}
+                        onChange={(e) => setBatchNo(e.target.value)}
+                    >
+                        <option value="">All Batches (Daily Report Only)</option>
+                        {batches.map(b => (
+                            <option key={b.id} value={b.batch_no}>
+                                {b.batch_no}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div className="col-12 col-md-8">
+                    <label className="form-label d-block">&nbsp;</label> {/* Spacer for alignment */}
+                    <div className="btn-group" role="group" aria-label="Report type">
+                        <input
+                        type="radio"
+                        className="btn-check"
+                        name="reportType"
+                        id="dailyRadio"
+                        autoComplete="off"
+                        checked={reportType === 'daily'}
+                        onChange={() => setReportType('daily')}
+                        />
+                        <label className="btn btn-outline-primary" htmlFor="dailyRadio">
+                        Daily Report
+                        </label>
+
+                        <input
+                        type="radio"
+                        className="btn-check"
+                        name="reportType"
+                        id="weeklyRadio"
+                        autoComplete="off"
+                        checked={reportType === 'weekly'}
+                        onChange={() => setReportType('weekly')}
+                        />
+                        <label className="btn btn-outline-primary" htmlFor="weeklyRadio">
+                        Weekly Report
+                        </label>
+                    </div>
+                </div>
+              </div>
+              <div className="row g-3 align-items-end mt-2">
+                {reportType === 'daily' ? (
+                  <>
+                    <div className="col-12 col-md-4">
+                      <DateSelector
+                        label="Start Date"
+                        value={startDate}
+                        onChange={setStartDate}
+                        maxDate={endDate}
+                      />
+                    </div>
+                    <div className="col-12 col-md-4">
+                      <DateSelector
+                        label="End Date"
+                        value={endDate}
+                        onChange={setEndDate}
+                        minDate={startDate}
+                        maxDate={new Date().toISOString().split('T')[0]}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div className="col-12 col-md-8">
+                    <label className="form-label">Week</label>
+                    <input
+                      type="number"
+                      className="form-control"
+                      value={week}
+                      onChange={(e) => setWeek(e.target.value)}
+                      placeholder="e.g., 18"
+                    />
+                  </div>
+                )}
+                <div className="col-12 col-md-4">
+                  <button
+                    className="btn btn-primary w-100 mb-2"
+                    onClick={handleViewReport}
+                  >
+                    View Data
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       {error && <div className="alert alert-danger text-center">{error}</div>}
+      
       <div className="row mb-4">
         <div className="d-flex flex-column mb-4">
           <div>
             {weekData ? (
               <>
-                <span className="me-3">
-                  Week: {weekData}
-                </span>
-                <span className="me-3">
-                  Age Range: {ageRange}
-                </span>
-                <span className="me-3">
-                  Hen Housing: {henHousing}
-                </span>
-                <span>
-                  Batch No: {(() => {
-                    const found = gridData.find(row => String(row.batch_id) === String(batchId));
-                    return found ? found.batch_no : batchId;
-                  })()}
-                </span>
-              </>
-            ) : batchId ? (
-              <>
-                <span className="me-3">
-                  Date Range: {startDate} to {endDate}
-                </span>
-                <span>
-                  Batch No: {(() => {
-                    const found = gridData.find(row => String(row.batch_id) === String(batchId));
-                    return found ? found.batch_no : batchId;
-                  })()}
-                </span>
+                <span className="me-3">Week: {weekData}</span>
+                <span className="me-3">Age Range: {ageRange}</span>
+                <span className="me-3">Hen Housing: {henHousing}</span>
+                <span>Batch No: {batchNo}</span>
               </>
             ) : (
-              <span className="me-3">
-                Date Range: {startDate} to {endDate}
-              </span>
+              <div>
+                <span className="d-block d-sm-inline-block me-3">Date Range: {startDate} to {endDate}</span>
+                {batchNo && <span className="d-block d-sm-inline-block">Batch No: {batchNo}</span>}
+              </div>
             )}
           </div>
           <div className="d-flex gap-2 mt-2 align-self-end">
@@ -236,9 +369,9 @@ const PreviousDayReport = () => {
           <table className="table table-bordered">
             <thead>
               <tr>
-                {batchId && <th>Batch Date</th>}
+                {batchIdFromUrl && <th>Batch Date</th>}
                 <th>Shed No</th>
-                <th>{!batchId ? "Highest Age" : "Age"}</th>
+                <th>{!batchIdFromUrl ? "Highest Age" : "Age"}</th>
                 <th>Opening</th>
                 <th>Mortality</th>
                 <th>Culls</th>
@@ -251,7 +384,7 @@ const PreviousDayReport = () => {
                 <th>Standard</th>
                 <th>Actual Feed</th>
                 <th>Standard Feed</th>
-                {batchId && <th>Edit</th>}
+                {batchIdFromUrl && <th>Edit</th>}
               </tr>
             </thead>
             <tbody>
@@ -297,10 +430,10 @@ const PreviousDayReport = () => {
 
 
                   return (
-                    <tr key={!batchId ? row.batch_id : `${row.batch_id}-${row.batch_date}`}>
-                      {batchId && <td>{row.batch_date}</td>}
+                    <tr key={!batchIdFromUrl ? row.batch_id : `${row.batch_id}-${row.batch_date}`}>
+                      {batchIdFromUrl && <td>{row.batch_date}</td>}
                       <td>{row.shed_no}</td>
-                      <td>{!batchId ? row.highest_age : row.age}</td>
+                      <td>{!batchIdFromUrl ? row.highest_age : row.age}</td>
                       <td>{row.opening_count}</td>
                       <td>{row.mortality}</td>
                       <td>{row.culls}</td>
@@ -319,7 +452,7 @@ const PreviousDayReport = () => {
                       <td>
                         {row.standard_feed_consumption !== undefined ? Number(row.standard_feed_consumption).toFixed(2) : ''}
                       </td>
-                      {batchId && (
+                      {batchIdFromUrl && (
                         <td>
                           <button
                             className="btn btn-sm btn-warning"

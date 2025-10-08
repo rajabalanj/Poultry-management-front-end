@@ -38,13 +38,23 @@ const EditBatchSimple: React.FC = () => {
     fetchBatch();
   }, [batchId]);
 
+  // Helper to ensure batch number uses the backend format: B-<4 digit zero-padded number>
+  const formatBatchNo = (value: string) => {
+    if (!value) return '';
+    // If already formatted like 'B-0001', return as-is
+    if (value.startsWith('B-')) return value;
+    const n = parseInt(value, 10);
+    if (isNaN(n)) return value; // fallback to whatever was provided
+    return `B-${n.toString().padStart(4, '0')}`;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!batchId) return;
     setLoading(true);
     try {
       await batchApi.updateBatch(Number(batchId), {
-        batch_no: batchNo,
+        batch_no: formatBatchNo(batchNo),
         shed_no: shedNo,
         age: age,
         opening_count: parseInt(openingCount),
@@ -88,12 +98,11 @@ const EditBatchSimple: React.FC = () => {
             <div className="col-md-6">
               <label className="form-label">Batch Number</label>
               <input
-                type="number"
+                type="text"
                 className="form-control"
-                value={batchNo}
+                value={formatBatchNo(batchNo)}
                 onChange={e => setBatchNo(e.target.value)}
                 required
-                min="1"
                 readOnly
               />
             </div>

@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 import PageHeader from "./Layout/PageHeader";
-import { configApi, batchApi } from "../services/api";
-import { bovansApi } from "../services/api"; // Import the new Bovans API
+import { configApi, batchApi, bovansApi, eggRoomReportApi } from "../services/api";
 import { toast } from "react-toastify";
 import BatchConfig from "./BatchConfig";
 import { BovansPerformance } from "../types/bovans"; // Import BovansPerformance type
 import { format } from 'date-fns'; // For date formatting
-import { eggRoomReportApi } from '../services/api';
+import TenantConfig from './TenantConfig'; // Import TenantConfig
 
 const KG_PER_TON = 1000;
 
@@ -376,10 +375,32 @@ return (
         </div>
       </div>
 
-      <hr />
-
       {/* Accordion for Batch and Bovans Performance */}
       <div className="accordion" id="configurationsAccordion">
+        <div className="accordion-item  mb-3">
+          <h2 className="accordion-header text-light bg-primary" id="tenant-config-heading">
+            <button
+              className="accordion-button collapsed fw-semibold text-light bg-primary accordion-button-white-arrow"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#tenant-config-collapse"
+              aria-expanded="false"
+              aria-controls="tenant-config-collapse"
+            >
+              Tenant Configuration
+            </button>
+          </h2>
+          <div
+            id="tenant-config-collapse"
+            className="accordion-collapse collapse"
+            aria-labelledby="tenant-config-heading"
+            data-bs-parent="#configurationsAccordion"
+          >
+            <div className="accordion-body">
+            <TenantConfig />
+            </div>
+          </div>
+        </div>
         {/* Egg Room Initial Setup Accordion Item */}
         <div className="accordion-item mb-3">
           <h2 className="accordion-header text-light bg-primary" id="egg-room-setup-heading">

@@ -413,6 +413,23 @@ export const configApi = {
       throw new Error(getApiErrorMessage(error, 'Failed to create configuration'));
     }
   },
+
+  initializeTenantConfigs: async (tenantId: string): Promise<void> => {
+    try {
+      await api.post(`/tenants/initialize-configs?tenant_id=${tenantId}`);
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to initialize tenant configurations'));
+    }
+  },
+
+  areTenantConfigsInitialized: async (tenantId: string): Promise<boolean> => {
+    try {
+      const response = await api.get<{ configs_initialized: boolean }>(`/tenants/configs-initialized?tenant_id=${tenantId}`);
+      return response.data.configs_initialized;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to check if tenant configurations are initialized'));
+    }
+  }
 };
 
 // Restore batchApi for master batch operations
