@@ -4,7 +4,7 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from './Layout/PageHeader';
 import { GridRow } from '../types/GridRow';
-import { fetchBatchData, exportBatchDataToExcel, fetchWeeklyLayerReport } from '../utility/api-utils';
+import { fetchBatchData, exportBatchDataToExcel, fetchWeeklyLayerReport, CumulativeReport } from '../utility/api-utils';
 import { configApi } from '../services/api';
 import * as htmlToImage from 'html-to-image';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
@@ -30,6 +30,7 @@ const PreviousDayReport = () => {
   const [weekData, setWeekData] = useState<number | null>(null);
   const [ageRange, setAgeRange] = useState<string | null>(null);
   const [henHousing, setHenHousing] = useState<number | null>(null);
+  const [cumulativeReportData, setCumulativeReportData] = useState<CumulativeReport | null>(null);
 
   const validGridData = gridData.filter(row => row && Object.keys(row).length > 0);
   const totalPages = validGridData.length > 0 ? Math.ceil(validGridData.length / rowsPerPage) : 0;
@@ -46,7 +47,7 @@ const PreviousDayReport = () => {
   const fetchData = async () => {
     try {
       if (week && batchId) {
-        const { details, summary, week: responseWeek, age_range, hen_housing } = await fetchWeeklyLayerReport(
+        const { details, summary, week: responseWeek, age_range, hen_housing, cumulative_report } = await fetchWeeklyLayerReport(
           batchId,
           week
         );
@@ -55,6 +56,7 @@ const PreviousDayReport = () => {
         setWeekData(responseWeek);
         setAgeRange(age_range);
         setHenHousing(hen_housing);
+        setCumulativeReportData(cumulative_report);
         setError(null);
       } else {
         const { details, summary } = await fetchBatchData(
@@ -330,7 +332,41 @@ const PreviousDayReport = () => {
                 })}
             </tbody>
           </table>
-          {summaryData && (
+          {summaryData && weekData && (
+            <div className="mt-4 p-3 border rounded bg-light">
+              <h5 className="mb-3">Report Summary</h5>
+              <table className="table table-bordered">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>Opening</th>
+                    <th>Mortality</th>
+                    <th>Culls</th>
+                    <th>Closing</th>
+                    <th>Feed/Bird (g)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Count</td>
+                    <td>{summaryData.opening_count}</td>
+                    <td>{summaryData.mortality}</td>
+                    <td>{summaryData.culls}</td>
+                    <td>{summaryData.closing_count}</td>
+                    <td rowSpan={2}>{summaryData.feed_per_bird_per_day_grams}</td>
+                  </tr>
+                  <tr>
+                    <td>%</td>
+                    <td>{summaryData.opening_percent}</td>
+                    <td>{summaryData.mort_percent}</td>
+                    <td>{summaryData.culls_percent}</td>
+                    <td>{summaryData.closing_percent}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          )}
+          {summaryData && !weekData && (
             <div className="mt-4 p-3 border rounded bg-light">
               <h5 className="mb-3">Report Summary</h5>
               <div className="row g-3">
@@ -346,6 +382,68 @@ const PreviousDayReport = () => {
                 <div className="col-md-3"><span className="fw-bold">Average Standard HD:</span> {Number(summaryData.standard_hen_day_percentage).toFixed(2)}%</div>
                 {summaryData.actual_feed_consumed && <div className="col-md-3"><span className="fw-bold">Total Actual Feed Consumed:</span> {Number(summaryData.actual_feed_consumed).toFixed(2)}</div>}
                 {summaryData.standard_feed_consumption && <div className="col-md-3"><span className="fw-bold">Total Standard Feed Consumption:</span> {Number(summaryData.standard_feed_consumption).toFixed(2)}</div>}
+              </div>
+            </div>
+          )}
+          {cumulativeReportData && (
+            <div className="mt-4 p-3 border rounded bg-light">
+              <h5 className="mb-3">Cumulative Report</h5>
+              <div className="row g-3">
+                <div className="col-md-6">
+                  <table className="table table-bordered">
+                    <thead>
+                      <tr>
+                        <th></th>
+                        <th>Cum</th>
+                        <th>Actual</th>
+                        <th>Standard</th>
+                        <th>Diff</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Cum Feed</td>
+                        <td>{cumulativeReportData.section1.cum_feed.cum}</td>
+                        <td>{cumulativeReportData.section1.cum_feed.actual}</td>
+                        <td>{cumulativeReportData.section1.cum_feed.standard}</td>
+                        <td>{cumulativeReportData.section1.cum_feed.diff}</td>
+                      </tr>
+                      <tr>
+                        <td>Weekly Feed</td>
+                        <td>{cumulativeReportData.section1.weekly_feed.cum}</td>
+                        <td>{cumulativeReportData.section1.weekly_feed.actual}</td>
+                        <td>{cumulativeReportData.section1.weekly_feed.standard}</td>
+                        <td>{cumulativeReportData.section1.weekly_feed.diff}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div className="col-md-6">
+                  <table className="table table-bordered">
+                    <thead>
+                      <tr>
+                        <th></th>
+                        <th>Actual</th>
+                        <th>Standard</th>
+                        <th>Diff</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Livability</td>
+                        <td>{cumulativeReportData.section2.livability.actual}</td>
+                        <td>{cumulativeReportData.section2.livability.standard}</td>
+                        <td>{cumulativeReportData.section2.livability.diff}</td>
+                      </tr>
+                      <tr>
+                        <td>Feed Grams</td>
+                        <td>{cumulativeReportData.section2.feed_grams.actual}</td>
+                        <td>{cumulativeReportData.section2.feed_grams.standard}</td>
+                        <td>{cumulativeReportData.section2.feed_grams.diff}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}

@@ -115,12 +115,11 @@ const AddBatch: React.FC = () => {
             <div className="col-md-6">
               <label className="form-label">Shed Number</label>
               <input
-                type="string"
+                type="text"
                 className="form-control"
                 value={shed_no}
                 onChange={(e) => setShedNo(e.target.value)}
                 required
-                min="1"
               />
             </div>
 
@@ -188,4 +187,3 @@ const AddBatch: React.FC = () => {
 };
 
 export default AddBatch;
-

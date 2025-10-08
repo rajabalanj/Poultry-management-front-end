@@ -4,14 +4,43 @@ import { saveAs } from 'file-saver';
 import { GridRow } from '../types/GridRow';
 import { DailyBatch } from '../types/daily_batch';
 
-export const fetchWeeklyLayerReport = async (batchId: string, week: string): Promise<{ details: GridRow[], summary: DailyBatch | null, week: number, age_range: string, hen_housing: number }> => {
+export interface CumulativeReport {
+  section1: {
+    cum_feed: {
+      cum: number;
+      actual: number;
+      standard: number;
+      diff: number;
+    };
+    weekly_feed: {
+      cum: number;
+      actual: number;
+      standard: number;
+      diff: number;
+    };
+  };
+  section2: {
+    livability: {
+      actual: number;
+      standard: number;
+      diff: number;
+    };
+    feed_grams: {
+      actual: number;
+      standard: number;
+      diff: number;
+    };
+  };
+}
+
+export const fetchWeeklyLayerReport = async (batchId: string, week: string): Promise<{ details: GridRow[], summary: DailyBatch | null, week: number, age_range: string, hen_housing: number, cumulative_report: CumulativeReport | null }> => {
   try {
     const response = await reportsApi.getWeeklyLayerReport(
       Number(batchId),
       Number(week)
     );
 
-    const { details, summary, week: responseWeek, age_range, hen_housing } = response;
+    const { details, summary, week: responseWeek, age_range, hen_housing, cumulative_report } = response;
 
     const mapBatchToGridRow = (batch: any): GridRow => ({
       batch_id: batch.batch_id,
@@ -32,11 +61,16 @@ export const fetchWeeklyLayerReport = async (batchId: string, week: string): Pro
       standard_hen_day_percentage: batch.standard_hen_day_percentage || 0,
       actual_feed_consumed: batch.actual_feed_consumed,
       standard_feed_consumption: batch.standard_feed_consumption,
+      opening_percent: batch.opening_percent,
+      mort_percent: batch.mort_percent,
+      culls_percent: batch.culls_percent,
+      closing_percent: batch.closing_percent,
+      feed_per_bird_per_day_grams: batch.feed_per_bird_per_day_grams,
     });
 
     const mappedDetails = details.map(mapBatchToGridRow);
 
-    return { details: mappedDetails, summary, week: responseWeek, age_range, hen_housing };
+    return { details: mappedDetails, summary, week: responseWeek, age_range, hen_housing, cumulative_report };
   } catch (error) {
     console.error('Error fetching data:', error);
     throw new Error('Failed to fetch data');
@@ -74,6 +108,11 @@ export const fetchBatchData = async (startDate: string, endDate: string, batchId
       standard_hen_day_percentage: batch.standard_hen_day_percentage || 0,
       actual_feed_consumed: batch.actual_feed_consumed,
       standard_feed_consumption: batch.standard_feed_consumption,
+      opening_percent: batch.opening_percent,
+      mort_percent: batch.mort_percent,
+      culls_percent: batch.culls_percent,
+      closing_percent: batch.closing_percent,
+      feed_per_bird_per_day_grams: batch.feed_per_bird_per_day_grams,
     });
 
     if (Array.isArray(response)) {

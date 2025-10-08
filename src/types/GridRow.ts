@@ -20,4 +20,9 @@ export interface GridRow {
     standard_feed_consumption?: number;
     date_range?: string; // Optional field for date range display
     days_count?: number; // Optional field for days count display
+    opening_percent?: number;
+    mort_percent?: number;
+    culls_percent?: number;
+    closing_percent?: number;
+    feed_per_bird_per_day_grams?: number;
   }

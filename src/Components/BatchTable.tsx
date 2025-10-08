@@ -61,15 +61,15 @@ const BatchCard: React.FC<{
       </div>
       <div className="mt-2 text-sm">
         <div className="row">
-          <div className="col d-flex align-items-center my-2 md-my-0">
+          <div className="col-auto d-flex align-items-center my-2 md-my-0">
             <strong className="me-2">Feed:</strong>
             {batch.batch_type === 'Layer' 
               ? getPerformanceIndicator(batch.feed_in_kg, batch.standard_feed_in_kg, 1, true)
               : <span className="text-muted">-</span>
             }
           </div>
-          <div className="col d-flex align-items-center">
-            <strong className="me-2">HD%:</strong>
+          <div className="col-auto d-flex align-items-center">
+            <strong className="me-2">Egg</strong>
             {batch.batch_type === 'Layer' 
               ? getPerformanceIndicator(batch.hd, batch.standard_hen_day_percentage, 100)
               : <span className="text-muted">-</span>

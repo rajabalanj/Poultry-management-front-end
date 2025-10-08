@@ -13,6 +13,7 @@ const EditBatchSimple: React.FC = () => {
   const [age, setAge] = useState('');
   const [openingCount, setOpeningCount] = useState('');
   const [date, setDate] = useState('');
+  const [shedChangeDate, setShedChangeDate] = useState('');
   // const [standardHenDay, setStandardHenDay] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,6 +49,7 @@ const EditBatchSimple: React.FC = () => {
         age: age,
         opening_count: parseInt(openingCount),
         date: date,
+        shed_change_date: shedChangeDate
       });
       toast.success('Batch updated successfully!');
       navigate(-1);
@@ -92,6 +94,7 @@ const EditBatchSimple: React.FC = () => {
                 onChange={e => setBatchNo(e.target.value)}
                 required
                 min="1"
+                readOnly
               />
             </div>
             <div className="col-md-6">
@@ -102,7 +105,6 @@ const EditBatchSimple: React.FC = () => {
                 value={shedNo}
                 onChange={e => setShedNo(e.target.value)}
                 required
-                min="1"
               />
             </div>
             <div className="col-md-6">
@@ -125,6 +127,16 @@ const EditBatchSimple: React.FC = () => {
                 onChange={e => setAge(e.target.value)}
                 required
                 placeholder="e.g. 1.1"
+              />
+            </div>
+            <div className="col-md-6">
+              <label className="form-label">Shed Change Date</label>
+              <input
+                type="date"
+                className="form-control"
+                value={shedChangeDate}
+                onChange={e => setShedChangeDate(e.target.value)}
+                max={new Date().toISOString().split('T')[0]}
               />
             </div>
             

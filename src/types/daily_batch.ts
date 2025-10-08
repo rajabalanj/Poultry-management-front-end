@@ -21,4 +21,9 @@ export interface DailyBatch {
   batch_type?: 'Chick' | 'Layer' | 'Grower';
   date_range?: string; // Optional field for date range display
   days_count?: number; // Optional field for days count display
+  opening_percent?: number;
+  mort_percent?: number;
+  culls_percent?: number;
+  closing_percent?: number;
+  feed_per_bird_per_day_grams?: number;
 }

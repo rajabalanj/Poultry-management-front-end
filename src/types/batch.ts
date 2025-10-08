@@ -28,5 +28,6 @@ export interface BatchUpdate {
   shed_no: string;
   date: string;
   closing_date?: string;
+  shed_change_date?: string;
   // standard_hen_day_percentage?: number; // 0-100, default 0, accepts up to 2 decimal places
 }
