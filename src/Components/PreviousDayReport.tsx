@@ -21,6 +21,7 @@ const PreviousDayReport = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [error, setError] = useState<string | null>(null);
   const [isSharing, setIsSharing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const reportContentRef = useRef<HTMLDivElement>(null);
   const [henDayDeviation, setHenDayDeviation] = useState(10);
 
@@ -63,6 +64,7 @@ const PreviousDayReport = () => {
   }, [batchIdFromUrl]);
 
   const fetchData = async (batchIdToFetch?: string, start?: string, end?: string, weekToFetch?: string) => {
+    setIsLoading(true);
     try {
       // Reset previous data and errors
       setGridData([]);
@@ -104,6 +106,8 @@ const PreviousDayReport = () => {
       const errorMsg = error?.message || 'Failed to fetch data';
       setError(errorMsg);
       toast.error(errorMsg);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -326,7 +330,20 @@ const PreviousDayReport = () => {
           </div>
         </div>
 
+      {isLoading && (
+        <div className="text-center my-4">
+          <div className="spinner-border" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <p className="mt-2">Loading report...</p>
+        </div>
+      )}
       {error && <div className="alert alert-danger text-center">{error}</div>}
+      {!isLoading && !error && validGridData.length === 0 && (
+        <div className="alert alert-info text-center my-4">
+          No reports found for the selected criteria.
+        </div>
+      )}
       
       <div className="row mb-4">
         <div className="d-flex flex-column mb-4">
