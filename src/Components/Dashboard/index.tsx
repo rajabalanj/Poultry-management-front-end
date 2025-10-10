@@ -69,9 +69,23 @@ const DashboardIndex = () => {
       setLoading(true);
       try {
         const data = await dailyBatchApi.getDailyBatches(batchDate);
-        setBatches(Array.isArray(data) ? data : []);
-        const uniqueShedNos = Array.from(new Set(data.map(b => b.shed_no)));
+        // Normalize response: API might return [], null, or an object containing the array.
+        const batchesData: DailyBatch[] = Array.isArray(data)
+          ? (data as DailyBatch[])
+          : (data && Array.isArray((data as any).data))
+            ? (data as any).data as DailyBatch[]
+            : [];
+
+        setBatches(batchesData);
+
+        // Derive shed numbers from the sanitized batches array to avoid calling map on non-arrays
+        const shedList = batchesData
+          .map((b: DailyBatch) => b.shed_no)
+          .filter((s): s is string => typeof s === 'string' && s !== '');
+        const uniqueShedNos = Array.from(new Set(shedList));
         setShedNos(uniqueShedNos);
+        // Clear any previous error if fetch succeeded
+        setError(null);
       } catch (err) {
         console.error('Error fetching batches:', err);
         setError('Failed to load batches');
@@ -214,7 +228,13 @@ const DashboardIndex = () => {
         <div className="col-12">
           <div className="card shadow-sm">
             <div className="card-body">
-              <BatchTable batches={filteredBatches} loading={loading} error={error} />
+              {loading ? (
+                <div className="text-center">Loading batches...</div>
+              ) : error ? (
+                <div className="text-center text-danger">{error}</div>
+              ) : filteredBatches.length > 0 ? (
+                <BatchTable batches={filteredBatches} loading={loading} error={error} />
+              ) : (<div className="text-center">No batches found for the selected filters.</div>)}
             </div>
           </div>
         </div>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { batchApi } from '../../../services/api';
 import { toast } from 'react-toastify';
 import PageHeader from '../../Layout/PageHeader';
+import { useLocation } from 'react-router-dom';
 
 const AddBatch: React.FC = () => {
   const [batch_no, setBatchNo] = useState('');
@@ -13,6 +14,18 @@ const AddBatch: React.FC = () => {
   const [day, setDay] = useState('1');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Prefill fields from query params when opened from a pending request
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const date = params.get('date');
+    const shed = params.get('shed');
+    const batchno = params.get('batch_no');
+    if (date) setBatchDate(date);
+    if (shed) setShedNo(shed);
+    if (batchno) setBatchNo(batchno.replace(/^B-/, ''));
+  }, [location.search]);
 
   useEffect(() => {
     // Fetch all batches and set batch_no to max + 1

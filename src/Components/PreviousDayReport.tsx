@@ -133,7 +133,12 @@ const PreviousDayReport = () => {
 
     const params = new URLSearchParams();
     if (reportType === 'weekly') {
-        if (week) params.set('week', week);
+        if (week && parseInt(week, 10) >= 18) {
+            params.set('week', week);
+        } else {
+            toast.error('Week number must be 18 or greater for weekly reports.');
+            return;
+        }
     } else {
         if (startDate) params.set('start', startDate);
         if (endDate) params.set('end', endDate);
@@ -230,14 +235,14 @@ const PreviousDayReport = () => {
 
   return (
     <>
-    <PageHeader title="Batch Overview" buttonLabel='Back' buttonVariant='secondary'/>
+    <PageHeader title="Batch Reports" buttonLabel='Back' buttonVariant='secondary'/>
     <div className="container-fluid">
         <div className="col-12 mb-4">
           <div className="card shadow-sm">
             <div className="card-body">
               <h5 className="card-title">Report</h5>
               <div className="row g-3 align-items-end">
-                <div className="col-12 col-md-4">
+                <div className="col-12 col-md-auto">
                     <label htmlFor="batchNoSelect" className="form-label">Batch Number</label>
                     <select
                         className="form-select"
@@ -253,7 +258,7 @@ const PreviousDayReport = () => {
                         ))}
                     </select>
                 </div>
-                <div className="col-12 col-md-8">
+                <div className="col-12 col-md-auto">
                     <label className="form-label d-block">&nbsp;</label> {/* Spacer for alignment */}
                     <div className="btn-group" role="group" aria-label="Report type">
                         <input
@@ -287,7 +292,7 @@ const PreviousDayReport = () => {
               <div className="row g-3 align-items-end mt-2">
                 {reportType === 'daily' ? (
                   <>
-                    <div className="col-12 col-md-4">
+                    <div className="col-12 col-md-auto">
                       <DateSelector
                         label="Start Date"
                         value={startDate}
@@ -295,7 +300,7 @@ const PreviousDayReport = () => {
                         maxDate={endDate}
                       />
                     </div>
-                    <div className="col-12 col-md-4">
+                    <div className="col-12 col-md-auto">
                       <DateSelector
                         label="End Date"
                         value={endDate}
@@ -306,7 +311,7 @@ const PreviousDayReport = () => {
                     </div>
                   </>
                 ) : (
-                  <div className="col-12 col-md-8">
+                  <div className="col-12 col-md-auto">
                     <label className="form-label">Week</label>
                     <input
                       type="number"
@@ -317,7 +322,7 @@ const PreviousDayReport = () => {
                     />
                   </div>
                 )}
-                <div className="col-12 col-md-4">
+                <div className="col-12 col-md-auto">
                   <button
                     className="btn btn-primary w-100 mb-2"
                     onClick={handleViewReport}
@@ -399,8 +404,10 @@ const PreviousDayReport = () => {
                 <th>Total Eggs</th>
                 <th>HD</th>
                 <th>Standard</th>
-                <th>Actual Feed</th>
-                <th>Standard Feed</th>
+                {reportType !== 'daily' && <>
+                  <th>Actual Feed</th>
+                  <th>Standard Feed</th>
+                </>}
                 {batchIdFromUrl && <th>Edit</th>}
               </tr>
             </thead>
@@ -431,7 +438,7 @@ const PreviousDayReport = () => {
                     }
   
                     // Apply conditional styling for Feed cell
-                    if (row.actual_feed_consumed !== undefined && row.standard_feed_consumption !== undefined) {
+                    if (reportType !== 'daily' && row.actual_feed_consumed !== undefined && row.standard_feed_consumption !== undefined) {
                       const actualFeed = Number(row.actual_feed_consumed);
                       const standardFeed = Number(row.standard_feed_consumption);
   
@@ -463,12 +470,14 @@ const PreviousDayReport = () => {
                         {row.hd !== undefined ? (Number(row.hd) * 100).toFixed(2) : ''}
                       </td>
                       <td>{row.standard_hen_day_percentage !== undefined ? row.standard_hen_day_percentage.toFixed(2) : ''}</td>
-                      <td className={feedCellClassName} style={feedCellStyle}>
-                        {row.actual_feed_consumed !== undefined ? Number(row.actual_feed_consumed).toFixed(2) : ''}
-                      </td>
-                      <td>
-                        {row.standard_feed_consumption !== undefined ? Number(row.standard_feed_consumption).toFixed(2) : ''}
-                      </td>
+                      {reportType !== 'daily' && <>
+                        <td className={feedCellClassName} style={feedCellStyle}>
+                          {row.actual_feed_consumed !== undefined ? Number(row.actual_feed_consumed).toFixed(2) : ''}
+                        </td>
+                        <td>
+                          {row.standard_feed_consumption !== undefined ? Number(row.standard_feed_consumption).toFixed(2) : ''}
+                        </td>
+                      </>}
                       {batchIdFromUrl && (
                         <td>
                           <button
@@ -520,18 +529,16 @@ const PreviousDayReport = () => {
             <div className="mt-4 p-3 border rounded bg-light">
               <h5 className="mb-3">Report Summary</h5>
               <div className="row g-3">
-                <div className="col-md-3"><span className="fw-bold">Total Opening:</span> {summaryData.opening_count}</div>
-                <div className="col-md-3"><span className="fw-bold">Total Mortality:</span> {summaryData.mortality}</div>
-                <div className="col-md-3"><span className="fw-bold">Total Culls:</span> {summaryData.culls}</div>
-                <div className="col-md-3"><span className="fw-bold">Total Closing:</span> {summaryData.closing_count}</div>
-                <div className="col-md-3"><span className="fw-bold">Total Table Eggs:</span> {summaryData.table_eggs}</div>
-                <div className="col-md-3"><span className="fw-bold">Total Jumbo:</span> {summaryData.jumbo}</div>
-                <div className="col-md-3"><span className="fw-bold">Total CR:</span> {summaryData.cr}</div>
-                <div className="col-.md-3"><span className="fw-bold">Total Eggs:</span> {summaryData.total_eggs}</div>
-                <div className="col-md-3"><span className="fw-bold">Average HD:</span> {Number(summaryData.hd).toFixed(2)}%</div>
-                <div className="col-md-3"><span className="fw-bold">Average Standard HD:</span> {Number(summaryData.standard_hen_day_percentage).toFixed(2)}%</div>
-                {summaryData.actual_feed_consumed && <div className="col-md-3"><span className="fw-bold">Total Actual Feed Consumed:</span> {Number(summaryData.actual_feed_consumed).toFixed(2)}</div>}
-                {summaryData.standard_feed_consumption && <div className="col-md-3"><span className="fw-bold">Total Standard Feed Consumption:</span> {Number(summaryData.standard_feed_consumption).toFixed(2)}</div>}
+                <div className="col-md-auto"><span className="fw-bold">Opening:</span> {summaryData.opening_count}</div>
+                <div className="col-md-auto"><span className="fw-bold">Total Mortality:</span> {summaryData.mortality}</div>
+                <div className="col-md-auto"><span className="fw-bold">Total Culls:</span> {summaryData.culls}</div>
+                <div className="col-md-auto"><span className="fw-bold">Closing:</span> {summaryData.closing_count}</div>
+                <div className="col-md-auto"><span className="fw-bold">Total Table Eggs:</span> {summaryData.table_eggs}</div>
+                <div className="col-md-auto"><span className="fw-bold">Total Jumbo:</span> {summaryData.jumbo}</div>
+                <div className="col-md-auto"><span className="fw-bold">Total CR:</span> {summaryData.cr}</div>
+                <div className="col-md-auto"><span className="fw-bold">Total Eggs:</span> {summaryData.total_eggs}</div>
+                <div className="col-md-auto"><span className="fw-bold">Average HD:</span> {(Number(summaryData.hd) * 100).toFixed(2)}%</div>
+                <div className="col-md-auto"><span className="fw-bold">Average Standard HD:</span> {Number(summaryData.standard_hen_day_percentage).toFixed(2)}%</div>
               </div>
             </div>
           )}

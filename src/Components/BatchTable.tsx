@@ -1,7 +1,8 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { DailyBatch } from "../types/daily_batch";
+import ListModal from './Common/ListModal';
 
 const getPerformanceIndicator = (
   actual?: number,
@@ -82,7 +83,8 @@ const BatchCard: React.FC<{
 ));
 
 interface BatchTableProps {
-  batches: DailyBatch[];
+  // backend may return either DailyBatch entries or pending request objects
+  batches: any[];
   loading: boolean;
   error: string | null;
 }
@@ -113,7 +115,23 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
   );
 
   const filteredBatches = useMemo(() => {
-    const valid = batches.filter(batch => batch.batch_id != null && !!batch.batch_date && !!batch.batch_type);
+    // Batches that are active and should be displayed. We filter out 'pending' requests.
+    const displayableBatches = batches.filter(
+      (batch: any) => batch && !batch.message
+    );
+
+    const valid = displayableBatches
+      .filter((batch: any) => batch.batch_id != null && !!batch.batch_type)
+      .map((b: any) => {
+        // For batches where daily data might not exist, fallback to requested_date for navigation
+        if (!b.batch_date && b.requested_date) {
+          return { ...b, batch_date: b.requested_date };
+        }
+        return b;
+      })
+      .filter((batch: any) => !!batch.batch_date) // Ensure a date is available for actions
+      .map((b: any) => b as DailyBatch);
+
     return {
       Layer: valid.filter(b => b.batch_type === 'Layer'),
       Grower: valid.filter(b => b.batch_type === 'Grower'),
@@ -121,12 +139,48 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
     };
   }, [batches]);
 
+  // Pending request items are identified by a 'message' from the backend,
+  // indicating they are out of scope for the selected date (e.g., start in the future).
+  const requestItems = useMemo(() => {
+    return batches.filter((item: any) => item && !!item.message);
+  }, [batches]);
+
+  const [showRequestsModal, setShowRequestsModal] = useState(false);
+  const [modalItems, setModalItems] = useState<string[]>([]);
+  const openRequestsModal = () => {
+    const items = requestItems.map((req: any) => {
+      const start = req.batch_start_date || req.requested_date || '-';
+      const batchno = req.batch_no || '-';
+      return `Batch: ${batchno} | Start: ${start}`;
+    });
+    setModalItems(items);
+    setShowRequestsModal(true);
+  };
+
   if (loading) return <div className="text-center">Loading...</div>;
   if (error) return <div className="text-center text-danger">{error}</div>;
-  if (batches.length === 0) return <div className="text-center">No batches found</div>;
+  if ((!batches || batches.length === 0) && !loading) return <div className="text-center">No batches found</div>;
 
   return (
     <div className="px-2">
+      {requestItems.length > 0 && (
+        <div className="mb-3">
+          <div className="alert border border-warning text-dark d-flex justify-content-between align-items-center" role="alert">
+            <div>
+              <strong>Note:</strong> There are upcoming batches not shown in the list below.
+            </div>
+            <div>
+              <button className="btn btn-link p-0" onClick={openRequestsModal}>View upcoming batches</button>
+            </div>
+          </div>
+          <ListModal
+            show={showRequestsModal}
+            onHide={() => setShowRequestsModal(false)}
+            title="Upcoming Batches"
+            items={modalItems}
+          />
+        </div>
+      )}
       {filteredBatches.Layer.length > 0 && (
         <div className="mb-4">
           <h5 className="fw-bold text-primary mb-3">Layer Batches</h5>

@@ -89,8 +89,10 @@ const BatchDetails: React.FC = () => {
 
   const handleDownloadReport = () => {
     if (reportType === 'weekly') {
-      if (week) {
+      if (week && parseInt(week, 10) >= 18) {
         navigate(`/previous-day-report/${batch_id}?week=${week}`);
+      } else if (week) {
+        toast.error('Week number must be 18 or greater.');
       } else {
         toast.error('Please enter a week number for the weekly report.');
       }

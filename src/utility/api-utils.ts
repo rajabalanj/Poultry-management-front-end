@@ -125,8 +125,11 @@ export const fetchBatchData = async (startDate: string, endDate: string, batchId
     }
 
     return { details, summary };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching data:', error);
+    if (error.response && error.response.status === 404) {
+      throw new Error('No data found for the selected date range.');
+    }
     throw new Error('Failed to fetch data');
   }
 };
