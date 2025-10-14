@@ -8,7 +8,7 @@ interface ChartContainerProps {
 const ChartContainer: React.FC<ChartContainerProps> = ({ title, children }) => (
   <div className="card shadow-sm h-100">
     <div className="card-body p-0">
-      <h6 className="card-title mb-2 text-sm px-2 pt-2">{title}</h6>
+      <h6 className="card-title mb-2 px-2 pt-2">{title}</h6>
       <div className="chart-container p-2">{children}</div>
     </div>
   </div>

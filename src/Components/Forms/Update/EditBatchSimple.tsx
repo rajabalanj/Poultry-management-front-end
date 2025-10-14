@@ -4,6 +4,7 @@ import { batchApi } from '../../../services/api';
 import { BatchResponse } from '../../../types/batch';
 import { toast } from 'react-toastify';
 import PageHeader from '../../Layout/PageHeader';
+import Loading from '../../Common/Loading';
 
 const EditBatchSimple: React.FC = () => {
   const { batchId } = useParams<{ batchId: string }>();
@@ -70,7 +71,7 @@ const EditBatchSimple: React.FC = () => {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <Loading message="Loading data..." />;
   if (error) return <div>{error}</div>;
 
   return (

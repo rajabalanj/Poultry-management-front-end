@@ -5,6 +5,7 @@ import PageHeader from "./Layout/PageHeader";
 import { Modal, Button } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { CompositionResponse } from "../types/compositon";
+import Loading from './Common/Loading';
 
 interface UsageHistoryItem {
   id: number;
@@ -70,7 +71,7 @@ const CompositionUsageHistory = () => {
       />
     <div className="container-fluid">
       
-      {loading && <div>Loading...</div>}
+      {loading && <Loading message="Loading data..." />}
       {error && <div className="text-danger">{error}</div>}
       {!loading && !error && (
         <div className="table-responsive">

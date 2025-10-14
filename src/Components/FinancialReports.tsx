@@ -6,6 +6,7 @@
  import { financialReportsApi, operationalExpenseApi } from '../services/api';
  import { BalanceSheet, ProfitAndLoss } from '../types/financialReports';
  import { OperationalExpense } from '../types/operationalExpense';
+ import Loading from './Common/Loading';
 
  type ReportType = 'pnl' | 'balance-sheet';
  
@@ -77,7 +78,7 @@
    };
 
    const renderPnlReport = () => {
-     if (pnlLoading) return <div className="text-center p-4"><span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...</div>;
+     if (pnlLoading) return <Loading message="Loading data..." />;
      if (!pnlData) return <p className="text-center text-muted p-4">Select a date range and click "Get Report" to view the Profit & Loss statement.</p>;
  
      return (
@@ -102,7 +103,7 @@
    };
  
    const renderBsReport = () => {
-     if (bsLoading) return <div className="text-center p-4"><span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...</div>;
+     if (bsLoading) return <Loading message="Loading data..." />;
      if (!bsData) return <p className="text-center text-muted p-4">Select a date and click "Get Report" to view the Balance Sheet.</p>;
  
      const totalCurrentAssets = Number(bsData.assets?.current_assets?.cash ?? 0) + Number(bsData.assets?.current_assets?.accounts_receivable ?? 0) + Number(bsData.assets?.current_assets?.inventory ?? 0);
@@ -202,7 +203,7 @@
            </Modal.Header>
            <Modal.Body>
              {opExLoading ? (
-               <div className="text-center">Loading...</div>
+               <Loading message="Loading data..." />
              ) : opExError ? (
                <div className="alert alert-danger">{opExError}</div>
              ) : opExDetails.length > 0 ? (

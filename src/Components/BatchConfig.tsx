@@ -5,6 +5,7 @@ import { BatchResponse } from "../types/batch";
 import { batchApi } from "../services/api"; // Import dailyBatchApi
 import { toast } from "react-toastify"; // Import toast for notifications
 import { Modal, Button } from "react-bootstrap";
+import Loading from './Common/Loading';
 
 
 
@@ -111,7 +112,7 @@ const [batchToClose, setBatchToClose] = useState<BatchResponse | null>(null);
     return byType;
   }, [visibleBatches]);
 
-  if (loading) return <div className="text-center">Loading...</div>;
+  if (loading) return <Loading message="Loading data..." />;
   if (error) return <div className="text-center text-danger">{error}</div>;
   if (visibleBatches.length === 0) return <div className="text-center">No batches found</div>;
   return (

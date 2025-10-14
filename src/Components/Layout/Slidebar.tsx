@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import "bootstrap-icons/font/bootstrap-icons.min.css";
 import { useAuth } from "../../hooks/useAuth";
+import { useMediaQuery } from 'react-responsive';
 import annamalaiyarlogo from "../../styles/annamalaiyarlogo.png"; // Import the image
 
 // import './Slidebar.css'; // Make sure you have this import for the new CSS
@@ -13,21 +14,19 @@ const Slidebar: React.FC = () => {
   const { user } = useAuth();
     const groups = user?.profile?.['cognito:groups'];
   const userGroups: string[] = Array.isArray(groups) ? groups : [];
-  const [isOpen, setIsOpen] = useState(window.innerWidth >= DESKTOP_BREAKPOINT);
+  const isDesktop = useMediaQuery({ minWidth: DESKTOP_BREAKPOINT });
+  const [isOpen, setIsOpen] = useState(isDesktop);
   const location = useLocation();
-  const isDesktop = window.innerWidth >= DESKTOP_BREAKPOINT;
 
   // State to manage which sub-menu is open
   const [openMenu, setOpenMenu] = useState<string | null>(null); // 'batch', 'egg', 'feed', 'finance' etc.
 
   useEffect(() => {
-    const handleResize = () => {
-      setIsOpen(window.innerWidth >= DESKTOP_BREAKPOINT);
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+    // Sync isOpen state with isDesktop value from useMediaQuery
+    // This is more reliable than window resize events for viewport changes
+    // that don't trigger a resize event (like horizontal scrolling on mobile).
+    setIsOpen(isDesktop);
+  }, [isDesktop]);
 
   useEffect(() => {
     if (!isDesktop) {

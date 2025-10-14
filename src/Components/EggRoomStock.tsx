@@ -86,7 +86,6 @@ const EggRoomStock: React.FC = () => {
     calculateClosings,
     handleChange,
     handleSave,
-    handleDelete,
     setSelectedDate,
     dateError,
   } = useEggRoomStock();
@@ -369,7 +368,6 @@ const EggRoomStock: React.FC = () => {
           editing={editing}
           loading={loading}
           onSave={handleSave}
-          onDelete={handleDelete}
         />
       </form>
 

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Button, Table } from 'react-bootstrap';
 import { inventoryItemApi } from '../../services/api';
 import { InventoryItemAudit } from '../../types/InventoryItemAudit';
+import Loading from '../Common/Loading';
 
 interface InventoryItemAuditModalProps {
   show: boolean;
@@ -38,7 +39,7 @@ const InventoryItemAuditModal: React.FC<InventoryItemAuditModalProps> = ({ show,
         <Modal.Title>Inventory Audit Trail</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        {loading && <p>Loading...</p>}
+        {loading && <Loading message="Loading data..." />}
         {error && <p className="text-danger">{error}</p>}
         {!loading && !error && (
           <Table striped bordered hover responsive>

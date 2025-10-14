@@ -9,6 +9,7 @@ import HeaderCardGroup from '../../Dashboard/HeaderCardGroup';
 import GraphsSection from '../../Dashboard/GraphsSection';
 import { DateSelector } from '../../DateSelector';
 import ListModal from '../../Common/ListModal'; // Import ListModal
+import Loading from '../../Common/Loading';
 
 const BatchDetails: React.FC = () => {
   const navigate = useNavigate();
@@ -102,7 +103,7 @@ const BatchDetails: React.FC = () => {
   };
 
   if (isLoading) {
-    return <div className="text-center">Loading...</div>;
+    return <Loading message="Loading data..." />;
   }
 
   if (!batch) {

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { batchApi } from '../../../services/api';
 import { BatchResponse } from '../../../types/batch';
 import PageHeader from '../../Layout/PageHeader';
+import Loading from '../../Common/Loading';
 
 const ViewBatchSimple: React.FC = () => {
   const { batchId } = useParams<{ batchId: string }>();
@@ -34,7 +35,7 @@ const ViewBatchSimple: React.FC = () => {
     fetchBatch();
   }, [batchId]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <Loading message="Loading data..." />;
   if (error) return <div>{error}</div>;
 
   return (

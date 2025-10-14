@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import Loading from '../Common/Loading';
 
 interface ProtectedRouteProps {
   children: React.ReactElement;
@@ -11,7 +12,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, roles }) => {
   const { user } = auth;
 
   if (auth.isLoading) {
-    return <div>Loading...</div>;
+    return <Loading message="Loading data..." />;
   }
 
   if (!auth.isAuthenticated) {

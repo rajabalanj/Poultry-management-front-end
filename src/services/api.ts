@@ -504,9 +504,7 @@ export const eggRoomReportApi = {
       throw error;
     }
   },
-  deleteReport: async (report_date: string): Promise<void> => {
-    await api.delete(`/egg-room-report/${report_date}`);
-  },
+
 
   getReports: async (start_date: string, end_date: string): Promise<EggRoomReportResponse[]> => {
     const response = await api.get<EggRoomReportResponse[]>(`/egg-room-report/`, {

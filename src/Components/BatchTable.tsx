@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { DailyBatch } from "../types/daily_batch";
 import ListModal from './Common/ListModal';
+import Loading from './Common/Loading';
 
 const getPerformanceIndicator = (
   actual?: number,
@@ -157,7 +158,7 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
     setShowRequestsModal(true);
   };
 
-  if (loading) return <div className="text-center">Loading...</div>;
+  if (loading) return <Loading message="Loading data..." />;
   if (error) return <div className="text-center text-danger">{error}</div>;
   if ((!batches || batches.length === 0) && !loading) return <div className="text-center">No batches found</div>;
 
@@ -165,12 +166,14 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
     <div className="px-2">
       {requestItems.length > 0 && (
         <div className="mb-3">
-          <div className="alert border border-warning text-dark d-flex justify-content-between align-items-center" role="alert">
-            <div>
-              <strong>Note:</strong> There are upcoming batches not shown in the list below.
-            </div>
-            <div>
-              <button className="btn btn-link p-0" onClick={openRequestsModal}>View upcoming batches</button>
+          <div className="alert border border-warning text-dark" role="alert">
+            <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+              <div className="mb-2 mb-md-0">
+                <strong>Note:</strong> There are upcoming batches not shown in the list below.
+              </div>
+              <div>
+                <button className="btn btn-link p-0 text-break-nowrap" onClick={openRequestsModal}>View upcoming batches</button>
+              </div>
             </div>
           </div>
           <ListModal

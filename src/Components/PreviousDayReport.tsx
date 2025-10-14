@@ -3,6 +3,7 @@ import { flushSync } from 'react-dom';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from './Layout/PageHeader';
+import Loading from './Common/Loading';
 import { GridRow } from '../types/GridRow';
 import { fetchBatchData, exportBatchDataToExcel, fetchWeeklyLayerReport, CumulativeReport } from '../utility/api-utils';
 import { configApi, batchApi } from '../services/api';
@@ -335,14 +336,7 @@ const PreviousDayReport = () => {
           </div>
         </div>
 
-      {isLoading && (
-        <div className="text-center my-4">
-          <div className="spinner-border" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-          <p className="mt-2">Loading report...</p>
-        </div>
-      )}
+      {isLoading && <Loading message="Loading report..." />}
       {error && <div className="alert alert-danger text-center">{error}</div>}
       {!isLoading && !error && validGridData.length === 0 && (
         <div className="alert alert-info text-center my-4">
@@ -352,21 +346,6 @@ const PreviousDayReport = () => {
       
       <div className="row mb-4">
         <div className="d-flex flex-column mb-4">
-          <div>
-            {weekData ? (
-              <>
-                <span className="me-3">Week: {weekData}</span>
-                <span className="me-3">Age Range: {ageRange}</span>
-                <span className="me-3">Hen Housing: {henHousing}</span>
-                <span>Batch No: {batchNo}</span>
-              </>
-            ) : (
-              <div>
-                <span className="d-block d-sm-inline-block me-3">Date Range: {startDate} to {endDate}</span>
-                {batchNo && <span className="d-block d-sm-inline-block">Batch No: {batchNo}</span>}
-              </div>
-            )}
-          </div>
           <div className="d-flex gap-2 mt-2 align-self-end">
             <button
               className="btn btn-info"
@@ -382,6 +361,21 @@ const PreviousDayReport = () => {
             >
               Export to Excel
             </button>
+          </div>
+          <div>
+            {weekData ? (
+              <>
+                <span className="me-3">Week: {weekData}</span>
+                <span className="me-3">Age Range: {ageRange}</span>
+                <span className="me-3">Hen Housing: {henHousing}</span>
+                <span>Batch No: {batchNo}</span>
+              </>
+            ) : (
+              <div>
+                <span className="d-block d-sm-inline-block me-3">Date Range: {startDate} to {endDate}</span>
+                {batchNo && <span className="d-block d-sm-inline-block">Batch No: {batchNo}</span>}
+              </div>
+            )}
           </div>
         </div>
       </div>

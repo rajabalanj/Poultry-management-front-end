@@ -215,20 +215,7 @@ export const useEggRoomStock = () => {
     }
   };
 
-  const handleDelete = useCallback(async () => {
-    setLoading(true);
-    try {
-      await eggRoomReportApi.deleteReport(form.report_date); // Use report_date
-      setForm(defaultEntry(selectedDate));
-      setEditing(false);
-      toast.success('Report deleted');
-    } catch (err) {
-      setError('Failed to delete report');
-      toast.error('Failed to delete report');
-    } finally {
-      setLoading(false);
-    }
-  }, [form.report_date, selectedDate]); // Dependency array should use report_date
+
 
   return {
     form,
@@ -239,7 +226,6 @@ export const useEggRoomStock = () => {
     calculateClosings,
     handleChange,
     handleSave,
-    handleDelete,
     setSelectedDate,
     dateError,
   };

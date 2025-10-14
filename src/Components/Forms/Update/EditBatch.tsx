@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import PageHeader from "../../Layout/PageHeader";
 import { Modal, Button } from "react-bootstrap";
 import { CompositionResponse } from "../../../types/compositon";
+import Loading from '../../Common/Loading';
 
 interface UsageHistoryItem {
   id: number;
@@ -142,7 +143,7 @@ const EditBatch: React.FC = () => {
     setBatch((prev) => (prev ? { ...prev, [field]: num } : null));
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <Loading message="Loading data..." />;
   if (error) return <div>{error}</div>;
   if (!batch) return <div>Batch not found</div>;
 

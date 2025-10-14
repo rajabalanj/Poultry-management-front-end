@@ -16,6 +16,7 @@ import { InventoryItemResponse } from '../../types/InventoryItem';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { format } from 'date-fns'; // Import format for date formatting
+import Loading from '../Common/Loading'
 
 interface FormPurchaseOrderItem extends PurchaseOrderItemCreate {
   tempId: number;
@@ -534,7 +535,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
                   </div>
                   <div className="modal-body">
                     {/* lazy import to avoid circular deps */}
-                    <React.Suspense fallback={<div>Loading...</div>}>
+                    <React.Suspense fallback={<Loading message="Loading data..." />}>
                       <CreateBusinessPartnerForm hideHeader onCreated={handleVendorCreatedInline} onCancel={() => setShowCreateVendorModal(false)} />
                     </React.Suspense>
                   </div>
@@ -556,7 +557,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
                     <button type="button" className="btn-close" aria-label="Close" onClick={() => setShowCreateItemModal(false)}></button>
                   </div>
                   <div className="modal-body">
-                    <React.Suspense fallback={<div>Loading...</div>}>
+                    <React.Suspense fallback={<Loading message="Loading data..." />}>
                       <CreateInventoryItemForm hideHeader onCreated={handleItemCreatedInline} onCancel={() => setShowCreateItemModal(false)} />
                     </React.Suspense>
                   </div>

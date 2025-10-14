@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import HeaderCard from './HeaderCard';
 import ListModal from '../Common/ListModal'; // Import the new modal component
+import Loading from '../Common/Loading'; // Import Loading component
 
 export interface HeaderCardData {
   title: string;
@@ -38,7 +39,7 @@ const HeaderCardGroup: React.FC<HeaderCardGroupProps> = ({ cards, loading, error
     setModalItems([]);
   };
     
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <Loading message="Loading data..." />;
   if (error) return <div>{error}</div>;
   if (!cards || cards.length === 0) return <div>No data available</div>;
 
