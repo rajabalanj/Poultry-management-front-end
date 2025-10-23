@@ -14,7 +14,7 @@ interface UsageHistoryItem {
   used_at: string;
   shed_no: string;
   composition_name?: string;
-  composition_items?: { inventory_item_id: number; inventory_item_name?: string; weight: number; unit?: string }[];
+  items?: { inventory_item_id: number; inventory_item_name?: string; weight: number; unit?: string }[];
 }
 
 const CompositionUsageHistory = () => {
@@ -52,12 +52,8 @@ const CompositionUsageHistory = () => {
   }, [compositionId]);
 
   const getCompositionWeight = (item: UsageHistoryItem) => {
-    if (item.composition_items) {
-      return item.composition_items.reduce((sum, compItem) => sum + compItem.weight, 0);
-    }
-    // Fallback to fetched composition if composition_items not available
-    if (composition) {
-      return composition.inventory_items.reduce((sum, compItem) => sum + compItem.weight, 0);
+    if (item.items) {
+      return item.items.reduce((sum, compItem) => sum + compItem.weight, 0);
     }
     return 0;
   };

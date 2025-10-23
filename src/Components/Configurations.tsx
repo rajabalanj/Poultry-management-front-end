@@ -16,8 +16,8 @@ const Configurations: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [medicineKg, setMedicineKg] = useState(3000);
-const [medicineGram, setMedicineGram] = useState(3000);
-const [eggRoomStartDate, setEggRoomStartDate] = useState<string>(''); // YYYY-MM-DD
+  const [medicineGram, setMedicineGram] = useState(3000);
+  const [eggRoomStartDate, setEggRoomStartDate] = useState<string>(''); // YYYY-MM-DD
   const [initialTableOpening, setInitialTableOpening] = useState<number>(0);
   const [initialJumboOpening, setInitialJumboOpening] = useState<number>(0);
   const [initialGradeCOpening, setInitialGradeCOpening] = useState<number>(0);
@@ -37,6 +37,10 @@ const [eggRoomStartDate, setEggRoomStartDate] = useState<string>(''); // YYYY-MM
   const [bovansCurrentPage, setBovansCurrentPage] = useState(1);
   const [bovansTotalItems, setBovansTotalItems] = useState(0); // You might need a separate endpoint for total count
   const bovansItemsPerPage = 10;
+
+  // Financial Config state
+  const [generalLedgerOpeningBalance, setGeneralLedgerOpeningBalance] = useState<number>(0);
+  const [financialConfigSaving, setFinancialConfigSaving] = useState(false);
 
   // Function to fetch Bovans performance data with pagination
 
@@ -60,6 +64,11 @@ const [eggRoomStartDate, setEggRoomStartDate] = useState<string>(''); // YYYY-MM
         setMedicineKg(medicineKgConfig ? Number(medicineKgConfig.value) : 3000);
         setMedicineGram(medicineGramConfig ? Number(medicineGramConfig.value) : 3000);
         setEggRoomStartDate(eggRoomStartDateConfig ? eggRoomStartDateConfig.value : '');
+
+        const financialConfig = await configApi.getFinancialConfig();
+        if (financialConfig) {
+            setGeneralLedgerOpeningBalance(financialConfig.general_ledger_opening_balance || 0);
+        }
 
         const batchData = await batchApi.getBatches(0, 1000);
         setBatches(Array.isArray(batchData) ? batchData : []);
@@ -272,6 +281,18 @@ const handleMedicineGramChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   // If your API doesn't provide a total count, you'll need to fetch it separately or adjust.
   const bovansTotalPages = Math.ceil(bovansTotalItems / bovansItemsPerPage);
 
+  const handleSaveFinancialConfig = async () => {
+    setFinancialConfigSaving(true);
+    try {
+        await configApi.updateFinancialConfig({ general_ledger_opening_balance: generalLedgerOpeningBalance });
+        toast.success("Financial configuration saved successfully!");
+    } catch (err: any) {
+        toast.error(err.message || "Failed to save financial configuration.");
+    } finally {
+        setFinancialConfigSaving(false);
+    }
+  };
+
 
 return (
   <>
@@ -377,6 +398,49 @@ return (
 
       {/* Accordion for Batch and Bovans Performance */}
       <div className="accordion" id="configurationsAccordion">
+        <div className="accordion-item mb-3">
+            <h2 className="accordion-header text-light bg-primary" id="financial-config-heading">
+                <button
+                    className="accordion-button collapsed fw-semibold text-light bg-primary accordion-button-white-arrow"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#financial-config-collapse"
+                    aria-expanded="false"
+                    aria-controls="financial-config-collapse"
+                >
+                    Financial Configuration
+                </button>
+            </h2>
+            <div
+                id="financial-config-collapse"
+                className="accordion-collapse collapse"
+                aria-labelledby="financial-config-heading"
+                data-bs-parent="#configurationsAccordion"
+            >
+                <div className="accordion-body">
+                    <div className="mb-4">
+                        <label htmlFor="generalLedgerOpeningBalance" className="form-label">General Ledger Opening Balance</label>
+                        <input
+                            type="number"
+                            className="form-control form-control-sm"
+                            id="generalLedgerOpeningBalance"
+                            value={generalLedgerOpeningBalance}
+                            onChange={(e) => setGeneralLedgerOpeningBalance(Number(e.target.value))}
+                            disabled={loading}
+                        />
+                    </div>
+                    <div className="mt-3 text-end">
+                        <button
+                            className="btn btn-primary"
+                            onClick={handleSaveFinancialConfig}
+                            disabled={financialConfigSaving || loading}
+                        >
+                            {financialConfigSaving ? "Saving..." : "Save Financial Configuration"}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div className="accordion-item  mb-3">
           <h2 className="accordion-header text-light bg-primary" id="tenant-config-heading">
             <button

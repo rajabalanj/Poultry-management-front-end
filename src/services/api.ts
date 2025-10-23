@@ -35,6 +35,8 @@ import {
 } from '../types/SalesOrderItem';
 import { OperationalExpense } from '../types/operationalExpense';
 import { ProfitAndLoss, BalanceSheet } from '../types/financialReports'; // NEW IMPORT
+import { FinancialConfig } from '../types/financialConfig';
+import { GeneralLedger, PurchaseLedger, SalesLedger, InventoryLedger } from '../types/ledgers';
 // Define types for our data
 // Define types for our data
 
@@ -428,6 +430,24 @@ export const configApi = {
       return response.data.configs_initialized;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to check if tenant configurations are initialized'));
+    }
+  },
+
+  getFinancialConfig: async (): Promise<FinancialConfig> => {
+    try {
+      const response = await api.get<FinancialConfig>('/configurations/financial');
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch financial configuration'));
+    }
+  },
+
+  updateFinancialConfig: async (config: FinancialConfig): Promise<FinancialConfig> => {
+    try {
+      const response = await api.patch<FinancialConfig>('/configurations/financial', config);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to update financial configuration'));
     }
   }
 };
@@ -1027,6 +1047,48 @@ export const operationalExpenseApi = {
       await api.delete(`/operational-expenses/${expense_id}`);
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to delete operational expense'));
+    }
+  },
+};
+
+export const ledgerApi = {
+  getGeneralLedger: async (startDate: string, endDate: string): Promise<GeneralLedger> => {
+    try {
+      const response = await api.get<GeneralLedger>('/financial-reports/general-ledger', {
+        params: { start_date: startDate, end_date: endDate },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch General Ledger'));
+    }
+  },
+
+  getPurchaseLedger: async (vendorId: number): Promise<PurchaseLedger> => {
+    try {
+      const response = await api.get<PurchaseLedger>(`/financial-reports/subsidiary-ledger/purchases/${vendorId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch Purchase Ledger'));
+    }
+  },
+
+  getSalesLedger: async (customerId: number): Promise<SalesLedger> => {
+    try {
+      const response = await api.get<SalesLedger>(`/financial-reports/subsidiary-ledger/sales/${customerId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch Sales Ledger'));
+    }
+  },
+
+  getInventoryLedger: async (itemId: number, startDate: string, endDate: string): Promise<InventoryLedger> => {
+    try {
+      const response = await api.get<InventoryLedger>(`/financial-reports/subsidiary-ledger/inventory/${itemId}`, {
+        params: { start_date: startDate, end_date: endDate },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch Inventory Ledger'));
     }
   },
 };

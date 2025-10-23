@@ -177,9 +177,15 @@ export const useEggRoomStock = () => {
     return;
     }
 
-    for (const key in form) {
-      if (typeof form[key as keyof EggRoomStockEntry] === 'number' && 
-          (form[key as keyof EggRoomStockEntry] as number) < 0) {
+    // Only validate input fields, not calculated closing values
+    const inputFields: (keyof EggRoomStockEntry)[] = [
+      'table_damage', 'table_out', 'table_in',
+      'jumbo_waste', 'jumbo_in', 'jumbo_out',
+      'grade_c_room_received', 'grade_c_labour', 'grade_c_waste'
+    ];
+
+    for (const field of inputFields) {
+      if (typeof form[field] === 'number' && (form[field] as number) < 0) {
         setError('Values cannot be negative');
         toast.error('Values cannot be negative');
         return;
@@ -207,9 +213,15 @@ export const useEggRoomStock = () => {
       setForm(fromApiEntry(updatedEntry));
       }
     } catch (err) {
-        console.error('Error saving report:', err);
-      setError('Failed to save report');
-      toast.error('Failed to save report');
+      console.error('Error saving report:', err);
+      let errorMessage = 'Failed to save report';
+      if (typeof err === 'object' && err !== null && 'response' in err && (err as any).response?.data?.detail) {
+        errorMessage = (err as any).response?.data?.detail;
+        setError(errorMessage);
+      } else {
+        setError('Failed to save report');
+      }
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
