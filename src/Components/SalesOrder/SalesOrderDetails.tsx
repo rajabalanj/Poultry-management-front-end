@@ -8,6 +8,7 @@ import { SalesOrderResponse, SalesOrderStatus, PaymentStatus } from "../../types
 import { BusinessPartner } from "../../types/BusinessPartner";
 import { InventoryItemResponse } from "../../types/InventoryItem"; // Add InventoryItemResponse
 import { format } from 'date-fns';
+import { Button } from 'react-bootstrap';
 
 const getStatusBadgeClass = (status: SalesOrderStatus | PaymentStatus) => {
   switch (status) {
@@ -80,6 +81,26 @@ const SalesOrderDetails: React.FC = () => {
     return item?.unit || 'N/A';
   };
 
+  const handleDownloadReceipt = async () => {
+    if (salesOrder?.id) {
+      try {
+        await salesOrderApi.downloadSalesOrderReceipt(salesOrder.id);
+        toast.success("Receipt downloaded successfully!");
+      } catch (error: any) {
+        toast.error(error.message || "Failed to download receipt.");
+      }
+    }
+  };
+
+  const handleDownloadPaymentReceipt = async (paymentId: number) => {
+    try {
+      await salesOrderApi.downloadSalesPaymentReceipt(paymentId);
+      toast.success("Payment receipt downloaded successfully!");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to download payment receipt.");
+    }
+  };
+
   if (loading) return <div className="text-center mt-5">Loading sales order details...</div>;
   if (error) return <div className="text-center text-danger mt-5">{error}</div>;
   if (!salesOrder) return <div className="text-center mt-5">Sales order not found or data is missing.</div>;
@@ -89,8 +110,17 @@ const SalesOrderDetails: React.FC = () => {
       <PageHeader title={`Sales Details: ${salesOrder.so_number}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/sales-orders" />
       <div className="container mt-4">
         <div className="card shadow-sm mb-4">
-          <div className="card-header bg-primary text-white">
+          <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h4 className="mb-0">Sales Order Information</h4>
+            {salesOrder.payment_receipt && (
+              <Button
+                variant="light"
+                size="sm"
+                onClick={handleDownloadReceipt}
+              >
+                <i className="bi bi-download me-1"></i> Download Receipt
+              </Button>
+            )}
           </div>
           <div className="card-body">
             <div className="row mb-3">
@@ -116,11 +146,7 @@ const SalesOrderDetails: React.FC = () => {
               <div className="col-12">
                 <strong>Notes:</strong> {salesOrder.notes || 'N/A'}
               </div>
-              {salesOrder.payment_receipt && (
-                <div className="col-12">
-                  <strong>Payment Receipt:</strong> {salesOrder.payment_receipt}
-                </div>
-              )}
+              
               <div className="col-md-6">
                 <strong>Created At:</strong> {new Date(salesOrder.created_at).toLocaleString()}
               </div>
@@ -205,7 +231,19 @@ const SalesOrderDetails: React.FC = () => {
                         <td>{format(new Date(payment.payment_date), 'MMM dd, yyyy')}</td>
                         <td>{payment.payment_mode || 'N/A'}</td>
                         <td>{payment.reference_number || 'N/A'}</td>
-                        <td>{payment.payment_receipt || 'N/A'}</td>
+                        <td>
+                          {payment.payment_receipt ? (
+                            <Button
+                              variant="outline-primary"
+                              size="sm"
+                              onClick={() => handleDownloadPaymentReceipt(payment.id)}
+                            >
+                              <i className="bi bi-download"></i>
+                            </Button>
+                          ) : (
+                            'N/A'
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

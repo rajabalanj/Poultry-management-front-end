@@ -1,3 +1,4 @@
+// content of api.ts
 import axios, { AxiosError } from 'axios';
 import { CompositionResponse } from '../types/compositon';
 import { DailyBatch } from '../types/daily_batch';
@@ -175,6 +176,40 @@ function getApiErrorMessage(error: unknown, fallback: string) {
   }
   return fallback;
 }
+
+// Helper function to trigger file download
+const downloadFile = async (url: string, defaultFilename: string) => {
+  try {
+    const response = await api.get(url, {
+      responseType: 'blob', // Important for file downloads
+    });
+
+    // Extract filename from content-disposition header
+    const contentDisposition = response.headers['content-disposition'];
+    let filename = defaultFilename;
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
+      if (filenameMatch && filenameMatch.length > 1) {
+        filename = filenameMatch[1];
+      }
+    }
+
+    // Create a link element and trigger download
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(new Blob([response.data]));
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+
+    // Clean up
+    link.parentNode?.removeChild(link);
+    window.URL.revokeObjectURL(link.href);
+
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Failed to download file'));
+  }
+};
+
 
 export const reportsApi = {
   getWeeklyLayerReport: async (batch_id: number, week: number): Promise<any> => {
@@ -729,6 +764,13 @@ export const purchaseOrderApi = {
       throw new Error(getApiErrorMessage(error, 'Failed to upload payment receipt'));
     }
   },
+  downloadPurchaseOrderReceipt: async (poId: number): Promise<void> => {
+    await downloadFile(`/purchase-orders/${poId}/receipt`, `purchase-order-${poId}-receipt.pdf`);
+  },
+
+  downloadPaymentReceipt: async (paymentId: number): Promise<void> => {
+    await downloadFile(`/payments/${paymentId}/receipt`, `payment-${paymentId}-receipt.pdf`);
+  },
   createPurchaseOrder: async (poData: PurchaseOrderCreate): Promise<PurchaseOrderResponse> => {
     try {
       const response = await api.post<PurchaseOrderResponse>("/purchase-orders/", poData);
@@ -860,6 +902,13 @@ const parseSalesOrderResponse = (so: any): SalesOrderResponse => {
 };
 
 export const salesOrderApi = {
+  downloadSalesOrderReceipt: async (soId: number): Promise<void> => {
+    await downloadFile(`/sales-orders/${soId}/receipt`, `sales-order-${soId}-receipt.pdf`);
+  },
+
+  downloadSalesPaymentReceipt: async (paymentId: number): Promise<void> => {
+    await downloadFile(`/sales-payments/${paymentId}/receipt`, `sales-payment-${paymentId}-receipt.pdf`);
+  },
   createSalesOrder: async (soData: SalesOrderCreate): Promise<SalesOrderResponse> => {
     try {
       const response = await api.post<SalesOrderResponse>("/sales-orders/", soData);

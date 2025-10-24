@@ -134,6 +134,26 @@ const PurchaseOrderDetails: React.FC = () => {
     }
   };
 
+  const handleDownloadReceipt = async () => {
+    if (purchaseOrder?.id) {
+      try {
+        await purchaseOrderApi.downloadPurchaseOrderReceipt(purchaseOrder.id);
+        toast.success("Receipt downloaded successfully!");
+      } catch (error: any) {
+        toast.error(error.message || "Failed to download receipt.");
+      }
+    }
+  };
+
+  const handleDownloadPaymentReceipt = async (paymentId: number) => {
+    try {
+      await purchaseOrderApi.downloadPaymentReceipt(paymentId);
+      toast.success("Payment receipt downloaded successfully!");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to download payment receipt.");
+    }
+  };
+
   if (loading) return <div className="text-center mt-5">Loading Purchase details...</div>;
   if (error) return <div className="text-center text-danger mt-5">{error}</div>;
   if (!purchaseOrder) return <div className="text-center mt-5">Purchase not found or data is missing.</div>;
@@ -143,8 +163,17 @@ const PurchaseOrderDetails: React.FC = () => {
       <PageHeader title={`Purchase Details: ${purchaseOrder.po_number}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/purchase-orders" />
       <div className="container mt-4">
         <div className="card shadow-sm mb-4">
-          <div className="card-header bg-primary text-white">
+          <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h4 className="mb-0">Purchase Information</h4>
+            {purchaseOrder.payment_receipt && (
+              <Button
+                variant="light"
+                size="sm"
+                onClick={handleDownloadReceipt}
+              >
+                <i className="bi bi-download me-1"></i> Download Receipt
+              </Button>
+            )}
           </div>
           <div className="card-body">
             <div className="row mb-3">
@@ -170,11 +199,7 @@ const PurchaseOrderDetails: React.FC = () => {
               <div className="col-12">
                 <strong>Notes:</strong> {purchaseOrder.notes || 'N/A'}
               </div>
-              {purchaseOrder.payment_receipt && (
-                <div className="col-12">
-                  <strong>Payment Receipt:</strong> {purchaseOrder.payment_receipt}
-                </div>
-              )}
+              
               <div className="col-md-6">
                 <strong>Created At:</strong> {new Date(purchaseOrder.created_at).toLocaleString()}
               </div>
@@ -260,7 +285,19 @@ const PurchaseOrderDetails: React.FC = () => {
                         <td>{format(new Date(payment.payment_date), 'MMM dd, yyyy')}</td>
                         <td>{payment.payment_mode || 'N/A'}</td>
                         <td>{payment.reference_number || 'N/A'}</td>
-                        <td>{payment.payment_receipt || 'N/A'}</td>
+                        <td>
+                          {payment.payment_receipt ? (
+                            <Button
+                              variant="outline-primary"
+                              size="sm"
+                              onClick={() => handleDownloadPaymentReceipt(payment.id)}
+                            >
+                              <i className="bi bi-download"></i>
+                            </Button>
+                          ) : (
+                            'N/A'
+                          )}
+                        </td>
                         <td>
                           <Button
                             variant="info" size="sm" className="me-2"
