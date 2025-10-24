@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
-import { purchaseOrderApi, inventoryItemApi, businessPartnerApi } from '../../services/api';
+import { purchaseOrderApi, inventoryItemApi, businessPartnerApi, s3Upload } from '../../services/api';
 import CreateBusinessPartnerForm from '../BusinessPartner/CreateBusinessPartnerForm';
 import CreateInventoryItemForm from '../InventoryItem/CreateInventoryItemForm';
 import {
@@ -43,7 +43,7 @@ const EditPurchaseOrder: React.FC = () => {
   const [showCreateItemModal, setShowCreateItemModal] = useState(false);
 
   // Purchase states, initialized from fetched data
-  const [vendorId, setVendorId] = useState<number | ''>('');
+  const [vendorId, setVendorId] = useState<number | ''>(0);
   
   const [orderDate, setOrderDate] = useState<Date | null>(null);
   
@@ -242,9 +242,8 @@ const EditPurchaseOrder: React.FC = () => {
 
       // Upload receipt if file is selected
       if (receiptFile) {
-        const formData = new FormData();
-        formData.append('file', receiptFile);
-        await purchaseOrderApi.uploadPurchaseOrderReceipt(Number(po_id), formData);
+        const uploadConfig = await purchaseOrderApi.getPurchaseOrderReceiptUploadUrl(Number(po_id), receiptFile.name);
+        await s3Upload(uploadConfig.upload_url, receiptFile);
       }
 
       // 2. Process Purchase Items (Add, Update, Delete)

@@ -135,13 +135,32 @@ const PurchaseOrderDetails: React.FC = () => {
   };
 
   const handleDownloadReceipt = async () => {
-    if (purchaseOrder?.id) {
-      try {
-        await purchaseOrderApi.downloadPurchaseOrderReceipt(purchaseOrder.id);
-        toast.success("Receipt downloaded successfully!");
-      } catch (error: any) {
-        toast.error(error.message || "Failed to download receipt.");
+    // If the backend returned a direct receipt URL/path with the PurchaseOrder,
+    // prefer opening that URL directly (it's often an S3 url). Fallback to
+    // the download endpoint only when a direct URL isn't available.
+    try {
+      const receiptPath = purchaseOrder?.payment_receipt;
+      if (receiptPath) {
+        // If it looks like an absolute URL, open it in a new tab.
+        if (/^https?:\/\//i.test(receiptPath)) {
+          window.open(receiptPath, '_blank');
+          toast.success('Receipt opened in a new tab');
+          return;
+        }
+
+        // If it's not an absolute URL but is a path (e.g. s3 key), try to use
+        // the API download endpoint as a fallback.
       }
+
+      if (purchaseOrder?.id) {
+        await purchaseOrderApi.downloadPurchaseOrderReceipt(purchaseOrder.id);
+        toast.success('Receipt downloaded successfully!');
+        return;
+      }
+
+      toast.error('No receipt available to download');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to download receipt.');
     }
   };
 

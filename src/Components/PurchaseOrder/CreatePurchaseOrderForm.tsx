@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
-import { purchaseOrderApi, inventoryItemApi, businessPartnerApi } from '../../services/api';
+import { purchaseOrderApi, inventoryItemApi, businessPartnerApi, s3Upload } from '../../services/api';
 import CreateBusinessPartnerForm from '../BusinessPartner/CreateBusinessPartnerForm';
 import CreateInventoryItemForm from '../InventoryItem/CreateInventoryItemForm';
 import {
@@ -35,7 +35,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
   const [showCreateItemModal, setShowCreateItemModal] = useState(false);
 
   // Purchase states
-  const [vendorId, setVendorId] = useState<number | ''>('');
+  const [vendorId, setVendorId] = useState<number | ''>(0);
   
   const [orderDate, setOrderDate] = useState<Date>(new Date()); // ADD THIS STATE: Default to current date
   
@@ -48,7 +48,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
   const [newPurchaseOrder, setNewPurchaseOrder] = useState<PurchaseOrderResponse | null>(null);
 
   // Payment states
-  const [amountPaid, setAmountPaid] = useState<number | ''>('');
+  const [amountPaid, setAmountPaid] = useState<number | ''>(0);
   const [paymentDate, setPaymentDate] = useState<Date>(new Date());
   const [paymentMode, setPaymentMode] = useState<string>('');
   const [referenceNumber, setReferenceNumber] = useState<string>('');
@@ -186,9 +186,8 @@ const CreatePurchaseOrderForm: React.FC = () => {
       
       // Upload receipt if file is selected
       if (receiptFile && poResponse.id) {
-        const formData = new FormData();
-        formData.append('file', receiptFile);
-        await purchaseOrderApi.uploadPurchaseOrderReceipt(poResponse.id, formData);
+        const uploadConfig = await purchaseOrderApi.getPurchaseOrderReceiptUploadUrl(poResponse.id, receiptFile.name);
+        await s3Upload(uploadConfig.upload_url, receiptFile);
       }
       
       toast.success('Purchase Order created successfully! Now, add a payment.');
@@ -238,9 +237,8 @@ const CreatePurchaseOrderForm: React.FC = () => {
       const paymentResponse = await purchaseOrderApi.addPaymentToPurchaseOrder(newPayment);
       
       if (paymentReceiptFile && (paymentResponse as any).id) {
-        const formData = new FormData();
-        formData.append('file', paymentReceiptFile);
-        await purchaseOrderApi.uploadPaymentReceipt((paymentResponse as any).id, formData);
+        const uploadConfig = await purchaseOrderApi.getPaymentReceiptUploadUrl((paymentResponse as any).id, paymentReceiptFile.name);
+        await s3Upload(uploadConfig.upload_url, paymentReceiptFile);
       }
       
       toast.success('Payment added successfully!');

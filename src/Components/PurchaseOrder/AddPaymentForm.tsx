@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
-import { purchaseOrderApi } from '../../services/api';
+import { purchaseOrderApi, s3Upload } from '../../services/api';
 import { PaymentCreate, PurchaseOrderResponse } from '../../types/PurchaseOrder';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -101,9 +101,8 @@ const AddPaymentForm: React.FC = () => {
       
       // Upload receipt if file is selected
       if (receiptFile && (paymentResponse as any).id) {
-        const formData = new FormData();
-        formData.append('file', receiptFile);
-        await purchaseOrderApi.uploadPaymentReceipt((paymentResponse as any).id, formData);
+        const uploadConfig = await purchaseOrderApi.getPaymentReceiptUploadUrl((paymentResponse as any).id, receiptFile.name);
+        await s3Upload(uploadConfig.upload_url, receiptFile);
       }
       
       toast.success('Payment added successfully!');

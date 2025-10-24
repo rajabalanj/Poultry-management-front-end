@@ -1,4 +1,3 @@
-// content of api.ts
 import axios, { AxiosError } from 'axios';
 import { CompositionResponse } from '../types/compositon';
 import { DailyBatch } from '../types/daily_batch';
@@ -178,35 +177,27 @@ function getApiErrorMessage(error: unknown, fallback: string) {
 }
 
 // Helper function to trigger file download
-const downloadFile = async (url: string, defaultFilename: string) => {
+
+
+export const s3Upload = async (uploadUrl: string, file: File) => {
   try {
-    const response = await api.get(url, {
-      responseType: 'blob', // Important for file downloads
+    const response = await fetch(uploadUrl, {
+      method: 'PUT',
+      body: file,
+      headers: {
+        'Content-Type': file.type,
+      },
     });
-
-    // Extract filename from content-disposition header
-    const contentDisposition = response.headers['content-disposition'];
-    let filename = defaultFilename;
-    if (contentDisposition) {
-      const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
-      if (filenameMatch && filenameMatch.length > 1) {
-        filename = filenameMatch[1];
-      }
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`S3 upload failed: ${response.statusText} - ${errorText}`);
     }
-
-    // Create a link element and trigger download
-    const link = document.createElement('a');
-    link.href = window.URL.createObjectURL(new Blob([response.data]));
-    link.setAttribute('download', filename);
-    document.body.appendChild(link);
-    link.click();
-
-    // Clean up
-    link.parentNode?.removeChild(link);
-    window.URL.revokeObjectURL(link.href);
-
+    return response;
   } catch (error) {
-    throw new Error(getApiErrorMessage(error, 'Failed to download file'));
+    if (error instanceof Error) {
+      throw new Error(`S3 upload failed: ${error.message}`);
+    }
+    throw new Error('S3 upload failed with an unknown error.');
   }
 };
 
@@ -745,31 +736,38 @@ const parsePurchaseOrderResponse = (Purchase: any): PurchaseOrderResponse => {
 };
 
 export const purchaseOrderApi = {
-  uploadPurchaseOrderReceipt: async (poId: number, formData: FormData): Promise<void> => {
-    try {
-      await api.post(`/purchase-orders/${poId}/receipt`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to upload Purchase receipt'));
-    }
+  getPurchaseOrderReceiptUploadUrl: async (poId: number, filename: string): Promise<{ upload_url: string, s3_path: string }> => {
+    const response = await api.post(`/purchase-orders/${poId}/receipt-upload-url`, { filename });
+    return response.data;
   },
-
-  uploadPaymentReceipt: async (paymentId: number, formData: FormData): Promise<void> => {
-    try {
-      await api.post(`/payments/${paymentId}/receipt`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to upload payment receipt'));
-    }
+  getPaymentReceiptUploadUrl: async (paymentId: number, filename: string): Promise<{ upload_url: string, s3_path: string }> => {
+    const response = await api.post(`/payments/${paymentId}/receipt-upload-url`, { filename });
+    return response.data;
   },
   downloadPurchaseOrderReceipt: async (poId: number): Promise<void> => {
-    await downloadFile(`/purchase-orders/${poId}/receipt`, `purchase-order-${poId}-receipt.pdf`);
+    try {
+      const { data } = await api.get(`/purchase-orders/${poId}/receipt-download-url`);
+      if (data.download_url) {
+        window.open(data.download_url, '_blank');
+      } else {
+        throw new Error('Download URL not found in response');
+      }
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to download purchase order receipt'));
+    }
   },
 
   downloadPaymentReceipt: async (paymentId: number): Promise<void> => {
-    await downloadFile(`/payments/${paymentId}/receipt`, `payment-${paymentId}-receipt.pdf`);
+    try {
+      const { data } = await api.get(`/payments/${paymentId}/receipt-download-url`);
+      if (data.download_url) {
+        window.open(data.download_url, '_blank');
+      } else {
+        throw new Error('Download URL not found in response');
+      }
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to download payment receipt'));
+    }
   },
   createPurchaseOrder: async (poData: PurchaseOrderCreate): Promise<PurchaseOrderResponse> => {
     try {
@@ -898,16 +896,46 @@ const parseSalesOrderResponse = (so: any): SalesOrderResponse => {
       subtotal: item.subtotal != null ? parseFloat(item.subtotal) : 0,
       line_total: item.line_total != null ? parseFloat(item.line_total) : 0,
     })),
+    payments: (so.payments || []).map((payment: any) => ({
+      ...payment,
+      amount_paid: payment.amount_paid != null ? parseFloat(payment.amount_paid) : 0,
+    })),
   } as SalesOrderResponse;
 };
 
 export const salesOrderApi = {
+  getSalesOrderReceiptUploadUrl: async (soId: number, filename: string): Promise<{ upload_url: string, s3_path: string }> => {
+    const response = await api.post(`/sales-orders/${soId}/receipt-upload-url`, { filename });
+    return response.data;
+  },
+  getSalesPaymentReceiptUploadUrl: async (paymentId: number, filename: string): Promise<{ upload_url: string, s3_path: string }> => {
+    const response = await api.post(`/sales-payments/${paymentId}/receipt-upload-url`, { filename });
+    return response.data;
+  },
   downloadSalesOrderReceipt: async (soId: number): Promise<void> => {
-    await downloadFile(`/sales-orders/${soId}/receipt`, `sales-order-${soId}-receipt.pdf`);
+    try {
+      const { data } = await api.get(`/sales-orders/${soId}/receipt-download-url`);
+      if (data.download_url) {
+        window.open(data.download_url, '_blank');
+      } else {
+        throw new Error('Download URL not found in response');
+      }
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to download sales order receipt'));
+    }
   },
 
   downloadSalesPaymentReceipt: async (paymentId: number): Promise<void> => {
-    await downloadFile(`/sales-payments/${paymentId}/receipt`, `sales-payment-${paymentId}-receipt.pdf`);
+    try {
+      const { data } = await api.get(`/sales-payments/${paymentId}/receipt-download-url`);
+      if (data.download_url) {
+        window.open(data.download_url, '_blank');
+      } else {
+        throw new Error('Download URL not found in response');
+      }
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to download sales payment receipt'));
+    }
   },
   createSalesOrder: async (soData: SalesOrderCreate): Promise<SalesOrderResponse> => {
     try {
@@ -970,26 +998,6 @@ export const salesOrderApi = {
     }
   },
 
-  uploadSalesOrderReceipt: async (soId: number, formData: FormData): Promise<void> => {
-    try {
-      await api.post(`/sales-orders/${soId}/receipt`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to upload sales order receipt'));
-    }
-  },
-
-  uploadSalesPaymentReceipt: async (paymentId: number, formData: FormData): Promise<void> => {
-    try {
-      await api.post(`/sales-payments/${paymentId}/receipt`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to upload sales payment receipt'));
-    }
-  },
-
   // Sales Order Items (nested endpoints)
   addSalesOrderItem: async (soId: number, itemData: SalesOrderItemCreate): Promise<SalesOrderItemResponse> => {
     try {
@@ -1019,7 +1027,7 @@ export const salesOrderApi = {
 
   addPaymentToSalesOrder: async (payment: SalesPaymentCreate): Promise<PaymentResponse> => {
     try {
-      const response = await api.post<PaymentResponse>(`/sales-payments`, payment);
+      const response = await api.post<PaymentResponse>(`/sales-payments/`, payment);
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to add payment to Sales'));

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
-import { salesOrderApi, inventoryItemApi, businessPartnerApi } from '../../services/api';
+import { salesOrderApi, inventoryItemApi, businessPartnerApi, s3Upload } from '../../services/api';
 import CreateBusinessPartnerForm from '../BusinessPartner/CreateBusinessPartnerForm';
 import CreateInventoryItemForm from '../InventoryItem/CreateInventoryItemForm';
 import type {
@@ -183,9 +183,8 @@ const CreateSalesOrderForm: React.FC = () => {
       
       // Upload receipt if file is selected
       if (receiptFile && soResponse.id) {
-        const formData = new FormData();
-        formData.append('file', receiptFile);
-        await salesOrderApi.uploadSalesOrderReceipt(soResponse.id, formData);
+        const uploadConfig = await salesOrderApi.getSalesOrderReceiptUploadUrl(soResponse.id, receiptFile.name);
+        await s3Upload(uploadConfig.upload_url, receiptFile);
       }
       
       toast.success('Sales Order created successfully! Proceeding to payment.');
@@ -228,10 +227,9 @@ const CreateSalesOrderForm: React.FC = () => {
     try {
         const paymentResponse = await salesOrderApi.addPaymentToSalesOrder(paymentData);
 
-    if (paymentReceiptFile) {
-      const formData = new FormData();
-      formData.append('file', paymentReceiptFile);
-      await salesOrderApi.uploadSalesPaymentReceipt((paymentResponse as any).id, formData);
+    if (paymentReceiptFile && (paymentResponse as any).id) {
+      const uploadConfig = await salesOrderApi.getSalesPaymentReceiptUploadUrl((paymentResponse as any).id, paymentReceiptFile.name);
+      await s3Upload(uploadConfig.upload_url, paymentReceiptFile);
     }
 
         toast.success("Payment added successfully!");

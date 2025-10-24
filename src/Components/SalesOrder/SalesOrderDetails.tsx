@@ -82,13 +82,26 @@ const SalesOrderDetails: React.FC = () => {
   };
 
   const handleDownloadReceipt = async () => {
-    if (salesOrder?.id) {
-      try {
+    try {
+      const receiptPath = salesOrder?.payment_receipt;
+      if (receiptPath) {
+        // If it looks like an absolute URL, open it in a new tab.
+        if (/^https?:\/\//i.test(receiptPath)) {
+          window.open(receiptPath, '_blank');
+          toast.success('Receipt opened in a new tab');
+          return;
+        }
+      }
+
+      if (salesOrder?.id) {
         await salesOrderApi.downloadSalesOrderReceipt(salesOrder.id);
         toast.success("Receipt downloaded successfully!");
-      } catch (error: any) {
-        toast.error(error.message || "Failed to download receipt.");
+        return;
       }
+
+      toast.error('No receipt available to download');
+    } catch (error: any) {
+      toast.error(error.message || "Failed to download receipt.");
     }
   };
 

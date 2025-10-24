@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
-import { salesOrderApi, inventoryItemApi, businessPartnerApi } from '../../services/api';
+import { salesOrderApi, inventoryItemApi, businessPartnerApi, s3Upload } from '../../services/api';
 import CreateBusinessPartnerForm from '../BusinessPartner/CreateBusinessPartnerForm';
 import CreateInventoryItemForm from '../InventoryItem/CreateInventoryItemForm';
 import {
@@ -230,9 +230,8 @@ const EditSalesOrder: React.FC = () => {
 
       // Upload receipt if file is selected
       if (receiptFile) {
-        const formData = new FormData();
-        formData.append('file', receiptFile);
-        await salesOrderApi.uploadSalesOrderReceipt(Number(so_id), formData);
+        const uploadConfig = await salesOrderApi.getSalesOrderReceiptUploadUrl(Number(so_id), receiptFile.name);
+        await s3Upload(uploadConfig.upload_url, receiptFile);
       }
 
       // 2. Process Sales Order Items (Add, Update, Delete)

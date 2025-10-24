@@ -16,16 +16,7 @@ export enum PaymentStatus {
     FULLY_PAID = "Fully Paid",
 }
 
-export interface PaymentResponse {
-    id: number;
-    sales_order_id: number;
-    amount_paid: number;
-    payment_date: string; // ISO string
-    payment_mode: string; // e.g., "Cash", "Bank Transfer"
-    reference_number?: string;
-    created_at: string;
-    updated_at?: string;
-}
+
 
 
 export interface SalesOrderBase {
