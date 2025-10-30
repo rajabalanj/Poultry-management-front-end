@@ -15,7 +15,7 @@ const DashboardIndex = () => {
   const [startDate, setStartDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [batchDate, setBatchDate] = useState<string>(() => {
-    return localStorage.getItem(BATCH_DATE_KEY) || new Date().toISOString().split('T')[0];
+    return sessionStorage.getItem(BATCH_DATE_KEY) || new Date().toISOString().split('T')[0];
   });
   const [batches, setBatches] = useState<DailyBatch[]>([]);
   const [loading, setLoading] = useState(true);
@@ -122,7 +122,7 @@ const DashboardIndex = () => {
   }, [batchDate, selectedShedNo, batches, loading]);
 
   useEffect(() => {
-    localStorage.setItem(BATCH_DATE_KEY, batchDate);
+    sessionStorage.setItem(BATCH_DATE_KEY, batchDate);
   }, [batchDate]);
 
   const filteredBatches = selectedShedNo

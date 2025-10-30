@@ -13,7 +13,7 @@ function FeedMillStock() {
   const [compositions, setCompositions] = useState<any[]>([]);
   const SELECTED_COMPOSITION_KEY = 'feedmill_selected_composition_id';
   const [selectedCompositionId, setSelectedCompositionId] = useState<number | null>(() => {
-    const stored = localStorage.getItem(SELECTED_COMPOSITION_KEY);
+    const stored = sessionStorage.getItem(SELECTED_COMPOSITION_KEY);
     return stored ? Number(stored) : null;
   });
   const [editItems, setEditItems] = useState<any[]>([]);
@@ -56,7 +56,7 @@ function FeedMillStock() {
 
   useEffect(() => {
     if (selectedCompositionId !== null) {
-      localStorage.setItem(SELECTED_COMPOSITION_KEY, String(selectedCompositionId));
+      sessionStorage.setItem(SELECTED_COMPOSITION_KEY, String(selectedCompositionId));
     }
   }, [selectedCompositionId]);
 
