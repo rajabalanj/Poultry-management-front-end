@@ -10,11 +10,13 @@ import { configApi, batchApi } from '../services/api';
 import * as htmlToImage from 'html-to-image';
 import { DateSelector } from './DateSelector';
 import { BatchResponse } from '../types/batch';
+import { useEscapeKey } from '../hooks/useEscapeKey';
 
 const PreviousDayReport = () => {
   const { batchId: batchIdFromUrl } = useParams<{ batchId?: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  useEscapeKey();
 
   // Component state for data display
   const [gridData, setGridData] = useState<GridRow[]>([]);

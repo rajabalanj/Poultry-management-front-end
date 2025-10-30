@@ -7,6 +7,7 @@ import PageHeader from "../../Layout/PageHeader";
 import { Modal, Button } from "react-bootstrap";
 import { CompositionResponse } from "../../../types/compositon";
 import Loading from '../../Common/Loading';
+import { useEscapeKey } from '../../../hooks/useEscapeKey';
 
 interface UsageHistoryItem {
   id: number;
@@ -17,6 +18,7 @@ interface UsageHistoryItem {
 const EditBatch: React.FC = () => {
   const navigate = useNavigate();
   const { batchId, batch_date } = useParams<{ batchId: string; batch_date: string }>();
+  useEscapeKey();
   const [batch, setBatch] = useState<DailyBatch | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

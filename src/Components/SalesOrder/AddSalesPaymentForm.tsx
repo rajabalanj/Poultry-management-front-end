@@ -139,7 +139,7 @@ const AddSalesPaymentForm: React.FC = () => {
             <form onSubmit={handleSubmit}>
               <div className="row g-3">
                 <div className="col-md-6">
-                  <label htmlFor="amountPaid" className="form-label">Amount Received (Rs.) <span className="text-danger">*</span></label>
+                  <label htmlFor="amountPaid" className="form-label">Amount Received (Rs.) <span className="form-field-required">*</span></label>
                   <input
                     type="number"
                     className="form-control"
@@ -153,7 +153,7 @@ const AddSalesPaymentForm: React.FC = () => {
                   />
                 </div>
                 <div className="col-md-6">
-                  <label htmlFor="paymentDate" className="form-label">Payment Date <span className="text-danger">*</span></label>
+                  <label htmlFor="paymentDate" className="form-label">Payment Date <span className="form-field-required">*</span></label>
                   <DatePicker
                     selected={paymentDate}
                     onChange={(date: Date | null) => date && setPaymentDate(date)}
@@ -165,7 +165,7 @@ const AddSalesPaymentForm: React.FC = () => {
                   />
                 </div>
                 <div className="col-md-6">
-                  <label htmlFor="paymentMode" className="form-label">Payment Mode <span className="text-danger">*</span></label>
+                  <label htmlFor="paymentMode" className="form-label">Payment Mode <span className="form-field-required">*</span></label>
                   <select
                     id="paymentMode"
                     className="form-select"

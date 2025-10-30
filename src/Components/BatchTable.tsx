@@ -5,6 +5,7 @@ import { DailyBatch } from "../types/daily_batch";
 import ListModal from './Common/ListModal';
 import Loading from './Common/Loading';
 
+
 const getPerformanceIndicator = (
   actual?: number,
   standard?: number,
@@ -28,60 +29,53 @@ const getPerformanceIndicator = (
 const BatchCard: React.FC<{
   batch: DailyBatch;
   onView: (batch_id: number, batchDate: string) => void;
-  onEdit: (batch_id: number, batchDate: string) => void;
-}> = React.memo(({ batch, onView, onEdit }) => (
-  <div className="card mb-2 border shadow-sm">
-    <div className="card-body p-2">
-      <div className="d-flex justify-content-between align-items-center">
-        <div>
-          <h6 className="mb-1 text-base">Batch {batch.batch_no}</h6>
-          <div className="text-base">
-            <span className="me-2">Shed: {batch.shed_no}</span>
-            <span>Age: {batch.age}</span>
+}> = React.memo(({ batch, onView }) => {
+  const handleCardClick = () => {
+    onView(batch.batch_id, batch.batch_date);
+  };
+
+  return (
+    <div 
+      className="card mb-2 border-top-0 border-end-0 border-start-0 border-bottom" 
+      onClick={handleCardClick}
+      style={{ cursor: 'pointer', borderRadius: 0 }}
+      onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
+      onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+    >
+      <div className="card-body p-2">
+        <div className="d-flex justify-content-between align-items-center">
+          <div>
+            <h6 className="mb-1" style={{ fontSize: '1rem' }}>Batch {batch.batch_no}</h6>
+            <div style={{ fontSize: '0.85rem' }}>
+              <span className="me-3">Shed: {batch.shed_no}</span>
+              <span>Age: {batch.age}</span>
+            </div>
           </div>
-        </div>
-        <div className="d-flex flex-column flex-md-row gap-2">
-          <button
-            className="btn btn-primary btn-sm d-flex align-items-center justify-content-center"
-            onClick={() => onView(batch.batch_id, batch.batch_date)}
-            title="View Details"
-            aria-label={`View Details for Batch ${batch.batch_no}`}
-          >
-            <i className="bi bi-eye me-1"></i>
-            <span className="text-sm">Overview</span>
-          </button>
-          <button
-            className="btn btn-success btn-sm d-flex align-items-center justify-content-center"
-            onClick={() => onEdit(batch.batch_id, batch.batch_date)}
-            title="Record Data"
-            aria-label={`Record Data for Batch ${batch.batch_no}`}
-          >
-            <i className="bi bi-journal-text me-1"></i>
-            <span className="text-sm">Record Data</span>
-          </button>
-        </div>
-      </div>
-      <div className="mt-2 text-sm">
-        <div className="row">
-          <div className="col-auto d-flex align-items-center my-2 md-my-0">
-            <strong className="me-2">Feed:</strong>
-            {batch.batch_type === 'Layer' 
-              ? getPerformanceIndicator(batch.feed_in_kg, batch.standard_feed_in_kg, 1, true)
-              : <span className="text-muted">-</span>
-            }
-          </div>
-          <div className="col-auto d-flex align-items-center">
-            <strong className="me-2">Egg</strong>
-            {batch.batch_type === 'Layer' 
-              ? getPerformanceIndicator(batch.hd, batch.standard_hen_day_percentage, 100)
-              : <span className="text-muted">-</span>
-            }
+          <div className="d-flex align-items-center">
+            <div className="text-center me-3">
+              <strong style={{ fontSize: '0.8rem' }}>Feed</strong>
+              <div>
+                {batch.batch_type === 'Layer' 
+                  ? getPerformanceIndicator(batch.feed_in_kg, batch.standard_feed_in_kg, 1, true)
+                  : <span className="text-muted">-</span>
+                }
+              </div>
+            </div>
+            <div className="text-center">
+              <strong style={{ fontSize: '0.8rem' }}>Egg</strong>
+              <div>
+                {batch.batch_type === 'Layer' 
+                  ? getPerformanceIndicator(batch.hd, batch.standard_hen_day_percentage, 100)
+                  : <span className="text-muted">-</span>
+                }
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-));
+  );
+});
 
 interface BatchTableProps {
   // backend may return either DailyBatch entries or pending request objects
@@ -93,6 +87,7 @@ interface BatchTableProps {
 const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
   const navigate = useNavigate();
 
+
   const handleViewDetails = useCallback(
     (batch_id: number, batchDate: string) => {
       if (!batch_id || !batchDate) {
@@ -100,17 +95,6 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
         return;
       }
       navigate(`/batch/${batch_id}/${batchDate}/details`);
-    },
-    [navigate]
-  );
-
-  const handleEdit = useCallback(
-    (batch_id: number, batchDate: string) => {
-      if (!batch_id || !batchDate) {
-        console.error("Batch ID and Batch Date are required");
-        return;
-      }
-      navigate(`/batch/${batch_id}/${batchDate}/edit`);
     },
     [navigate]
   );
@@ -192,7 +176,6 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
               key={`Layer-${batch.batch_id}-${batch.batch_date}`}
               batch={batch}
               onView={handleViewDetails}
-              onEdit={handleEdit}
             />
           ))}
         </div>
@@ -205,7 +188,6 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
               key={`Grower-${batch.batch_id}-${batch.batch_date}`}
               batch={batch}
               onView={handleViewDetails}
-              onEdit={handleEdit}
             />
           ))}
         </div>
@@ -218,7 +200,6 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
               key={`Chick-${batch.batch_id}-${batch.batch_date}`}
               batch={batch}
               onView={handleViewDetails}
-              onEdit={handleEdit}
             />
           ))}
         </div>

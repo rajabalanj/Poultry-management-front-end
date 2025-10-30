@@ -454,3 +454,7 @@
   --bs-btn-padding-y: .1rem;
   --bs-btn-padding-x: .4rem;
 }
+
+.form-field-required {
+  color: #dc3545; /* Bootstrap's default danger color */
+}

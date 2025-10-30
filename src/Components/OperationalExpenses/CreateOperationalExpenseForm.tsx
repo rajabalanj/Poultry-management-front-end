@@ -49,7 +49,7 @@ const CreateOperationalExpenseForm: React.FC = () => {
                         <form onSubmit={handleSubmit}>
                             <div className="row g-3">
                                 <div className="col-md-6">
-                                    <label htmlFor="expenseDate" className="form-label">Date <span className="text-danger">*</span></label>
+                                    <label htmlFor="expenseDate" className="form-label">Date <span className="form-field-required">*</span></label>
                                     <input
                                         type="date"
                                         className="form-control"
@@ -60,7 +60,7 @@ const CreateOperationalExpenseForm: React.FC = () => {
                                     />
                                 </div>
                                 <div className="col-md-6">
-                                    <label htmlFor="expenseType" className="form-label">Expense Type <span className="text-danger">*</span></label>
+                                    <label htmlFor="expenseType" className="form-label">Expense Type <span className="form-field-required">*</span></label>
                                     <input
                                         type="text"
                                         className="form-control"
@@ -72,7 +72,7 @@ const CreateOperationalExpenseForm: React.FC = () => {
                                     />
                                 </div>
                                 <div className="col-md-6">
-                                    <label htmlFor="expenseAmount" className="form-label">Amount <span className="text-danger">*</span></label>
+                                    <label htmlFor="expenseAmount" className="form-label">Amount <span className="form-field-required">*</span></label>
                                     <input
                                         type="number"
                                         className="form-control"

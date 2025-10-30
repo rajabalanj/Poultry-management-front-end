@@ -105,7 +105,7 @@ const EditBusinessPartner: React.FC = () => {
             <form onSubmit={handleSubmit}>
               <div className="row g-3">
                 <div className="col-md-6">
-                  <label htmlFor="partnerName" className="form-label">Partner Name <span className="text-danger">*</span></label>
+                  <label htmlFor="partnerName" className="form-label">Partner Name <span className="form-field-required">*</span></label>
                   <input
                     type="text"
                     className="form-control"
@@ -116,7 +116,7 @@ const EditBusinessPartner: React.FC = () => {
                   />
                 </div>
                 <div className="col-md-6">
-                  <label htmlFor="contactName" className="form-label">Contact Person <span className="text-danger">*</span></label>
+                  <label htmlFor="contactName" className="form-label">Contact Person <span className="form-field-required">*</span></label>
                   <input
                     type="text"
                     className="form-control"
@@ -127,7 +127,7 @@ const EditBusinessPartner: React.FC = () => {
                   />
                 </div>
                 <div className="col-md-6">
-                  <label htmlFor="phone" className="form-label">Phone <span className="text-danger">*</span></label>
+                  <label htmlFor="phone" className="form-label">Phone <span className="form-field-required">*</span></label>
                   <input
                     type="tel"
                     className="form-control"
@@ -148,7 +148,7 @@ const EditBusinessPartner: React.FC = () => {
                   />
                 </div>
                 <div className="col-12">
-                  <label htmlFor="address" className="form-label">Address <span className="text-danger">*</span></label>
+                  <label htmlFor="address" className="form-label">Address <span className="form-field-required">*</span></label>
                   <textarea
                     className="form-control"
                     id="address"
@@ -160,7 +160,7 @@ const EditBusinessPartner: React.FC = () => {
                 </div>
                 
                 <div className="col-12">
-                  <label className="form-label">People Type <span className="text-danger">*</span></label>
+                  <label className="form-label">People Type <span className="form-field-required">*</span></label>
                   <div className="d-flex gap-3">
                     <div className="form-check">
                       <input

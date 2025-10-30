@@ -94,7 +94,7 @@ const EditInventoryItem: React.FC = () => {
             <form onSubmit={handleSubmit}>
               <div className="row g-3">
                 <div className="col-md-6">
-                  <label htmlFor="itemName" className="form-label">Item Name <span className="text-danger">*</span></label>
+                  <label htmlFor="itemName" className="form-label">Item Name <span className="form-field-required">*</span></label>
                   <input
                     type="text"
                     className="form-control"
@@ -105,7 +105,7 @@ const EditInventoryItem: React.FC = () => {
                   />
                 </div>
                 <div className="col-md-6">
-                  <label htmlFor="itemUnit" className="form-label">Unit <span className="text-danger">*</span></label>
+                  <label htmlFor="itemUnit" className="form-label">Unit <span className="form-field-required">*</span></label>
                   <select
                     className="form-select"
                     id="itemUnit"
@@ -119,7 +119,7 @@ const EditInventoryItem: React.FC = () => {
                   </select>
                 </div>
                 <div className="col-md-6">
-                  <label htmlFor="itemCategory" className="form-label">Category <span className="text-danger">*</span></label>
+                  <label htmlFor="itemCategory" className="form-label">Category <span className="form-field-required">*</span></label>
                   <select
                     className="form-select"
                     id="itemCategory"

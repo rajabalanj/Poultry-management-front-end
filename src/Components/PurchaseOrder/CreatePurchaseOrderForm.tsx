@@ -263,7 +263,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
                   {/* Purchase Details Section */}
                   <h5 className="mb-3">Step 1: Purchase Details</h5>
                   <div className="col-md-6">
-                    <label htmlFor="vendorSelect" className="form-label">Vendor <span className="text-danger">*</span></label>
+                    <label htmlFor="vendorSelect" className="form-label">Vendor <span className="form-field-required">*</span></label>
                     <div className="d-flex gap-2 align-items-center">
                       <select
                         id="vendorSelect"
@@ -293,7 +293,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
                   </div>
                   
                   <div className="col-md-6">
-                    <label htmlFor="orderDate" className="form-label">Date <span className="text-danger">*</span></label>
+                    <label htmlFor="orderDate" className="form-label">Date <span className="form-field-required">*</span></label>
                     <div>
                     <DatePicker
                       selected={orderDate}
@@ -333,7 +333,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
                   </div>
 
                   {/* Purchase Items Section */}
-                  <h5 className="mt-4 mb-3">Items <span className="text-danger">*</span></h5>
+                  <h5 className="mt-4 mb-3">Items <span className="form-field-required">*</span></h5>
                   {items.length === 0 && <p className="col-12 text-muted">No items added yet. Click "Add Item" to start.</p>}
                   {items.map((item, index) => (
                     <div key={item.tempId} className="col-12 border p-3 mb-3 rounded bg-light">
@@ -350,7 +350,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
                       </div>
                       <div className="row g-2">
                         <div className="col-md-6">
-                          <label htmlFor={`itemId-${item.tempId}`} className="form-label">Inventory Item <span className="text-danger">*</span></label>
+                          <label htmlFor={`itemId-${item.tempId}`} className="form-label">Inventory Item <span className="form-field-required">*</span></label>
                           <div className="d-flex gap-2 align-items-center">
                             <select
                               id={`itemId-${item.tempId}`}
@@ -381,7 +381,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
                           )}
                         </div>
                         <div className="col-md-3">
-                          <label htmlFor={`quantity-${item.tempId}`} className="form-label">Quantity <span className="text-danger">*</span></label>
+                          <label htmlFor={`quantity-${item.tempId}`} className="form-label">Quantity <span className="form-field-required">*</span></label>
                           <input
                             type="number"
                             className="form-control"
@@ -463,7 +463,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
                 )}
                 <div className="row g-3">
                   <div className="col-md-6">
-                    <label htmlFor="amountPaid" className="form-label">Amount Paid (Rs.) <span className="text-danger">*</span></label>
+                    <label htmlFor="amountPaid" className="form-label">Amount Paid (Rs.) <span className="form-field-required">*</span></label>
                     <input
                       type="number"
                       className="form-control"
@@ -477,7 +477,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
                     />
                   </div>
                   <div className="col-md-6">
-                    <label htmlFor="paymentDate" className="form-label">Payment Date <span className="text-danger">*</span></label>
+                    <label htmlFor="paymentDate" className="form-label">Payment Date <span className="form-field-required">*</span></label>
                     <DatePicker
                       selected={paymentDate}
                       onChange={(date: Date | null) => date && setPaymentDate(date)}
@@ -489,7 +489,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
                     />
                   </div>
                   <div className="col-md-6">
-                    <label htmlFor="paymentMode" className="form-label">Payment Mode <span className="text-danger">*</span></label>
+                    <label htmlFor="paymentMode" className="form-label">Payment Mode <span className="form-field-required">*</span></label>
                     <select id="paymentMode" className="form-select" value={paymentMode} onChange={(e) => setPaymentMode(e.target.value)} required disabled={isLoading}>
                       <option value="">Select Mode</option>
                       {paymentModes.map(mode => <option key={mode} value={mode}>{mode}</option>)}
