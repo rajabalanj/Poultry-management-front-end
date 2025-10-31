@@ -81,6 +81,34 @@ const InventoryItemDetails: React.FC = () => {
         <div className="mt-4 d-flex justify-content-center gap-3">
           <button
             type="button"
+            className="btn btn-primary"
+            onClick={() => navigate(`/inventory-items/${item_id}/edit`)}
+          >
+            <i className="bi bi-pencil-square me-1"></i>
+            Edit
+          </button>
+          <button
+            type="button"
+            className="btn btn-danger"
+            onClick={() => {
+              if (window.confirm('Are you sure you want to delete this inventory item?')) {
+                // Add delete functionality here
+                inventoryItemApi.deleteInventoryItem(Number(item_id))
+                  .then(() => {
+                    toast.success('Inventory item deleted successfully');
+                    navigate('/inventory-items');
+                  })
+                  .catch(err => {
+                    toast.error('Failed to delete inventory item: ' + err.message);
+                  });
+              }
+            }}
+          >
+            <i className="bi bi-trash me-1"></i>
+            Delete
+          </button>
+          <button
+            type="button"
             className="btn btn-info"
             onClick={() => setShowAuditModal(true)} // Open modal
           >

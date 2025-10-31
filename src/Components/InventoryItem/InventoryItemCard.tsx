@@ -13,7 +13,7 @@ interface InventoryItemCardProps {
 }
 
 const InventoryItemCard: React.FC<InventoryItemCardProps> = React.memo(
-  ({ item, onView, onEdit, onDelete, thresholds }) => {
+  ({ item, onView, thresholds }) => {
     const getCardBackground = () => {
       const currentStock = parseFloat(String(item.current_stock));
       const reorderLevel = item.reorder_level ? parseFloat(String(item.reorder_level)) : 0;
@@ -34,7 +34,13 @@ const InventoryItemCard: React.FC<InventoryItemCardProps> = React.memo(
     };
 
     return (
-      <div className={`card mb-2 mt-2 border shadow-sm ${getCardBackground()}`}>
+      <div 
+        className={`card mb-2 mt-2 border-top-0 border-end-0 border-start-0 border-bottom ${getCardBackground()}`}
+        style={{ cursor: 'pointer', borderRadius: 0 }}
+        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
+        onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+        onClick={() => onView(item.id)}
+      >
         <div className="card-body p-2">
           <div className="d-flex justify-content-between align-items-center">
             <div>
@@ -45,35 +51,7 @@ const InventoryItemCard: React.FC<InventoryItemCardProps> = React.memo(
                 <p className="mb-0">Quantity: {item.current_stock}</p>
               </div>
             </div>
-            <div className="d-flex flex-column flex-md-row gap-2">
-              <button
-                className="btn btn-primary btn-sm d-flex align-items-center justify-content-center"
-                onClick={() => onView(item.id)}
-                title="View Details"
-                aria-label={`View Details for ${item.name}`}
-              >
-                <i className="bi bi-eye me-1"></i>
-                <span className="text-sm">Details</span>
-              </button>
-              <button
-                className="btn btn-success btn-sm d-flex align-items-center justify-content-center"
-                onClick={() => onEdit(item.id)}
-                title="Edit Item"
-                aria-label={`Edit ${item.name}`}
-              >
-                <i className="bi bi-pencil-square me-1"></i>
-                <span className="text-sm">Edit</span>
-              </button>
-              <button
-                className="btn btn-danger btn-sm d-flex align-items-center justify-content-center"
-                onClick={() => onDelete(item.id)}
-                title="Delete Item"
-                aria-label={`Delete ${item.name}`}
-              >
-                <i className="bi bi-trash me-1"></i>
-                <span className="text-sm">Delete</span>
-              </button>
-            </div>
+
           </div>
         </div>
       </div>

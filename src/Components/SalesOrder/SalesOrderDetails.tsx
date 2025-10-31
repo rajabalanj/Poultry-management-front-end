@@ -287,17 +287,38 @@ const SalesOrderDetails: React.FC = () => {
         <div className="mt-4 d-flex justify-content-center gap-3">
           <button
             type="button"
+            className="btn btn-primary"
+            onClick={() => navigate(`/sales-orders/${salesOrder.id}/edit`)}
+          >
+            <i className="bi bi-pencil-square me-1"></i>
+            Edit
+          </button>
+          <button
+            type="button"
+            className="btn btn-danger"
+            onClick={() => {
+              if (window.confirm('Are you sure you want to delete this sales order?')) {
+                // Add delete functionality here
+                salesOrderApi.deleteSalesOrder(Number(so_id))
+                  .then(() => {
+                    toast.success('Sales order deleted successfully');
+                    navigate('/sales-orders');
+                  })
+                  .catch(err => {
+                    toast.error('Failed to delete sales order: ' + err.message);
+                  });
+              }
+            }}
+          >
+            <i className="bi bi-trash me-1"></i>
+            Delete
+          </button>
+          <button
+            type="button"
             className="btn btn-secondary"
             onClick={() => navigate('/sales-orders')}
           >
             Back to List
-          </button>
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={() => navigate(`/sales-orders/${salesOrder.id}/edit`)}
-          >
-            Edit Sales Order
           </button>
         </div>
       </div>

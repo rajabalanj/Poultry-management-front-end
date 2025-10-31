@@ -29,14 +29,20 @@ const getStatusBadgeClass = (status: PurchaseOrderStatus | PaymentStatus) => {
 };
 
 const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = React.memo(
-  ({ Purchase, vendors, onView, onEdit, onDelete, onAddPayment }) => {
+  ({ Purchase, vendors, onView }) => {
     
 
   // Map vendor_id to business partner name
   const vendorName = vendors.find(v => v.id === Purchase.vendor_id)?.name || 'N/A';
 
     return (
-      <div className="card mb-2 mt-2 border shadow-sm">
+      <div 
+        className="card mb-2 mt-2 border-top-0 border-end-0 border-start-0 border-bottom"
+        style={{ cursor: 'pointer', borderRadius: 0 }}
+        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
+        onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+        onClick={() => onView(Purchase.id)}
+      >
         <div className="card-body p-2">
           <div className="d-flex justify-content-between align-items-center">
             <div>
@@ -49,44 +55,8 @@ const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = React.memo(
                 
               </div>
             </div>
-            <div className="d-flex flex-column flex-md-row gap-2">
-              <button
-                className="btn btn-primary btn-sm d-flex align-items-center justify-content-center"
-                onClick={() => onView(Purchase.id)}
-                title="View Details"
-                aria-label={`View Details for Purchase ${Purchase.po_number}`}
-              >
-                <i className="bi bi-eye me-1"></i>
-                <span className="text-sm">Details</span>
-              </button>
-              <button
-                className="btn btn-success btn-sm d-flex align-items-center justify-content-center"
-                onClick={() => onEdit(Purchase.id)}
-                title="Edit Purchase"
-                aria-label={`Edit Purchase ${Purchase.po_number}`}
-              >
-                <i className="bi bi-pencil-square me-1"></i>
-                <span className="text-sm">Edit</span>
-              </button>
-              <button
-                className="btn btn-danger btn-sm d-flex align-items-center justify-content-center"
-                onClick={() => onDelete(Purchase.id)}
-                title="Delete Purchase"
-                aria-label={`Delete Purchase ${Purchase.po_number}`}
-              >
-                <i className="bi bi-trash me-1"></i>
-                <span className="text-sm">Delete</span>
-              </button>
-              <button
-                className="btn btn-primary btn-sm d-flex align-items-center justify-content-center"
-                onClick={() => onAddPayment(Purchase.id)}
-                title="Add Payment"
-                aria-label={`Add Payment for Purchase ${Purchase.po_number}`}
-              >
-                <i className="bi bi-wallet-fill me-1"></i>
-                <span className="text-sm">Add Payment</span>
-              </button>
-            </div>
+
+
           </div>
         </div>
       </div>
