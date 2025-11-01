@@ -50,6 +50,7 @@ const EditPurchaseOrder: React.FC = () => {
   const [notes, setNotes] = useState('');
   
   const [items, setItems] = useState<FormPurchaseOrderItem[]>([]);
+  const [originalItems, setOriginalItems] = useState<FormPurchaseOrderItem[]>([]);
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [currentReceipt, setCurrentReceipt] = useState<string | null>(null); // Array of items for the Purchase
 
@@ -95,6 +96,7 @@ const EditPurchaseOrder: React.FC = () => {
           inventory_item_unit: item.inventory_item?.unit,
         })) || [];
         setItems(formItems);
+        setOriginalItems(formItems);
 
         setVendors(vendorsData);
         setInventoryItems(inventoryItemsData);
@@ -258,15 +260,21 @@ const EditPurchaseOrder: React.FC = () => {
           };
           await purchaseOrderApi.addPurchaseOrderItem(Number(po_id), newItemData);
         } else if (!item.isNew && !item.isDeleted) { // Existing item, potentially updated
-          // Check if any fields actually changed before sending update request
-          // This requires comparing against original values, which we don't store here.
-          // For simplicity, we'll send the update if it's an existing item not deleted.
-          // A more robust solution would involve deep comparison or only updating specific fields.
-          const updateItemData: PurchaseOrderItemUpdate = {
-            quantity: item.quantity,
-            price_per_unit: item.price_per_unit || 0,
-          };
-          await purchaseOrderApi.updatePurchaseOrderItem(Number(po_id), item.id, updateItemData);
+          const originalItem = originalItems.find(oi => oi.id === item.id);
+
+          const hasChanged = !originalItem || 
+                               originalItem.inventory_item_id !== item.inventory_item_id ||
+                               originalItem.quantity !== item.quantity || 
+                               originalItem.price_per_unit !== item.price_per_unit;
+
+          if (hasChanged) {
+            const updateItemData: PurchaseOrderItemUpdate = {
+              inventory_item_id: item.inventory_item_id,
+              quantity: item.quantity,
+              price_per_unit: item.price_per_unit || 0,
+            };
+            await purchaseOrderApi.updatePurchaseOrderItem(Number(po_id), item.id, updateItemData);
+          }
         }
       }
 
@@ -294,7 +302,7 @@ const EditPurchaseOrder: React.FC = () => {
                 {/* Purchase Details Section */}
                 <h5 className="mb-3">Purchase Details</h5>
                 <div className="col-md-6">
-                  <label htmlFor="vendorSelect" className="form-label">Vendor <span className="text-danger">*</span></label>
+                  <label htmlFor="vendorSelect" className="form-label">Vendor <span className="form-field-required">*</span></label>
                   <div className="d-flex gap-2 align-items-center">
                     <select
                       id="vendorSelect"
@@ -319,7 +327,7 @@ const EditPurchaseOrder: React.FC = () => {
                 </div>
                 
                 <div className="col-md-6">
-                  <label htmlFor="orderDate" className="form-label">Date <span className="text-danger">*</span></label>
+                  <label htmlFor="orderDate" className="form-label">Date <span className="form-field-required">*</span></label>
                   <div>
                   <DatePicker
                     selected={orderDate}
@@ -363,7 +371,7 @@ const EditPurchaseOrder: React.FC = () => {
                 </div>
 
                 {/* Purchase Items Section */}
-                <h5 className="mt-4 mb-3">Items <span className="text-danger">*</span></h5>
+                <h5 className="mt-4 mb-3">Items <span className="form-field-required">*</span></h5>
                 {items.filter(item => !item.isDeleted).length === 0 && <p className="col-12 text-muted">No active items. Click "Add Item" to add new ones.</p>}
 
                 {items.map((item, index) => (
@@ -393,7 +401,7 @@ const EditPurchaseOrder: React.FC = () => {
                     {!item.isDeleted && (
                       <div className="row g-2">
                         <div className="col-md-6">
-                          <label htmlFor={`itemId-${item.tempId}`} className="form-label">Inventory Item <span className="text-danger">*</span></label>
+                          <label htmlFor={`itemId-${item.tempId}`} className="form-label">Inventory Item <span className="form-field-required">*</span></label>
                           <div className="d-flex gap-2 align-items-center">
                           <select
                             id={`itemId-${item.tempId}`}
@@ -401,7 +409,7 @@ const EditPurchaseOrder: React.FC = () => {
                             value={item.inventory_item_id || ''}
                             onChange={(e) => handleItemChange(item.tempId, 'inventory_item_id', e.target.value)}
                             required
-                            disabled={!item.isNew || isLoading}
+                            disabled={isLoading}
                           >
                             <option value="">Select an Item</option>
                             {inventoryItems.map((invItem) => (
@@ -418,7 +426,7 @@ const EditPurchaseOrder: React.FC = () => {
                           {/* Inventory item can now be changed for existing rows */}
                         </div>
                         <div className="col-md-3">
-                          <label htmlFor={`quantity-${item.tempId}`} className="form-label">Quantity <span className="text-danger">*</span></label>
+                          <label htmlFor={`quantity-${item.tempId}`} className="form-label">Quantity <span className="form-field-required">*</span></label>
                           <input
                             type="number"
                             className="form-control"

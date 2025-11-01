@@ -10,6 +10,7 @@ export interface PurchaseOrderItemBase {
 export interface PurchaseOrderItemCreate extends PurchaseOrderItemBase {}
 
 export interface PurchaseOrderItemUpdate {
+  inventory_item_id?: number;
   quantity?: number;
   price_per_unit?: number;
 }

@@ -83,24 +83,16 @@ const SalesOrderDetails: React.FC = () => {
 
   const handleDownloadReceipt = async () => {
     try {
-      const receiptPath = salesOrder?.payment_receipt;
-      if (receiptPath) {
-        // If it looks like an absolute URL, open it in a new tab.
-        if (/^https?:\/\//i.test(receiptPath)) {
-          window.open(receiptPath, '_blank');
-          toast.success('Receipt opened in a new tab');
-          return;
-        }
-      }
-
       if (salesOrder?.id) {
+        console.log(`Attempting to download sales order receipt for SO ID: ${salesOrder.id}`);
         await salesOrderApi.downloadSalesOrderReceipt(salesOrder.id);
-        toast.success("Receipt downloaded successfully!");
-        return;
+        toast.success("Receipt opened in a new tab!");
+      } else {
+        console.warn('Sales Order ID is not available to download receipt.');
+        toast.error('Sales Order ID is not available to download receipt.');
       }
-
-      toast.error('No receipt available to download');
     } catch (error: any) {
+      console.error(`Error downloading sales order receipt for SO ID ${salesOrder?.id}:`, error);
       toast.error(error.message || "Failed to download receipt.");
     }
   };
@@ -125,15 +117,13 @@ const SalesOrderDetails: React.FC = () => {
         <div className="card shadow-sm mb-4">
           <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h4 className="mb-0">Sales Order Information</h4>
-            {salesOrder.payment_receipt && (
-              <Button
-                variant="light"
-                size="sm"
-                onClick={handleDownloadReceipt}
-              >
-                <i className="bi bi-download me-1"></i> Download Receipt
-              </Button>
-            )}
+            <Button
+              variant="light"
+              size="sm"
+              onClick={handleDownloadReceipt}
+            >
+              <i className="bi bi-download me-1"></i> Download Receipt
+            </Button>
           </div>
           <div className="card-body">
             <div className="row mb-3">
@@ -245,17 +235,13 @@ const SalesOrderDetails: React.FC = () => {
                         <td>{payment.payment_mode || 'N/A'}</td>
                         <td>{payment.reference_number || 'N/A'}</td>
                         <td>
-                          {payment.payment_receipt ? (
-                            <Button
-                              variant="outline-primary"
-                              size="sm"
-                              onClick={() => handleDownloadPaymentReceipt(payment.id)}
-                            >
-                              <i className="bi bi-download"></i>
-                            </Button>
-                          ) : (
-                            'N/A'
-                          )}
+                          <Button
+                            variant="outline-primary"
+                            size="sm"
+                            onClick={() => handleDownloadPaymentReceipt(payment.id)}
+                          >
+                            <i className="bi bi-download"></i>
+                          </Button>
                         </td>
                       </tr>
                     ))}

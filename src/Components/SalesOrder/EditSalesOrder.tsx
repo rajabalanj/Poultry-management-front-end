@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
-import { salesOrderApi, inventoryItemApi, businessPartnerApi, s3Upload } from '../../services/api';
+import { salesOrderApi, inventoryItemApi, businessPartnerApi } from '../../services/api';
 import CreateBusinessPartnerForm from '../BusinessPartner/CreateBusinessPartnerForm';
 import CreateInventoryItemForm from '../InventoryItem/CreateInventoryItemForm';
 import {
@@ -48,8 +48,7 @@ const EditSalesOrder: React.FC = () => {
   
   const [notes, setNotes] = useState('');
   const [items, setItems] = useState<FormSalesOrderItem[]>([]);
-  const [receiptFile, setReceiptFile] = useState<File | null>(null);
-  const [currentReceipt, setCurrentReceipt] = useState<string | null>(null); // Array of items for the SO
+  const [originalItems, setOriginalItems] = useState<FormSalesOrderItem[]>([]);
 
   const grandTotal = useMemo(() => {
     return items.filter(item => !item.isDeleted).reduce((sum, item) => sum + (item.quantity * item.price_per_unit), 0);
@@ -79,7 +78,6 @@ const EditSalesOrder: React.FC = () => {
         setOrderDate(soData.order_date ? new Date(soData.order_date) : null);
         
         setNotes(soData.notes || '');
-        setCurrentReceipt(soData.payment_receipt || null);
 
         // Map existing items to form state, adding tempId for consistency and flags
         const formItems: FormSalesOrderItem[] = soData.items?.map(item => ({
@@ -91,6 +89,7 @@ const EditSalesOrder: React.FC = () => {
           inventory_item_unit: item.inventory_item?.unit,
         })) || [];
         setItems(formItems);
+        setOriginalItems(formItems);
 
         setCustomers(customersData);
         setInventoryItems(inventoryItemsData);
@@ -228,12 +227,6 @@ const EditSalesOrder: React.FC = () => {
       };
       await salesOrderApi.updateSalesOrder(Number(so_id), soUpdateData);
 
-      // Upload receipt if file is selected
-      if (receiptFile) {
-        const uploadConfig = await salesOrderApi.getSalesOrderReceiptUploadUrl(Number(so_id), receiptFile.name);
-        await s3Upload(uploadConfig.upload_url, receiptFile);
-      }
-
       // 2. Process Sales Order Items (Add, Update, Delete)
       for (const item of items) {
         if (item.isDeleted && !item.isNew) { // Existing item marked for deletion
@@ -246,15 +239,21 @@ const EditSalesOrder: React.FC = () => {
           };
           await salesOrderApi.addSalesOrderItem(Number(so_id), newItemData);
         } else if (!item.isNew && !item.isDeleted) { // Existing item, potentially updated
-          // Check if any fields actually changed before sending update request
-          // This requires comparing against original values, which we don't store here.
-          // For simplicity, we'll send the update if it's an existing item not deleted.
-          // A more robust solution would involve deep comparison or only updating specific fields.
-          const updateItemData: SalesOrderItemUpdate = {
-            quantity: item.quantity,
-            price_per_unit: item.price_per_unit || 0,
-          };
-          await salesOrderApi.updateSalesOrderItem(Number(so_id), item.id, updateItemData);
+          const originalItem = originalItems.find(oi => oi.id === item.id);
+
+          const hasChanged = !originalItem || 
+                               originalItem.inventory_item_id !== item.inventory_item_id ||
+                               originalItem.quantity !== item.quantity || 
+                               originalItem.price_per_unit !== item.price_per_unit;
+
+          if (hasChanged) {
+            const updateItemData: SalesOrderItemUpdate = {
+              inventory_item_id: item.inventory_item_id,
+              quantity: item.quantity,
+              price_per_unit: item.price_per_unit || 0,
+            };
+            await salesOrderApi.updateSalesOrderItem(Number(so_id), item.id, updateItemData);
+          }
         }
       }
 
@@ -282,7 +281,7 @@ const EditSalesOrder: React.FC = () => {
                 {/* SO Details Section */}
                 <h5 className="mb-3">Sales Order Details</h5>
                 <div className="col-md-6">
-                  <label htmlFor="customerSelect" className="form-label">Customer <span className="text-danger">*</span></label>
+                  <label htmlFor="customerSelect" className="form-label">Customer <span className="form-field-required">*</span></label>
                   <div className="d-flex">
                     <select
                       id="customerSelect"
@@ -313,7 +312,7 @@ const EditSalesOrder: React.FC = () => {
                 </div>
                 
                 <div className="col-md-6">
-                  <label htmlFor="orderDate" className="form-label">Date <span className="text-danger">*</span></label>
+                  <label htmlFor="orderDate" className="form-label">Date <span className="form-field-required">*</span></label>
                   <div>
                   <DatePicker
                     selected={orderDate}
@@ -339,26 +338,10 @@ const EditSalesOrder: React.FC = () => {
                     disabled={isLoading}
                   ></textarea>
                 </div>
-                <div className="col-12">
-                  <label htmlFor="receiptFile" className="form-label">Payment Receipt</label>
-                  {currentReceipt && (
-                    <div className="mb-2">
-                      <small className="text-muted">Current receipt: {currentReceipt}</small>
-                    </div>
-                  )}
-                  <input
-                    type="file"
-                    className="form-control"
-                    id="receiptFile"
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
-                    disabled={isLoading}
-                  />
-                  <div className="form-text">Upload new payment receipt (PDF, JPG, PNG) - will replace existing if any</div>
-                </div>
+                
 
                 {/* Sales Order Items Section */}
-                <h5 className="mt-4 mb-3">Items <span className="text-danger">*</span></h5>
+                <h5 className="mt-4 mb-3">Items <span className="form-field-required">*</span></h5>
                 {items.filter(item => !item.isDeleted).length === 0 && <p className="col-12 text-muted">No active items. Click "Add Item" to add new ones.</p>}
 
                 {items.map((item, index) => (
@@ -388,7 +371,7 @@ const EditSalesOrder: React.FC = () => {
                     {!item.isDeleted && (
                       <div className="row g-2">
                         <div className="col-md-6">
-                          <label htmlFor={`itemId-${item.tempId}`} className="form-label">Inventory Item <span className="text-danger">*</span></label>
+                          <label htmlFor={`itemId-${item.tempId}`} className="form-label">Inventory Item <span className="form-field-required">*</span></label>
                           <div className="d-flex">
                             <select
                               id={`itemId-${item.tempId}`}
@@ -396,7 +379,7 @@ const EditSalesOrder: React.FC = () => {
                               value={item.inventory_item_id || ''}
                               onChange={(e) => handleItemChange(item.tempId, 'inventory_item_id', e.target.value)}
                               required
-                              disabled={!item.isNew || isLoading}
+                              disabled={isLoading}
                             >
                               <option value="">Select an Item</option>
                               {inventoryItems.map((invItem) => (
@@ -413,7 +396,7 @@ const EditSalesOrder: React.FC = () => {
                           {/* Inventory item can now be changed for existing rows */}
                         </div>
                         <div className="col-md-3">
-                          <label htmlFor={`quantity-${item.tempId}`} className="form-label">Quantity <span className="text-danger">*</span></label>
+                          <label htmlFor={`quantity-${item.tempId}`} className="form-label">Quantity <span className="form-field-required">*</span></label>
                           <input
                             type="number"
                             className="form-control"

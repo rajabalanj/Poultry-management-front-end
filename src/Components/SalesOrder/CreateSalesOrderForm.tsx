@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
-import { salesOrderApi, inventoryItemApi, businessPartnerApi, s3Upload } from '../../services/api';
+import { salesOrderApi, inventoryItemApi, businessPartnerApi } from '../../services/api';
 import CreateBusinessPartnerForm from '../BusinessPartner/CreateBusinessPartnerForm';
 import CreateInventoryItemForm from '../InventoryItem/CreateInventoryItemForm';
 import type {
@@ -40,7 +40,7 @@ const CreateSalesOrderForm: React.FC = () => {
   
   const [notes, setNotes] = useState('');
   const [items, setItems] = useState<FormSalesOrderItem[]>([]);
-  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+
 
   // Step management
   const [formStep, setFormStep] = useState<'createOrder' | 'addPayment'>('createOrder');
@@ -52,7 +52,7 @@ const CreateSalesOrderForm: React.FC = () => {
   const [paymentMode, setPaymentMode] = useState<string>('');
   const [referenceNumber, setReferenceNumber] = useState<string>('');
   const [paymentNotes, setPaymentNotes] = useState<string>('');
-  const [paymentReceiptFile, setPaymentReceiptFile] = useState<File | null>(null);
+
   const paymentModes = ["Cash", "Bank Transfer", "Cheque", "Online Payment", "Other"];
 
   const grandTotal = useMemo(() => {
@@ -181,11 +181,7 @@ const CreateSalesOrderForm: React.FC = () => {
     try {
       const soResponse = await salesOrderApi.createSalesOrder(newSalesOrderData);
       
-      // Upload receipt if file is selected
-      if (receiptFile && soResponse.id) {
-        const uploadConfig = await salesOrderApi.getSalesOrderReceiptUploadUrl(soResponse.id, receiptFile.name);
-        await s3Upload(uploadConfig.upload_url, receiptFile);
-      }
+
       
       toast.success('Sales Order created successfully! Proceeding to payment.');
       setNewSalesOrder(soResponse); // Set the new sales order
@@ -225,12 +221,9 @@ const CreateSalesOrderForm: React.FC = () => {
     };
 
     try {
-        const paymentResponse = await salesOrderApi.addPaymentToSalesOrder(paymentData);
+        await salesOrderApi.addPaymentToSalesOrder(paymentData);
 
-    if (paymentReceiptFile && (paymentResponse as any).id) {
-      const uploadConfig = await salesOrderApi.getSalesPaymentReceiptUploadUrl((paymentResponse as any).id, paymentReceiptFile.name);
-      await s3Upload(uploadConfig.upload_url, paymentReceiptFile);
-    }
+
 
         toast.success("Payment added successfully!");
         navigate(`/sales-orders/${newSalesOrder.id}/details`);
@@ -255,7 +248,7 @@ const CreateSalesOrderForm: React.FC = () => {
                 <div className="row g-3">
                   <h5 className="mb-3">Step 1: Sales Order Details</h5>
                   <div className="col-md-6">
-                    <label htmlFor="customerSelect" className="form-label">Customer <span className="text-danger">*</span></label>
+                    <label htmlFor="customerSelect" className="form-label">Customer <span className="form-field-required">*</span></label>
                     <div className="d-flex gap-2 align-items-center">
                       <select
                         id="customerSelect"
@@ -280,7 +273,7 @@ const CreateSalesOrderForm: React.FC = () => {
                   </div>
                   
                   <div className="col-md-6">
-                    <label htmlFor="orderDate" className="form-label">Date <span className="text-danger">*</span></label>
+                    <label htmlFor="orderDate" className="form-label">Date <span className="form-field-required">*</span></label>
                     <div>
                     <DatePicker
                       selected={orderDate}
@@ -306,20 +299,8 @@ const CreateSalesOrderForm: React.FC = () => {
                       disabled={isLoading}
                     ></textarea>
                   </div>
-                  <div className="col-12">
-                    <label htmlFor="receiptFile" className="form-label">Receipt (Optional)</label>
-                    <input
-                      type="file"
-                      className="form-control"
-                      id="receiptFile"
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
-                      disabled={isLoading}
-                    />
-                    <div className="form-text">Upload receipt (PDF, JPG, PNG)</div>
-                  </div>
 
-                  <h5 className="mt-4 mb-3">Items <span className="text-danger">*</span></h5>
+                  <h5 className="mt-4 mb-3">Items <span className="form-field-required">*</span></h5>
                   {items.length === 0 && <p className="col-12 text-muted">No items added yet. Click "Add Item" to start.</p>}
                   {items.map((item, index) => (
                     <div key={item.tempId} className="col-12 border p-3 mb-3 rounded bg-light">
@@ -336,7 +317,7 @@ const CreateSalesOrderForm: React.FC = () => {
                       </div>
                       <div className="row g-2">
                         <div className="col-md-6">
-                          <label htmlFor={`itemId-${item.tempId}`} className="form-label">Inventory Item <span className="text-danger">*</span></label>
+                          <label htmlFor={`itemId-${item.tempId}`} className="form-label">Inventory Item <span className="form-field-required">*</span></label>
                             <div className="d-flex gap-2 align-items-center">
                             <select
                               id={`itemId-${item.tempId}`}
@@ -362,7 +343,7 @@ const CreateSalesOrderForm: React.FC = () => {
                           )}
                         </div>
                         <div className="col-md-3">
-                          <label htmlFor={`quantity-${item.tempId}`} className="form-label">Quantity <span className="text-danger">*</span></label>
+                          <label htmlFor={`quantity-${item.tempId}`} className="form-label">Quantity <span className="form-field-required">*</span></label>
                           <input
                             type="number"
                             className="form-control"
@@ -444,7 +425,7 @@ const CreateSalesOrderForm: React.FC = () => {
                 )}
                 <div className="row g-3">
                   <div className="col-md-6">
-                    <label htmlFor="amountPaid" className="form-label">Amount Paid (Rs.) <span className="text-danger">*</span></label>
+                    <label htmlFor="amountPaid" className="form-label">Amount Paid (Rs.) <span className="form-field-required">*</span></label>
                     <input
                       type="number"
                       className="form-control"
@@ -458,7 +439,7 @@ const CreateSalesOrderForm: React.FC = () => {
                     />
                   </div>
                   <div className="col-md-6">
-                    <label htmlFor="paymentDate" className="form-label">Payment Date <span className="text-danger">*</span></label>
+                    <label htmlFor="paymentDate" className="form-label">Payment Date <span className="form-field-required">*</span></label>
                     <DatePicker
                       selected={paymentDate}
                       onChange={(date: Date | null) => date && setPaymentDate(date)}
@@ -470,7 +451,7 @@ const CreateSalesOrderForm: React.FC = () => {
                     />
                   </div>
                   <div className="col-md-6">
-                    <label htmlFor="paymentMode" className="form-label">Payment Mode <span className="text-danger">*</span></label>
+                    <label htmlFor="paymentMode" className="form-label">Payment Mode <span className="form-field-required">*</span></label>
                     <select id="paymentMode" className="form-select" value={paymentMode} onChange={(e) => setPaymentMode(e.target.value)} required disabled={isLoading}>
                       <option value="">Select Mode</option>
                       {paymentModes.map(mode => <option key={mode} value={mode}>{mode}</option>)}
@@ -484,10 +465,7 @@ const CreateSalesOrderForm: React.FC = () => {
                     <label htmlFor="paymentNotes" className="form-label">Notes</label>
                     <textarea className="form-control" id="paymentNotes" rows={3} value={paymentNotes} onChange={(e) => setPaymentNotes(e.target.value)} disabled={isLoading}></textarea>
                   </div>
-                  <div className="col-12">
-                    <label htmlFor="paymentReceiptFile" className="form-label">Payment Receipt (Optional)</label>
-                    <input type="file" className="form-control" id="paymentReceiptFile" onChange={(e) => setPaymentReceiptFile(e.target.files?.[0] || null)} disabled={isLoading} />
-                  </div>
+
                 </div>
                 <div className="col-12 mt-4">
                   <button type="submit" className="btn btn-primary me-2" disabled={isLoading}>

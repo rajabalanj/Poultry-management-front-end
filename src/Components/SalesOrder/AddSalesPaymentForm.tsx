@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
-import { salesOrderApi, s3Upload } from '../../services/api';
+import { salesOrderApi } from '../../services/api';
 import { PaymentCreate as SalesPaymentCreate, SalesOrderResponse } from '../../types/SalesOrder';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -25,7 +25,7 @@ const AddSalesPaymentForm: React.FC = () => {
   const [paymentMode, setPaymentMode] = useState<string>('');
   const [referenceNumber, setReferenceNumber] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
-  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+
 
   // Fetch the SO details to display context
   useEffect(() => {
@@ -97,14 +97,7 @@ const AddSalesPaymentForm: React.FC = () => {
     };
 
     try {
-      const paymentResponse = await salesOrderApi.addPaymentToSalesOrder(newPayment);
-      
-      // Upload receipt if file is selected
-      if (receiptFile && (paymentResponse as any).id) {
-        const uploadConfig = await salesOrderApi.getSalesPaymentReceiptUploadUrl((paymentResponse as any).id, receiptFile.name);
-        await s3Upload(uploadConfig.upload_url, receiptFile);
-      }
-      
+      await salesOrderApi.addPaymentToSalesOrder(newPayment);
       toast.success('Payment added successfully!');
       navigate(`/sales-orders/${so_id}/details`); // Go back to SO details page
     } catch (error: any) {
@@ -204,18 +197,7 @@ const AddSalesPaymentForm: React.FC = () => {
                     disabled={isLoading}
                   ></textarea>
                 </div>
-                <div className="col-12">
-                  <label htmlFor="receiptFile" className="form-label">Payment Receipt (Optional)</label>
-                  <input
-                    type="file"
-                    className="form-control"
-                    id="receiptFile"
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
-                    disabled={isLoading}
-                  />
-                  <div className="form-text">Upload payment receipt (PDF, JPG, PNG)</div>
-                </div>
+
 
                 <div className="col-12 mt-4">
                   <button
