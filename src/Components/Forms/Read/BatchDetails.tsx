@@ -46,6 +46,19 @@ const BatchDetails: React.FC = () => {
     setFeedModalItems([]);
   };
 
+  const handleDateChange = (newDate: string) => {
+    setSelectedDate(newDate);
+    if (batch_id && newDate) {
+      // Format the date to match the expected URL format
+      const date = new Date(newDate);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const formattedDate = `${year}-${month}-${day}T00:00:00+05:30`;
+      navigate(`/batch/${batch_id}/${formattedDate}/details`);
+    }
+  };
+
   useEffect(() => {
     const fetchBatch = async () => {
       try {
@@ -130,34 +143,12 @@ const BatchDetails: React.FC = () => {
           <div className="card shadow-sm">
             <div className="card-body">
               <h5 className="card-title">Change Date</h5>
-              <div className="row g-3 align-items-center">
-                <div className="col-12 col-md-8">
-                  <DateSelector
-                    label="Select Date"
-                    value={selectedDate}
-                    onChange={setSelectedDate}
-                    maxDate={new Date().toISOString().split('T')[0]}
-                  />
-                </div>
-                <div className="col-12 col-md-4">
-                  <button
-                    className="btn btn-primary w-100"
-                    onClick={() => {
-                      if (batch_id && selectedDate) {
-                        // Format the date to match the expected URL format
-                        const date = new Date(selectedDate);
-                        const year = date.getFullYear();
-                        const month = String(date.getMonth() + 1).padStart(2, '0');
-                        const day = String(date.getDate()).padStart(2, '0');
-                        const formattedDate = `${year}-${month}-${day}T00:00:00+05:30`;
-                        navigate(`/batch/${batch_id}/${formattedDate}/details`);
-                      }
-                    }}
-                  >
-                    View
-                  </button>
-                </div>
-              </div>
+              <DateSelector
+                label="Select Date"
+                value={selectedDate}
+                onChange={handleDateChange}
+                maxDate={new Date().toISOString().split('T')[0]}
+              />
             </div>
           </div>
         </div>

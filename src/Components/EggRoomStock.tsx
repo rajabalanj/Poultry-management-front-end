@@ -33,7 +33,7 @@ const sectionConfigs: Array<{
     fields: [
       { key: 'table_opening', label: 'Opening', readOnly: true },
       { key: 'table_received', label: 'Received', readOnly: true },
-      { key: 'table_transfer', label: 'Transfer', readOnly: true },
+      { key: 'table_transfer', label: 'Sold(Transfer)', readOnly: true },
       { key: 'table_damage', label: 'Damage' },
       { key: 'table_out', label: 'Out (To Jumbo)' },
       { key: 'table_in', label: 'In (From Jumbo)', readOnly: true, controlledBy: 'jumbo_out' },
@@ -47,7 +47,7 @@ const sectionConfigs: Array<{
     fields: [
       { key: 'jumbo_opening', label: 'Opening', readOnly: true },
       { key: 'jumbo_received', label: 'Received', readOnly: true },
-      { key: 'jumbo_transfer', label: 'Transfer', readOnly: true },
+      { key: 'jumbo_transfer', label: 'Sold(Transfer)', readOnly: true },
       { key: 'jumbo_waste', label: 'Waste' },
       { key: 'jumbo_in', label: 'In (From Table)', readOnly: true, controlledBy: 'table_out' },
       { key: 'jumbo_out', label: 'Out (To Table)' },
@@ -62,7 +62,7 @@ const sectionConfigs: Array<{
       { key: 'grade_c_opening', label: 'Opening', readOnly: true },
       { key: 'grade_c_shed_received', label: 'Shed Received', readOnly: true },
       { key: 'grade_c_room_received', label: 'Room Received', readOnly: true, controlledBy: 'table_damage' },
-      { key: 'grade_c_transfer', label: 'Transfer', readOnly: true },
+      { key: 'grade_c_transfer', label: 'Sold(Transfer)', readOnly: true },
       { key: 'grade_c_labour', label: 'Labour' },
       { key: 'grade_c_waste', label: 'Waste' },
     ],
