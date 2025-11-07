@@ -7,23 +7,20 @@ import Loading from './Common/Loading';
 
 
 const getPerformanceIndicator = (
-  actual?: number,
-  standard?: number,
-  actualMultiplier = 1,
+  actual: number | undefined,
+  standard: number | undefined,
   lowerIsBetter = false
 ) => {
   if (actual === undefined || standard === undefined || actual === null || standard === null) {
-    return <span className="text-muted">-</span>;
+    return <div className="text-muted">-</div>;
   }
 
-  const actualValue = actual * actualMultiplier;
+  const isGood = lowerIsBetter ? actual <= standard : actual >= standard;
+  const icon = isGood
+    ? <i className="bi bi-arrow-up-circle-fill text-success"></i>
+    : <i className="bi bi-arrow-down-circle-fill text-danger"></i>;
 
-  const isGood = lowerIsBetter ? actualValue <= standard : actualValue >= standard;
-
-  if (isGood) {
-    return <i className="bi bi-circle-fill text-success" title="Good performance"></i>;
-  }
-  return <i className="bi bi-circle-fill text-danger" title="Needs attention"></i>;
+  return icon;
 };
 
 const BatchCard: React.FC<{
@@ -35,40 +32,27 @@ const BatchCard: React.FC<{
   };
 
   return (
-    <div 
-      className="card mb-2 border-top-0 border-end-0 border-start-0 border-bottom" 
+    <div
+      className="card mb-3 shadow-sm"
       onClick={handleCardClick}
-      style={{ cursor: 'pointer', borderRadius: 0 }}
-      onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
-      onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+      style={{ cursor: 'pointer', borderRadius: '8px', transition: 'transform 0.2s' }}
+      onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-3px)'}
+      onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0px)'}
     >
-      <div className="card-body p-2">
+      <div className="card-body">
         <div className="d-flex justify-content-between align-items-center">
           <div>
-            <h6 className="mb-1" style={{ fontSize: '1rem' }}>Batch {batch.batch_no}</h6>
-            <div style={{ fontSize: '0.85rem' }}>
-              <span className="me-3">Shed: {batch.shed_no}</span>
-              <span>Age: {batch.age}</span>
-            </div>
+            <h6 className="mb-1">Batch: {batch.batch_no}</h6>
+            <p className="text-muted mb-0" style={{ fontSize: '0.85rem' }}>Shed: {batch.shed_no} | Age: {batch.age} weeks</p>
           </div>
-          <div className="d-flex align-items-center">
-            <div className="text-center me-3">
-              <strong style={{ fontSize: '0.8rem' }}>Feed</strong>
-              <div>
-                {batch.batch_type === 'Layer' 
-                  ? getPerformanceIndicator(batch.feed_in_kg, batch.standard_feed_in_kg, 1, true)
-                  : <span className="text-muted">-</span>
-                }
-              </div>
+          <div className="d-flex gap-3 text-center">
+            <div>
+              <p className="mb-1 text-muted small">Feed Intake</p>
+              {getPerformanceIndicator(batch.feed_in_kg, batch.standard_feed_in_kg, true)}
             </div>
-            <div className="text-center">
-              <strong style={{ fontSize: '0.8rem' }}>Egg</strong>
-              <div>
-                {batch.batch_type === 'Layer' 
-                  ? getPerformanceIndicator(batch.hd, batch.standard_hen_day_percentage, 100)
-                  : <span className="text-muted">-</span>
-                }
-              </div>
+            <div>
+              <p className="mb-1 text-muted small">Hen-Day %</p>
+              {getPerformanceIndicator(batch.hd, batch.standard_hen_day_percentage)}
             </div>
           </div>
         </div>
@@ -147,7 +131,7 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
   if ((!batches || batches.length === 0) && !loading) return <div className="text-center">No batches found</div>;
 
   return (
-    <div className="px-2">
+    <div className="p-3 bg-light rounded">
       {requestItems.length > 0 && (
         <div className="mb-3">
           <div className="alert border border-warning text-dark" role="alert">
@@ -170,7 +154,7 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
       )}
       {filteredBatches.Layer.length > 0 && (
         <div className="mb-4">
-          <h5 className="fw-bold text-primary mb-3">Layer Batches</h5>
+          <h5 className="mb-3 text-primary">Layer Batches</h5>
           {filteredBatches.Layer.map(batch => (
             <BatchCard
               key={`Layer-${batch.batch_id}-${batch.batch_date}`}
@@ -182,7 +166,7 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
       )}
       {filteredBatches.Grower.length > 0 && (
         <div className="mb-4">
-          <h5 className="fw-bold text-primary mb-3">Grower Batches</h5>
+          <h5 className="mb-3 text-primary">Grower Batches</h5>
           {filteredBatches.Grower.map(batch => (
             <BatchCard
               key={`Grower-${batch.batch_id}-${batch.batch_date}`}
@@ -194,7 +178,7 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
       )}
       {filteredBatches.Chick.length > 0 && (
         <div className="mb-4">
-          <h5 className="fw-bold text-primary mb-3">Chick Batches</h5>
+          <h5 className="mb-3 text-primary">Chick Batches</h5>
           {filteredBatches.Chick.map(batch => (
             <BatchCard
               key={`Chick-${batch.batch_id}-${batch.batch_date}`}

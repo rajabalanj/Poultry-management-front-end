@@ -124,7 +124,7 @@ const InventoryItemIndexPage: React.FC = () => {
 
         {Object.entries(groupedItems).map(([category, items]) => (
           <div key={category} className="mb-4">
-            <h4 className="mb-3">{category}</h4>
+            <h5 className="mb-3">{category}</h5>
             <InventoryItemTable
               items={items}
               loading={loading}

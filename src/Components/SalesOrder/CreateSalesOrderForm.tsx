@@ -379,7 +379,7 @@ const CreateSalesOrderForm: React.FC = () => {
 
                   {items.length > 0 && (
                     <div className="col-12 text-end">
-                      <h4>Grand Total: <strong>Rs. {grandTotal.toFixed(2)}</strong></h4>
+                      <h5>Grand Total: <strong>Rs. {grandTotal.toFixed(2)}</strong></h5>
                     </div>
                   )}
 

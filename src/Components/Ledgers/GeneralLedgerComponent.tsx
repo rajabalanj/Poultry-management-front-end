@@ -34,13 +34,13 @@ const GeneralLedgerComponent: React.FC = () => {
         <div>
             <div className="row g-3 align-items-end p-3 border-bottom">
                 <div className="col-md-4">
-                    <DateSelector label="Start Date" value={startDate} onChange={setStartDate} maxDate={endDate} />
+                    <DateSelector label="Start Date" defaultValue={startDate} onChange={setStartDate} maxDate={endDate} />
                 </div>
                 <div className="col-md-4">
-                    <DateSelector label="End Date" value={endDate} onChange={setEndDate} minDate={startDate} maxDate={today} />
+                    <DateSelector label="End Date" defaultValue={endDate} onChange={setEndDate} minDate={startDate} maxDate={today} />
                 </div>
-                <div className="col-md-4">
-                    <button className="btn btn-primary w-100 mb-2" onClick={handleFetchLedger} disabled={loading}>
+                <div className="col-md-4 d-flex justify-content-center justify-content-md-end">
+                    <button className="btn btn-primary mb-2" onClick={handleFetchLedger} disabled={loading}>
                         {loading ? 'Generating...' : 'Get General Ledger'}
                     </button>
                 </div>
@@ -48,7 +48,7 @@ const GeneralLedgerComponent: React.FC = () => {
             {loading && <Loading message="Loading data..." />}
             {ledgerData && (
                 <div className="p-3">
-                    <h4 className="mb-3">{ledgerData.title}</h4>
+                    <h5 className="mb-3">{ledgerData.title}</h5>
                     <p className="text-muted">Opening Balance: {ledgerData.opening_balance.toFixed(2)}</p>
                     <div className="table-responsive">
                         <table className="table table-striped">

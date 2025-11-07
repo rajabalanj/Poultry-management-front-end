@@ -39,7 +39,7 @@ function CompositionForm({
 }: CompositionFormProps) {
   return (
     <div className="mt-3">
-      <h4>{title}</h4>
+      <h5>{title}</h5>
       <div className="row">
         <div className="mb-3 col-12 col-md-6">
         {initialCompName !== undefined && onCompNameChange && (

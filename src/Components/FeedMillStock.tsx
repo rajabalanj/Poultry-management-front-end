@@ -198,7 +198,7 @@ function FeedMillStock() {
       </div>
       {selectedComposition && viewState !== "edit" && viewState !== "add" && (
         <div className="mt-3">
-          <h4>Items in Composition</h4>
+          <h5>Items in Composition</h5>
           <ul className="list-group">
             {selectedComposition.inventory_items.map((i: any) => {
               const item = inventoryItems.find((id) => id.id === i.inventory_item_id);

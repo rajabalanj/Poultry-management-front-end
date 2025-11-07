@@ -320,163 +320,210 @@ const EggRoomStock: React.FC = () => {
 
   return (
     <>
-    <PageHeader title="Egg Room Stock" />
-    <div className="container">
-      {error && <div className="alert alert-danger text-center">{error}</div>}
+      <PageHeader title="Egg Room Stock" />
+      <div className="container">
+        {error && <div className="alert alert-danger text-center">{error}</div>}
 
-      <form onSubmit={handleSave} className="card p-3 mb-4 mt-2">
-        <div ref={stockFormSectionToShareRef}>
-          <div className="row g-3 align-items-end mb-3">
-            <div className="col-md-6">
-              <DateSelector
-                value={selectedDate}
-                onChange={setSelectedDate}
-                maxDate={new Date().toISOString().slice(0, 10)}
-                disabled={loading}
-                label='Report Date'
+        <form onSubmit={handleSave} className="card p-3 mb-4 mt-2">
+          <div ref={stockFormSectionToShareRef}>
+            <div className="row g-3 mb-3">
+              <div className="col-md-6">
+                <DateSelector
+                  defaultValue={selectedDate}
+                  onChange={setSelectedDate}
+                  maxDate={new Date().toISOString().slice(0, 10)}
+                  disabled={loading}
+                  label="Report Date"
+                />
+              </div>
+            </div>
+
+            {sectionConfigs.map((config) => (
+              <StockFormSection
+                key={config.id}
+                config={config}
+                values={form}
+                onChange={handleFormChange}
+                calculateClosing={(values) => {
+                  const closingKey = closingFields[config.id];
+                  const value = calculateClosings(values)[closingKey];
+                  return typeof value === "number" ? value : 0;
+                }}
+                isMobile={isMobile}
+              />
+            ))}
+          </div>
+
+          <div className="row align-items-end gap-2 mt-3">
+            <div className="col-12 col-md-auto">
+              <SaveControls
+                editing={editing}
+                loading={loading}
+                onSave={handleSave}
               />
             </div>
-            <div className="col-md-6">
+            <div>
               <button
-                type="button" // Add type="button" to prevent form submission
-                className="btn btn-info w-100"
+                type="button"
+                className="btn btn-info"
                 onClick={handleShareStockForm}
                 disabled={isSharing}
               >
-                {isSharing ? 'Generating...' : 'Share as Image'}
+                {isSharing ? "Generating..." : "Share as Image"}
               </button>
             </div>
           </div>
+        </form>
 
-          {sectionConfigs.map((config) => (
-          <StockFormSection
-            key={config.id}
-            config={config}
-            values={form}
-            onChange={handleFormChange}
-            calculateClosing={(values) => {
-              const closingKey = closingFields[config.id];
-              const value = calculateClosings(values)[closingKey];
-              return typeof value === 'number' ? value : 0;
-          }}
-            isMobile={isMobile}
-          />
-        ))}
+        <div className="card p-3 mb-4 mt-2">
+          <h5 className="card-title">View Report</h5>
+          <div className="row g-3 align-items-end">
+            <div className="col-12 col-md-auto">
+              <DateSelector
+                label="Start Date"
+                defaultValue={startDate}
+                onChange={setStartDate}
+                maxDate={endDate || today}
+              />
+            </div>
+            <div className="col-12 col-md-auto">
+              <DateSelector
+                label="End Date"
+                defaultValue={endDate}
+                onChange={setEndDate}
+                minDate={startDate}
+                maxDate={today}
+              />
+            </div>
+            <div className="col-12 col-md-auto d-flex gap-2 mb-2">
+              <button
+                className="btn btn-primary"
+                onClick={() => fetchReports()}
+                disabled={
+                  !startDate || !endDate || reportLoading || !!dateRangeError
+                }
+              >
+                {reportLoading ? "Loading..." : "Get Report"}
+              </button>
+              <button
+                className="btn btn-info"
+                onClick={handleShare}
+                disabled={reports.length === 0 || reportLoading || isSharing}
+              >
+                {isSharing ? "Generating..." : "Share as Image"}
+              </button>
+            </div>
+          </div>
+          
+          {dateRangeError && (
+            <div className="text-danger mt-2">
+              {dateRangeError}
+            </div>
+          )}
         </div>
 
-        <SaveControls
-          editing={editing}
-          loading={loading}
-          onSave={handleSave}
-        />
-      </form>
+        {reportError && (
+          <div className="alert alert-danger text-center">{reportError}</div>
+        )}
 
-      <div className="card p-3 mb-4 mt-2">
-        <h5 className="card-title">View Report</h5>
-        <div className="row g-3 align-items-end">
-          <div className="col-12 col-md-4">
-            <DateSelector
-              label="Start Date"
-              value={startDate}
-              onChange={setStartDate}
-              maxDate={endDate || today}
-            />
-          </div>
-          <div className="col-12 col-md-4">
-            <DateSelector
-              label="End Date"
-              value={endDate}
-              onChange={setEndDate}
-              minDate={startDate}
-              maxDate={today}
-            />
-          </div>
-          <div className="col-12 col-md-4">
-            <button
-              className="btn btn-primary w-100"
-              onClick={() => fetchReports()}
-              disabled={!startDate || !endDate || reportLoading || !!dateRangeError}
-            >
-              {reportLoading ? 'Loading...' : 'Get Report'}
-            </button>
-            <button
-              className="btn btn-info w-100 mt-2"
-              onClick={handleShare}
-              disabled={reports.length === 0 || reportLoading || isSharing}
-            >
-              {isSharing ? 'Generating...' : 'Share as Image'}
-            </button>
-          </div>
-        </div>
-        {dateRangeError && <div className="alert alert-danger text-center mt-2">{dateRangeError}</div>}
-      </div>
-
-      {reportError && <div className="alert alert-danger text-center">{reportError}</div>}
-
-      {showDateModal && (
-        <div className="modal show" tabIndex={-1} style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Invalid Start Date</h5>
-                <button type="button" className="btn-close" onClick={() => setShowDateModal(false)}></button>
-              </div>
-              <div className="modal-body">
-                <p>The selected date is before the system start date. Would you like to use the earliest available date, {suggestedStartDate}?</p>
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowDateModal(false)}>Cancel</button>
-                <button type="button" className="btn btn-primary" onClick={handleConfirmDateChange}>Use Suggested Date</button>
+        {showDateModal && (
+          <div
+            className="modal show"
+            tabIndex={-1}
+            style={{ display: "block", backgroundColor: "rgba(0,0,0,0.5)" }}
+          >
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Invalid Start Date</h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowDateModal(false)}
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  <p>
+                    The selected date is before the system start date. Would you
+                    like to use the earliest available date,{" "}
+                    {suggestedStartDate}?
+                  </p>
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setShowDateModal(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={handleConfirmDateChange}
+                  >
+                    Use Suggested Date
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {reports.length > 0 && (
-        <div className="table-responsive">
-          <ul className="nav nav-tabs">
-            {sectionConfigs.map((config) => (
-              <li className="nav-item" key={config.id}>
-                <button
-                  className={`nav-link ${activeTab === config.id ? 'active' : ''}`}
-                  onClick={() => setActiveTab(config.id)}
-                >
-                  {config.title}
-                </button>
-              </li>
-            ))}
-          </ul>
-          <table className="table table-bordered" ref={tableRef}>
-            <thead>
-              <tr>
-                <th className="text-center align-middle">Date</th>
-                {sectionConfigs.find(c => c.id === activeTab)?.fields.map(field => (
-                  <th key={field.key} className="text-center">{field.label}</th>
-                ))}
-                <th className="text-center">Closing</th>
-              </tr>
-            </thead>
-            <tbody>
-              {reports.map((r) => (
-                <tr key={r.report_date}>
-                  <td>{r.report_date}</td>
-                  {sectionConfigs.find(c => c.id === activeTab)?.fields.map(field => {
-                    const value = r[field.key];
-                    return (
-                      <td key={field.key}>
-                        {typeof value === 'number' ? value : String(value ?? '')}
-                      </td>
-                    );
-                  })}
-                  <td>{r[closingFields[activeTab]]}</td>
-                </tr>
+        {reports.length > 0 && (
+          <div className="table-responsive">
+            <ul className="nav nav-tabs">
+              {sectionConfigs.map((config) => (
+                <li className="nav-item" key={config.id}>
+                  <button
+                    className={`nav-link ${
+                      activeTab === config.id ? "active" : ""
+                    }`}
+                    onClick={() => setActiveTab(config.id)}
+                  >
+                    {config.title}
+                  </button>
+                </li>
               ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
+            </ul>
+            <table className="table table-bordered" ref={tableRef}>
+              <thead>
+                <tr>
+                  <th className="text-center align-middle">Date</th>
+                  {sectionConfigs
+                    .find((c) => c.id === activeTab)
+                    ?.fields.map((field) => (
+                      <th key={field.key} className="text-center">
+                        {field.label}
+                      </th>
+                    ))}
+                  <th className="text-center">Closing</th>
+                </tr>
+              </thead>
+              <tbody>
+                {reports.map((r) => (
+                  <tr key={r.report_date}>
+                    <td>{r.report_date}</td>
+                    {sectionConfigs
+                      .find((c) => c.id === activeTab)
+                      ?.fields.map((field) => {
+                        const value = r[field.key];
+                        return (
+                          <td key={field.key}>
+                            {typeof value === "number"
+                              ? value
+                              : String(value ?? "")}
+                          </td>
+                        );
+                      })}
+                    <td>{r[closingFields[activeTab]]}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </>
   );
 };

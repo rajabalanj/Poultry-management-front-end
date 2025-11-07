@@ -13,6 +13,12 @@ import { BatchResponse } from '../types/batch';
 import { useEscapeKey } from '../hooks/useEscapeKey';
 
 const PreviousDayReport = () => {
+  const formatDateForDisplay = (dateString: string) => {
+    if (!dateString) return '';
+    const [year, month, day] = dateString.split('-');
+    if (!year || !month || !day) return dateString;
+    return `${day}-${month}-${year}`;
+  }
   const { batchId: batchIdFromUrl } = useParams<{ batchId?: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -34,10 +40,15 @@ const PreviousDayReport = () => {
   const [henHousing, setHenHousing] = useState<number | null>(null);
   const [cumulativeReportData, setCumulativeReportData] = useState<CumulativeReport | null>(null);
 
+  const getFormattedDateFromParam = (param: string | null) => {
+    if (!param) return '';
+    return param.split('T')[0];
+  }
+
   // State for the report generation form
   const [reportType, setReportType] = useState<'daily' | 'weekly'>(searchParams.get('week') ? 'weekly' : 'daily');
-  const [startDate, setStartDate] = useState(searchParams.get('start') || '');
-  const [endDate, setEndDate] = useState(searchParams.get('end') || '');
+  const [startDate, setStartDate] = useState(getFormattedDateFromParam(searchParams.get('start')));
+  const [endDate, setEndDate] = useState(getFormattedDateFromParam(searchParams.get('end')));
   const [week, setWeek] = useState(searchParams.get('week') || '');
   const [batchNo, setBatchNo] = useState('');
   const [batches, setBatches] = useState<BatchResponse[]>([]);
@@ -298,7 +309,7 @@ const PreviousDayReport = () => {
                     <div className="col-12 col-md-auto">
                       <DateSelector
                         label="Start Date"
-                        value={startDate}
+                        defaultValue={startDate}
                         onChange={setStartDate}
                         maxDate={endDate}
                       />
@@ -306,7 +317,7 @@ const PreviousDayReport = () => {
                     <div className="col-12 col-md-auto">
                       <DateSelector
                         label="End Date"
-                        value={endDate}
+                        defaultValue={endDate}
                         onChange={setEndDate}
                         minDate={startDate}
                         maxDate={new Date().toISOString().split('T')[0]}
@@ -325,9 +336,9 @@ const PreviousDayReport = () => {
                     />
                   </div>
                 )}
-                <div className="col-12 col-md-auto">
+                <div className="col-12 col-md-4 d-flex justify-content-center justify-content-md-end">
                   <button
-                    className="btn btn-primary w-100 mb-2"
+                    className="btn btn-primary mb-2"
                     onClick={handleViewReport}
                   >
                     View Data
@@ -341,8 +352,8 @@ const PreviousDayReport = () => {
       {isLoading && <Loading message="Loading report..." />}
       {error && <div className="alert alert-danger text-center">{error}</div>}
       {!isLoading && !error && validGridData.length === 0 && (
-        <div className="alert alert-info text-center my-4">
-          No reports found for the selected criteria.
+        <div className="text-center text-muted my-4">
+          <p>No reports found for the selected criteria.</p>
         </div>
       )}
       
@@ -374,7 +385,7 @@ const PreviousDayReport = () => {
               </>
             ) : (
               <div>
-                <span className="d-block d-sm-inline-block me-3">Date Range: {startDate} to {endDate}</span>
+                <span className="d-block d-sm-inline-block me-3">Date Range: {formatDateForDisplay(startDate)} to {formatDateForDisplay(endDate)}</span>
                 {batchNo && <span className="d-block d-sm-inline-block">Batch No: {batchNo}</span>}
               </div>
             )}
@@ -463,15 +474,15 @@ const PreviousDayReport = () => {
                       <td>{row.cr}</td>
                       <td>{row.total_eggs}</td>
                       <td className={hdCellClassName} style={hdCellStyle}>
-                        {row.hd !== undefined ? (Number(row.hd) * 100).toFixed(2) : ''}
+                        {row.hd != null ? (Number(row.hd) * 100).toFixed(2) : ''}
                       </td>
-                      <td>{row.standard_hen_day_percentage !== undefined ? row.standard_hen_day_percentage.toFixed(2) : ''}</td>
+                      <td>{row.standard_hen_day_percentage != null ? row.standard_hen_day_percentage.toFixed(2) : ''}</td>
                       {reportType !== 'daily' && <>
                         <td className={feedCellClassName} style={feedCellStyle}>
-                          {row.actual_feed_consumed !== undefined ? Number(row.actual_feed_consumed).toFixed(2) : ''}
+                          {row.actual_feed_consumed != null ? Number(row.actual_feed_consumed).toFixed(2) : ''}
                         </td>
                         <td>
-                          {row.standard_feed_consumption !== undefined ? Number(row.standard_feed_consumption).toFixed(2) : ''}
+                          {row.standard_feed_consumption != null ? Number(row.standard_feed_consumption).toFixed(2) : ''}
                         </td>
                       </>}
                       {batchIdFromUrl && (
@@ -533,8 +544,8 @@ const PreviousDayReport = () => {
                 <div className="col-md-auto"><span className="fw-bold">Total Jumbo:</span> {summaryData.jumbo}</div>
                 <div className="col-md-auto"><span className="fw-bold">Total CR:</span> {summaryData.cr}</div>
                 <div className="col-md-auto"><span className="fw-bold">Total Eggs:</span> {summaryData.total_eggs}</div>
-                <div className="col-md-auto"><span className="fw-bold">Average HD:</span> {(Number(summaryData.hd) * 100).toFixed(2)}%</div>
-                <div className="col-md-auto"><span className="fw-bold">Average Standard HD:</span> {Number(summaryData.standard_hen_day_percentage).toFixed(2)}%</div>
+                <div className="col-md-auto"><span className="fw-bold">Average HD:</span> {summaryData.hd != null ? (Number(summaryData.hd) * 100).toFixed(2) : 'N/A'}%</div>
+                <div className="col-md-auto"><span className="fw-bold">Average Standard HD:</span> {summaryData.standard_hen_day_percentage != null ? Number(summaryData.standard_hen_day_percentage).toFixed(2) : 'N/A'}%</div>
               </div>
             </div>
           )}

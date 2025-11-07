@@ -2,7 +2,7 @@ import axios, { AxiosError } from 'axios';
 import { CompositionResponse } from '../types/compositon';
 import { DailyBatch } from '../types/daily_batch';
 import { Batch, BatchResponse, BatchUpdate } from '../types/batch';
-import { EggRoomReportResponse, EggRoomReportCreate, EggRoomReportUpdate, EggRoomSingleReportResponse } from '../types/eggRoomReport';
+import { EggRoomReportResponse, EggRoomReportCreate, EggRoomReportUpdate, EggRoomSingleReportResponse } from '../types/eggRoomReport.ts';
 import { BovansPerformance, PaginatedBovansPerformanceResponse } from "../types/bovans"; // Ensure this import is present
 import { BusinessPartner, BusinessPartnerCreate, BusinessPartnerUpdate, PartnerStatus } from '../types/BusinessPartner';
 import { InventoryItemResponse, InventoryItemCreate, InventoryItemUpdate, InventoryItemCategory } from '../types/InventoryItem';
@@ -224,8 +224,8 @@ export const dailyBatchApi = {
     try {
       const response = await api.get<DailyBatch[] | { details: DailyBatch[], summary: DailyBatch }>(`/reports/snapshot`, {
         params: {
-          start_date: startDate,
-          end_date: endDate,
+          start_date: startDate.split('T')[0],
+          end_date: endDate.split('T')[0],
           batch_id: batchId || undefined,
         },
       });
@@ -253,6 +253,18 @@ export const dailyBatchApi = {
       });
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to upload Excel file'));
+    }
+  },
+
+  // Upload weekly report Excel file for a specific batch
+  uploadWeeklyReport: async (batchId: number, formData: FormData): Promise<{ message: string }> => {
+    try {
+      const response = await api.post<{ message: string }>(`/daily-batch/upload-weekly-report/${batchId}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to upload weekly report'));
     }
   },
   
@@ -422,42 +434,17 @@ export const configApi = {
     }
   },
 
-  // Update a configuration by name (PATCH)
-  updateConfig: async (name: string, value: string): Promise<AppConfigKV> => {
+  // Save or update a configuration (PATCH)
+  saveConfig: async (name: string, value: string): Promise<AppConfigKV> => {
     try {
       const response = await api.patch<AppConfigKV>(`/configurations/${name}/`, { value });
       return response.data;
     } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to update configuration'));
+      throw new Error(getApiErrorMessage(error, 'Failed to save configuration'));
     }
   },
 
-  // Create a configuration (POST)
-  createConfig: async (name: string, value: string): Promise<AppConfigKV> => {
-    try {
-      const response = await api.post<AppConfigKV>('/configurations/', { name, value });
-      return response.data;
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to create configuration'));
-    }
-  },
 
-  initializeTenantConfigs: async (tenantId: string): Promise<void> => {
-    try {
-      await api.post(`/tenants/initialize-configs?tenant_id=${tenantId}`);
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to initialize tenant configurations'));
-    }
-  },
-
-  areTenantConfigsInitialized: async (tenantId: string): Promise<boolean> => {
-    try {
-      const response = await api.get<{ configs_initialized: boolean }>(`/tenants/configs-initialized?tenant_id=${tenantId}`);
-      return response.data.configs_initialized;
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to check if tenant configurations are initialized'));
-    }
-  },
 
   getFinancialConfig: async (): Promise<FinancialConfig> => {
     try {
@@ -1031,6 +1018,24 @@ export const salesOrderApi = {
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to add payment to Sales'));
+    }
+  },
+
+  updateSalesPayment: async (paymentId: number, paymentData: PaymentUpdate): Promise<PaymentResponse> => {
+    try {
+      // Assuming sales payments are managed under a similar endpoint structure to purchase payments
+      const response = await api.patch<PaymentResponse>(`/sales-payments/${paymentId}`, paymentData);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to update sales payment'));
+    }
+  },
+
+  deleteSalesPayment: async (paymentId: number): Promise<void> => {
+    try {
+      await api.delete(`/sales-payments/${paymentId}`);
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to delete sales payment'));
     }
   },
 };

@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import BatchConfig from "./BatchConfig";
 import { BovansPerformance } from "../types/bovans"; // Import BovansPerformance type
 import { format } from 'date-fns'; // For date formatting
-import TenantConfig from './TenantConfig'; // Import TenantConfig
+
 
 const KG_PER_TON = 1000;
 
@@ -121,7 +121,7 @@ const Configurations: React.FC = () => {
   const handleEggRoomInitialSetup = async () => {
     setEggRoomSaving(true);
     try {
-      await configApi.updateConfig('system_start_date', eggRoomStartDate);
+      await configApi.saveConfig('system_start_date', eggRoomStartDate);
       toast.success(`Egg Room setup completed for ${eggRoomStartDate}.`);
       if (!eggRoomStartDate) {
         toast.error("Please select an Egg Room Start Date.");
@@ -257,11 +257,11 @@ const handleMedicineGramChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await configApi.updateConfig("lowKgThreshold", String(kg));
-      await configApi.updateConfig("lowTonThreshold", String(ton));
-      await configApi.updateConfig("henDayDeviation", String(henDayDeviation));
-      await configApi.updateConfig("medicineLowKgThreshold", String(medicineKg));
-    await configApi.updateConfig("medicineLowGramThreshold", String(medicineGram));
+      await configApi.saveConfig("lowKgThreshold", String(kg));
+      await configApi.saveConfig("lowTonThreshold", String(ton));
+      await configApi.saveConfig("henDayDeviation", String(henDayDeviation));
+      await configApi.saveConfig("medicineLowKgThreshold", String(medicineKg));
+    await configApi.saveConfig("medicineLowGramThreshold", String(medicineGram));
       toast.success("Configurations saved successfully!");
     } catch (err: any) {
       toast.error(err.message || "Failed to save configurations.");
@@ -298,7 +298,7 @@ return (
   <>
   <PageHeader title="Configurations"></PageHeader>
     <div className="container-fluid">
-      
+
       <div className="p-3 border rounded shadow-sm mb-4 mt-2"> {/* Added mb-4 for spacing */}
         {/* Global Low Feed Thresholds */}
         <div className="mb-4">
@@ -441,30 +441,7 @@ return (
                 </div>
             </div>
         </div>
-        <div className="accordion-item  mb-3">
-          <h2 className="accordion-header text-light bg-primary" id="tenant-config-heading">
-            <button
-              className="accordion-button collapsed fw-semibold text-light bg-primary accordion-button-white-arrow"
-              type="button"
-              data-bs-toggle="collapse"
-              data-bs-target="#tenant-config-collapse"
-              aria-expanded="false"
-              aria-controls="tenant-config-collapse"
-            >
-              Tenant Configuration
-            </button>
-          </h2>
-          <div
-            id="tenant-config-collapse"
-            className="accordion-collapse collapse"
-            aria-labelledby="tenant-config-heading"
-            data-bs-parent="#configurationsAccordion"
-          >
-            <div className="accordion-body">
-            <TenantConfig />
-            </div>
-          </div>
-        </div>
+
         {/* Egg Room Initial Setup Accordion Item */}
         <div className="accordion-item mb-3">
           <h2 className="accordion-header text-light bg-primary" id="egg-room-setup-heading">

@@ -60,8 +60,8 @@ const PurchaseLedgerComponent: React.FC = () => {
                         ))}
                     </select>
                 </div>
-                <div className="col-md-4">
-                    <button className="btn btn-primary w-100 mb-2" onClick={handleFetchLedger} disabled={loading}>
+                <div className="col-md-4 d-flex justify-content-center justify-content-md-end">
+                    <button className="btn btn-primary mb-2" onClick={handleFetchLedger} disabled={loading}>
                         {loading ? 'Generating...' : 'Get Purchase Ledger'}
                     </button>
                 </div>
@@ -69,7 +69,7 @@ const PurchaseLedgerComponent: React.FC = () => {
             {loading && <Loading message="Loading data..." />}
             {ledgerData && (
                 <div className="p-3">
-                    <h4 className="mb-3">{ledgerData.title}</h4>
+                    <h5 className="mb-3">{ledgerData.title}</h5>
                     <p className="text-muted">Vendor ID: {ledgerData.vendor_id}</p>
                     <div className="table-responsive">
                         <table className="table table-striped">

@@ -17,6 +17,7 @@ export interface BatchResponse {
   opening_count: number;
   date: string;
   closing_date?: string;
+  shed_change_date?: string;
   is_active?: boolean; // Indicates if the batch is currently active
   batch_type?: 'Chick' | 'Layer' | 'Grower'; // Type of the batch
 }

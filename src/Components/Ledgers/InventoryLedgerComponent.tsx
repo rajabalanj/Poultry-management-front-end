@@ -69,13 +69,13 @@ const InventoryLedgerComponent: React.FC = () => {
                     </select>
                 </div>
                 <div className="col-md-3">
-                    <DateSelector label="Start Date" value={startDate} onChange={setStartDate} maxDate={endDate} />
+                    <DateSelector label="Start Date" defaultValue={startDate} onChange={setStartDate} maxDate={endDate} />
                 </div>
                 <div className="col-md-3">
-                    <DateSelector label="End Date" value={endDate} onChange={setEndDate} minDate={startDate} maxDate={today} />
+                    <DateSelector label="End Date" defaultValue={endDate} onChange={setEndDate} minDate={startDate} maxDate={today} />
                 </div>
-                <div className="col-md-3">
-                    <button className="btn btn-primary w-100 mb-2" onClick={handleFetchLedger} disabled={loading}>
+                <div className="col-md-3 d-flex justify-content-center justify-content-md-end">
+                    <button className="btn btn-primary mb-2" onClick={handleFetchLedger} disabled={loading}>
                         {loading ? 'Generating...' : 'Get Inventory Ledger'}
                     </button>
                 </div>
@@ -83,7 +83,7 @@ const InventoryLedgerComponent: React.FC = () => {
             {loading && <Loading message="Loading data..." />}
             {ledgerData && (
                 <div className="p-3">
-                    <h4 className="mb-3">{ledgerData.title}</h4>
+                    <h5 className="mb-3">{ledgerData.title}</h5>
                     <p className="text-muted">Item ID: {ledgerData.item_id}</p>
                     <p className="text-muted">Opening Quantity: {ledgerData.opening_quantity.toFixed(2)}</p>
                     <div className="table-responsive">

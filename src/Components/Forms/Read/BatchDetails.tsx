@@ -12,6 +12,12 @@ import ListModal from '../../Common/ListModal'; // Import ListModal
 import Loading from '../../Common/Loading';
 import { useEscapeKey } from '../../../hooks/useEscapeKey';
 
+interface UsageHistoryItem {
+  id: number;
+  composition_name: string;
+  times: number;
+}
+
 const BatchDetails: React.FC = () => {
   const navigate = useNavigate();
   const { batch_id, batch_date } = useParams<{ batch_id: string; batch_date: string }>();
@@ -23,7 +29,8 @@ const BatchDetails: React.FC = () => {
   const [endDate, setEndDate] = useState<string>(batch_date || '');
   const [reportType, setReportType] = useState('daily'); // 'daily' or 'weekly'
   const [week, setWeek] = useState('');
-  const [selectedDate, setSelectedDate] = useState<string>(batch_date || '');
+  const [usageHistory, setUsageHistory] = useState<UsageHistoryItem[]>([]);
+  
 
   // Feed usage state
   const [feedUsage, setFeedUsage] = useState<{ total_feed: number, feed_breakdown: { feed_type: string, amount: number, composition_name?: string, composition_items?: { inventory_item_id: number, inventory_item_name?: string, weight: number, unit?: string }[] }[] } | null>(null);
@@ -47,9 +54,7 @@ const BatchDetails: React.FC = () => {
   };
 
   const handleDateChange = (newDate: string) => {
-    setSelectedDate(newDate);
     if (batch_id && newDate) {
-      // Format the date to match the expected URL format
       const date = new Date(newDate);
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -63,7 +68,6 @@ const BatchDetails: React.FC = () => {
     const fetchBatch = async () => {
       try {
         if (batch_id && batch_date) {
-          // Fetch all daily batches for the date, then filter by batch_id
           const batches = await dailyBatchApi.getDailyBatches(batch_date);
           const found = batches.find(b => b.batch_id === Number(batch_id));
           if (found) {
@@ -80,6 +84,22 @@ const BatchDetails: React.FC = () => {
       }
     };
     fetchBatch();
+  }, [batch_id, batch_date]);
+
+  useEffect(() => {
+    const fetchUsageHistory = async () => {
+        if (!batch_id || !batch_date) return;
+        try {
+            const history = await compositionApi.getFilteredCompositionUsageHistory(
+                batch_date,
+                Number(batch_id)
+            );
+            setUsageHistory(history);
+        } catch (error) {
+            toast.error("Failed to fetch feed usage history.");
+        }
+    };
+    fetchUsageHistory();
   }, [batch_id, batch_date]);
 
   // Fetch feed usage for the batch and date
@@ -142,11 +162,12 @@ const BatchDetails: React.FC = () => {
         <div className="col-12 mb-4">
           <div className="card shadow-sm">
             <div className="card-body">
-              <h5 className="card-title">Change Date</h5>
+              <h5 className="card-title">View Another Date's Report</h5>
               <DateSelector
-                label="Select Date"
-                value={selectedDate}
+                label="Report Date"
                 onChange={handleDateChange}
+                defaultValue={batch_date}
+                storageKey={`batch-details-date-${batch_id}`}
                 maxDate={new Date().toISOString().split('T')[0]}
               />
             </div>
@@ -241,13 +262,42 @@ const BatchDetails: React.FC = () => {
               />
             </div>
           </div>
-          <div className="mt-4 d-flex justify-content-center">
-            <button type="button" className="btn btn-primary me-2" onClick={() => navigate(`/batch/${batch_id}/${batch_date}/edit`)}>
-              Update
-            </button>
-            <button type="button" className="btn btn-secondary me-2" onClick={() => navigate('/production')}>Back to Production</button>
-          </div>
-        </div>
+                    <div className="row mt-4">
+                      <div className="col-12">
+                          {usageHistory.length > 0 && (
+                              <div>
+                                  <h5 className="mb-3">Feed Usage for this day</h5>
+                                  <div className="table-responsive">
+                                      <table className="table table-sm table-bordered">
+                                          <thead>
+                                              <tr>
+                                                  <th>Composition</th>
+                                                  <th>Times Used</th>
+                                              </tr>
+                                          </thead>
+                                          <tbody>
+                                              {usageHistory.map((item) => (
+                                                  <tr key={item.id}>
+                                                      <td>{item.composition_name}</td>
+                                                      <td>{item.times}</td>
+                                                  </tr>
+                                              ))}
+                                          </tbody>
+                                      </table>
+                                  </div>
+                              </div>
+                          )}
+                      </div>
+                    </div>
+                    <div className="mt-4 d-flex justify-content-center">
+                      <button type="button" className="btn btn-primary me-2" onClick={() => navigate(`/batch/${batch_id}/${batch_date}/edit`)}>
+                        Update
+                      </button>
+                      <button type="button" className="btn btn-secondary me-2" onClick={() => navigate('/production')}>
+                        Back to Production
+                      </button>
+                    </div>
+                  </div>
         
         {/* Report Download Section */}
         <div className="col-12 mb-4 mt-4">
@@ -284,18 +334,18 @@ const BatchDetails: React.FC = () => {
               <div className="row g-3 align-items-end">
                 {reportType === 'daily' ? (
                   <>
-                    <div className="col-12 col-md-4">
+                    <div className="col-12 col-md-auto">
                       <DateSelector
                         label="Start Date"
-                        value={startDate}
+                        defaultValue={startDate}
                         onChange={setStartDate}
                         maxDate={endDate}
                       />
                     </div>
-                    <div className="col-12 col-md-4">
+                    <div className="col-12 col-md-auto">
                       <DateSelector
                         label="End Date"
-                        value={endDate}
+                        defaultValue={endDate}
                         onChange={setEndDate}
                         minDate={startDate}
                         maxDate={new Date().toISOString().split('T')[0]}
@@ -303,7 +353,7 @@ const BatchDetails: React.FC = () => {
                     </div>
                   </>
                 ) : (
-                  <div className="col-12 col-md-8">
+                  <div className="col-12 col-md-auto">
                     <label className="form-label">Week</label>
                     <input
                       type="number"
@@ -314,9 +364,9 @@ const BatchDetails: React.FC = () => {
                     />
                   </div>
                 )}
-                <div className="col-12 col-md-4">
+                <div className="col-12 col-md-auto">
                   <button
-                    className="btn btn-primary w-100 mb-2"
+                    className="btn btn-primary mb-2"
                     onClick={handleDownloadReport}
                   >
                     View Data

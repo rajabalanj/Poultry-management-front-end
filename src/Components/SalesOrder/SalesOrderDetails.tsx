@@ -4,11 +4,11 @@ import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import PageHeader from "../Layout/PageHeader";
 import { salesOrderApi, inventoryItemApi, businessPartnerApi } from "../../services/api"; // Add businessPartnerApi
-import { SalesOrderResponse, SalesOrderStatus, PaymentStatus } from "../../types/SalesOrder";
+import { SalesOrderResponse, SalesOrderStatus, PaymentStatus, PaymentResponse, PaymentUpdate } from "../../types/SalesOrder";
 import { BusinessPartner } from "../../types/BusinessPartner";
 import { InventoryItemResponse } from "../../types/InventoryItem"; // Add InventoryItemResponse
 import { format } from 'date-fns';
-import { Button } from 'react-bootstrap';
+import { Modal, Button, Form } from 'react-bootstrap';
 
 const getStatusBadgeClass = (status: SalesOrderStatus | PaymentStatus) => {
   switch (status) {
@@ -34,8 +34,20 @@ const SalesOrderDetails: React.FC = () => {
   const [inventoryItems, setInventoryItems] = useState<InventoryItemResponse[]>([]); // Add inventoryItems state
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // State for payment modals
+  const [showEditPaymentModal, setShowEditPaymentModal] = useState(false);
+  const [showDeletePaymentModal, setShowDeletePaymentModal] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState<PaymentResponse | null>(null);
+  const [editPaymentForm, setEditPaymentForm] = useState<PaymentUpdate>({
+    amount_paid: 0,
+    payment_date: '',
+    payment_mode: '',
+    reference_number: '',
+    notes: '',
+  });
 
-  useEffect(() => {
+  const fetchSalesOrderDetails = async () => {
     const fetchSalesOrder = async () => {
       try {
         if (!so_id) {
@@ -61,9 +73,12 @@ const SalesOrderDetails: React.FC = () => {
     };
 
     fetchSalesOrder();
+  };
+
+  useEffect(() => {
+    fetchSalesOrderDetails();
   }, [so_id]);
 
-  // Map customer_id to customer name
   const getCustomerName = (customerId: number) => {
     const customer = customers.find(c => c.id === customerId);
     return customer?.name || 'N/A';
@@ -79,6 +94,58 @@ const SalesOrderDetails: React.FC = () => {
   const getItemUnit = (itemId: number) => {
     const item = inventoryItems.find(i => i.id === itemId);
     return item?.unit || 'N/A';
+  };
+
+  const handleEditPayment = (payment: PaymentResponse) => {
+    setSelectedPayment(payment);
+    setEditPaymentForm({
+      amount_paid: payment.amount_paid,
+      payment_date: format(new Date(payment.payment_date), 'yyyy-MM-dd'),
+      payment_mode: payment.payment_mode,
+      reference_number: payment.reference_number || '',
+      notes: payment.notes || '',
+    });
+    setShowEditPaymentModal(true);
+  };
+
+  const handleDeletePayment = (payment: PaymentResponse) => {
+    setSelectedPayment(payment);
+    setShowDeletePaymentModal(true);
+  };
+
+  const confirmDeletePayment = async () => {
+    if (selectedPayment) {
+      try {
+        await salesOrderApi.deleteSalesPayment(selectedPayment.id);
+        toast.success("Payment deleted successfully!");
+        setShowDeletePaymentModal(false);
+        fetchSalesOrderDetails(); // Refresh data
+      } catch (err: any) {
+        toast.error(err?.message || "Failed to delete payment.");
+      }
+    }
+  };
+
+  const handleUpdatePayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selectedPayment) {
+      try {
+        // Assuming the API requires all fields from PaymentUpdate
+        const updatePayload: PaymentUpdate = {
+          amount_paid: editPaymentForm.amount_paid,
+          payment_date: editPaymentForm.payment_date,
+          payment_mode: editPaymentForm.payment_mode,
+          reference_number: editPaymentForm.reference_number,
+          notes: editPaymentForm.notes,
+        };
+        await salesOrderApi.updateSalesPayment(selectedPayment.id, updatePayload);
+        toast.success("Payment updated successfully!");
+        setShowEditPaymentModal(false);
+        fetchSalesOrderDetails(); // Refresh data
+      } catch (err: any) {
+        toast.error(err?.message || "Failed to update payment.");
+      }
+    }
   };
 
   const handleDownloadReceipt = async () => {
@@ -116,7 +183,7 @@ const SalesOrderDetails: React.FC = () => {
       <div className="container mt-4">
         <div className="card shadow-sm mb-4">
           <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h4 className="mb-0">Sales Order Information</h4>
+            <h5 className="mb-0">Sales Order Information</h5>
             <Button
               variant="light"
               size="sm"
@@ -224,6 +291,7 @@ const SalesOrderDetails: React.FC = () => {
                       <th>Mode</th>
                       <th>Reference</th>
                       <th>Receipt</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -243,6 +311,20 @@ const SalesOrderDetails: React.FC = () => {
                             <i className="bi bi-download"></i>
                           </Button>
                         </td>
+                        <td>
+                          <Button
+                            variant="info" size="sm" className="me-2"
+                            onClick={() => handleEditPayment(payment)}
+                          >
+                            <i className="bi bi-pencil"></i>
+                          </Button>
+                          <Button
+                            variant="danger" size="sm"
+                            onClick={() => handleDeletePayment(payment)}
+                          >
+                            <i className="bi bi-trash"></i>
+                          </Button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -250,7 +332,7 @@ const SalesOrderDetails: React.FC = () => {
                     <tr>
                       <td colSpan={1} className="text-end fw-bold">Total Received:</td>
                       <td className="fw-bold">Rs. {(Number(salesOrder.total_amount_paid) || 0).toFixed(2)}</td>
-                      <td colSpan={4}></td>
+                      <td colSpan={5}></td>
                     </tr>
                   </tfoot>
                 </table>
@@ -308,6 +390,80 @@ const SalesOrderDetails: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Edit Payment Modal */}
+      <Modal show={showEditPaymentModal} onHide={() => setShowEditPaymentModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Edit Payment</Modal.Title>
+        </Modal.Header>
+        <Form onSubmit={handleUpdatePayment}>
+          <Modal.Body>
+            <Form.Group className="mb-3">
+              <Form.Label>Amount Received</Form.Label>
+              <Form.Control
+                type="number" step="0.01"
+                value={editPaymentForm.amount_paid}
+                onChange={(e) => setEditPaymentForm({ ...editPaymentForm, amount_paid: Number(e.target.value) })}
+                required
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Payment Date</Form.Label>
+              <Form.Control
+                type="date"
+                value={editPaymentForm.payment_date}
+                onChange={(e) => setEditPaymentForm({ ...editPaymentForm, payment_date: e.target.value })}
+                required
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Payment Mode</Form.Label>
+              <Form.Control
+                type="text"
+                value={editPaymentForm.payment_mode}
+                onChange={(e) => setEditPaymentForm({ ...editPaymentForm, payment_mode: e.target.value })}
+                required
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Reference Number</Form.Label>
+              <Form.Control
+                type="text"
+                value={editPaymentForm.reference_number}
+                onChange={(e) => setEditPaymentForm({ ...editPaymentForm, reference_number: e.target.value })}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Notes</Form.Label>
+              <Form.Control
+                as="textarea" rows={3}
+                value={editPaymentForm.notes}
+                onChange={(e) => setEditPaymentForm({ ...editPaymentForm, notes: e.target.value })}
+              />
+            </Form.Group>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowEditPaymentModal(false)}>
+              Cancel
+            </Button>
+            <Button variant="primary" type="submit">
+              Save Changes
+            </Button>
+          </Modal.Footer>
+        </Form>
+      </Modal>
+
+      {/* Delete Payment Confirmation Modal */}
+      <Modal show={showDeletePaymentModal} onHide={() => setShowDeletePaymentModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Delete</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>Are you sure you want to delete this payment?</Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDeletePaymentModal(false)}>Cancel</Button>
+          <Button variant="danger" onClick={confirmDeletePayment}>Delete</Button>
+        </Modal.Footer>
+      </Modal>
     </>
   );
 };

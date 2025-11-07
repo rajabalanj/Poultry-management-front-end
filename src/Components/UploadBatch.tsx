@@ -55,7 +55,7 @@ const UploadBatch: React.FC = () => {
         </div>
 
         <button
-          className="btn btn-primary w-100"
+          className="btn btn-primary"
           onClick={handleUpload}
           disabled={!selectedFile || uploading}
         >

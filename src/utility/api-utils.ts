@@ -77,61 +77,24 @@ export const fetchWeeklyLayerReport = async (batchId: string, week: string): Pro
   }
 };
 
-export const fetchBatchData = async (startDate: string, endDate: string, batchId?: string): Promise<{ details: GridRow[], summary: DailyBatch | null }> => {
-  try {
-    const response = await dailyBatchApi.getSnapshot(
-      startDate,
-      endDate,
-      batchId ? Number(batchId) : undefined
-    );
+export const fetchBatchData = async (start_date: string, end_date: string, batch_id?: string) => {
+  const response = await dailyBatchApi.getSnapshot(
+    start_date,
+    end_date,
+    batch_id ? Number(batch_id) : undefined
+  );
 
-    let details: GridRow[];
-    let summary: DailyBatch | null = null;
-
-    const mapBatchToGridRow = (batch: any): GridRow => ({
-      batch_id: batch.batch_id,
-      shed_no: batch.shed_no,
-      batch_no: batch.batch_no,
-      batch_type: batch.batch_type,
-      age: batch.age,
-      highest_age: batch.highest_age,
-      opening_count: batch.opening_count,
-      mortality: batch.mortality,
-      culls: batch.culls,
-      closing_count: batch.closing_count,
-      table_eggs: batch.table_eggs,
-      jumbo: batch.jumbo,
-      cr: batch.cr,
-      total_eggs: batch.total_eggs,
-      batch_date: batch.batch_date,
-      hd: batch.hd,
-      standard_hen_day_percentage: batch.standard_hen_day_percentage || 0,
-      actual_feed_consumed: batch.actual_feed_consumed,
-      standard_feed_consumption: batch.standard_feed_consumption,
-      opening_percent: batch.opening_percent,
-      mort_percent: batch.mort_percent,
-      culls_percent: batch.culls_percent,
-      closing_percent: batch.closing_percent,
-      feed_per_bird_per_day_grams: batch.feed_per_bird_per_day_grams,
-    });
-
-    if (Array.isArray(response)) {
-      // Case where batchId is provided and API returns an array
-      details = response.map(mapBatchToGridRow);
-    } else {
-      // Case where batchId is not provided and API returns an object
-      details = response.details.map(mapBatchToGridRow);
-      summary = response.summary;
-    }
-
-    return { details, summary };
-  } catch (error: any) {
-    console.error('Error fetching data:', error);
-    if (error.response && error.response.status === 404) {
-      throw new Error('No data found for the selected date range.');
-    }
-    throw new Error('Failed to fetch data');
+  if ('details' in response && 'summary' in response) {
+    return {
+      details: response.details as GridRow[],
+      summary: response.summary as GridRow,
+    };
   }
+
+  return {
+    details: response as GridRow[],
+    summary: null,
+  };
 };
 
 export const exportBatchDataToExcel = (gridData: GridRow[], batchId?: string): void => {

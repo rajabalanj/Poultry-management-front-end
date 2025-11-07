@@ -68,7 +68,7 @@ export interface PaymentBase {
 export interface PaymentCreate extends PaymentBase {} // Simple extension for creation
 
 export interface PaymentUpdate {
-    total_amount_paid?: number;
+    amount_paid?: number;
     payment_date?: string;
     payment_mode?: string;
     reference_number?: string;

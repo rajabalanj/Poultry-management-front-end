@@ -26,7 +26,7 @@ class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div className="alert alert-danger" role="alert">
-          <h4>Something went wrong</h4>
+          <h5>Something went wrong</h5>
           <p>An error occurred while rendering this component.</p>
           <button 
             className="btn btn-outline-danger" 

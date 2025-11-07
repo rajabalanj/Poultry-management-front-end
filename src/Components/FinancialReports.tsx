@@ -87,7 +87,7 @@ const FinancialReports: React.FC = () => {
 
     return (
       <div className="p-3">
-        <h4 className="mb-3">Profit & Loss Statement</h4>
+        <h5 className="mb-3">Profit & Loss Statement</h5>
         <p className="text-muted">For the period from {pnlStartDate} to {pnlEndDate}</p>
         <div className="list-group">
           <div className="list-group-item d-flex justify-content-between"><span>Revenue</span> <strong>Rs. {Number(pnlData.revenue || 0).toFixed(2)}</strong></div>
@@ -116,7 +116,7 @@ const FinancialReports: React.FC = () => {
 
     return (
       <div className="p-3">
-        <h4 className="mb-3">Balance Sheet</h4>
+        <h5 className="mb-3">Balance Sheet</h5>
         <p className="text-muted">As of {bsData.as_of_date || bsAsOfDate}</p>
         <div className="row">
           <div className="col-md-6">
@@ -129,7 +129,7 @@ const FinancialReports: React.FC = () => {
               <li className="list-group-item d-flex justify-content-between active"><strong>Total Assets</strong> <strong>Rs. {totalAssets.toFixed(2)}</strong></li>
             </ul>
           </div>
-          <div className="col-md-6">
+          <div className="col-md-6 mt-4 mt-md-0">
             <h5>Liabilities & Equity</h5>
             <ul className="list-group mb-3">
               <li className="list-group-item d-flex justify-content-between"><span>Accounts Payable</span> <span>{Number(bsData.liabilities?.current_liabilities?.accounts_payable ?? 0).toFixed(2)}</span></li>
@@ -189,13 +189,13 @@ const FinancialReports: React.FC = () => {
               <div>
                 <div className="row g-3 align-items-end p-3 border-bottom">
                   <div className="col-md-4">
-                    <DateSelector label="Start Date" value={pnlStartDate} onChange={setPnlStartDate} maxDate={pnlEndDate} />
+                    <DateSelector label="Start Date" defaultValue={pnlStartDate} onChange={setPnlStartDate} maxDate={pnlEndDate} />
                   </div>
                   <div className="col-md-4">
-                    <DateSelector label="End Date" value={pnlEndDate} onChange={setPnlEndDate} minDate={pnlStartDate} maxDate={today} />
+                    <DateSelector label="End Date" defaultValue={pnlEndDate} onChange={setPnlEndDate} minDate={pnlStartDate} maxDate={today} />
                   </div>
-                  <div className="col-md-4">
-                    <button className="btn btn-primary w-100 mb-2" onClick={handleFetchPnl} disabled={pnlLoading}>
+                  <div className="col-md-4 d-flex justify-content-center justify-content-md-end">
+                    <button className="btn btn-primary mb-2" onClick={handleFetchPnl} disabled={pnlLoading}>
                       {pnlLoading ? 'Generating...' : 'Get P&L Report'}
                     </button>
                   </div>
@@ -207,10 +207,10 @@ const FinancialReports: React.FC = () => {
               <div>
                 <div className="row g-3 align-items-end p-3 border-bottom">
                   <div className="col-md-8">
-                    <DateSelector label="As of Date" value={bsAsOfDate} onChange={setBsAsOfDate} maxDate={today} />
+                    <DateSelector label="As of Date" defaultValue={bsAsOfDate} onChange={setBsAsOfDate} maxDate={today} />
                   </div>
-                  <div className="col-md-4">
-                    <button className="btn btn-primary w-100 mb-2" onClick={handleFetchBs} disabled={bsLoading}>
+                  <div className="col-md-4 d-flex justify-content-center justify-content-md-end">
+                    <button className="btn btn-primary mb-2" onClick={handleFetchBs} disabled={bsLoading}>
                       {bsLoading ? 'Generating...' : 'Get Balance Sheet'}
                     </button>
                   </div>

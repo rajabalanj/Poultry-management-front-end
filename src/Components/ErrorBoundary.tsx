@@ -26,7 +26,8 @@ class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div className="alert alert-danger m-3">
-          <h4>Something went wrong</h4>
+          <h5>Something went wrong</h5>
+          <h5>An error occurred while rendering this component.</h5>
           <p>Please refresh the page or try again later.</p>
         </div>
       );

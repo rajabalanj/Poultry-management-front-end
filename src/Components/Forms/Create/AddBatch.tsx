@@ -4,6 +4,7 @@ import { batchApi } from '../../../services/api';
 import { toast } from 'react-toastify';
 import PageHeader from '../../Layout/PageHeader';
 import { useLocation } from 'react-router-dom';
+import { DateSelector } from '../../DateSelector';
 
 const AddBatch: React.FC = () => {
   const [batch_no, setBatchNo] = useState('');
@@ -105,13 +106,12 @@ const AddBatch: React.FC = () => {
         <form onSubmit={handleSubmit}>
           <div className="row g-3">
             <div className="col-md-6">
-              <label className="form-label">Batch Strart Date</label>
-              <input
-                type="date"
-                className="form-control"
-                value={batch_date}
-                onChange={(e) => setBatchDate(e.target.value)}
-                required
+              <DateSelector
+                label="Batch Start Date"
+                defaultValue={batch_date}
+                onChange={setBatchDate}
+                isBold={false}
+                layout='vertical'
               />
             </div>
             <div className="col-md-6">

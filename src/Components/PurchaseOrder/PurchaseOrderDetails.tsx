@@ -183,7 +183,7 @@ const PurchaseOrderDetails: React.FC = () => {
       <div className="container mt-4">
         <div className="card shadow-sm mb-4">
           <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h4 className="mb-0">Purchase Information</h4>
+            <h5 className="mb-0">Purchase Information</h5>
             {purchaseOrder.payment_receipt && (
               <Button
                 variant="light"

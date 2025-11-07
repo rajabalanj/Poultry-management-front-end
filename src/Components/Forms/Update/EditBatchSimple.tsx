@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { batchApi } from '../../../services/api';
-import { BatchResponse } from '../../../types/batch';
+import { BatchResponse, BatchUpdate } from '../../../types/batch';
 import { toast } from 'react-toastify';
 import PageHeader from '../../Layout/PageHeader';
 import Loading from '../../Common/Loading';
@@ -15,6 +15,7 @@ const EditBatchSimple: React.FC = () => {
   const [openingCount, setOpeningCount] = useState('');
   const [date, setDate] = useState('');
   const [shedChangeDate, setShedChangeDate] = useState('');
+  const [initialBatch, setInitialBatch] = useState<BatchResponse | null>(null);
   // const [standardHenDay, setStandardHenDay] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,6 +30,8 @@ const EditBatchSimple: React.FC = () => {
         setAge(data.age || '');
         setOpeningCount(data.opening_count?.toString() || '');
         setDate(data.date || '');
+        setShedChangeDate(data.shed_change_date || '');
+        setInitialBatch(data);
       } catch (err) {
         setError('Failed to load batch');
         toast.error('Failed to load batch details');
@@ -51,17 +54,41 @@ const EditBatchSimple: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!batchId) return;
+    if (!batchId || !initialBatch) return;
     setLoading(true);
+
+    const payload: Partial<BatchUpdate> = {};
+
+    const formattedBatchNo = formatBatchNo(batchNo);
+    if (formattedBatchNo !== initialBatch.batch_no) {
+      payload.batch_no = formattedBatchNo;
+    }
+    if (shedNo !== initialBatch.shed_no) {
+      payload.shed_no = shedNo;
+    }
+    if (age !== initialBatch.age) {
+      payload.age = age;
+    }
+    const currentOpeningCount = openingCount ? parseInt(openingCount) : 0;
+    if (currentOpeningCount !== initialBatch.opening_count) {
+      payload.opening_count = currentOpeningCount;
+    }
+    if (date !== initialBatch.date) {
+      payload.date = date;
+    }
+    if (shedChangeDate !== (initialBatch.shed_change_date || '')) {
+        payload.shed_change_date = shedChangeDate;
+    }
+
+    if (Object.keys(payload).length === 0) {
+      toast.info("No changes to save.");
+      setLoading(false);
+      navigate(-1);
+      return;
+    }
+
     try {
-      await batchApi.updateBatch(Number(batchId), {
-        batch_no: formatBatchNo(batchNo),
-        shed_no: shedNo,
-        age: age,
-        opening_count: parseInt(openingCount),
-        date: date,
-        shed_change_date: shedChangeDate
-      });
+      await batchApi.updateBatch(Number(batchId), payload);
       toast.success('Batch updated successfully!');
       navigate(-1);
     } catch (error) {

@@ -60,12 +60,12 @@ const BusinessPartnerDetails: React.FC = () => {
       <div className="container mt-4">
         <div className="card shadow-sm">
           <div className="card-header bg-primary text-white">
-            <h4 className="mb-0">
+            <h5 className="mb-0">
               Partner Information: {partner.name}
-              <span className={`badge ms-2 ${getTypeBadgeClass()}`}>
+              <span className={`badge ms-2 mt-md-0 mt-2 ${getTypeBadgeClass()}`}>
                 {getPartnerType()}
               </span>
-            </h4>
+            </h5>
           </div>
           <div className="card-body">
             <div className="row">

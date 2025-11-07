@@ -86,7 +86,7 @@ const OperationalExpensesIndexPage: React.FC = () => {
               <div className="col-12 col-md-4">
                 <DateSelector
                   label="Start Date"
-                  value={startDate}
+                  defaultValue={startDate}
                   onChange={setStartDate}
                   maxDate={endDate}
                 />
@@ -94,15 +94,15 @@ const OperationalExpensesIndexPage: React.FC = () => {
               <div className="col-12 col-md-4">
                 <DateSelector
                   label="End Date"
-                  value={endDate}
+                  defaultValue={endDate}
                   onChange={setEndDate}
                   minDate={startDate}
                   maxDate={new Date().toISOString().split('T')[0]}
                 />
               </div>
-              <div className="col-12 col-md-4">
+              <div className="col-md-4 d-flex justify-content-center justify-content-md-end">
                 <button
-                  className="btn btn-primary w-100 mb-2"
+                  className="btn btn-primary mb-2"
                   onClick={handleFetchClick}
                   disabled={loading}
                 >

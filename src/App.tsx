@@ -11,7 +11,7 @@ import DashboardIndex from "./Components/Dashboard";
 import FeedMillStock from "./Components/FeedMillStock";
 import PreviousDayReport from './Components/PreviousDayReport';
 import CompositionUsageHistory from "./Components/CompositionUsageHistory";
-import UploadBatch from './Components/UploadBatch'
+import UploadBatch from './Components/UploadBatchNew'
 import EditBatchSimple from './Components/Forms/Update/EditBatchSimple';
 import Configurations from './Components/Configurations';
 import ViewBatchSimple from './Components/Forms/Read/ViewBatchSimple';
@@ -93,7 +93,7 @@ const App: React.FC = () => {
               />
               <Route
                 path="/previous-day-report/:batchId?"
-                element={<PreviousDayReport />}
+                element={<ErrorBoundary><PreviousDayReport /></ErrorBoundary>}
               />
               <Route
                 path="/compositions/usage-history"
