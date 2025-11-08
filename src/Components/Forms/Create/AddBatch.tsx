@@ -8,10 +8,10 @@ import { DateSelector } from '../../DateSelector';
 
 const AddBatch: React.FC = () => {
   const [batch_no, setBatchNo] = useState('');
-  const [batch_date, setBatchDate] = useState('');
-  const [shed_no, setShedNo] = useState('1');
+  const [batch_date, setBatchDate] = useState(''); // This is for the start date of the batch, not age
+  const [shed_no, setShedNo] = useState('1'); // This is for the shed number
   const [opening_count, setOpeningCount] = useState('0');
-  const [week, setWeek] = useState('1');
+  const [week, setWeek] = useState('0'); // Age starts from 0 weeks
   const [day, setDay] = useState('1');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -77,14 +77,14 @@ const AddBatch: React.FC = () => {
 
   const handleWeekChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    if (value === '' || parseInt(value) > 0) {
+    if (value === '' || parseInt(value) >= 0) { // Allow week 0
       setWeek(value);
     }
   };
 
   const handleDayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    if (value === '' || (parseInt(value) > 0 && parseInt(value) <= 7)) {
+    if (value === '' || (parseInt(value) >= 1 && parseInt(value) <= 7)) { // Day must be between 1 and 7
       setDay(value);
     }
   };
@@ -154,9 +154,9 @@ const AddBatch: React.FC = () => {
                 type="number"
                 className="form-control"
                 value={week}
-                onChange={handleWeekChange}
+                onChange={handleWeekChange} // Age starts from 0 weeks
                 required
-                min="1"
+                min="0"
                 placeholder="Enter week number"
               />
             </div>
@@ -168,7 +168,7 @@ const AddBatch: React.FC = () => {
                 className="form-control"
                 value={day}
                 onChange={handleDayChange}
-                required
+                required // Day must be between 1 and 7
                 min="1"
                 max="7"
                 placeholder="Enter day (1-7)"

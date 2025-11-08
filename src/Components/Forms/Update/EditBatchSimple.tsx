@@ -163,7 +163,7 @@ const EditBatchSimple: React.FC = () => {
                 value={age}
                 onChange={e => setAge(e.target.value)}
                 required
-                placeholder="e.g. 1.1"
+                placeholder="e.g. 0.1 or 1.1"
               />
             </div>
             <div className="col-md-6">
