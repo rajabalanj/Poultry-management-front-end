@@ -169,6 +169,9 @@ const BatchDetails: React.FC = () => {
                   selected={batch_date ? new Date(batch_date) : null}
                   onChange={(date: Date | null) => handleDateChange(date)}
                   dateFormat="dd-MM-yyyy"
+                  showMonthDropdown
+                  showYearDropdown
+                  dropdownMode="select"
                   className="form-control"
                   maxDate={new Date()}
                 />
@@ -343,6 +346,9 @@ const BatchDetails: React.FC = () => {
                         selected={startDate ? new Date(startDate) : null}
                         onChange={(date: Date | null) => date && setStartDate(date.toISOString().split('T')[0])}
                         maxDate={endDate ? new Date(endDate) : new Date()}
+                        showMonthDropdown
+                        showYearDropdown
+                        dropdownMode="select"
                         dateFormat="dd-MM-yyyy"
                         className="form-control"
                       />
@@ -353,6 +359,9 @@ const BatchDetails: React.FC = () => {
                         selected={endDate ? new Date(endDate) : null}
                         onChange={(date: Date | null) => date && setEndDate(date.toISOString().split('T')[0])}
                         minDate={startDate ? new Date(startDate) : undefined}
+                        showMonthDropdown
+                        showYearDropdown
+                        dropdownMode="select"
                         maxDate={new Date()}
                         dateFormat="dd-MM-yyyy"
                         className="form-control"

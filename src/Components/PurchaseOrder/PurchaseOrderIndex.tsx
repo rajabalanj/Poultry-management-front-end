@@ -147,7 +147,14 @@ const PurchaseOrderIndexPage: React.FC = () => {
                 onChange={(date: Date | null) => setFilterStartDate(date)}
                 className="form-control"
                 placeholderText="Select start date"
-/>
+                isClearable={true}
+                dateFormat="dd-MM-yyyy"
+                maxDate={filterEndDate ?? undefined}
+                showMonthDropdown
+                showYearDropdown
+                dropdownMode="select"
+                popperPlacement="bottom-start"
+                />
               </div>
             </div>
             <div className="col-md-3">
@@ -161,6 +168,10 @@ const PurchaseOrderIndexPage: React.FC = () => {
                 placeholderText="Select end date"
                 isClearable
                 minDate={filterStartDate ?? undefined}
+                showMonthDropdown
+                showYearDropdown
+                dropdownMode="select"
+                popperPlacement="bottom-start"
               />
               </div>
             </div>

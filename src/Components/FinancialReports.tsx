@@ -2,8 +2,8 @@
 import { toast } from 'react-toastify';
 import { Modal, Button } from 'react-bootstrap';
 import PageHeader from './Layout/PageHeader';
-import { DateSelector } from './DateSelector';
 import { financialReportsApi, operationalExpenseApi } from '../services/api';
+import DatePicker from 'react-datepicker';
 import { BalanceSheet, ProfitAndLoss } from '../types/financialReports';
 import { OperationalExpense } from '../types/operationalExpense';
 import Loading from './Common/Loading';
@@ -189,10 +189,33 @@ const FinancialReports: React.FC = () => {
               <div>
                 <div className="row g-3 align-items-end p-3 border-bottom">
                   <div className="col-md-4">
-                    <DateSelector label="Start Date" defaultValue={pnlStartDate} onChange={setPnlStartDate} maxDate={pnlEndDate} />
+                    <label htmlFor="pnlStartDate" className="form-label me-3 mb-0">Start Date</label>
+                    <DatePicker
+                      id="pnlStartDate"
+                      selected={pnlStartDate ? new Date(pnlStartDate) : null}
+                      onChange={(date: Date | null) => date && setPnlStartDate(date.toISOString().slice(0, 10))}
+                      maxDate={pnlEndDate ? new Date(pnlEndDate) : undefined}
+                      className="form-control"
+                      showMonthDropdown
+                      showYearDropdown
+                      dropdownMode="select"
+                      dateFormat="dd-MM-yyyy"
+                    />
                   </div>
                   <div className="col-md-4">
-                    <DateSelector label="End Date" defaultValue={pnlEndDate} onChange={setPnlEndDate} minDate={pnlStartDate} maxDate={today} />
+                    <label htmlFor="pnlEndDate" className="form-label me-3 mb-0">End Date</label>
+                    <DatePicker
+                      id="pnlEndDate"
+                      selected={pnlEndDate ? new Date(pnlEndDate) : null}
+                      onChange={(date: Date | null) => date && setPnlEndDate(date.toISOString().slice(0, 10))}
+                      minDate={pnlStartDate ? new Date(pnlStartDate) : undefined}
+                      maxDate={new Date(today)}
+                      className="form-control"
+                      showMonthDropdown
+                      showYearDropdown
+                      dropdownMode="select"
+                      dateFormat="dd-MM-yyyy"
+                    />
                   </div>
                   <div className="col-md-4 d-flex justify-content-center justify-content-md-end">
                     <button className="btn btn-primary mb-2" onClick={handleFetchPnl} disabled={pnlLoading}>
@@ -207,7 +230,18 @@ const FinancialReports: React.FC = () => {
               <div>
                 <div className="row g-3 align-items-end p-3 border-bottom">
                   <div className="col-md-8">
-                    <DateSelector label="As of Date" defaultValue={bsAsOfDate} onChange={setBsAsOfDate} maxDate={today} />
+                    <label htmlFor="bsAsOfDate" className="form-label me-3 mb-0">As of Date</label>
+                    <DatePicker
+                      id="bsAsOfDate"
+                      selected={bsAsOfDate ? new Date(bsAsOfDate) : null}
+                      onChange={(date: Date | null) => date && setBsAsOfDate(date.toISOString().slice(0, 10))}
+                      maxDate={new Date(today)}
+                      className="form-control"
+                      showMonthDropdown
+                      showYearDropdown
+                      dropdownMode="select"
+                      dateFormat="dd-MM-yyyy"
+                    />
                   </div>
                   <div className="col-md-4 d-flex justify-content-center justify-content-md-end">
                     <button className="btn btn-primary mb-2" onClick={handleFetchBs} disabled={bsLoading}>

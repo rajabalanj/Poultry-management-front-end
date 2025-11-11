@@ -331,6 +331,9 @@ const EditPurchaseOrder: React.FC = () => {
                     selected={orderDate}
                     onChange={(date: Date | null) => setOrderDate(date)}
                     dateFormat="dd-MM-yyyy"
+                    showMonthDropdown
+                    showYearDropdown
+                    dropdownMode="select"
                     className="form-control"
                     id="orderDate"
                     disabled={isLoading} />

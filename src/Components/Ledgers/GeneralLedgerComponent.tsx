@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import { ledgerApi } from '../../services/api';
 import { GeneralLedger } from '../../types/ledgers';
 import Loading from '../Common/Loading';
-import { DateSelector } from '../DateSelector';
+import DatePicker from 'react-datepicker';
 
 const GeneralLedgerComponent: React.FC = () => {
     const today = new Date().toISOString().slice(0, 10);
@@ -34,10 +34,33 @@ const GeneralLedgerComponent: React.FC = () => {
         <div>
             <div className="row g-3 align-items-end p-3 border-bottom">
                 <div className="col-md-4">
-                    <DateSelector label="Start Date" defaultValue={startDate} onChange={setStartDate} maxDate={endDate} />
+                    <label htmlFor="glStartDate" className="form-label me-3 mb-0">Start Date</label>
+                    <DatePicker
+                        id="glStartDate"
+                        selected={startDate ? new Date(startDate) : null}
+                        onChange={(date: Date | null) => date && setStartDate(date.toISOString().slice(0, 10))}
+                        maxDate={endDate ? new Date(endDate) : undefined}
+                        className="form-control"
+                        showMonthDropdown
+                        showYearDropdown
+                        dropdownMode="select"
+                        dateFormat="dd-MM-yyyy"
+                    />
                 </div>
                 <div className="col-md-4">
-                    <DateSelector label="End Date" defaultValue={endDate} onChange={setEndDate} minDate={startDate} maxDate={today} />
+                    <label htmlFor="glEndDate" className="form-label me-3 mb-0">End Date</label>
+                    <DatePicker
+                        id="glEndDate"
+                        selected={endDate ? new Date(endDate) : null}
+                        onChange={(date: Date | null) => date && setEndDate(date.toISOString().slice(0, 10))}
+                        minDate={startDate ? new Date(startDate) : undefined}
+                        maxDate={new Date(today)}
+                        className="form-control"
+                        showMonthDropdown
+                        showYearDropdown
+                        dropdownMode="select"
+                        dateFormat="dd-MM-yyyy"
+                    />
                 </div>
                 <div className="col-md-4 d-flex justify-content-center justify-content-md-end">
                     <button className="btn btn-primary mb-2" onClick={handleFetchLedger} disabled={loading}>

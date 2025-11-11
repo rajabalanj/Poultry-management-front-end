@@ -121,6 +121,9 @@ const EditBatchSimple: React.FC = () => {
                 onChange={(d: Date | null) => d && setDate(d.toISOString().split('T')[0])}
                 dateFormat="dd-MM-yyyy"
                 className="form-control"
+                showMonthDropdown
+                showYearDropdown
+                dropdownMode="select"
                 maxDate={new Date()}
               />
               </div>

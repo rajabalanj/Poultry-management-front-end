@@ -339,6 +339,9 @@ const EggRoomStock: React.FC = () => {
                   disabled={loading}
                   className="form-control"
                   dateFormat="dd-MM-yyyy"
+                  showMonthDropdown
+                  showYearDropdown
+                  dropdownMode="select"
                   placeholderText="Select Report Date"
                 />
               </div>
@@ -360,19 +363,20 @@ const EggRoomStock: React.FC = () => {
             ))}
           </div>
 
-          <div className="d-flex gap-2 mt-3">
+          <div className="col-12 col-md-4 d-flex gap-2 mb-2 mt-3">
             <SaveControls
               editing={editing}
               loading={loading}
               onSave={handleSave}
-              className="btn-sm" // Keep btn-sm for consistent height
-              style={{ minWidth: '140px' }} // Add min-width for consistent width
+              className=""
+              style={{ minWidth: '140px' }}
             />
             <button
               type="button"
-              className="btn btn-info btn-sm"
+              className="btn btn-info"
               onClick={handleShareStockForm}
               disabled={isSharing}
+              style={{ minWidth: '140px' }}
             >
               {isSharing ? "Generating..." : "Share as Image"}
             </button>
@@ -389,6 +393,9 @@ const EggRoomStock: React.FC = () => {
               onChange={(date) => date && setStartDate(date.toISOString().slice(0, 10))}
               maxDate={endDate ? new Date(endDate) : new Date()}
               dateFormat="dd-MM-yyyy"
+              showMonthDropdown
+              showYearDropdown
+              dropdownMode="select"
               className="form-control"
               placeholderText="Start Date"
             />
@@ -400,26 +407,31 @@ const EggRoomStock: React.FC = () => {
               onChange={(date) => date && setEndDate(date.toISOString().slice(0, 10))}
               minDate={startDate ? new Date(startDate) : undefined}
               maxDate={new Date(today)}
+              showMonthDropdown
+              showYearDropdown
+              dropdownMode="select"
               className="form-control"
               dateFormat="dd-MM-yyyy"
               placeholderText="End Date"
             />
           </div>
           </div>
-            <div className="col-12 col-md-auto d-flex gap-2 mb-2 mt-3">
+            <div className="col-12 col-md-4 d-flex gap-2 mb-2 mt-3">
               <button
-                className="btn btn-primary btn-sm"
+                className="btn btn-primary"
                 onClick={() => fetchReports()}
                 disabled={
                   !startDate || !endDate || reportLoading || !!dateRangeError
                 }
+                style={{ minWidth: '140px' }}
               >
                 {reportLoading ? "Loading..." : "Get Report"}
               </button>
               <button
-                className="btn btn-info btn-sm"
+                className="btn btn-info"
                 onClick={handleShare}
                 disabled={reports.length === 0 || reportLoading || isSharing}
+                style={{ minWidth: '140px' }}
               >
                 {isSharing ? "Generating..." : "Share as Image"}
               </button>

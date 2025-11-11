@@ -416,6 +416,9 @@ const SalesOrderDetails: React.FC = () => {
                 onChange={(date: Date | null) => date && setEditPaymentForm({ ...editPaymentForm, payment_date: format(date, 'yyyy-MM-dd') })}
                 dateFormat="dd-MM-yyyy"
                 className="form-control"
+                showMonthDropdown
+                showYearDropdown
+                dropdownMode="select"
                 required
               />
               </div>

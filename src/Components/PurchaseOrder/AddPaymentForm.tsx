@@ -161,6 +161,9 @@ const AddPaymentForm: React.FC = () => {
                     dateFormat="dd-MM-yyyy"
                     className="form-control"
                     id="paymentDate"
+                    showMonthDropdown
+                    showYearDropdown
+                    dropdownMode="select"
                     required
                     disabled={isLoading}
                   />

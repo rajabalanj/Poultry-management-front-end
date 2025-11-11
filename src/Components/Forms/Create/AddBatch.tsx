@@ -113,6 +113,9 @@ const AddBatch: React.FC = () => {
                     date && setBatchDate(date.toISOString().slice(0, 10))
                   }
                   dateFormat="dd-MM-yyyy"
+                  showMonthDropdown
+                  showYearDropdown
+                  dropdownMode="select"
                   className="form-control"
                 />
               </div>

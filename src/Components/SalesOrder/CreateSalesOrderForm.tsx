@@ -278,6 +278,9 @@ const CreateSalesOrderForm: React.FC = () => {
                       onChange={(date: Date | null) => date && setOrderDate(date)}
                       dateFormat="dd-MM-yyyy"
                       className="form-control"
+                      showMonthDropdown
+                      showYearDropdown
+                      dropdownMode="select"
                       id="orderDate"
                       disabled={isLoading}
                     />
@@ -443,6 +446,9 @@ const CreateSalesOrderForm: React.FC = () => {
                       onChange={(date: Date | null) => date && setPaymentDate(date)}
                       dateFormat="dd-MM-yyyy"
                       className="form-control"
+                      showMonthDropdown
+                      showYearDropdown
+                      dropdownMode="select"
                       id="paymentDate"
                       required
                       disabled={isLoading}

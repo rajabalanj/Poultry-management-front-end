@@ -310,6 +310,9 @@ const PreviousDayReport = () => {
                       <DatePicker
                         selected={startDate ? new Date(startDate) : null}
                         onChange={(date: Date | null) => date && setStartDate(date.toISOString().slice(0, 10))}
+                        showMonthDropdown
+                        showYearDropdown
+                        dropdownMode="select"
                         maxDate={endDate ? new Date(endDate) : undefined}
                         className="form-control"
                       />
@@ -319,6 +322,9 @@ const PreviousDayReport = () => {
                       <DatePicker
                         selected={endDate ? new Date(endDate) : null}
                         onChange={(date: Date | null) => date && setEndDate(date.toISOString().slice(0, 10))}
+                        showMonthDropdown
+                        showYearDropdown
+                        dropdownMode="select"
                         minDate={startDate ? new Date(startDate) : undefined}
                         maxDate={new Date()}
                         className="form-control"
