@@ -44,7 +44,7 @@ const SalesLedgerComponent: React.FC = () => {
     return (
         <div>
             <div className="row g-3 align-items-end p-3 border-bottom">
-                <div className="col-md-8">
+                <div className="col-md-4">
                     <label htmlFor="customerId" className="form-label">Customer ID</label>
                     <select
                         id="customerId"

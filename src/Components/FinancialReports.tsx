@@ -229,7 +229,7 @@ const FinancialReports: React.FC = () => {
             {activeTab === 'balance-sheet' && (
               <div>
                 <div className="row g-3 align-items-end p-3 border-bottom">
-                  <div className="col-md-8">
+                  <div className="col-md-4">
                     <label htmlFor="bsAsOfDate" className="form-label me-3 mb-0">As of Date</label>
                     <DatePicker
                       id="bsAsOfDate"

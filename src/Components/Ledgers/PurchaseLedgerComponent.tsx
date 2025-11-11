@@ -44,7 +44,7 @@ const PurchaseLedgerComponent: React.FC = () => {
     return (
         <div>
             <div className="row g-3 align-items-end p-3 border-bottom">
-                <div className="col-md-8">
+                <div className="col-md-4">
                     <label htmlFor="vendorId" className="form-label">Vendor ID</label>
                     <select
                         id="vendorId"
