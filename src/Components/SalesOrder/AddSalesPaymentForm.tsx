@@ -3,10 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
+import DatePicker from 'react-datepicker';
 import { salesOrderApi } from '../../services/api';
 import { PaymentCreate as SalesPaymentCreate, SalesOrderResponse } from '../../types/SalesOrder';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
 import { format } from 'date-fns';
 
 const paymentModes = ["Cash", "Bank Transfer", "Cheque", "Online Payment", "Other"];
@@ -147,15 +146,17 @@ const AddSalesPaymentForm: React.FC = () => {
                 </div>
                 <div className="col-md-6">
                   <label htmlFor="paymentDate" className="form-label">Payment Date <span className="form-field-required">*</span></label>
+                  <div>
                   <DatePicker
                     selected={paymentDate}
                     onChange={(date: Date | null) => date && setPaymentDate(date)}
-                    dateFormat="yyyy-MM-dd"
+                    dateFormat="dd-MM-yyyy"
                     className="form-control"
                     id="paymentDate"
                     required
                     disabled={isLoading}
                   />
+                  </div>
                 </div>
                 <div className="col-md-6">
                   <label htmlFor="paymentMode" className="form-label">Payment Mode <span className="form-field-required">*</span></label>

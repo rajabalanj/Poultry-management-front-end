@@ -539,8 +539,8 @@ export const eggRoomReportApi = {
   },
 
 
-  getReports: async (start_date: string, end_date: string): Promise<EggRoomReportResponse[]> => {
-    const response = await api.get<EggRoomReportResponse[]>(`/egg-room-report/`, {
+  getReports: async (start_date: string, end_date: string): Promise<EggRoomReportResponse> => {
+    const response = await api.get<EggRoomReportResponse>(`/egg-room-report/`, {
       params: { start_date, end_date }
     });
     return response.data;

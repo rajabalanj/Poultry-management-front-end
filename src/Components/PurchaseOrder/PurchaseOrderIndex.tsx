@@ -9,6 +9,7 @@ import { BusinessPartner } from "../../types/BusinessPartner";
 import { toast } from 'react-toastify';
 import PurchaseOrderTable from "./PurchaseOrderTable";
 import DatePicker from 'react-datepicker';
+import { format } from 'date-fns';
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 const PurchaseOrderIndexPage: React.FC = () => {
@@ -23,6 +24,7 @@ const PurchaseOrderIndexPage: React.FC = () => {
   const [filterVendorId, setFilterVendorId] = useState<number | ''>('');
   const [filterStatus, setFilterStatus] = useState<PurchaseOrderStatus | ''>('');
   const [filterStartDate, setFilterStartDate] = useState<Date | null>(null);
+  const [filterEndDate, setFilterEndDate] = useState<Date | null>(null);
   
 
   useEffect(() => {
@@ -47,7 +49,8 @@ const PurchaseOrderIndexPage: React.FC = () => {
           100,
           filterVendorId === '' ? undefined : filterVendorId,
           filterStatus === '' ? undefined : filterStatus,
-          filterStartDate ? filterStartDate.toISOString().split('T')[0] : undefined,
+          filterStartDate ? format(filterStartDate, 'yyyy-MM-dd') : undefined,
+          filterEndDate ? format(filterEndDate, 'yyyy-MM-dd') : undefined,
           
         );
         setPurchaseOrders(response);
@@ -58,8 +61,8 @@ const PurchaseOrderIndexPage: React.FC = () => {
         setLoading(false);
       }
     };
-    fetchPurchaseOrderList();
-  }, [filterVendorId, filterStatus, filterStartDate]);
+    fetchPurchaseOrderList(); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [filterVendorId, filterStatus, filterStartDate, filterEndDate]);
 
   const handleDelete = useCallback((id: number) => {
     setPoToDelete(id);
@@ -108,7 +111,7 @@ const PurchaseOrderIndexPage: React.FC = () => {
         <div className="card shadow-sm mb-4 p-3">
           <h5 className="mb-3">Filter Purchase</h5>
           <div className="row g-3">
-            <div className="col-md-4">
+            <div className="col-md-3">
               <label htmlFor="vendorFilter" className="form-label">Vendor:</label>
               <select
                 id="vendorFilter"
@@ -122,7 +125,7 @@ const PurchaseOrderIndexPage: React.FC = () => {
                 ))}
               </select>
             </div>
-            <div className="col-md-4">
+            <div className="col-md-3">
               <label htmlFor="statusFilter" className="form-label">Status:</label>
               <select
                 id="statusFilter"
@@ -136,16 +139,28 @@ const PurchaseOrderIndexPage: React.FC = () => {
                 ))}
               </select>
             </div>
-            <div className="col-md-4">
+            <div className="col-md-3">
               <label htmlFor="startDateFilter" className="form-label">Start Date:</label>
               <div>
               <DatePicker
                 selected={filterStartDate}
                 onChange={(date: Date | null) => setFilterStartDate(date)}
-                dateFormat="yyyy-MM-dd"
                 className="form-control"
                 placeholderText="Select start date"
+/>
+              </div>
+            </div>
+            <div className="col-md-3">
+              <label htmlFor="endDateFilter" className="form-label">End Date:</label>
+              <div>
+              <DatePicker
+                selected={filterEndDate}
+                onChange={(date: Date | null) => setFilterEndDate(date)}
+                dateFormat="dd-MM-yyyy"
+                className="form-control"
+                placeholderText="Select end date"
                 isClearable
+                minDate={filterStartDate ?? undefined}
               />
               </div>
             </div>

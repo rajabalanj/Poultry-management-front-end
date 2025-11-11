@@ -3,6 +3,8 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
+import DatePicker from 'react-datepicker';
+import { format } from 'date-fns';
 import { purchaseOrderApi, inventoryItemApi, businessPartnerApi, s3Upload } from '../../services/api';
 import CreateBusinessPartnerForm from '../BusinessPartner/CreateBusinessPartnerForm';
 import CreateInventoryItemForm from '../InventoryItem/CreateInventoryItemForm';
@@ -16,10 +18,6 @@ import {
 } from '../../types/PurchaseOrderItem';
 import { BusinessPartner } from '../../types/BusinessPartner';
 import { InventoryItemResponse } from '../../types/InventoryItem';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
-import { format } from 'date-fns';
-
 interface FormPurchaseOrderItem extends PurchaseOrderItemResponse {
   tempId: number; // For new items, to uniquely identify them before they have a backend ID
   isNew?: boolean; // Flag to indicate if this item is newly added
@@ -332,12 +330,10 @@ const EditPurchaseOrder: React.FC = () => {
                   <DatePicker
                     selected={orderDate}
                     onChange={(date: Date | null) => setOrderDate(date)}
-                    dateFormat="yyyy-MM-dd"
+                    dateFormat="dd-MM-yyyy"
                     className="form-control"
                     id="orderDate"
-                    required
-                    disabled={isLoading}
-                  />
+                    disabled={isLoading} />
                   </div>
                 </div>
                 <div className="col-12">

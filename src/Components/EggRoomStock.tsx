@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useEggRoomStock } from '../hooks/useEggRoomStock';
+import DatePicker from 'react-datepicker';
 import { StockFormSection } from '../Components/StockFormSection';
-import { DateSelector } from '../Components/DateSelector';
 import { SaveControls } from '../Components/SaveControls';
 import PageHeader from '../Components/Layout/PageHeader';
 import { useMediaQuery } from 'react-responsive';
@@ -88,6 +88,8 @@ const EggRoomStock: React.FC = () => {
     handleSave,
     setSelectedDate,
     dateError,
+    setSummary,
+    summary,
   } = useEggRoomStock();
 
   const today = new Date().toISOString().slice(0, 10);
@@ -147,12 +149,13 @@ const EggRoomStock: React.FC = () => {
     setReportLoading(true);
     setReportError(null);
     try {
-      const response = await eggRoomReportApi.getReports(effectiveStartDate, endDate);
-      const reportsData: EggRoomStockEntry[] = response.map((item: any) => ({
+      const { details, summary: summaryData } = await eggRoomReportApi.getReports(effectiveStartDate, endDate);
+      const reportsData: EggRoomStockEntry[] = details.map((item: any) => ({
         ...item,
         date: item.report_date
       }));
       setReports(reportsData);
+      setSummary(summaryData);
     } catch (err: any) {
       const isAxiosError = typeof err === 'object' && err !== null && 'response' in err;
       const detail = isAxiosError ? err.response?.data?.detail : undefined;
@@ -327,13 +330,16 @@ const EggRoomStock: React.FC = () => {
         <form onSubmit={handleSave} className="card p-3 mb-4 mt-2">
           <div ref={stockFormSectionToShareRef}>
             <div className="row g-3 mb-3">
-              <div className="col-md-6">
-                <DateSelector
-                  defaultValue={selectedDate}
-                  onChange={setSelectedDate}
-                  maxDate={new Date().toISOString().slice(0, 10)}
+              <div className="d-flex align-items-center mt-3">
+                <label className="form-label me-3 mb-0">Report Date</label>
+                <DatePicker
+                  selected={selectedDate ? new Date(selectedDate) : null}
+                  onChange={(date: Date | null) => date && setSelectedDate(date.toISOString().slice(0, 10))}
+                  maxDate={new Date()}
                   disabled={loading}
-                  label="Report Date"
+                  className="form-control"
+                  dateFormat="dd-MM-yyyy"
+                  placeholderText="Select Report Date"
                 />
               </div>
             </div>
@@ -354,50 +360,55 @@ const EggRoomStock: React.FC = () => {
             ))}
           </div>
 
-          <div className="row align-items-end gap-2 mt-3">
-            <div className="col-12 col-md-auto">
-              <SaveControls
-                editing={editing}
-                loading={loading}
-                onSave={handleSave}
-              />
-            </div>
-            <div>
-              <button
-                type="button"
-                className="btn btn-info"
-                onClick={handleShareStockForm}
-                disabled={isSharing}
-              >
-                {isSharing ? "Generating..." : "Share as Image"}
-              </button>
-            </div>
+          <div className="d-flex gap-2 mt-3">
+            <SaveControls
+              editing={editing}
+              loading={loading}
+              onSave={handleSave}
+              className="btn-sm" // Keep btn-sm for consistent height
+              style={{ minWidth: '140px' }} // Add min-width for consistent width
+            />
+            <button
+              type="button"
+              className="btn btn-info btn-sm"
+              onClick={handleShareStockForm}
+              disabled={isSharing}
+            >
+              {isSharing ? "Generating..." : "Share as Image"}
+            </button>
           </div>
         </form>
 
         <div className="card p-3 mb-4 mt-2">
           <h5 className="card-title">View Report</h5>
-          <div className="row g-3 align-items-end">
-            <div className="col-12 col-md-auto">
-              <DateSelector
-                label="Start Date"
-                defaultValue={startDate}
-                onChange={setStartDate}
-                maxDate={endDate || today}
-              />
-            </div>
-            <div className="col-12 col-md-auto">
-              <DateSelector
-                label="End Date"
-                defaultValue={endDate}
-                onChange={setEndDate}
-                minDate={startDate}
-                maxDate={today}
-              />
-            </div>
-            <div className="col-12 col-md-auto d-flex gap-2 mb-2">
+          <div className="row g-3 mb-3">
+          <div className="col-auto d-flex align-items-center mt-3">
+            <label className="form-label me-3 mb-0">Start Date</label>
+            <DatePicker
+              selected={startDate ? new Date(startDate) : null}
+              onChange={(date) => date && setStartDate(date.toISOString().slice(0, 10))}
+              maxDate={endDate ? new Date(endDate) : new Date()}
+              dateFormat="dd-MM-yyyy"
+              className="form-control"
+              placeholderText="Start Date"
+            />
+          </div>
+          <div className="col-auto d-flex align-items-center mt-3">
+            <label className="form-label me-3 mb-0">End Date</label>
+            <DatePicker
+              selected={endDate ? new Date(endDate) : new Date()}
+              onChange={(date) => date && setEndDate(date.toISOString().slice(0, 10))}
+              minDate={startDate ? new Date(startDate) : undefined}
+              maxDate={new Date(today)}
+              className="form-control"
+              dateFormat="dd-MM-yyyy"
+              placeholderText="End Date"
+            />
+          </div>
+          </div>
+            <div className="col-12 col-md-auto d-flex gap-2 mb-2 mt-3">
               <button
-                className="btn btn-primary"
+                className="btn btn-primary btn-sm"
                 onClick={() => fetchReports()}
                 disabled={
                   !startDate || !endDate || reportLoading || !!dateRangeError
@@ -406,14 +417,13 @@ const EggRoomStock: React.FC = () => {
                 {reportLoading ? "Loading..." : "Get Report"}
               </button>
               <button
-                className="btn btn-info"
+                className="btn btn-info btn-sm"
                 onClick={handleShare}
                 disabled={reports.length === 0 || reportLoading || isSharing}
               >
                 {isSharing ? "Generating..." : "Share as Image"}
               </button>
             </div>
-          </div>
           
           {dateRangeError && (
             <div className="text-danger mt-2">
@@ -422,6 +432,7 @@ const EggRoomStock: React.FC = () => {
           )}
         </div>
 
+        
         {reportError && (
           <div className="alert alert-danger text-center">{reportError}</div>
         )}
@@ -521,6 +532,40 @@ const EggRoomStock: React.FC = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+        {summary && (
+          <div className="card p-3 mb-4 mt-2">
+            <h5 className="card-title">Report Summary</h5>
+            <div className="row g-3">
+              <div className="col-md-4"><span className="fw-bold">Table Opening:</span> {summary.table_opening}</div>
+              <div className="col-md-4"><span className="fw-bold">Table Closing:</span> {summary.table_closing}</div>
+              <div className="col-md-4"><span className="fw-bold">Table Received:</span> {summary.total_table_received}</div>
+              <div className="col-md-4"><span className="fw-bold">Table Transfer:</span> {summary.total_table_transfer}</div>
+              <div className="col-md-4"><span className="fw-bold">Table Damage:</span> {summary.total_table_damage}</div>
+              <div className="col-md-4"><span className="fw-bold">Table Out:</span> {summary.total_table_out}</div>
+              <div className="col-md-4"><span className="fw-bold">Table In:</span> {summary.total_table_in}</div>
+            </div>
+            <hr />
+            <div className="row g-3">
+              <div className="col-md-4"><span className="fw-bold">Jumbo Opening:</span> {summary.jumbo_opening}</div>
+              <div className="col-md-4"><span className="fw-bold">Jumbo Closing:</span> {summary.jumbo_closing}</div>
+              <div className="col-md-4"><span className="fw-bold">Jumbo Received:</span> {summary.total_jumbo_received}</div>
+              <div className="col-md-4"><span className="fw-bold">Jumbo Transfer:</span> {summary.total_jumbo_transfer}</div>
+              <div className="col-md-4"><span className="fw-bold">Jumbo Waste:</span> {summary.total_jumbo_waste}</div>
+              <div className="col-md-4"><span className="fw-bold">Jumbo In:</span> {summary.total_jumbo_in}</div>
+              <div className="col-md-4"><span className="fw-bold">Jumbo Out:</span> {summary.total_jumbo_out}</div>
+            </div>
+            <hr />
+            <div className="row g-3">
+              <div className="col-md-4"><span className="fw-bold">Grade C Opening:</span> {summary.grade_c_opening}</div>
+              <div className="col-md-4"><span className="fw-bold">Grade C Closing:</span> {summary.grade_c_closing}</div>
+              <div className="col-md-4"><span className="fw-bold">Grade C Shed Received:</span> {summary.total_grade_c_shed_received}</div>
+              <div className="col-md-4"><span className="fw-bold">Grade C Room Received:</span> {summary.total_grade_c_room_received}</div>
+              <div className="col-md-4"><span className="fw-bold">Grade C Transfer:</span> {summary.total_grade_c_transfer}</div>
+              <div className="col-md-4"><span className="fw-bold">Grade C Labour:</span> {summary.total_grade_c_labour}</div>
+              <div className="col-md-4"><span className="fw-bold">Grade C Waste:</span> {summary.total_grade_c_waste}</div>
+            </div>
           </div>
         )}
       </div>

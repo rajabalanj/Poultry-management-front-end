@@ -8,8 +8,7 @@ import { GridRow } from '../types/GridRow';
 import { fetchBatchData, exportBatchDataToExcel, fetchWeeklyLayerReport, CumulativeReport } from '../utility/api-utils';
 import { configApi, batchApi } from '../services/api';
 import * as htmlToImage from 'html-to-image';
-import { DateSelector } from './DateSelector';
-import { BatchResponse } from '../types/batch';
+import { BatchResponse } from '../types/batch';import DatePicker from 'react-datepicker';
 import { useEscapeKey } from '../hooks/useEscapeKey';
 
 const PreviousDayReport = () => {
@@ -306,21 +305,23 @@ const PreviousDayReport = () => {
               <div className="row g-3 align-items-end mt-2">
                 {reportType === 'daily' ? (
                   <>
-                    <div className="col-12 col-md-auto">
-                      <DateSelector
-                        label="Start Date"
-                        defaultValue={startDate}
-                        onChange={setStartDate}
-                        maxDate={endDate}
+                    <div className="col-auto d-flex align-items-center mt-3">
+            <label className="form-label me-3 mb-0">Start Date</label>
+                      <DatePicker
+                        selected={startDate ? new Date(startDate) : null}
+                        onChange={(date: Date | null) => date && setStartDate(date.toISOString().slice(0, 10))}
+                        maxDate={endDate ? new Date(endDate) : undefined}
+                        className="form-control"
                       />
                     </div>
-                    <div className="col-12 col-md-auto">
-                      <DateSelector
-                        label="End Date"
-                        defaultValue={endDate}
-                        onChange={setEndDate}
-                        minDate={startDate}
-                        maxDate={new Date().toISOString().split('T')[0]}
+                    <div className="col-auto d-flex align-items-center mt-3">
+            <label className="form-label me-3 mb-0">End Date</label>
+                      <DatePicker
+                        selected={endDate ? new Date(endDate) : null}
+                        onChange={(date: Date | null) => date && setEndDate(date.toISOString().slice(0, 10))}
+                        minDate={startDate ? new Date(startDate) : undefined}
+                        maxDate={new Date()}
+                        className="form-control"
                       />
                     </div>
                   </>
@@ -336,7 +337,7 @@ const PreviousDayReport = () => {
                     />
                   </div>
                 )}
-                <div className="col-12 col-md-4 d-flex justify-content-center justify-content-md-end">
+                <div className="col-12 col-md-auto d-flex justify-content-center justify-content-md-end">
                   <button
                     className="btn btn-primary mb-2"
                     onClick={handleViewReport}
@@ -536,16 +537,16 @@ const PreviousDayReport = () => {
             <div className="mt-4 p-3 border rounded bg-light">
               <h5 className="mb-3">Report Summary</h5>
               <div className="row g-3">
-                <div className="col-md-auto"><span className="fw-bold">Opening:</span> {summaryData.opening_count}</div>
-                <div className="col-md-auto"><span className="fw-bold">Total Mortality:</span> {summaryData.mortality}</div>
-                <div className="col-md-auto"><span className="fw-bold">Total Culls:</span> {summaryData.culls}</div>
-                <div className="col-md-auto"><span className="fw-bold">Closing:</span> {summaryData.closing_count}</div>
-                <div className="col-md-auto"><span className="fw-bold">Total Table Eggs:</span> {summaryData.table_eggs}</div>
-                <div className="col-md-auto"><span className="fw-bold">Total Jumbo:</span> {summaryData.jumbo}</div>
-                <div className="col-md-auto"><span className="fw-bold">Total CR:</span> {summaryData.cr}</div>
-                <div className="col-md-auto"><span className="fw-bold">Total Eggs:</span> {summaryData.total_eggs}</div>
-                <div className="col-md-auto"><span className="fw-bold">Average HD:</span> {summaryData.hd != null ? (Number(summaryData.hd) * 100).toFixed(2) : 'N/A'}%</div>
-                <div className="col-md-auto"><span className="fw-bold">Average Standard HD:</span> {summaryData.standard_hen_day_percentage != null ? Number(summaryData.standard_hen_day_percentage).toFixed(2) : 'N/A'}%</div>
+                <div className="col-md-3"><span className="fw-bold">Opening:</span> {summaryData.opening_count}</div>
+                <div className="col-md-3"><span className="fw-bold">Total Mortality:</span> {summaryData.mortality}</div>
+                <div className="col-md-3"><span className="fw-bold">Total Culls:</span> {summaryData.culls}</div>
+                <div className="col-md-3"><span className="fw-bold">Closing:</span> {summaryData.closing_count}</div>
+                <div className="col-md-3"><span className="fw-bold">Total Table Eggs:</span> {summaryData.table_eggs}</div>
+                <div className="col-md-3"><span className="fw-bold">Total Jumbo:</span> {summaryData.jumbo}</div>
+                <div className="col-md-3"><span className="fw-bold">Total CR:</span> {summaryData.cr}</div>
+                <div className="col-md-3"><span className="fw-bold">Total Eggs:</span> {summaryData.total_eggs}</div>
+                <div className="col-md-3"><span className="fw-bold">Avg HD:</span> {summaryData.hd != null ? (Number(summaryData.hd) * 100).toFixed(2) : 'N/A'}%</div>
+                <div className="col-md-3"><span className="fw-bold">Avg Std HD:</span> {summaryData.standard_hen_day_percentage != null ? Number(summaryData.standard_hen_day_percentage).toFixed(2) : 'N/A'}%</div>
               </div>
             </div>
           )}

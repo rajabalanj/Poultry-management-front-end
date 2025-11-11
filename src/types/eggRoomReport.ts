@@ -31,12 +31,33 @@ export interface EggRoomSingleReportResponse extends EggRoomStockEntry {
   // If the API explicitly sends 'report_date' again, it will just match.
 }
 
-// For multiple entries (if needed)
-export interface EggRoomReportResponse extends EggRoomStockEntry {
-  // If this truly represents a single entry but with a different top-level structure for lists.
-  // Given that getReports returns EggRoomReportResponse[], it implies it's a list of EggRoomStockEntry-like objects.
-  // The 'entries?: never;' was problematic. If it's a list response wrapper:
-  entries?: EggRoomStockEntry[]; // If this is for a response that wraps multiple entries.
+export interface EggRoomSummary {
+  table_opening: number;
+  jumbo_opening: number;
+  grade_c_opening: number;
+  table_closing: number;
+  jumbo_closing: number;
+  grade_c_closing: number;
+  total_table_received: number;
+  total_table_transfer: number;
+  total_table_damage: number;
+  total_table_out: number;
+  total_table_in: number;
+  total_jumbo_received: number;
+  total_jumbo_transfer: number;
+  total_jumbo_waste: number;
+  total_jumbo_in: number;
+  total_jumbo_out: number;
+  total_grade_c_shed_received: number;
+  total_grade_c_room_received: number;
+  total_grade_c_transfer: number;
+  total_grade_c_labour: number;
+  total_grade_c_waste: number;
+}
+
+export interface EggRoomReportResponse {
+  details: EggRoomStockEntry[];
+  summary: EggRoomSummary;
 }
 
 export interface EggRoomReportCreate {

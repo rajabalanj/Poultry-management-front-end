@@ -5,7 +5,7 @@ import GraphsSection from './GraphsSection';
 import BatchTable from '../BatchTable';
 import { dailyBatchApi, compositionApi } from '../../services/api';
 import { DailyBatch } from '../../types/daily_batch';
-import { DateSelector } from '../DateSelector'; // Your component
+import DatePicker from 'react-datepicker';
 import ListModal from '../Common/ListModal'; // Import ListModal
 
 const BATCH_DATE_KEY = 'dashboard_batch_date';
@@ -184,12 +184,14 @@ const DashboardIndex = () => {
           <div className="card shadow-sm">
             <div className="card-body">
               <div className="row g-3 align-items-end">
-                <div className="col-12 col-md-4">
-                  <DateSelector
-                    defaultValue={batchDate}
-                    maxDate={new Date().toISOString().split('T')[0]}
-                    onChange={(value) => setBatchDate(value)}
-                    label='Batch Date'
+                <div className="col-auto d-flex align-items-center mt-3">
+            <label className="form-label me-3 mb-0">Batch Date</label>
+                  <DatePicker
+                    selected={batchDate ? new Date(batchDate) : null}
+                    maxDate={new Date()}
+                    onChange={(date: Date | null) => date && setBatchDate(date.toISOString().split('T')[0])}
+                    dateFormat="dd-MM-yyyy"
+                    className="form-control"
                   />
                 </div>
                 <div className="col-12 col-md-4">
@@ -245,24 +247,28 @@ const DashboardIndex = () => {
             <div className="card-body">
               <h5 className="card-title">Report</h5>
               <div className="row g-3 align-items-end">
-                <div className="col-12 col-md-4">
-                  <DateSelector
-                    label="Start Date"
-                    defaultValue={startDate}
-                    onChange={setStartDate}
-                    maxDate={endDate}
+                <div className="col-auto d-flex align-items-center mt-3">
+            <label className="form-label me-3 mb-0">Start Date</label>
+                  <DatePicker
+                    selected={startDate ? new Date(startDate) : null}
+                    onChange={(date: Date | null) => date && setStartDate(date.toISOString().split('T')[0])}
+                    maxDate={endDate ? new Date(endDate) : new Date()}
+                    dateFormat="dd-MM-yyyy"
+                    className="form-control"
                   />
                 </div>
-                <div className="col-12 col-md-4">
-                  <DateSelector
-                    label="End Date"
-                    defaultValue={endDate}
-                    onChange={setEndDate}
-                    minDate={startDate}
-                    maxDate={new Date().toISOString().split('T')[0]}
+                <div className="col-auto d-flex align-items-center mt-3">
+            <label className="form-label me-3 mb-0">End Date</label>
+                  <DatePicker
+                    selected={endDate ? new Date(endDate) : null}
+                    onChange={(date: Date | null) => date && setEndDate(date.toISOString().split('T')[0])}
+                    minDate={startDate ? new Date(startDate) : undefined}
+                    maxDate={new Date()}
+                    dateFormat="dd-MM-yyyy"
+                    className="form-control"
                   />
                 </div>
-                <div className="col-md-4 d-flex justify-content-center justify-content-md-end">
+                <div className="col-12 col-md-4 d-flex align-items-end justify-content-start justify-content-md-start">
                   <button
                     className="btn btn-primary mb-2"
                     onClick={handleDownloadReport}

@@ -4,11 +4,11 @@ import { batchApi } from '../../../services/api';
 import { toast } from 'react-toastify';
 import PageHeader from '../../Layout/PageHeader';
 import { useLocation } from 'react-router-dom';
-import { DateSelector } from '../../DateSelector';
+import DatePicker from 'react-datepicker';
 
 const AddBatch: React.FC = () => {
   const [batch_no, setBatchNo] = useState('');
-  const [batch_date, setBatchDate] = useState(''); // This is for the start date of the batch, not age
+  const [batch_date, setBatchDate] = useState(new Date().toISOString().slice(0, 10)); // Default to today's date
   const [shed_no, setShedNo] = useState('1'); // This is for the shed number
   const [opening_count, setOpeningCount] = useState('0');
   const [week, setWeek] = useState('0'); // Age starts from 0 weeks
@@ -98,103 +98,106 @@ const AddBatch: React.FC = () => {
 
   return (
     <>
-    <PageHeader 
-        title="Add New Batch"
-      />
-    <div className="container-fluid">
-      <div className="p-4">
-        <form onSubmit={handleSubmit}>
-          <div className="row g-3">
-            <div className="col-md-6">
-              <DateSelector
-                label="Batch Start Date"
-                defaultValue={batch_date}
-                onChange={setBatchDate}
-                isBold={false}
-                layout='vertical'
-              />
-            </div>
-            <div className="col-md-6">
-              <label className="form-label">Batch Number</label>
-              <input
-                type="number"
-                className="form-control"
-                value={batch_no}
-                onChange={handleBatchNoChange}
-                required
-                min="1"
-              />
-            </div>
-            <div className="col-md-6">
-              <label className="form-label">Shed Number</label>
-              <input
-                type="text"
-                className="form-control"
-                value={shed_no}
-                onChange={(e) => setShedNo(e.target.value)}
-                required
-              />
-            </div>
+      <PageHeader title="Add New Batch" />
+      <div className="container-fluid">
+        <div className="p-4">
+          <form onSubmit={handleSubmit}>
+            <div className="row g-3">
+              <div className="col-md-6">
+              <label className="form-label mb-1">Batch Start Date</label> {/* Added mb-1 for small vertical spacing */}
+              {/* Wrap DatePicker in a div to ensure it's on a new line */}
+              <div>
+                <DatePicker
+                  selected={batch_date ? new Date(batch_date) : null}
+                  onChange={(date: Date | null) =>
+                    date && setBatchDate(date.toISOString().slice(0, 10))
+                  }
+                  dateFormat="dd-MM-yyyy"
+                  className="form-control"
+                />
+              </div>
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Batch Number</label>
+                <input
+                  type="number"
+                  className="form-control"
+                  value={batch_no}
+                  onChange={handleBatchNoChange}
+                  required
+                  min="1"
+                />
+              </div>
+              <div className="col-md-6">
+                <label className="form-label">Shed Number</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={shed_no}
+                  onChange={(e) => setShedNo(e.target.value)}
+                  required
+                />
+              </div>
 
-            <div className="col-md-6">
-              <label className="form-label">Opening</label>
-              <input
-                type="number"
-                className="form-control"
-                value={opening_count}
-                onChange={(e) => setOpeningCount(e.target.value)}
-                required
-                min="0"
-              />
-            </div>
+              <div className="col-md-6">
+                <label className="form-label">Opening</label>
+                <input
+                  type="number"
+                  className="form-control"
+                  value={opening_count}
+                  onChange={(e) => setOpeningCount(e.target.value)}
+                  required
+                  min="0"
+                />
+              </div>
 
-            <div className="col-md-6">
-              <label className="form-label">Week</label>
-              <input
-                type="number"
-                className="form-control"
-                value={week}
-                onChange={handleWeekChange} // Age starts from 0 weeks
-                required
-                min="0"
-                placeholder="Enter week number"
-              />
-            </div>
+              <div className="col-md-6">
+                <label className="form-label">Week</label>
+                <input
+                  type="number"
+                  className="form-control"
+                  value={week}
+                  onChange={handleWeekChange} // Age starts from 0 weeks
+                  required
+                  min="0"
+                  placeholder="Enter week number"
+                />
+              </div>
 
-            <div className="col-md-6">
-              <label className="form-label">Day (1-7)</label>
-              <input
-                type="number"
-                className="form-control"
-                value={day}
-                onChange={handleDayChange}
-                required // Day must be between 1 and 7
-                min="1"
-                max="7"
-                placeholder="Enter day (1-7)"
-              />
-            </div>
+              <div className="col-md-6">
+                <label className="form-label">Day (1-7)</label>
+                <input
+                  type="number"
+                  className="form-control"
+                  value={day}
+                  onChange={handleDayChange}
+                  required // Day must be between 1 and 7
+                  min="1"
+                  max="7"
+                  placeholder="Enter day (1-7)"
+                />
+              </div>
 
-            <div className="col-12">
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Adding...' : 'Add Batch'}
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary ms-2"
-                onClick={() => navigate('/production')} // Redirect to production page
-              >
-                Cancel
-              </button>
+              <div className="col-12">
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Adding..." : "Add Batch"}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary ms-2"
+                  onClick={() => navigate("/production")} // Redirect to production page
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
-    </div>
     </>
   );
 };

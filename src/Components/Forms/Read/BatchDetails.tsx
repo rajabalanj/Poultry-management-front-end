@@ -7,8 +7,8 @@ import { toast } from 'react-toastify';
 import PageHeader from '../../Layout/PageHeader';
 import HeaderCardGroup from '../../Dashboard/HeaderCardGroup';
 import GraphsSection from '../../Dashboard/GraphsSection';
-import { DateSelector } from '../../DateSelector';
 import ListModal from '../../Common/ListModal'; // Import ListModal
+import DatePicker from 'react-datepicker';
 import Loading from '../../Common/Loading';
 import { useEscapeKey } from '../../../hooks/useEscapeKey';
 
@@ -53,7 +53,7 @@ const BatchDetails: React.FC = () => {
     setFeedModalItems([]);
   };
 
-  const handleDateChange = (newDate: string) => {
+  const handleDateChange = (newDate: Date | null) => {
     if (batch_id && newDate) {
       const date = new Date(newDate);
       const year = date.getFullYear();
@@ -163,13 +163,16 @@ const BatchDetails: React.FC = () => {
           <div className="card shadow-sm">
             <div className="card-body">
               <h5 className="card-title">View Another Date's Report</h5>
-              <DateSelector
-                label="Report Date"
-                onChange={handleDateChange}
-                defaultValue={batch_date}
-                storageKey={`batch-details-date-${batch_id}`}
-                maxDate={new Date().toISOString().split('T')[0]}
-              />
+              <div className="d-flex align-items-center mt-3">
+                <label className="form-label me-3 mb-0">Report Date</label>
+                <DatePicker
+                  selected={batch_date ? new Date(batch_date) : null}
+                  onChange={(date: Date | null) => handleDateChange(date)}
+                  dateFormat="dd-MM-yyyy"
+                  className="form-control"
+                  maxDate={new Date()}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -334,37 +337,41 @@ const BatchDetails: React.FC = () => {
               <div className="row g-3 align-items-end">
                 {reportType === 'daily' ? (
                   <>
-                    <div className="col-12 col-md-auto">
-                      <DateSelector
-                        label="Start Date"
-                        defaultValue={startDate}
-                        onChange={setStartDate}
-                        maxDate={endDate}
+                    <div className="col-auto d-flex align-items-center mt-3">
+            <label className="form-label me-3 mb-0">Start Date</label>
+                      <DatePicker
+                        selected={startDate ? new Date(startDate) : null}
+                        onChange={(date: Date | null) => date && setStartDate(date.toISOString().split('T')[0])}
+                        maxDate={endDate ? new Date(endDate) : new Date()}
+                        dateFormat="dd-MM-yyyy"
+                        className="form-control"
                       />
                     </div>
-                    <div className="col-12 col-md-auto">
-                      <DateSelector
-                        label="End Date"
-                        defaultValue={endDate}
-                        onChange={setEndDate}
-                        minDate={startDate}
-                        maxDate={new Date().toISOString().split('T')[0]}
+                    <div className="col-auto d-flex align-items-center mt-3">
+            <label className="form-label me-3 mb-0">End Date</label>
+                      <DatePicker
+                        selected={endDate ? new Date(endDate) : null}
+                        onChange={(date: Date | null) => date && setEndDate(date.toISOString().split('T')[0])}
+                        minDate={startDate ? new Date(startDate) : undefined}
+                        maxDate={new Date()}
+                        dateFormat="dd-MM-yyyy"
+                        className="form-control"
                       />
                     </div>
                   </>
                 ) : (
-                  <div className="col-12 col-md-auto">
+                  <div className="col-12 col-md-4">
                     <label className="form-label">Week</label>
                     <input
                       type="number"
                       className="form-control"
                       value={week}
                       onChange={(e) => setWeek(e.target.value)}
-                      placeholder="e.g., 18"
+                      placeholder="e.g., 20"
                     />
                   </div>
                 )}
-                <div className="col-12 col-md-auto">
+                <div className="col-12 col-md-4 d-flex align-items-end justify-content-start justify-content-md-start">
                   <button
                     className="btn btn-primary mb-2"
                     onClick={handleDownloadReport}

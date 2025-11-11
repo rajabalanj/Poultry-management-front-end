@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
-import { EggRoomStockEntry, EggRoomSingleReportResponse } from '../types/eggRoomReport';
+import { EggRoomStockEntry, EggRoomSingleReportResponse, EggRoomSummary } from '../types/eggRoomReport';
 import { eggRoomReportApi } from '../services/api';
 
 const defaultEntry = (reportDate?: string): EggRoomStockEntry => ({
@@ -35,6 +35,7 @@ export const useEggRoomStock = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dateError, setDateError] = useState<string | null>(null);
+  const [summary, setSummary] = useState<EggRoomSummary | null>(null);
 
   // Calculate closing values
   const calculateClosings = useCallback((entry: EggRoomStockEntry): EggRoomStockEntry => ({
@@ -240,5 +241,7 @@ export const useEggRoomStock = () => {
     handleSave,
     setSelectedDate,
     dateError,
+    setSummary,
+    summary,
   };
 };

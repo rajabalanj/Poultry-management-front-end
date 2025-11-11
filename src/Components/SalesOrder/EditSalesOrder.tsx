@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
+import DatePicker from 'react-datepicker';
 import { salesOrderApi, inventoryItemApi, businessPartnerApi } from '../../services/api';
 import CreateBusinessPartnerForm from '../BusinessPartner/CreateBusinessPartnerForm';
 import CreateInventoryItemForm from '../InventoryItem/CreateInventoryItemForm';
@@ -16,8 +17,6 @@ import {
 } from '../../types/SalesOrderItem';
 import { BusinessPartner } from '../../types/BusinessPartner';
 import { InventoryItemResponse } from '../../types/InventoryItem';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
 import { format } from 'date-fns';
 
 interface FormSalesOrderItem extends SalesOrderItemResponse {
@@ -317,10 +316,9 @@ const EditSalesOrder: React.FC = () => {
                   <DatePicker
                     selected={orderDate}
                     onChange={(date: Date | null) => setOrderDate(date)}
-                    dateFormat="yyyy-MM-dd"
+                    dateFormat="dd-MM-yyyy"
                     className="form-control"
                     id="orderDate"
-                    required
                     disabled={isLoading}
                   />
                   </div>

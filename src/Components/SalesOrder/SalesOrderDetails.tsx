@@ -3,12 +3,13 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import PageHeader from "../Layout/PageHeader";
-import { salesOrderApi, inventoryItemApi, businessPartnerApi } from "../../services/api"; // Add businessPartnerApi
+import DatePicker from 'react-datepicker';
 import { SalesOrderResponse, SalesOrderStatus, PaymentStatus, PaymentResponse, PaymentUpdate } from "../../types/SalesOrder";
 import { BusinessPartner } from "../../types/BusinessPartner";
 import { InventoryItemResponse } from "../../types/InventoryItem"; // Add InventoryItemResponse
 import { format } from 'date-fns';
 import { Modal, Button, Form } from 'react-bootstrap';
+import { salesOrderApi, inventoryItemApi, businessPartnerApi } from "../../services/api"; // Add businessPartnerApiimport DatePicker from 'react-datepicker';
 
 const getStatusBadgeClass = (status: SalesOrderStatus | PaymentStatus) => {
   switch (status) {
@@ -409,12 +410,15 @@ const SalesOrderDetails: React.FC = () => {
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Payment Date</Form.Label>
-              <Form.Control
-                type="date"
-                value={editPaymentForm.payment_date}
-                onChange={(e) => setEditPaymentForm({ ...editPaymentForm, payment_date: e.target.value })}
+              <div>
+              <DatePicker
+                selected={editPaymentForm.payment_date ? new Date(editPaymentForm.payment_date) : null}
+                onChange={(date: Date | null) => date && setEditPaymentForm({ ...editPaymentForm, payment_date: format(date, 'yyyy-MM-dd') })}
+                dateFormat="dd-MM-yyyy"
+                className="form-control"
                 required
               />
+              </div>
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Payment Mode</Form.Label>

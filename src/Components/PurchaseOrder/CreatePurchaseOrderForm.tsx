@@ -3,6 +3,8 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
+import DatePicker from 'react-datepicker';
+import { format } from 'date-fns'; // Import format
 import { purchaseOrderApi, inventoryItemApi, businessPartnerApi, s3Upload } from '../../services/api';
 import CreateBusinessPartnerForm from '../BusinessPartner/CreateBusinessPartnerForm';
 import CreateInventoryItemForm from '../InventoryItem/CreateInventoryItemForm';
@@ -13,9 +15,6 @@ import {
 import { PurchaseOrderItemCreate } from '../../types/PurchaseOrderItem';
 import { BusinessPartner } from '../../types/BusinessPartner';
 import { InventoryItemResponse } from '../../types/InventoryItem';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
-import { format } from 'date-fns'; // Import format for date formatting
 import Loading from '../Common/Loading'
 
 interface FormPurchaseOrderItem extends PurchaseOrderItemCreate {
@@ -298,10 +297,9 @@ const CreatePurchaseOrderForm: React.FC = () => {
                     <DatePicker
                       selected={orderDate}
                       onChange={(date: Date | null) => date && setOrderDate(date)}
-                      dateFormat="yyyy-MM-dd"
+                      dateFormat="dd-MM-yyyy"
                       className="form-control"
                       id="orderDate"
-                      required
                       disabled={isLoading}
                     />
                     </div>
@@ -478,15 +476,17 @@ const CreatePurchaseOrderForm: React.FC = () => {
                   </div>
                   <div className="col-md-6">
                     <label htmlFor="paymentDate" className="form-label">Payment Date <span className="form-field-required">*</span></label>
+                    <div>
                     <DatePicker
                       selected={paymentDate}
                       onChange={(date: Date | null) => date && setPaymentDate(date)}
-                      dateFormat="yyyy-MM-dd"
+                      dateFormat="dd-MM-yyyy"
                       className="form-control"
                       id="paymentDate"
                       required
                       disabled={isLoading}
                     />
+                    </div>
                   </div>
                   <div className="col-md-6">
                     <label htmlFor="paymentMode" className="form-label">Payment Mode <span className="form-field-required">*</span></label>

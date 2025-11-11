@@ -40,19 +40,21 @@ const BatchCard: React.FC<{
       onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0px)'}
     >
       <div className="card-body">
-        <div className="d-flex justify-content-between align-items-center">
-          <div>
+        <div className="row align-items-center">
+          <div className="col-12 col-md-3 me-md-3"> {/* Added me-md-3 for spacing */}
             <h6 className="mb-1">Batch: {batch.batch_no}</h6>
             <p className="text-muted mb-0" style={{ fontSize: '0.85rem' }}>Shed: {batch.shed_no} | Age: {batch.age} weeks</p>
           </div>
-          <div className="d-flex gap-3 text-center">
-            <div>
-              <p className="mb-1 text-muted small">Feed Intake</p>
-              {getPerformanceIndicator(batch.feed_in_kg, batch.standard_feed_in_kg, true)}
-            </div>
-            <div>
-              <p className="mb-1 text-muted small">Hen-Day %</p>
-              {getPerformanceIndicator(batch.hd, batch.standard_hen_day_percentage)}
+          <div className="col-12 col-md-3 me-md-3"> {/* Added me-md-3 for spacing */}
+            <div className="d-flex gap-4 text-center mt-2 mt-md-0"> {/* Removed justify-content-start and justify-content-md-end */}
+              <div>
+                <p className="mb-1 text-muted small">Feed Intake</p>
+                {getPerformanceIndicator(batch.feed_in_kg, batch.standard_feed_in_kg, true)}
+              </div>
+              <div>
+                <p className="mb-1 text-muted small">Hen-Day %</p>
+                {getPerformanceIndicator(batch.hd, batch.standard_hen_day_percentage)}
+              </div>
             </div>
           </div>
         </div>
