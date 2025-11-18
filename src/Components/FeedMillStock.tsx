@@ -22,7 +22,7 @@ function FeedMillStock() {
   const [timesToUse, setTimesToUse] = useState(1);
   const [editCompName, setEditCompName] = useState("");
   const [batches, setBatches] = useState<BatchResponse[]>([]);
-  const [selectedShedNo, setSelectedShedNo] = useState<string>('');
+  const [selectedBatchNo, setSelectedBatchNo] = useState<string>('');
   const [batchDate, setBatchDate] = useState<string>('');
   const navigate = useNavigate();
 
@@ -48,7 +48,7 @@ function FeedMillStock() {
     batchApi.getBatches().then((fetchedBatches: BatchResponse[]) => {
       setBatches(fetchedBatches);
       if (fetchedBatches.length > 0) {
-        setSelectedShedNo(fetchedBatches[0].shed_no);
+        setSelectedBatchNo(fetchedBatches[0].batch_no);
       }
     });
 
@@ -263,17 +263,17 @@ function FeedMillStock() {
             </button>
           </div>
           <div className="mb-3">
-            <label htmlFor="shedNoSelect" className="form-label">Select Shed Number:</label>
+            <label htmlFor="batchNoSelect" className="form-label">Select Batch Number:</label>
             <select
-              id="shedNoSelect"
+              id="batchNoSelect"
               className="form-select form-select-sm"
-              value={selectedShedNo}
-              onChange={(e) => setSelectedShedNo(e.target.value)}
+              value={selectedBatchNo}
+              onChange={(e) => setSelectedBatchNo(e.target.value)}
             >
-              <option value="">Select a Shed</option>
+              <option value="">Select a Batch</option>
               {batches.map((batch) => (
-                <option key={batch.id} value={batch.shed_no}>
-                  {batch.shed_no}
+                <option key={batch.id} value={batch.batch_no}>
+                  {batch.batch_no}
                 </option>
               ))}
             </select>
@@ -293,8 +293,8 @@ function FeedMillStock() {
             <button
               className="btn btn-primary btn-sm"
               onClick={async () => {
-                if (!selectedShedNo) {
-                  toast.error("Please select a Shed Number");
+                if (!selectedBatchNo) {
+                  toast.error("Please select a Batch Number");
                   return;
                 }
                 if (!batchDate) {
@@ -306,9 +306,9 @@ function FeedMillStock() {
                     compositionId: selectedComposition.id,
                     times: timesToUse,
                     usedAt: batchDate,
-                    shedNo: selectedShedNo,
+                    batch_no: selectedBatchNo,
                   });
-                  toast.success(`Used composition ${selectedComposition.name} ${timesToUse} time(s) for Shed ${selectedShedNo}`);
+                  toast.success(`Used composition ${selectedComposition.name} ${timesToUse} time(s) for Batch ${selectedBatchNo}`);
                   const updated = await compositionApi.getCompositions();
                   setCompositions(updated);
                   setViewState("view");

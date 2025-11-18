@@ -1,7 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import { CompositionResponse } from '../types/compositon';
 import { DailyBatch } from '../types/daily_batch';
-import { Batch, BatchResponse, BatchUpdate } from '../types/batch';
+import { BatchResponse, BatchUpdate, CreateBatchPayload, CreateBatchResponse } from '../types/batch';
 import { EggRoomReportResponse, EggRoomReportCreate, EggRoomReportUpdate, EggRoomSingleReportResponse } from '../types/eggRoomReport.ts';
 import { BovansPerformance, PaginatedBovansPerformanceResponse } from "../types/bovans"; // Ensure this import is present
 import { BusinessPartner, BusinessPartnerCreate, BusinessPartnerUpdate, PartnerStatus } from '../types/BusinessPartner';
@@ -37,6 +37,7 @@ import { OperationalExpense } from '../types/operationalExpense';
 import { ProfitAndLoss, BalanceSheet } from '../types/financialReports'; // NEW IMPORT
 import { FinancialConfig } from '../types/financialConfig';
 import { GeneralLedger, PurchaseLedger, SalesLedger, InventoryLedger } from '../types/ledgers';
+import { Shed, ShedResponse } from '../types/shed';
 // Define types for our data
 // Define types for our data
 
@@ -166,7 +167,7 @@ export const calculateTotalEggs = (
 };
 
 // Helper function to extract error message
-function getApiErrorMessage(error: unknown, fallback: string) {
+export function getApiErrorMessage(error: unknown, fallback: string) {
   if (axios.isAxiosError(error)) {
     return error.response?.data?.detail || error.message || fallback;
   }
@@ -203,9 +204,9 @@ export const s3Upload = async (uploadUrl: string, file: File) => {
 
 
 export const reportsApi = {
-  getWeeklyLayerReport: async (batch_id: number, week: number): Promise<any> => {
+  getWeeklyLayerReport: async (batch_id: number, week: number): Promise<import('../types/daily_batch').WeeklyLayerReportResponse> => {
     try {
-      const response = await api.get(`/reports/weekly-layer-report`, {
+      const response = await api.get<import('../types/daily_batch').WeeklyLayerReportResponse>(`/reports/weekly-layer-report`, {
         params: {
           batch_id,
           week,
@@ -220,9 +221,9 @@ export const reportsApi = {
 
 // Move the `getSnapshot` function to a new `dailyBatchApi` object
 export const dailyBatchApi = {
-  getSnapshot: async (startDate: string, endDate: string, batchId?: number): Promise<DailyBatch[] | { details: DailyBatch[], summary: DailyBatch }> => {
+  getSnapshot: async (startDate: string, endDate: string, batchId?: number): Promise<import('../types/daily_batch').SnapshotResponse> => {
     try {
-      const response = await api.get<DailyBatch[] | { details: DailyBatch[], summary: DailyBatch }>(`/reports/snapshot`, {
+      const response = await api.get<import('../types/daily_batch').SnapshotResponse>(`/reports/snapshot`, {
         params: {
           start_date: startDate.split('T')[0],
           end_date: endDate.split('T')[0],
@@ -339,13 +340,13 @@ export const compositionApi = {
     }
   },
 
-  useComposition: async ({ compositionId, times, usedAt, shedNo }: { compositionId: number, times: number, usedAt: string, shedNo?: string }) => {
+  useComposition: async ({ compositionId, times, usedAt, batch_no }: { compositionId: number, times: number, usedAt: string, batch_no?: string }) => {
     try {
       await api.post('/compositions/use-composition', {
         compositionId,
         times,
         usedAt,
-        shed_no: shedNo,
+        batch_no,
       });
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to use composition'));
@@ -401,7 +402,7 @@ export const compositionApi = {
      * @param batchId - optional number
      * @returns { total_feed: number, feed_breakdown: Array<{feed_type: string, amount: number, composition_name?: string, composition_items?: Array<{inventory_item_id: number, weight: number}>}> }
      */
-      getFeedUsageByDate: async (usageDate: string, batchId?: number): Promise<{ total_feed: number, feed_breakdown: { feed_type: string, amount: number, composition_name?: string, composition_items?: { inventory_item_id: number, inventory_item_name?: string, weight: number, unit?: string }[] }[] }> => {
+      getFeedUsageByDate: async (usageDate: string, batchId?: number): Promise<{ total_feed: number, feed_breakdown: { feed_type: string, amount: number }[] }> => {
       try {
         const response = await api.get(`/compositions/usage-by-date/`, {
           params: {
@@ -409,7 +410,16 @@ export const compositionApi = {
             batch_id: batchId || undefined,
           },
         });
-        return response.data;
+        // The backend now returns total_feed and amount as strings.
+        // We parse them into numbers for frontend use.
+        const rawData = response.data as { total_feed: string, feed_breakdown: { feed_type: string, amount: string }[] };
+        return {
+          total_feed: parseFloat(rawData.total_feed) || 0,
+          feed_breakdown: rawData.feed_breakdown.map(item => ({
+            ...item,
+            amount: parseFloat(item.amount) || 0,
+          })),
+        };
       } catch (error) {
         throw new Error(getApiErrorMessage(error, 'Failed to fetch feed usage by date'));
       }
@@ -467,9 +477,19 @@ export const configApi = {
 
 // Restore batchApi for master batch operations
 export const batchApi = {
-  createBatch: async (batchData: Batch): Promise<BatchResponse> => {
+  createBatch: async (batchData: CreateBatchPayload): Promise<CreateBatchResponse> => {
+    // Basic validation before sending to backend
+    const ageError = validateBatchData.age(String(batchData.age));
+    if (ageError) {
+      throw new Error(`Invalid age: ${ageError}`);
+    }
+    const openingError = validateBatchData.nonNegative(Number(batchData.opening_count), 'opening_count');
+    if (openingError) {
+      throw new Error(openingError);
+    }
+
     try {
-      const response = await api.post<BatchResponse>('/batches/', batchData);
+      const response = await api.post<CreateBatchResponse>('/batches/', batchData);
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to create batch'));
@@ -500,14 +520,34 @@ export const batchApi = {
     }
   },
 
-  closeBatch: async (batch_id: number): Promise<{ message: string }> => {
-  try {
-    const response = await api.put<{ message: string }>(`/batches/${batch_id}/close`);
-    return response.data;
-  } catch (error) {
-    throw new Error(getApiErrorMessage(error, 'Failed to close batch'));
-  }
-},
+  closeBatch: async (batch_id: number, closingDate?: string): Promise<{ message: string }> => {
+    try {
+      const payload = closingDate ? { closing_date: closingDate } : {};
+      const response = await api.put<{ message: string }>(`/batches/${batch_id}/close`, payload);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to close batch'));
+    }
+  },
+  moveShed: async (batch_id: number, new_shed_id: number, move_date: string): Promise<string> => {
+    try {
+      const response = await api.post<string>(`/batches/${batch_id}/move-shed`, {
+        new_shed_id,
+        move_date,
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to move batch to a new shed'));
+    }
+  },
+  swapSheds: async (data: { batch_id_1: number, batch_id_2: number, swap_date: string }): Promise<string> => {
+    try {
+      const response = await api.post<string>(`/batches/swap-sheds`, data);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to swap sheds'));
+    }
+  },
 };
 
 // Egg Room Report API
@@ -1151,6 +1191,49 @@ export const ledgerApi = {
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch Inventory Ledger'));
+    }
+  },
+};
+
+export const shedApi = {
+  createShed: async (shedData: Shed): Promise<ShedResponse> => {
+    try {
+      const response = await api.post<ShedResponse>('/sheds/', shedData);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to create shed'));
+    }
+  },
+  getSheds: async (skip: number = 0, limit: number = 100): Promise<ShedResponse[]> => {
+    try {
+      const response = await api.get<ShedResponse[]>(`/sheds/?skip=${skip}&limit=${limit}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch sheds'));
+    }
+  },
+  getShed: async (id: number): Promise<ShedResponse> => {
+    try {
+      const response = await api.get<ShedResponse>(`/sheds/${id}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch shed'));
+    }
+  },
+  updateShed: async (id: number, shedData: Shed): Promise<ShedResponse> => {
+    try {
+      const response = await api.patch<ShedResponse>(`/sheds/${id}`, shedData);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to update shed'));
+    }
+  },
+  deleteShed: async (id: number): Promise<string> => {
+    try {
+      const response = await api.delete<string>(`/sheds/${id}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to delete shed'));
     }
   },
 };

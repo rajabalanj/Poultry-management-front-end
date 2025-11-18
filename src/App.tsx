@@ -43,6 +43,12 @@ import ErrorBoundary from './Components/ErrorBoundary';
 import OperationalExpensesIndexPage from './Components/OperationalExpenses/OperationalExpensesIndex';
 import CreateOperationalExpenseForm from './Components/OperationalExpenses/CreateOperationalExpenseForm';
 import EditOperationalExpense from './Components/OperationalExpenses/EditOperationalExpense';
+import ShedIndexPage from './Components/Shed/ShedIndex';
+import CreateShedForm from './Components/Shed/CreateShedForm';
+import ShedDetails from './Components/Shed/ShedDetails';
+import EditShed from './Components/Shed/EditShed';
+import MoveShed from './Components/Batch/MoveShed';
+import SwapSheds from './Components/Batch/SwapSheds';
 
 const ProtectedRoutes = () => (
   <ProtectedRoute>
@@ -71,6 +77,11 @@ const App: React.FC = () => {
                 path="/batch/:batch_id/:batch_date/details"
                 element={<BatchDetails />}
               />
+              <Route
+                path="/batch/:batch_id/move-shed"
+                element={<MoveShed />}
+              />
+              <Route path="/swap-sheds" element={<SwapSheds />} />
               <Route
                 path="/batch/:batchId/:batch_date/edit"
                 element={<EditBatch />}
@@ -125,6 +136,10 @@ const App: React.FC = () => {
               <Route path="/operational-expenses" element={<OperationalExpensesIndexPage />} />
               <Route path="/operational-expenses/create" element={<CreateOperationalExpenseForm />} />
               <Route path="/operational-expenses/:expense_id/edit" element={<EditOperationalExpense />} />
+              <Route path="/sheds" element={<ShedIndexPage />} />
+              <Route path="/sheds/create" element={<CreateShedForm />} />
+              <Route path="/sheds/:shed_id/details" element={<ShedDetails />} />
+              <Route path="/sheds/:shed_id/edit" element={<EditShed />} />
             </Route>
             <Route
               path="/configurations"

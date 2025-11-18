@@ -11,7 +11,6 @@ const EditBatchSimple: React.FC = () => {
   const { batchId } = useParams<{ batchId: string }>();
   const navigate = useNavigate();
   const [batchNo, setBatchNo] = useState('');
-  const [shedNo, setShedNo] = useState('');
   const [age, setAge] = useState('');
   const [openingCount, setOpeningCount] = useState('');
   const [date, setDate] = useState('');
@@ -27,7 +26,6 @@ const EditBatchSimple: React.FC = () => {
         if (!batchId) return;
         const data: BatchResponse = await batchApi.getBatch(Number(batchId));
         setBatchNo(data.batch_no || '');
-        setShedNo(data.shed_no || '');
         setAge(data.age || '');
         setOpeningCount(data.opening_count?.toString() || '');
         setDate(data.date || '');
@@ -63,9 +61,6 @@ const EditBatchSimple: React.FC = () => {
     const formattedBatchNo = formatBatchNo(batchNo);
     if (formattedBatchNo !== initialBatch.batch_no) {
       payload.batch_no = formattedBatchNo;
-    }
-    if (shedNo !== initialBatch.shed_no) {
-      payload.shed_no = shedNo;
     }
     if (age !== initialBatch.age) {
       payload.age = age;
@@ -144,10 +139,10 @@ const EditBatchSimple: React.FC = () => {
               <input
                 type="text"
                 className="form-control"
-                value={shedNo}
-                onChange={e => setShedNo(e.target.value)}
-                required
+                value={initialBatch?.current_shed?.shed_no || ''}
+                readOnly
               />
+              <div className="form-text">To change the shed, use the Move Shed option</div>
             </div>
             <div className="col-md-6">
               <label className="form-label">Opening</label>

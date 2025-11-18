@@ -64,6 +64,11 @@ const Slidebar: React.FC = () => {
     location.pathname.startsWith("/operational-expenses")
   ) {
     setOpenMenu("finance");
+  } else if (
+    location.pathname.startsWith("/sheds") ||
+    location.pathname.startsWith("/swap-sheds")
+  ) {
+    setOpenMenu("shed");
   } else {
     setOpenMenu(null); // No sub-menu related path, so close any open sub-menus
   }
@@ -264,6 +269,39 @@ const Slidebar: React.FC = () => {
                     <i className="bi bi-people me-2 icon-color-sidebar"></i>
                     People
                   </Link>
+                </li>
+                <hr className="my-2 text-primary" />
+
+                {/* Shed Management - Expandable Item */}
+                <li className="nav-menu-item">
+                  <div
+                    className={`nav-menu-link fw-bold expandable ${openMenu === 'shed' ? 'active' : ''}`}
+                    onClick={() => toggleMenu('shed')}
+                  >
+                    <i className="bi bi-house-door me-2 icon-color-sidebar"></i>
+                    Shed Management
+                    <i className={`bi bi-chevron-right chevron-icon ${openMenu === 'shed' ? 'rotated' : ''}`}></i>
+                  </div>
+                  <ul className={`sub-menu ${openMenu === 'shed' ? 'open' : ''}`}>
+                    <li className="sub-menu-item">
+                      <Link
+                        to="/sheds"
+                        className={`nav-menu-link ${location.pathname === "/sheds" ? "active-link" : ""}`}
+                        onClick={closeSidebarMobile}
+                      >
+                        Sheds
+                      </Link>
+                    </li>
+                    <li className="sub-menu-item">
+                      <Link
+                        to="/swap-sheds"
+                        className={`nav-menu-link ${location.pathname === "/swap-sheds" ? "active-link" : ""}`}
+                        onClick={closeSidebarMobile}
+                      >
+                        Swap Sheds
+                      </Link>
+                    </li>
+                  </ul>
                 </li>
                 <hr className="my-2 text-primary" />
 

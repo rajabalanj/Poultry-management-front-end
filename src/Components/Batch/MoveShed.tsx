@@ -1,0 +1,106 @@
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { batchApi, shedApi } from '../../services/api';
+import { ShedResponse } from '../../types/shed';
+import { toast } from 'react-toastify';
+import PageHeader from '../Layout/PageHeader';
+import Loading from '../Common/Loading';
+import DatePicker from 'react-datepicker';
+
+const MoveShed: React.FC = () => {
+  const { batch_id } = useParams<{ batch_id: string }>();
+  const navigate = useNavigate();
+  const [sheds, setSheds] = useState<ShedResponse[]>([]);
+  const [newShedId, setNewShedId] = useState<number | ''>('');
+  const [moveDate, setMoveDate] = useState<Date | null>(new Date());
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const fetchSheds = async () => {
+      try {
+        const availableSheds = await shedApi.getSheds();
+        setSheds(availableSheds);
+      } catch (error) {
+        toast.error('Failed to fetch sheds.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchSheds();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!batch_id || newShedId === '' || !moveDate) {
+      toast.error('Please select a new shed and a move date.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const formattedDate = moveDate.toISOString().split('T')[0];
+      await batchApi.moveShed(Number(batch_id), Number(newShedId), formattedDate);
+      toast.success('Batch moved successfully!');
+      navigate(`/batch/${batch_id}/${moveDate.toISOString()}/details`);
+    } catch (error) {
+      toast.error('Failed to move batch.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (isLoading) {
+    return <Loading message="Loading sheds..." />;
+  }
+
+  return (
+    <>
+      <PageHeader
+        title="Move Batch to a New Shed"
+        buttonLabel="Back to Batch Details"
+        buttonLink={batch_id ? `/batch/${batch_id}/${new Date().toISOString()}/details` : '/production'}
+      />
+      <div className="container-fluid">
+        <div className="card shadow-sm">
+          <div className="card-body">
+            <form onSubmit={handleSubmit}>
+              <div className="mb-3">
+                <label htmlFor="shed" className="form-label">New Shed</label>
+                <select
+                  id="shed"
+                  className="form-select"
+                  value={newShedId}
+                  onChange={(e) => setNewShedId(Number(e.target.value))}
+                  required
+                >
+                  <option value="" disabled>Select a shed</option>
+                  {sheds.map((shed) => (
+                    <option key={shed.id} value={shed.id}>
+                      {shed.shed_no}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="mb-3">
+                <label htmlFor="moveDate" className="form-label">Move Date</label>
+                <DatePicker
+                  selected={moveDate}
+                  onChange={(date: Date | null) => setMoveDate(date)}
+                  dateFormat="dd-MM-yyyy"
+                  className="form-control"
+                  required
+                />
+              </div>
+              <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+                {isSubmitting ? 'Moving...' : 'Move Batch'}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default MoveShed;

@@ -117,7 +117,7 @@ const EditBatch: React.FC = () => {
         compositionId: selectedComposition.id,
         times: timesToUse,
         usedAt,
-        shedNo: batch.shed_no, // Pass batch.shed_no as shedNo
+        batch_no: batch.batch_no, // Pass batch.batch_no as batch_no
       });
       toast.success(`Used composition ${selectedComposition.name} ${timesToUse} time(s) for Batch ${batch?.batch_no}`);
       fetchUsageHistory(); // Refresh history

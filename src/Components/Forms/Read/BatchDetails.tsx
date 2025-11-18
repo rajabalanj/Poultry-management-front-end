@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { dailyBatchApi } from '../../../services/api';
+import { dailyBatchApi, shedApi } from '../../../services/api';
 import { compositionApi } from '../../../services/api';
 import { DailyBatch } from '../../../types/daily_batch';
+import { ShedResponse } from '../../../types/shed';
 import { toast } from 'react-toastify';
 import PageHeader from '../../Layout/PageHeader';
 import HeaderCardGroup from '../../Dashboard/HeaderCardGroup';
@@ -24,6 +25,7 @@ const BatchDetails: React.FC = () => {
   useEscapeKey();
   // Get batch_date from query params or default to today
   const [batch, setBatch] = useState<DailyBatch | null>(null);
+  const [sheds, setSheds] = useState<ShedResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [startDate, setStartDate] = useState<string>(batch_date || '');
   const [endDate, setEndDate] = useState<string>(batch_date || '');
@@ -55,11 +57,7 @@ const BatchDetails: React.FC = () => {
 
   const handleDateChange = (newDate: Date | null) => {
     if (batch_id && newDate) {
-      const date = new Date(newDate);
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const formattedDate = `${year}-${month}-${day}T00:00:00+05:30`;
+      const formattedDate = newDate.toISOString().split('T')[0];
       navigate(`/batch/${batch_id}/${formattedDate}/details`);
     }
   };
@@ -68,7 +66,8 @@ const BatchDetails: React.FC = () => {
     const fetchBatch = async () => {
       try {
         if (batch_id && batch_date) {
-          const batches = await dailyBatchApi.getDailyBatches(batch_date);
+          const formattedDate = new Date(batch_date).toISOString().split('T')[0];
+          const batches = await dailyBatchApi.getDailyBatches(formattedDate);
           const found = batches.find(b => b.batch_id === Number(batch_id));
           if (found) {
             setBatch(found);
@@ -87,11 +86,31 @@ const BatchDetails: React.FC = () => {
   }, [batch_id, batch_date]);
 
   useEffect(() => {
+    const fetchSheds = async () => {
+      try {
+        const availableSheds = await shedApi.getSheds();
+        setSheds(availableSheds);
+      } catch (error) {
+        console.error('Failed to fetch sheds:', error);
+      }
+    };
+    fetchSheds();
+  }, []);
+
+  // Helper function to get shed number by shed ID
+  const getShedNumber = (shedId: number | undefined) => {
+    if (!shedId) return 'No Shed';
+    const shed = sheds.find(s => s.id === shedId);
+    return shed ? shed.shed_no : 'Unknown Shed';
+  };
+
+  useEffect(() => {
     const fetchUsageHistory = async () => {
         if (!batch_id || !batch_date) return;
         try {
+            const formattedDate = new Date(batch_date).toISOString().split('T')[0];
             const history = await compositionApi.getFilteredCompositionUsageHistory(
-                batch_date,
+                formattedDate,
                 Number(batch_id)
             );
             setUsageHistory(history);
@@ -233,7 +252,7 @@ const BatchDetails: React.FC = () => {
               <input
                 type="string"
                 className="form-control"
-                value={batch.shed_no}
+                value={getShedNumber(batch.shed_id)}
                 readOnly
               />
             </div>
@@ -298,6 +317,9 @@ const BatchDetails: React.FC = () => {
                     <div className="mt-4 d-flex justify-content-center">
                       <button type="button" className="btn btn-primary me-2" onClick={() => navigate(`/batch/${batch_id}/${batch_date}/edit`)}>
                         Update
+                      </button>
+                      <button type="button" className="btn btn-info me-2" onClick={() => navigate(`/batch/${batch_id}/move-shed`)}>
+                        Move Shed
                       </button>
                       <button type="button" className="btn btn-secondary me-2" onClick={() => navigate('/production')}>
                         Back to Production

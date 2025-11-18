@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { compositionApi } from "../services/api";
+import { compositionApi, batchApi } from "../services/api";
 import PageHeader from "./Layout/PageHeader";
 import { Modal, Button } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { CompositionResponse } from "../types/compositon";
+import { BatchResponse } from "../types/batch";
 import Loading from './Common/Loading';
 
 interface UsageHistoryItem {
@@ -12,7 +13,7 @@ interface UsageHistoryItem {
   composition_id: number;
   times: number;
   used_at: string;
-  shed_no: string;
+  batch_id?: number;
   composition_name?: string;
   items?: { inventory_item_id: number; inventory_item_name?: string; weight: number; unit?: string }[];
 }
@@ -20,6 +21,7 @@ interface UsageHistoryItem {
 const CompositionUsageHistory = () => {
   const { compositionId } = useParams<{ compositionId: string }>();
   const [history, setHistory] = useState<UsageHistoryItem[]>([]);
+  const [batches, setBatches] = useState<BatchResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [composition, setComposition] = useState<CompositionResponse | null>(null);
@@ -51,6 +53,25 @@ const CompositionUsageHistory = () => {
     fetchHistory();
   }, [compositionId]);
 
+  useEffect(() => {
+    const fetchBatches = async () => {
+      try {
+        const availableBatches = await batchApi.getBatches();
+        setBatches(availableBatches);
+      } catch (error) {
+        console.error('Failed to fetch batches:', error);
+      }
+    };
+    fetchBatches();
+  }, []);
+
+  // Helper function to get batch number by batch ID
+  const getBatchNumber = (batchId: number | undefined) => {
+    if (!batchId) return 'No Batch';
+    const batch = batches.find(b => b.id === batchId);
+    return batch ? batch.batch_no : 'Unknown Batch';
+  };
+
   const getCompositionWeight = (item: UsageHistoryItem) => {
     if (item.items) {
       return item.items.reduce((sum, compItem) => sum + compItem.weight, 0);
@@ -78,7 +99,7 @@ const CompositionUsageHistory = () => {
                 {!compositionId && <th>Composition</th>}
                 <th>Times Used</th>
                 <th>Total Weight (kg)</th>
-                <th>Shed</th>
+                <th>Batch</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -94,7 +115,7 @@ const CompositionUsageHistory = () => {
                     {!compositionId && <td>{item.composition_name}</td>}
                     <td>{item.times}</td>
                     <td>{getCompositionWeight(item) * item.times}</td>
-                    <td>{item.shed_no}</td>
+                    <td>{getBatchNumber(item.batch_id)}</td>
                     <td>
                       <button
                         className="btn btn-sm btn-danger"

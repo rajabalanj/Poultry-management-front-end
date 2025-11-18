@@ -1,7 +1,9 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { DailyBatch } from "../types/daily_batch";
+import { ShedResponse } from "../types/shed";
+import { shedApi } from "../services/api";
 import ListModal from './Common/ListModal';
 import Loading from './Common/Loading';
 
@@ -26,7 +28,8 @@ const getPerformanceIndicator = (
 const BatchCard: React.FC<{
   batch: DailyBatch;
   onView: (batch_id: number, batchDate: string) => void;
-}> = React.memo(({ batch, onView }) => {
+  getShedNumber: (shedId: number | undefined) => string;
+}> = React.memo(({ batch, onView, getShedNumber }) => {
   const handleCardClick = () => {
     onView(batch.batch_id, batch.batch_date);
   };
@@ -43,7 +46,7 @@ const BatchCard: React.FC<{
         <div className="row align-items-center">
           <div className="col-12 col-md-3 me-md-3"> {/* Added me-md-3 for spacing */}
             <h6 className="mb-1">Batch: {batch.batch_no}</h6>
-            <p className="text-muted mb-0" style={{ fontSize: '0.85rem' }}>Shed: {batch.shed_no} | Age: {batch.age} weeks</p>
+            <p className="text-muted mb-0" style={{ fontSize: '0.85rem' }}>Shed: {getShedNumber(batch.shed_id)} | Age: {batch.age} weeks</p>
           </div>
           <div className="col-12 col-md-3 me-md-3"> {/* Added me-md-3 for spacing */}
             <div className="d-flex gap-4 text-center mt-2 mt-md-0"> {/* Removed justify-content-start and justify-content-md-end */}
@@ -72,7 +75,26 @@ interface BatchTableProps {
 
 const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
   const navigate = useNavigate();
+  const [sheds, setSheds] = useState<ShedResponse[]>([]);
 
+  useEffect(() => {
+    const fetchSheds = async () => {
+      try {
+        const availableSheds = await shedApi.getSheds();
+        setSheds(availableSheds);
+      } catch (error) {
+        console.error('Failed to fetch sheds:', error);
+      }
+    };
+    fetchSheds();
+  }, []);
+
+  // Helper function to get shed number by shed ID
+  const getShedNumber = (shedId: number | undefined) => {
+    if (!shedId) return 'No Shed';
+    const shed = sheds.find(s => s.id === shedId);
+    return shed ? shed.shed_no : 'Unknown Shed';
+  };
 
   const handleViewDetails = useCallback(
     (batch_id: number, batchDate: string) => {
@@ -162,6 +184,7 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
               key={`Layer-${batch.batch_id}-${batch.batch_date}`}
               batch={batch}
               onView={handleViewDetails}
+              getShedNumber={getShedNumber}
             />
           ))}
         </div>
@@ -174,6 +197,7 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
               key={`Grower-${batch.batch_id}-${batch.batch_date}`}
               batch={batch}
               onView={handleViewDetails}
+              getShedNumber={getShedNumber}
             />
           ))}
         </div>
@@ -186,6 +210,7 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
               key={`Chick-${batch.batch_id}-${batch.batch_date}`}
               batch={batch}
               onView={handleViewDetails}
+              getShedNumber={getShedNumber}
             />
           ))}
         </div>

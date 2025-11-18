@@ -28,7 +28,7 @@ const BatchCard: React.FC<BatchCardProps> = React.memo(({ batch }) => {
               {batch.batch_no}
             </h6>
             <div className="text-sm">
-              <p className="mb-0">Shed: {batch.shed_no}</p>
+              <p className="mb-0">Shed: {batch.current_shed?.shed_no || batch.shed_no || 'No Shed'}</p>
               <p className="mb-0">Age: {batch.age}</p>
               <p className="mb-0">Opening: {batch.opening_count}</p>
             </div>

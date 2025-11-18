@@ -14,26 +14,29 @@ const ViewBatchSimple: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCloseModal, setShowCloseModal] = useState(false);
+  const [closingDate, setClosingDate] = useState(new Date().toISOString().split('T')[0]);
 
   useEffect(() => {
-    const fetchBatch = async () => {
+    const fetchData = async () => {
       try {
         if (!batchId) return;
-        const data: BatchResponse = await batchApi.getBatch(Number(batchId));
-        setBatch(data);
+        
+        const batchData = await batchApi.getBatch(Number(batchId));
+        
+        setBatch(batchData);
       } catch (err) {
-        setError('Failed to load batch');
+        setError('Failed to load data');
       } finally {
         setLoading(false);
       }
     };
-    fetchBatch();
+    fetchData();
   }, [batchId]);
 
   const handleClose = async () => {
     if (!batch) return;
     try {
-      await batchApi.closeBatch(batch.id);
+      await batchApi.closeBatch(batch.id, closingDate);
       toast.success(`Batch ${batch.batch_no} closed successfully!`);
       setShowCloseModal(false);
       navigate('/configurations');
@@ -79,7 +82,7 @@ const ViewBatchSimple: React.FC = () => {
               <input
                 type="text"
                 className="form-control"
-                value={batch.shed_no}
+                value={batch.current_shed?.shed_no || 'No Shed'}
                 readOnly
               />
             </div>
@@ -134,7 +137,17 @@ const ViewBatchSimple: React.FC = () => {
           <Modal.Title>Confirm Close</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          Are you sure you want to close batch <strong>{batch?.batch_no}</strong>?
+          <p>Are you sure you want to close batch <strong>{batch?.batch_no}</strong>?</p>
+          <div className="mb-3">
+            <label htmlFor="closingDate" className="form-label">Closing Date</label>
+            <input
+              type="date"
+              id="closingDate"
+              className="form-control"
+              value={closingDate}
+              onChange={(e) => setClosingDate(e.target.value)}
+            />
+          </div>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowCloseModal(false)}>

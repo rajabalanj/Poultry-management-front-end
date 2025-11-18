@@ -102,10 +102,10 @@ const PreviousDayReport = () => {
         );
         setGridData(details);
         setSummaryData(summary);
-        setWeekData(responseWeek);
-        setAgeRange(age_range);
-        setHenHousing(hen_housing);
-        setCumulativeReportData(cumulative_report);
+        setWeekData(responseWeek ?? null);
+        setAgeRange(age_range ?? null);
+        setHenHousing(hen_housing ?? null);
+        setCumulativeReportData(cumulative_report ?? null);
       } else {
         const { details, summary } = await fetchBatchData(
           start || '',
