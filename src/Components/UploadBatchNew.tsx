@@ -62,7 +62,7 @@ const UploadBatch: React.FC = () => {
         // Use existing daily batch upload API
         await dailyBatchApi.uploadExcel(formData);
         setMessage('✅ Daily report uploaded successfully!');
-      } else {
+      } else if (reportType === 'weekly') {
         // Use weekly report upload API
         const response = await dailyBatchApi.uploadWeeklyReport(selectedBatchId!, formData);
         setMessage(`✅ ${response.message}`);

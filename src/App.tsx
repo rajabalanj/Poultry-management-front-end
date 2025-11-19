@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { Container } from 'react-bootstrap';
 import Layout from './Components/Layout/Layout';
 import PageHeader from "./Components/Layout/PageHeader";
 import AddBatch from "./Components/Forms/Create/AddBatch";
@@ -11,7 +12,7 @@ import DashboardIndex from "./Components/Dashboard";
 import FeedMillStock from "./Components/FeedMillStock";
 import PreviousDayReport from './Components/PreviousDayReport';
 import CompositionUsageHistory from "./Components/CompositionUsageHistory";
-import UploadBatch from './Components/UploadBatchNew'
+import UploadBatchNew from './Components/UploadBatchNew'
 import EditBatchSimple from './Components/Forms/Update/EditBatchSimple';
 import Configurations from './Components/Configurations';
 import ViewBatchSimple from './Components/Forms/Read/ViewBatchSimple';
@@ -49,6 +50,7 @@ import ShedDetails from './Components/Shed/ShedDetails';
 import EditShed from './Components/Shed/EditShed';
 import MoveShed from './Components/Batch/MoveShed';
 import SwapSheds from './Components/Batch/SwapSheds';
+import ScrollToTop from './Components/Common/ScrollToTop';
 
 const ProtectedRoutes = () => (
   <ProtectedRoute>
@@ -58,7 +60,9 @@ const ProtectedRoutes = () => (
 
 const App: React.FC = () => {
   return (
+    <Container fluid>
       <Router>
+        <ScrollToTop />
         <Layout>
           <Routes>
             <Route element={<ProtectedRoutes />}>
@@ -91,7 +95,7 @@ const App: React.FC = () => {
                 path="/batch/:batchId/edit-simple"
                 element={<EditBatchSimple />}
               />
-              <Route path="/upload-batch" element={<UploadBatch />} />
+              <Route path="/upload-batch" element={<UploadBatchNew />} />
               <Route
                 path="/feed-mill-stock"
                 element={
@@ -155,6 +159,7 @@ const App: React.FC = () => {
         </Layout>
         <ToastContainer position="top-right" autoClose={3000} />
       </Router>
+    </Container>
   );
 };
 

@@ -7,7 +7,7 @@ import annamalaiyarlogo from "../../styles/annamalaiyarlogo.png"; // Import the 
 
 // import './Slidebar.css'; // Make sure you have this import for the new CSS
 
-const SIDEBAR_WIDTH = "250px";
+const SIDEBAR_WIDTH = "100%";
 const DESKTOP_BREAKPOINT = 992;
 
 const Slidebar: React.FC = () => {
@@ -94,6 +94,32 @@ const Slidebar: React.FC = () => {
     setOpenMenu(openMenu === menuName ? null : menuName); // Toggle or close if already open
   };
 
+  const sidebarStyle: React.CSSProperties = isDesktop
+  ? {
+      // Desktop styles
+      position: 'relative', // Keep it in the layout flow
+      width: '100%', // Fill the parent Col
+      paddingTop: '20px',
+      boxShadow: '2px 0 5px rgba(0,0,0,0.1)',
+      transition: 'width 0.3s ease',
+      overflowY: 'auto' // Add scroll for long content
+    }
+  : {
+      // Mobile styles (mostly existing)
+      width: isOpen ? SIDEBAR_WIDTH : '0',
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      height: '100vh',
+      transition: 'width 0.3s ease, transform 0.3s ease',
+      zIndex: 1030,
+      overflowX: 'hidden',
+      paddingTop: '50px',
+      boxShadow: isOpen ? '2px 0 5px rgba(0,0,0,0.1)' : 'none',
+      transform: isOpen ? 'translateX(0)' : `translateX(-100%)`,
+      visibility: isOpen ? 'visible' : 'hidden',
+    };
+
   return (
     <>
       {!isDesktop && (
@@ -108,24 +134,7 @@ const Slidebar: React.FC = () => {
 
       <div
         className={`sidebar ${isOpen ? "open" : ""}`}
-        style={{
-          width: isOpen ? SIDEBAR_WIDTH : "0",
-          position: "fixed",
-          top: 0,
-          left: 0,
-          height: "100vh",
-          backgroundColor: "#ffffff",
-          transition: "width 0.3s ease, transform 0.3s ease",
-          zIndex: 1030,
-          overflowX: "hidden",
-          paddingTop: isDesktop ? "20px" : "50px",
-          boxShadow: isOpen ? "2px 0 5px rgba(0,0,0,0.1)" : "none",
-          transform:
-            !isDesktop && !isOpen
-              ? `translateX(-${SIDEBAR_WIDTH})`
-              : "translateX(0)",
-          visibility: isDesktop || isOpen ? "visible" : "hidden",
-        }}
+        style={sidebarStyle}
       >
         <div className="px-3">
           <div style={{ marginTop: isDesktop ? "0" : "-15px" }}>

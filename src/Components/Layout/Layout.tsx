@@ -1,4 +1,5 @@
 import React from 'react';
+import { Row, Col } from 'react-bootstrap';
 import Slidebar from './Slidebar';
 import Footer from './Footer';
 
@@ -7,26 +8,27 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const isDesktop = window.innerWidth >= 992; // lg breakpoint
-
   return (
-    <div className="d-flex flex-column" style={{ minHeight: '100vh' }}>
-      <div className="d-flex flex-grow-1">
-        <Slidebar />
-        <main 
-          className="flex-grow-1 d-flex flex-column"
-          style={{
-            marginLeft: isDesktop ? '250px' : '0',
-            width: '100%',
-            transition: 'margin-left 0.3s ease'
-          }}
-        >
-          <div className="flex-grow-1">{children}</div>
-          <Footer />
-        </main>
-      </div>
+    <div style={{ minHeight: '100vh' }}>
+      <Row>
+        <Col className='bg-light rounded' lg={2} style={{ paddingRight: 0 }}>
+          <Slidebar />
+        </Col>
+        <Col lg={10}>
+          <main 
+            className="flex-grow-1 d-flex flex-column"
+            style={{
+              width: '100%',
+              transition: 'margin-left 0.3s ease'
+            }}
+          >
+            <div className="flex-grow-1">{children}</div>
+            <Footer />
+          </main>
+        </Col>
+      </Row>
     </div>
   );
 };
 
-export default Layout; 
+export default Layout;
