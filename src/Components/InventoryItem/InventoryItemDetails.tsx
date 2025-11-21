@@ -5,7 +5,8 @@ import { toast } from "react-toastify";
 import PageHeader from "../Layout/PageHeader";
 import { inventoryItemApi } from "../../services/api";
 import { InventoryItemResponse } from "../../types/InventoryItem";
-import InventoryItemAuditModal from "./InventoryItemAuditModal"; // Import the modal
+import { InventoryItemAudit } from "../../types/InventoryItemAudit";
+import Loading from '../Common/Loading';
 
 const InventoryItemDetails: React.FC = () => {
   const { item_id } = useParams<{ item_id: string }>();
@@ -13,7 +14,11 @@ const InventoryItemDetails: React.FC = () => {
   const [item, setItem] = useState<InventoryItemResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showAuditModal, setShowAuditModal] = useState(false); // State for modal visibility
+  const [auditLog, setAuditLog] = useState<InventoryItemAudit[]>([]);
+  const [loadingAudit, setLoadingAudit] = useState(false);
+  const [showAudit, setShowAudit] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 10;
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -36,6 +41,23 @@ const InventoryItemDetails: React.FC = () => {
 
     fetchItem();
   }, [item_id]);
+
+  const fetchAuditLog = async () => {
+    if (!item_id) return;
+    setLoadingAudit(true);
+    setShowAudit(true);
+    try {
+      const data = await inventoryItemApi.getInventoryItemAudit(Number(item_id));
+      setAuditLog(data);
+    } catch (err) {
+      toast.error('Failed to load audit log.');
+    } finally {
+      setLoadingAudit(false);
+    }
+  };
+
+  const totalPages = Math.ceil(auditLog.length / rowsPerPage);
+  const paginatedAuditLog = auditLog.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
 
   if (loading) return <div className="text-center mt-5">Loading item details...</div>;
   if (error) return <div className="text-center text-danger mt-5">{error}</div>;
@@ -110,7 +132,7 @@ const InventoryItemDetails: React.FC = () => {
           <button
             type="button"
             className="btn btn-info"
-            onClick={() => setShowAuditModal(true)} // Open modal
+            onClick={fetchAuditLog}
           >
             Show Audit Trail
           </button>
@@ -122,14 +144,74 @@ const InventoryItemDetails: React.FC = () => {
             Back
           </button>
         </div>
-      </div>
 
-      {/* Audit Modal */}
-      {item_id && <InventoryItemAuditModal
-        show={showAuditModal}
-        onHide={() => setShowAuditModal(false)}
-        itemId={Number(item_id)}
-      />}
+        {showAudit && (
+          <div className="mt-4">
+            <div className="card shadow-sm">
+              <div className="card-header bg-info text-white">
+                <h5 className="mb-0">Inventory Audit Trail</h5>
+              </div>
+              <div className="card-body">
+                {loadingAudit ? (
+                  <Loading message="Loading audit trail..." />
+                ) : (
+                  <>
+                    <div className="table-responsive">
+                      <table className="table table-striped table-bordered table-hover">
+                        <thead>
+                          <tr>
+                            <th>Date</th>
+                            <th>Change Type</th>
+                            <th>Change Amount</th>
+                            <th>Old Quantity</th>
+                            <th>New Quantity</th>
+                            <th>Changed By</th>
+                            <th>Note</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {paginatedAuditLog.map((log) => (
+                            <tr key={log.id}>
+                              <td>{new Date(log.timestamp).toLocaleString()}</td>
+                              <td>{log.change_type}</td>
+                              <td>{log.change_amount}</td>
+                              <td>{log.old_quantity}</td>
+                              <td>{log.new_quantity}</td>
+                              <td>{log.changed_by}</td>
+                              <td>{log.note}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    {totalPages > 1 && (
+                      <div className="d-flex justify-content-between align-items-center mt-3">
+                        <button
+                          className="btn btn-secondary"
+                          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                          disabled={currentPage === 1}
+                        >
+                          Previous
+                        </button>
+                        <span>
+                          Page {currentPage} of {totalPages}
+                        </span>
+                        <button
+                          className="btn btn-secondary"
+                          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                          disabled={currentPage === totalPages}
+                        >
+                          Next
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </>
   );
 };

@@ -37,7 +37,7 @@ const UploadBatch: React.FC = () => {
     <PageHeader
         title="Upload Batch"
       />
-    <div className="container-fluid">
+    <div className="container">
       
 
       <div className="card shadow-sm p-4 mt-3" style={{ maxWidth: 500, margin: '0 auto' }}>

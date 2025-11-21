@@ -72,6 +72,7 @@ const BusinessPartnerIndexPage = () => {
 
   return (
     <>
+      <div className="container">
       <PageHeader title="People" buttonVariant="primary" buttonLabel="Create People" buttonLink="/business-partners/create" />
       
       <div className="mb-3">
@@ -124,6 +125,7 @@ const BusinessPartnerIndexPage = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+      </div>
     </>
   );
 };

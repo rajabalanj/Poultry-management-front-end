@@ -56,7 +56,7 @@ const ViewBatchSimple: React.FC = () => {
         buttonLabel="Back"
         buttonLink='/configurations'
       />
-      <div className="container-fluid">
+      <div className="container">
         <div className="p-4">
           <div className="row g-3">
             <div className="col-md-6">

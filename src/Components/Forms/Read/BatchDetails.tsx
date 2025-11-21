@@ -177,7 +177,7 @@ const BatchDetails: React.FC = () => {
         buttonLabel="Back"
         buttonLink="/production"
       />
-      <div className="container-fluid">
+      <div className="container">
         <div className="col-12 mb-4">
           <div className="card shadow-sm">
             <div className="card-body">
@@ -314,7 +314,7 @@ const BatchDetails: React.FC = () => {
                           )}
                       </div>
                     </div>
-                    <div className="mt-4 d-flex justify-content-center">
+                    <div className="mt-4 d-flex justify-content-start">
                       <button type="button" className="btn btn-primary me-2" onClick={() => navigate(`/batch/${batch_id}/${batch_date}/edit`)}>
                         Update
                       </button>

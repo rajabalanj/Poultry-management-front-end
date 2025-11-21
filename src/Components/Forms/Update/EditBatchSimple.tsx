@@ -104,7 +104,7 @@ const EditBatchSimple: React.FC = () => {
         buttonLabel="Back"
         buttonLink='/configurations'
       />
-    <div className="container-fluid">
+    <div className="container">
       <div className="p-4">
         <form onSubmit={handleSubmit}>
           <div className="row g-3">

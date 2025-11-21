@@ -45,9 +45,9 @@ const HeaderCardGroup: React.FC<HeaderCardGroupProps> = ({ cards, loading, error
 
   return (
     <div className="mb-4">
-      <div className="row g-2">
+      <div className="row g-3 g-md-2">
         {cards.map((card, index) => (
-          <div className="col-4" key={index}>
+          <div className="col-12 col-md-6 col-lg-4" key={index}>
             <HeaderCard {...card} onViewDetails={handleViewDetails} />
           </div>
         ))}

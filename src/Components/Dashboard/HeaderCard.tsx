@@ -38,12 +38,12 @@ const HeaderCard: React.FC<HeaderCardProps> = ({ title, mainValue, subValues, ic
   return (
     <div className="card h-100 shadow-sm">
       <div className="card-body p-2 p-sm-3">
-        <div className="d-block d-sm-flex justify-content-sm-between align-items-sm-center mb-1 mb-sm-2">
+        <div className="d-flex justify-content-between align-items-center mb-2">
           <div className="d-flex align-items-center">
-            {icon && <i className={`bi ${icon} me-1 me-sm-2 icon-sm ${iconColor ? iconColor : ''}`}></i>}
+            {icon && <i className={`bi ${icon} me-2 icon-sm ${iconColor ? iconColor : ''}`}></i>}
             <h6 className="card-title mb-0 fw-bold">{title}</h6>
           </div>
-          <div className="fw-semibold text-center text-sm-start">
+          <div className="fw-semibold">
             {(mainValue ?? 0).toLocaleString()}
           </div>
         </div>

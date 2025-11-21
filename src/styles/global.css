@@ -382,6 +382,16 @@
   .hamburger-button i {
     font-size: 1.3rem;
   }
+  
+  .mobile-main-content {
+    padding-top: 50px; /* Only enough space for hamburger button */
+  }
+}
+
+@media (min-width: 992px) {
+  .mobile-main-content {
+    padding-top: 0; /* No padding on desktop */
+  }
 }
 
 /* Add to global.css */

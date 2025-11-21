@@ -148,9 +148,19 @@ const FinancialReports: React.FC = () => {
   return (
     <>
       <PageHeader title="Financial Reports" />
-      <div className="container-fluid">
+      <div className="container">
         <div className="card shadow-sm">
-          <div className="card-header">
+          <div className="card-header d-md-none p-3">
+            <select className="form-select" value={activeTab} onChange={(e) => setActiveTab(e.target.value as ReportType)}>
+              <option value="pnl">Profit & Loss</option>
+              <option value="balance-sheet">Balance Sheet</option>
+              <option value="general-ledger">General Ledger</option>
+              <option value="purchase-ledger">Purchase Ledger</option>
+              <option value="sales-ledger">Sales Ledger</option>
+              <option value="inventory-ledger">Inventory Ledger</option>
+            </select>
+          </div>
+          <div className="card-header d-none d-md-block p-0">
             <ul className="nav nav-tabs card-header-tabs">
               <li className="nav-item">
                 <button className={`nav-link ${activeTab === 'pnl' ? 'active' : ''}`} onClick={() => setActiveTab('pnl')}>

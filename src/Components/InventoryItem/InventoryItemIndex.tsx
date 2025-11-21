@@ -108,7 +108,6 @@ const InventoryItemIndexPage: React.FC = () => {
       <div className="container mt-4">
         {/* Filter Section */}
         <div className="mb-4">
-          <label htmlFor="categoryFilter" className="form-label">Filter by Category:</label>
           <select
             id="categoryFilter"
             className="form-select w-auto" // Added w-auto to make it take less width

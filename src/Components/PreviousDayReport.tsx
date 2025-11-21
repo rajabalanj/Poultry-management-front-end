@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import * as htmlToImage from 'html-to-image';
 import { flushSync } from 'react-dom';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -6,10 +7,11 @@ import PageHeader from './Layout/PageHeader';
 import Loading from './Common/Loading';
 import { GridRow } from '../types/GridRow';
 import { fetchBatchData, exportBatchDataToExcel, fetchWeeklyLayerReport, CumulativeReport } from '../utility/api-utils';
-import { configApi, batchApi } from '../services/api';
-import * as htmlToImage from 'html-to-image';
-import { BatchResponse } from '../types/batch';import DatePicker from 'react-datepicker';
+import { BatchResponse } from '../types/batch';
+import { ShedResponse } from '../types/shed';
+import DatePicker from 'react-datepicker';
 import { useEscapeKey } from '../hooks/useEscapeKey';
+import { configApi, batchApi, shedApi } from '../services/api';
 
 const PreviousDayReport = () => {
   const formatDateForDisplay = (dateString: string) => {
@@ -51,12 +53,20 @@ const PreviousDayReport = () => {
   const [week, setWeek] = useState(searchParams.get('week') || '');
   const [batchNo, setBatchNo] = useState('');
   const [batches, setBatches] = useState<BatchResponse[]>([]);
+  const [sheds, setSheds] = useState<ShedResponse[]>([]);
   
   const rowsPerPage = 10;
   const validGridData = gridData.filter(row => row && Object.keys(row).length > 0);
   const totalPages = validGridData.length > 0 ? Math.ceil(validGridData.length / rowsPerPage) : 0;
 
   useEffect(() => {
+    shedApi.getSheds().then(shedData => {
+      const validSheds = Array.isArray(shedData) ? shedData : [];
+      setSheds(validSheds);
+    }).catch(err => {
+      toast.error(err.message || "Failed to load sheds.");
+    });
+
     configApi.getAllConfigs().then(configs => {
       const hdConfig = configs.find(c => c.name === 'henDayDeviation');
       setHenDayDeviation(hdConfig ? Number(hdConfig.value) : 10);
@@ -88,6 +98,9 @@ const PreviousDayReport = () => {
       setCumulativeReportData(null);
       setError(null);
 
+      let reportDetails: GridRow[];
+      let reportSummary: GridRow | null = null;
+
       if (reportType === 'weekly') {
         if (!batchIdToFetch || !weekToFetch) {
             const msg = 'Batch number and week are required for weekly reports.';
@@ -96,25 +109,34 @@ const PreviousDayReport = () => {
             return;
         }
         
-        const { details, summary, week: responseWeek, age_range, hen_housing, cumulative_report } = await fetchWeeklyLayerReport(
+        const weeklyReport = await fetchWeeklyLayerReport(
           batchIdToFetch,
           weekToFetch
         );
-        setGridData(details);
-        setSummaryData(summary);
-        setWeekData(responseWeek ?? null);
-        setAgeRange(age_range ?? null);
-        setHenHousing(hen_housing ?? null);
-        setCumulativeReportData(cumulative_report ?? null);
+        reportDetails = weeklyReport.details;
+        reportSummary = weeklyReport.summary;
+        setWeekData(weeklyReport.week ?? null);
+        setAgeRange(weeklyReport.age_range ?? null);
+        setHenHousing(weeklyReport.hen_housing ?? null);
+        setCumulativeReportData(weeklyReport.cumulative_report ?? null);
       } else {
-        const { details, summary } = await fetchBatchData(
+        const dailyReport = await fetchBatchData(
           start || '',
           end || '',
           batchIdToFetch
         );
-        setGridData(details);
-        setSummaryData(summary);
+        reportDetails = dailyReport.details;
+        reportSummary = dailyReport.summary;
       }
+
+      const detailsWithShedNo = reportDetails.map(d => ({
+        ...d,
+        shed_no: sheds.find(s => s.id === d.shed_id)?.shed_no || 'N/A'
+      }));
+
+      setGridData(detailsWithShedNo);
+      setSummaryData(reportSummary);
+
     } catch (error: any) {
       const errorMsg = error?.message || 'Failed to fetch data';
       setError(errorMsg);
@@ -207,8 +229,20 @@ const PreviousDayReport = () => {
           setCurrentPage(i);
         });
 
+        // Get the full content dimensions including summary
+        const contentWidth = Math.max(tableNode.scrollWidth, contentNode.scrollWidth);
+        const contentHeight = contentNode.scrollHeight;
+        
         const dataUrl = await htmlToImage.toPng(contentNode, {
           backgroundColor: '#ffffff',
+          width: contentWidth,
+          height: contentHeight,
+          style: {
+            transform: 'scale(1)',
+            transformOrigin: 'top left',
+            width: contentWidth + 'px',
+            height: contentHeight + 'px'
+          }
         });
         const blob = await (await fetch(dataUrl)).blob();
         const file = new File([blob], `report-page-${i}.png`, { type: 'image/png' });
@@ -249,7 +283,7 @@ const PreviousDayReport = () => {
   return (
     <>
     <PageHeader title="Batch Reports" buttonLabel='Back' buttonVariant='secondary'/>
-    <div className="container-fluid">
+    <div className="container">
         <div className="col-12 mb-4">
           <div className="card shadow-sm">
             <div className="card-body">

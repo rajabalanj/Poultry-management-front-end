@@ -61,7 +61,7 @@ const MoveShed: React.FC = () => {
         buttonLabel="Back to Batch Details"
         buttonLink={batch_id ? `/batch/${batch_id}/${new Date().toISOString()}/details` : '/production'}
       />
-      <div className="container-fluid">
+      <div className="container">
         <div className="card shadow-sm">
           <div className="card-body">
             <form onSubmit={handleSubmit}>

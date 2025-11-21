@@ -86,7 +86,7 @@ const CompositionUsageHistory = () => {
         buttonLabel="Back to Feed Mill"
         buttonLink="/feed-mill-stock"
       />
-    <div className="container-fluid">
+    <div className="container">
       
       {loading && <Loading message="Loading data..." />}
       {error && <div className="text-danger">{error}</div>}

@@ -82,7 +82,7 @@ const UploadBatch: React.FC = () => {
       <PageHeader
         title="Upload Reports"
       />
-      <div className="container-fluid">
+      <div className="container">
         <div className="card shadow-sm p-4 mt-3" style={{ maxWidth: 500, margin: '0 auto' }}>
           <div className="mb-4">
             <h5 className="card-title">Select Report Type</h5>

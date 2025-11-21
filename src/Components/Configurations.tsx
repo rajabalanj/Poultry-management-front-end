@@ -297,7 +297,7 @@ const handleMedicineGramChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 return (
   <>
   <PageHeader title="Configurations"></PageHeader>
-    <div className="container-fluid">
+    <div className="container">
 
       <div className="p-3 border rounded shadow-sm mb-4 mt-2"> {/* Added mb-4 for spacing */}
         {/* Global Low Feed Thresholds */}

@@ -99,7 +99,7 @@ const AddBatch: React.FC = () => {
   return (
     <>
       <PageHeader title="Add New Batch" />
-      <div className="container-fluid">
+      <div className="container">
         <div className="p-4">
           <form onSubmit={handleSubmit}>
             <div className="row g-3">

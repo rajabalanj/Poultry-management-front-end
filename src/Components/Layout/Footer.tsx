@@ -4,7 +4,7 @@ const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="footer" style={{ maxWidth: '900px', margin: '0 auto' }}>
+    <footer className="footer">
       <div className="footer-content">
         <p>&copy; {currentYear} Sri Annamalaiyar Agro. All Rights Reserved.</p>
         <p className="powered-by">Powered by Smart Stepz Technologies</p>

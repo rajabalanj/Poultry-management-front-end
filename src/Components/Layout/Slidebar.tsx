@@ -2,35 +2,30 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import "bootstrap-icons/font/bootstrap-icons.min.css";
 import { useAuth } from "../../hooks/useAuth";
-import { useMediaQuery } from 'react-responsive';
+import { useSidebar } from "../../hooks/useSidebar";
 import annamalaiyarlogo from "../../styles/annamalaiyarlogo.png"; // Import the image
 
 // import './Slidebar.css'; // Make sure you have this import for the new CSS
 
 const SIDEBAR_WIDTH = "100%";
-const DESKTOP_BREAKPOINT = 992;
+// Using Bootstrap's lg breakpoint (≥992px) instead of hardcoded value
 
-const Slidebar: React.FC = () => {
+interface SlidebarProps {
+  onToggle?: () => void;
+}
+
+const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
   const { user } = useAuth();
-    const groups = user?.profile?.['cognito:groups'];
+  const groups = user?.profile?.['cognito:groups'];
   const userGroups: string[] = Array.isArray(groups) ? groups : [];
-  const isDesktop = useMediaQuery({ minWidth: DESKTOP_BREAKPOINT });
-  const [isOpen, setIsOpen] = useState(isDesktop);
+  const { isOpen, toggle, isDesktop } = useSidebar();
   const location = useLocation();
 
   // State to manage which sub-menu is open
   const [openMenu, setOpenMenu] = useState<string | null>(null); // 'batch', 'egg', 'feed', 'finance' etc.
 
   useEffect(() => {
-    // Sync isOpen state with isDesktop value from useMediaQuery
-    // This is more reliable than window resize events for viewport changes
-    // that don't trigger a resize event (like horizontal scrolling on mobile).
-    setIsOpen(isDesktop);
-  }, [isDesktop]);
-
-  useEffect(() => {
     if (!isDesktop) {
-      setIsOpen(false);
       setOpenMenu(null); // Close any open sub-menus on mobile collapse
     }
   }, [location, isDesktop]);
@@ -76,17 +71,9 @@ const Slidebar: React.FC = () => {
  // Re-run when the path changes
 
 
-  const toggleSidebar = () => {
-    setIsOpen(!isOpen);
-    if (isOpen) { // If sidebar is closing, close any open sub-menus
-      setOpenMenu(null);
-    }
-  };
-
   const closeSidebarMobile = () => {
     if (!isDesktop) {
-      setIsOpen(false);
-      // setOpenMenu(null); // Don't close sub-menus here, handled by useEffect above
+      (onToggle ?? toggle)();
     }
   };
 
@@ -99,6 +86,7 @@ const Slidebar: React.FC = () => {
       // Desktop styles
       position: 'relative', // Keep it in the layout flow
       width: '100%', // Fill the parent Col
+      height: '100vh',
       paddingTop: '20px',
       boxShadow: '2px 0 5px rgba(0,0,0,0.1)',
       transition: 'width 0.3s ease',
@@ -120,18 +108,10 @@ const Slidebar: React.FC = () => {
       visibility: isOpen ? 'visible' : 'hidden',
     };
 
+
+
   return (
     <>
-      {!isDesktop && (
-        <button
-          className="hamburger-button position-fixed top-0 start-0 ms-2 mt-2"
-          onClick={toggleSidebar}
-          style={{ zIndex: 1031 }}
-        >
-          <i className="bi bi-list" style={{ fontSize: "1.5rem" }}></i>
-        </button>
-      )}
-
       <div
         className={`sidebar ${isOpen ? "open" : ""}`}
         style={sidebarStyle}
@@ -371,7 +351,7 @@ const Slidebar: React.FC = () => {
       {!isDesktop && isOpen && (
         <div
           className="overlay"
-          onClick={toggleSidebar}
+          onClick={(onToggle ?? toggle)}
           style={{
             position: "fixed",
             top: 0,

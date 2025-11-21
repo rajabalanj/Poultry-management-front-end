@@ -70,7 +70,7 @@ const SwapSheds: React.FC = () => {
         buttonLabel="Back to Production"
         buttonLink="/production"
       />
-      <div className="container-fluid">
+      <div className="container">
         <div className="card shadow-sm">
           <div className="card-body">
             <form onSubmit={handleSubmit}>

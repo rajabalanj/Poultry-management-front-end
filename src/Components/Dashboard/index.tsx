@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import HeaderCardGroup from './HeaderCardGroup';
 import GraphsSection from './GraphsSection';
 import BatchTable from '../BatchTable';
-import { dailyBatchApi, compositionApi } from '../../services/api';
+import { dailyBatchApi, compositionApi, shedApi } from '../../services/api';
 import { DailyBatch } from '../../types/daily_batch';
+import { ShedResponse } from '../../types/shed';
 import DatePicker from 'react-datepicker';
 import ListModal from '../Common/ListModal'; // Import ListModal
 
@@ -21,7 +22,7 @@ const DashboardIndex = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dateRangeError, setDateRangeError] = useState<string | null>(null); // State for validation error
-  const [shedNos, setShedNos] = useState<string[]>([]);
+  const [sheds, setSheds] = useState<ShedResponse[]>([]);
   const [selectedShedNo, setSelectedShedNo] = useState<string>("");
   // Feed usage state
   const [feedUsage, setFeedUsage] = useState<{ total_feed: number, feed_breakdown: { feed_type: string, amount: number, composition_name?: string, composition_items?: { inventory_item_id: number, inventory_item_name?: string, weight: number, unit?: string }[] }[] } | null>(null);
@@ -56,13 +57,29 @@ const DashboardIndex = () => {
       setDateRangeError(null);
     }
 
-    const selectedBatch = batches.find(b => b.shed_no === selectedShedNo);
+    const selectedShed = sheds.find(s => s.shed_no === selectedShedNo);
+    const selectedBatch = selectedShed ? batches.find(b => b.shed_id === selectedShed.id) : undefined;
+
     if (selectedShedNo && selectedBatch) {
       navigate(`/previous-day-report/${selectedBatch.batch_id}?start=${startDate}&end=${endDate}`);
     } else {
       navigate(`/previous-day-report?start=${startDate}&end=${endDate}`);
     }
   };
+
+  useEffect(() => {
+    const fetchSheds = async () => {
+      try {
+        const shedData = await shedApi.getSheds(0, 1000); // Fetch all sheds
+        setSheds(shedData);
+      } catch (error) {
+        console.error('Failed to fetch sheds:', error);
+        // Optionally set an error state for sheds
+      }
+    };
+
+    fetchSheds();
+  }, []); // Empty dependency array to run only once on mount
 
   useEffect(() => {
     const fetchBatches = async () => {
@@ -77,13 +94,7 @@ const DashboardIndex = () => {
             : [];
 
         setBatches(batchesData);
-
-        // Derive shed numbers from the sanitized batches array to avoid calling map on non-arrays
-        const shedList = batchesData
-          .map((b: DailyBatch) => b.shed_no)
-          .filter((s): s is string => typeof s === 'string' && s !== '');
-        const uniqueShedNos = Array.from(new Set(shedList));
-        setShedNos(uniqueShedNos);
+        
         // Clear any previous error if fetch succeeded
         setError(null);
       } catch (err) {
@@ -104,7 +115,8 @@ const DashboardIndex = () => {
         // If shed is selected, try to get batch_id for that shed
         let batchId: number | undefined = undefined;
         if (selectedShedNo) {
-          const batch = batches.find(b => b.shed_no === selectedShedNo);
+          const selectedShed = sheds.find(s => s.shed_no === selectedShedNo);
+          const batch = selectedShed ? batches.find(b => b.shed_id === selectedShed.id) : undefined;
           if (batch) batchId = batch.batch_id;
         }
         const usage = await compositionApi.getFeedUsageByDate(batchDate, batchId);
@@ -119,14 +131,17 @@ const DashboardIndex = () => {
     if (!loading) {
       fetchFeedUsage();
     }
-  }, [batchDate, selectedShedNo, batches, loading]);
+  }, [batchDate, selectedShedNo, batches, loading, sheds]);
 
   useEffect(() => {
     sessionStorage.setItem(BATCH_DATE_KEY, batchDate);
   }, [batchDate]);
 
   const filteredBatches = selectedShedNo
-    ? batches.filter(b => b.shed_no === selectedShedNo)
+    ? batches.filter(b => {
+        const selectedShed = sheds.find(s => s.shed_no === selectedShedNo);
+        return selectedShed && b.shed_id === selectedShed.id;
+      })
     : batches;
 
   const totalBirds = filteredBatches.reduce((sum, b) => sum + (b.closing_count || 0), 0);
@@ -177,7 +192,7 @@ const DashboardIndex = () => {
   ];
 
   return (
-    <div className="container-fluid">
+    <div className="container">
       <div className="row g-3">
         {/* Filters Section */}
         <div className="col-12">
@@ -195,15 +210,14 @@ const DashboardIndex = () => {
                   />
                 </div>
                 <div className="col-12 col-md-4">
-                  <label className="form-label fw-semibold">Shed Number</label>
                   <select
                     className="form-select"
                     value={selectedShedNo}
                     onChange={(e) => setSelectedShedNo(e.target.value)}
                   >
                     <option value="">All Sheds</option>
-                    {shedNos.map(shedNo => (
-                      <option key={shedNo} value={shedNo}>{shedNo}</option>
+                    {sheds.map(shed => (
+                      <option key={shed.id} value={shed.shed_no}>{shed.shed_no}</option>
                     ))}
                   </select>
                 </div>
