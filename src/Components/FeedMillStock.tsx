@@ -305,7 +305,7 @@ function FeedMillStock() {
                   await compositionApi.useComposition({
                     compositionId: selectedComposition.id,
                     times: timesToUse,
-                    usedAt: batchDate,
+                    usedAt: `${batchDate}T00:00:00`,
                     batch_no: selectedBatchNo,
                   });
                   toast.success(`Used composition ${selectedComposition.name} ${timesToUse} time(s) for Batch ${selectedBatchNo}`);
