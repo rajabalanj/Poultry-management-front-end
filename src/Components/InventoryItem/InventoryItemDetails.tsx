@@ -7,6 +7,7 @@ import { inventoryItemApi } from "../../services/api";
 import { InventoryItemResponse } from "../../types/InventoryItem";
 import { InventoryItemAudit } from "../../types/InventoryItemAudit";
 import Loading from '../Common/Loading';
+import DatePicker from "react-datepicker";
 
 const InventoryItemDetails: React.FC = () => {
   const { item_id } = useParams<{ item_id: string }>();
@@ -19,6 +20,8 @@ const InventoryItemDetails: React.FC = () => {
   const [showAudit, setShowAudit] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -42,19 +45,30 @@ const InventoryItemDetails: React.FC = () => {
     fetchItem();
   }, [item_id]);
 
-  const fetchAuditLog = async () => {
-    if (!item_id) return;
-    setLoadingAudit(true);
-    setShowAudit(true);
-    try {
-      const data = await inventoryItemApi.getInventoryItemAudit(Number(item_id));
-      setAuditLog(data);
-    } catch (err) {
-      toast.error('Failed to load audit log.');
-    } finally {
-      setLoadingAudit(false);
-    }
-  };
+  // Helper function to format date as YYYY-MM-DD without timezone conversion
+const formatDate = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const fetchAuditLog = async () => {
+  if (!item_id) return;
+  setLoadingAudit(true);
+  setShowAudit(true);
+  try {
+    const startDateStr = startDate ? formatDate(startDate) : undefined;
+    const endDateStr = endDate ? formatDate(endDate) : undefined;
+    const data = await inventoryItemApi.getInventoryItemAudit(Number(item_id), startDateStr, endDateStr);
+    setAuditLog(data);
+  } catch (err) {
+    toast.error('Failed to load audit log.');
+  } finally {
+    setLoadingAudit(false);
+  }
+};
+
 
   const totalPages = Math.ceil(auditLog.length / rowsPerPage);
   const paginatedAuditLog = auditLog.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
@@ -152,6 +166,43 @@ const InventoryItemDetails: React.FC = () => {
                 <h5 className="mb-0">Inventory Audit Trail</h5>
               </div>
               <div className="card-body">
+                <div className="row mb-3">
+                  <div className="col-md-5">
+                    <label className="form-label">Start Date (Optional)</label>
+                    <DatePicker
+                      selected={startDate}
+                      onChange={(date: Date | null) => setStartDate(date)}
+                      dateFormat="dd-MM-yyyy"
+                      className="form-control"
+                      placeholderText="Select start date"
+                      isClearable
+                      showYearDropdown
+                      scrollableYearDropdown
+                    />
+                  </div>
+                  <div className="col-md-5">
+                    <label className="form-label">End Date (Optional)</label>
+                    <DatePicker
+                      selected={endDate}
+                      onChange={(date: Date | null) => setEndDate(date)}
+                      dateFormat="dd-MM-yyyy"
+                      className="form-control"
+                      placeholderText="Select end date"
+                      isClearable
+                      showYearDropdown
+                      scrollableYearDropdown
+                    />
+                  </div>
+                  <div className="col-md-2 d-flex align-items-end">
+                    <button
+                      type="button"
+                      className="btn btn-primary w-100"
+                      onClick={fetchAuditLog}
+                    >
+                      Apply Filter
+                    </button>
+                  </div>
+                </div>
                 {loadingAudit ? (
                   <Loading message="Loading audit trail..." />
                 ) : (

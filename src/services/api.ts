@@ -735,9 +735,24 @@ export const inventoryItemApi = {
     }
   },
 
-  getInventoryItemAudit: async (id: number): Promise<InventoryItemAudit[]> => {
+  getInventoryItemAudit: async (id: number, startDate?: string, endDate?: string): Promise<InventoryItemAudit[]> => {
     try {
-      const response = await api.get<InventoryItemAudit[]>(`/inventory-items/${id}/audit`);
+      let url = `/inventory-items/${id}/audit`;
+      const params = new URLSearchParams();
+      
+      if (startDate) {
+        params.append('start_date', startDate);
+      }
+      
+      if (endDate) {
+        params.append('end_date', endDate);
+      }
+      
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+      
+      const response = await api.get<InventoryItemAudit[]>(url);
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch inventory item audit'));
