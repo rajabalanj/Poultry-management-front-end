@@ -177,10 +177,11 @@ const fetchAuditLog = async () => {
                       placeholderText="Select start date"
                       isClearable
                       showYearDropdown
+                      showMonthDropdown
                       scrollableYearDropdown
                     />
                   </div>
-                  <div className="col-md-5">
+                  <div className="col-md-5 mb-3 mb-md-0">
                     <label className="form-label">End Date (Optional)</label>
                     <DatePicker
                       selected={endDate}
@@ -190,6 +191,7 @@ const fetchAuditLog = async () => {
                       placeholderText="Select end date"
                       isClearable
                       showYearDropdown
+                      showMonthDropdown
                       scrollableYearDropdown
                     />
                   </div>
@@ -199,7 +201,7 @@ const fetchAuditLog = async () => {
                       className="btn btn-primary w-100"
                       onClick={fetchAuditLog}
                     >
-                      Apply Filter
+                      Get Report
                     </button>
                   </div>
                 </div>
