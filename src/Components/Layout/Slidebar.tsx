@@ -7,7 +7,6 @@ import annamalaiyarlogo from "../../styles/annamalaiyarlogo.png"; // Import the 
 
 // import './Slidebar.css'; // Make sure you have this import for the new CSS
 
-const SIDEBAR_WIDTH = "100%";
 // Using Bootstrap's lg breakpoint (≥992px) instead of hardcoded value
 
 interface SlidebarProps {

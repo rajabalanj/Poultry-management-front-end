@@ -92,9 +92,9 @@ const EggRoomStock: React.FC = () => {
     summary,
   } = useEggRoomStock();
 
-  const today = new Date().toISOString().slice(0, 10);
-  const [startDate, setStartDate] = useState(today);
-  const [endDate, setEndDate] = useState(today);
+  const todayDate = new Date();
+  const [startDate, setStartDate] = useState<Date | null>(todayDate);
+  const [endDate, setEndDate] = useState<Date | null>(todayDate);
   const [dateRangeError, setDateRangeError] = useState<string | null>(null);
   const [reports, setReports] = useState<EggRoomStockEntry[]>([]);
   const [reportLoading, setReportLoading] = useState(false);
@@ -129,15 +129,15 @@ const EggRoomStock: React.FC = () => {
     });
   };
 
-  const fetchReports = async (overrideStartDate?: string) => {
-    const effectiveStartDate = overrideStartDate || startDate;
+  const fetchReports = async (overrideStartDate?: string | Date) => {
+    const effectiveStartDate = overrideStartDate ?? startDate;
 
     if (!effectiveStartDate || !endDate) {
       setDateRangeError('Please select both a Start Date and an End Date.');
       return;
     }
-    const start = new Date(effectiveStartDate);
-    const end = new Date(endDate);
+    const start = effectiveStartDate instanceof Date ? effectiveStartDate : new Date(effectiveStartDate);
+    const end = endDate instanceof Date ? endDate : new Date(endDate);
 
     if (start > end) {
       setDateRangeError('End Date cannot be before Start Date.');
@@ -149,7 +149,9 @@ const EggRoomStock: React.FC = () => {
     setReportLoading(true);
     setReportError(null);
     try {
-      const { details, summary: summaryData } = await eggRoomReportApi.getReports(effectiveStartDate, endDate);
+      const startStr = start.toISOString().slice(0,10);
+      const endStr = end.toISOString().slice(0,10);
+      const { details, summary: summaryData } = await eggRoomReportApi.getReports(startStr, endStr);
       const reportsData: EggRoomStockEntry[] = details.map((item: any) => ({
         ...item,
         date: item.report_date
@@ -177,8 +179,27 @@ const EggRoomStock: React.FC = () => {
 
   const handleConfirmDateChange = () => {
     if (suggestedStartDate) {
-      setStartDate(suggestedStartDate);
-      fetchReports(suggestedStartDate);
+      const parsed = new Date(suggestedStartDate);
+      console.debug('Confirm suggested start date:', { suggestedStartDate, parsed });
+      // If parsed is invalid, warn and abort
+      if (isNaN(parsed.getTime())) {
+        toast.error(`Suggested date '${suggestedStartDate}' is invalid`);
+      } else {
+        setStartDate(parsed);
+        // If end date is before parsed, bump end date to parsed
+        if (endDate && parsed > endDate) {
+          setEndDate(parsed);
+        }
+        // Also update the report date picker to the suggested date
+        try {
+          setSelectedDate(parsed.toISOString().slice(0,10));
+        } catch (e) {
+          console.warn('Failed to set selectedDate from suggested date', e);
+        }
+        // Show a toast so it's obvious in the UI that the date changed
+        toast.info(`Start date set to ${parsed.toISOString().slice(0,10)}`);
+        fetchReports(parsed);
+      }
     }
     setShowDateModal(false);
   };
@@ -389,24 +410,25 @@ const EggRoomStock: React.FC = () => {
           <div className="col-auto d-flex align-items-center mt-3">
             <label className="form-label me-3 mb-0">Start Date</label>
             <DatePicker
-              selected={startDate ? new Date(startDate) : null}
-              onChange={(date) => date && setStartDate(date.toISOString().slice(0, 10))}
-              maxDate={endDate ? new Date(endDate) : new Date()}
+              selected={startDate}
+              onChange={(date: Date | null) => date && setStartDate(date)}
+              maxDate={endDate || new Date()}
               dateFormat="dd-MM-yyyy"
               showMonthDropdown
               showYearDropdown
               dropdownMode="select"
               className="form-control"
               placeholderText="Start Date"
+              key={`start-date-${startDate ? startDate.toISOString().slice(0,10) : ''}`}
             />
           </div>
           <div className="col-auto d-flex align-items-center mt-3">
             <label className="form-label me-3 mb-0">End Date</label>
             <DatePicker
-              selected={endDate ? new Date(endDate) : new Date()}
-              onChange={(date) => date && setEndDate(date.toISOString().slice(0, 10))}
-              minDate={startDate ? new Date(startDate) : undefined}
-              maxDate={new Date(today)}
+              selected={endDate}
+              onChange={(date: Date | null) => date && setEndDate(date)}
+              minDate={startDate || undefined}
+              maxDate={todayDate}
               showMonthDropdown
               showYearDropdown
               dropdownMode="select"
