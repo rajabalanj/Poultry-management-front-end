@@ -9,7 +9,7 @@ interface LayoutProps {
 }
 
 const LayoutInner: React.FC<LayoutProps> = ({ children }) => {
-  const { toggle, isOpen } = useSidebar();
+  const { toggle } = useSidebar();
 
   // Clone children and inject onToggleSidebar prop if it's a PageHeader
   const enhancedChildren = React.Children.map(children, (child) => {
@@ -33,11 +33,11 @@ const LayoutInner: React.FC<LayoutProps> = ({ children }) => {
         }}>
           <Slidebar onToggle={toggle} />
         </Col>
-        {/* Mobile sidebar - always rendered but positioned off-screen */}
-        <div className="d-lg-none">
+        {/* Mobile sidebar - conditionally rendered to prevent layout issues */}
+        <div className="d-lg-none" style={{ position: 'absolute', top: 0, left: 0, zIndex: 1030 }}>
           <Slidebar onToggle={toggle} />
         </div>
-        <Col xs={12} lg={10} className="d-flex flex-column ms-lg-auto">
+        <Col xs={12} lg={10} className="d-flex flex-column ms-lg-auto" style={{ position: 'relative', zIndex: 1020 }}>
           <main className="flex-grow-1">
             {enhancedChildren}
           </main>

@@ -93,19 +93,19 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
       overflowY: 'auto' // Add scroll for long content
     }
   : {
-      // Mobile styles (mostly existing)
-      width: isOpen ? SIDEBAR_WIDTH : '0',
+      // Mobile styles - using Bootstrap offcanvas style
+      width: '80%', // Use 80% width for better visibility on mobile
       position: 'fixed',
       top: 0,
       left: 0,
       height: '100vh',
-      transition: 'width 0.3s ease, transform 0.3s ease',
+      transition: 'transform 0.3s ease',
       zIndex: 1030,
       overflowX: 'hidden',
-      paddingTop: '50px',
-      boxShadow: isOpen ? '2px 0 5px rgba(0,0,0,0.1)' : 'none',
+      backgroundColor: '#fff', // Ensure solid background
+      boxShadow: '2px 0 5px rgba(0,0,0,0.1)',
       transform: isOpen ? 'translateX(0)' : `translateX(-100%)`,
-      visibility: isOpen ? 'visible' : 'hidden',
+      // Remove visibility property to fix the display issue
     };
 
 
@@ -117,6 +117,25 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
         style={sidebarStyle}
       >
         <div className="px-3">
+          {!isDesktop && (
+            <div className="d-flex justify-content-end p-2" style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 1050 }}>
+              <button
+                type="button"
+                className="btn-close btn-close-white bg-dark rounded-circle p-2"
+                onClick={closeSidebarMobile}
+                aria-label="Close"
+                style={{
+                  fontSize: '1.2rem',
+                  opacity: 0.8,
+                  width: '30px',
+                  height: '30px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              ></button>
+            </div>
+          )}
           <div style={{ marginTop: isDesktop ? "0" : "-15px" }}>
           <h5 className="sidebar-header ms-4 d-flex align-items-center mb-4 p-2" style={{ borderRadius: '8px' }}>
               <div className="text-center">
@@ -348,19 +367,19 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
         </div>
       </div>
 
+      {/* Add a subtle overlay when sidebar is open on mobile */}
       {!isDesktop && isOpen && (
         <div
-          className="overlay"
-          onClick={(onToggle ?? toggle)}
           style={{
             position: "fixed",
             top: 0,
             left: 0,
             width: "100%",
             height: "100%",
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            zIndex: 1029,
+            backgroundColor: "rgba(0, 0, 0, 0.1)",
+            zIndex: 1020,
           }}
+          onClick={closeSidebarMobile}
         />
       )}
     </>
