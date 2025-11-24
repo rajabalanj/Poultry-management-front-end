@@ -21,6 +21,7 @@ const InventoryItemIndexPage: React.FC = () => {
     lowKgThreshold: 3000,
     medicineLowKgThreshold: 3000,
   });
+  const [inventoryValue, setInventoryValue] = useState<number | null>(null);
 
   // Effect to fetch inventory item list
   useEffect(() => {
@@ -52,8 +53,18 @@ const InventoryItemIndexPage: React.FC = () => {
       }
     };
 
+    const fetchInventoryValue = async () => {
+      try {
+        const response = await inventoryItemApi.getInventoryValue();
+        setInventoryValue(response.total_inventory_value);
+      } catch (error) {
+        console.error("Failed to fetch inventory value", error);
+      }
+    };
+
     fetchInventoryItemList();
     fetchThresholds();
+    fetchInventoryValue();
   }, [filterCategory]); // Re-fetch when filterCategory changes
 
   const handleDelete = useCallback((id: number) => {
@@ -154,6 +165,20 @@ const InventoryItemIndexPage: React.FC = () => {
             </Button>
           </Modal.Footer>
         </Modal>
+      </div>
+      <div className="container mt-4">
+        <div className="card">
+          <div className="card-body">
+            <h5 className="card-title">Total Inventory Value</h5>
+            {inventoryValue !== null ? (
+              <p className="card-text fs-4 fw-bold">
+                {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(inventoryValue)}
+              </p>
+            ) : (
+              <p className="card-text">Loading...</p>
+            )}
+          </div>
+        </div>
       </div>
     </>
   );

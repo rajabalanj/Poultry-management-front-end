@@ -1,12 +1,13 @@
 import axios, { AxiosError } from 'axios';
 import { CompositionResponse } from '../types/compositon';
-import { DailyBatch } from '../types/daily_batch';
-import { BatchResponse, BatchUpdate, CreateBatchPayload, CreateBatchResponse } from '../types/batch';
+import { DailyBatch, WeeklyLayerReportResponse } from '../types/daily_batch';
+import { TopSellingItem } from '../types/topSellingItem';import { BatchResponse, BatchUpdate, CreateBatchPayload, CreateBatchResponse } from '../types/batch';
 import { EggRoomReportResponse, EggRoomReportCreate, EggRoomReportUpdate, EggRoomSingleReportResponse } from '../types/eggRoomReport.ts';
 import { BovansPerformance, PaginatedBovansPerformanceResponse } from "../types/bovans"; // Ensure this import is present
 import { BusinessPartner, BusinessPartnerCreate, BusinessPartnerUpdate, PartnerStatus } from '../types/BusinessPartner';
 import { InventoryItemResponse, InventoryItemCreate, InventoryItemUpdate, InventoryItemCategory } from '../types/InventoryItem';
 import { InventoryItemAudit } from '../types/InventoryItemAudit';
+import { InventoryStockLevel } from '../types/inventoryStockLevel';
 import {
   PurchaseOrderResponse,
   PurchaseOrderCreate,
@@ -206,8 +207,7 @@ export const s3Upload = async (uploadUrl: string, file: File) => {
 export const reportsApi = {
   getWeeklyLayerReport: async (batch_id: number, week: number): Promise<import('../types/daily_batch').WeeklyLayerReportResponse> => {
     try {
-      const response = await api.get<import('../types/daily_batch').WeeklyLayerReportResponse>(`/reports/weekly-layer-report`, {
-        params: {
+      const response = await api.get<WeeklyLayerReportResponse>(`/reports/weekly-layer-report`, {        params: {
           batch_id,
           week,
         },
@@ -215,6 +215,20 @@ export const reportsApi = {
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch weekly layer report'));
+    }
+  },
+
+  getTopSellingItems: async (startDate?: string, endDate?: string, limit?: number): Promise<TopSellingItem[]> => {
+    try {
+      const params: { [key: string]: any } = {};
+      if (startDate) params.start_date = startDate;
+      if (endDate) params.end_date = endDate;
+      if (limit) params.limit = limit;
+
+      const response = await api.get<TopSellingItem[]>('/reports/top-selling-items', { params });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch top selling items'));
     }
   },
 };
@@ -756,6 +770,37 @@ export const inventoryItemApi = {
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch inventory item audit'));
+    }
+  },
+
+  getInventoryStockLevels: async (category?: string): Promise<InventoryStockLevel[]> => {
+    try {
+      const params: { [key: string]: any } = {};
+      if (category) {
+        params.category = category;
+      }
+      const response = await api.get<InventoryStockLevel[]>('/inventory-items/reports/stock-levels', { params });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch inventory stock levels'));
+    }
+  },
+
+  getLowStockItems: async (): Promise<InventoryStockLevel[]> => {
+    try {
+      const response = await api.get<InventoryStockLevel[]>('/inventory-items/reports/low-stock');
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch low stock items'));
+    }
+  },
+
+  getInventoryValue: async (): Promise<{ total_inventory_value: number }> => {
+    try {
+      const response = await api.get<{ total_inventory_value: number }>('/inventory-items/reports/inventory-value');
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch inventory value'));
     }
   },
 };

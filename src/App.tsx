@@ -21,6 +21,9 @@ import InventoryItemIndexPage from './Components/InventoryItem/InventoryItemInde
 import CreateInventoryItemForm from './Components/InventoryItem/CreateInventoryItemForm';
 import InventoryItemDetails from './Components/InventoryItem/InventoryItemDetails';
 import EditInventoryItem from './Components/InventoryItem/EditInventoryItem';
+import InventoryStockLevelReport from './Components/InventoryStockLevelReport';
+import LowStockReport from './Components/LowStockReport';
+import TopSellingItemsReport from './Components/TopSellingItemsReport';
 import PurchaseOrderIndexPage from './Components/PurchaseOrder/PurchaseOrderIndex';
 import CreatePurchaseOrderForm from './Components/PurchaseOrder/CreatePurchaseOrderForm';
 import PurchaseOrderDetails from './Components/PurchaseOrder/PurchaseOrderDetails';
@@ -122,6 +125,9 @@ const App: React.FC = () => {
               <Route path="/inventory-items/create" element={<CreateInventoryItemForm />} />
               <Route path="/inventory-items/:item_id/details" element={<InventoryItemDetails />} />
               <Route path="/inventory-items/:item_id/edit" element={<EditInventoryItem />} />
+              <Route path="/inventory-stock-level-report" element={<InventoryStockLevelReport />} />
+              <Route path="/low-stock-report" element={<LowStockReport />} />
+              <Route path="/top-selling-items-report" element={<TopSellingItemsReport />} />
               <Route path="/purchase-orders" element={<PurchaseOrderIndexPage />} />
               <Route path="/purchase-orders/create" element={<CreatePurchaseOrderForm />} />
               <Route path="/purchase-orders/:po_id/details" element={<PurchaseOrderDetails />} />

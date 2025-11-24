@@ -46,7 +46,10 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
   ) {
     setOpenMenu("feed");
   } else if (
-    location.pathname.startsWith("/inventory-items")
+    location.pathname.startsWith("/inventory-items") ||
+    location.pathname.startsWith("/inventory-stock-level-report") ||
+    location.pathname.startsWith("/low-stock-report") ||
+    location.pathname.startsWith("/top-selling-items-report")
   ) {
     setOpenMenu("inventory");
   } else if (
@@ -231,15 +234,53 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                 </li>
                 <hr className="my-2 text-primary" />
 
-                <li className="nav-menu-item fw-bold">
-                  <Link
-                    to="/inventory-items"
-                    className={`nav-menu-link ${location.pathname === "/inventory-items" ? "active-link" : ""}`}
-                    onClick={closeSidebarMobile}
+                <li className="nav-menu-item">
+                  <div
+                    className={`nav-menu-link fw-bold expandable ${openMenu === 'inventory' ? 'active' : ''}`}
+                    onClick={() => toggleMenu('inventory')}
                   >
                     <i className="bi bi-box-seam me-2 icon-color-sidebar"></i>
                     Inventory
-                  </Link>
+                    <i className={`bi bi-chevron-right chevron-icon ${openMenu === 'inventory' ? 'rotated' : ''}`}></i>
+                  </div>
+                  <ul className={`sub-menu ${openMenu === 'inventory' ? 'open' : ''}`}>
+                    <li className="sub-menu-item">
+                      <Link
+                        to="/inventory-items"
+                        className={`nav-menu-link ${location.pathname === "/inventory-items" ? "active-link" : ""}`}
+                        onClick={closeSidebarMobile}
+                      >
+                        Inventory Items
+                      </Link>
+                    </li>
+                    <li className="sub-menu-item">
+                      <Link
+                        to="/inventory-stock-level-report"
+                        className={`nav-menu-link ${location.pathname === "/inventory-stock-level-report" ? "active-link" : ""}`}
+                        onClick={closeSidebarMobile}
+                      >
+                        Stock Levels
+                      </Link>
+                    </li>
+                    <li className="sub-menu-item">
+                      <Link
+                        to="/low-stock-report"
+                        className={`nav-menu-link ${location.pathname === "/low-stock-report" ? "active-link" : ""}`}
+                        onClick={closeSidebarMobile}
+                      >
+                        Low Stock Report
+                      </Link>
+                    </li>
+                    <li className="sub-menu-item">
+                      <Link
+                        to="/top-selling-items-report"
+                        className={`nav-menu-link ${location.pathname === "/top-selling-items-report" ? "active-link" : ""}`}
+                        onClick={closeSidebarMobile}
+                      >
+                        Top Selling Items Report
+                      </Link>
+                    </li>
+                  </ul>
                 </li>
                 <hr className="my-2 text-primary" />
 
