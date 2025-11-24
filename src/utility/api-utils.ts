@@ -44,6 +44,7 @@ export const fetchWeeklyLayerReport = async (batchId: string, week: string): Pro
 
     const mapBatchToGridRow = (batch: any): GridRow => ({
       batch_id: batch.batch_id,
+      shed_id: batch.shed_id,
       shed_no: batch.shed_no,
       batch_no: batch.batch_no,
       batch_type: batch.batch_type,
@@ -100,6 +101,7 @@ export const fetchBatchData = async (start_date: string, end_date: string, batch
     batch_no: batch.batch_no,
     batch_type: batch.batch_type,
     age: batch.age,
+    highest_age: batch.highest_age,
     opening_count: batch.opening_count,
     mortality: batch.mortality,
     culls: batch.culls,

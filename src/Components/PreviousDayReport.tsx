@@ -131,7 +131,7 @@ const PreviousDayReport = () => {
 
       const detailsWithShedNo = reportDetails.map(d => ({
         ...d,
-        shed_no: sheds.find(s => s.id === d.shed_id)?.shed_no || 'N/A'
+        shed_no: sheds.find(s => s.id == d.shed_id)?.shed_no || 'N/A'
       }));
 
       setGridData(detailsWithShedNo);
@@ -148,8 +148,10 @@ const PreviousDayReport = () => {
 
   // Initial data fetch based on URL parameters
   useEffect(() => {
-    fetchData(batchIdFromUrl, searchParams.get('start') || '', searchParams.get('end') || '', searchParams.get('week') || '');
-  }, [batchIdFromUrl, searchParams]);
+    if (sheds.length > 0) {
+      fetchData(batchIdFromUrl, searchParams.get('start') || '', searchParams.get('end') || '', searchParams.get('week') || '');
+    }
+  }, [batchIdFromUrl, searchParams, sheds]);
 
   const handleViewReport = () => {
     let batchIdToFetch: string | undefined;
