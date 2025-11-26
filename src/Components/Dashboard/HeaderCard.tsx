@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button } from 'react-bootstrap';
+import * as Icons from 'lucide-react';
 
 interface SubValue {
   label: string;
@@ -13,11 +14,10 @@ interface HeaderCardProps {
   mainValue: number;
   subValues?: SubValue[];
   icon?: string;
-  iconColor?: string; // Optional prop for icon color
   onViewDetails?: (title: string, items: string[]) => void; // New prop for modal
 }
 
-const HeaderCard: React.FC<HeaderCardProps> = ({ title, mainValue, subValues, icon, iconColor, onViewDetails }) => {
+const HeaderCard: React.FC<HeaderCardProps> = ({ title, mainValue, subValues, icon, onViewDetails }) => {
   const handleViewDetailsClick = () => {
     if (onViewDetails && subValues) {
       const itemsToDisplay = subValues.map(sub => {
@@ -38,12 +38,19 @@ const HeaderCard: React.FC<HeaderCardProps> = ({ title, mainValue, subValues, ic
   return (
     <div className="card h-100 shadow-sm">
       <div className="card-body p-2 p-sm-3">
-        <div className="d-flex justify-content-between align-items-center mb-2">
-          <div className="d-flex align-items-center">
-            {icon && <i className={`bi ${icon} me-2 icon-sm ${iconColor ? iconColor : ''}`}></i>}
-            <h6 className="card-title mb-0 fw-bold">{title}</h6>
+        <div className="mb-2">
+          <div className="d-flex align-items-center mb-2">
+            {icon && (() => {
+              const IconComponent = (Icons as any)[icon] || Icons.Circle;
+              return (
+                <div className="me-2 d-flex align-items-center justify-content-center rounded-3 bg-primary bg-opacity-10 p-2">
+                  <IconComponent className="text-primary" size={20} />
+                </div>
+              );
+            })()}
+            <h6 className="text-primary opacity-75 text-uppercase mb-0">{title}</h6>
           </div>
-          <div className="fw-semibold">
+          <div className="fw-medium display-6 text-start">
             {(mainValue ?? 0).toLocaleString()}
           </div>
         </div>

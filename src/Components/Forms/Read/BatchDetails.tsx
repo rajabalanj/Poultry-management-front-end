@@ -204,18 +204,18 @@ const BatchDetails: React.FC = () => {
             {
               title: 'Total Birds',
               mainValue: batch.closing_count,
-              iconColor: "icon-color-birds",
+
               subValues: [
                 { label: 'Opening', value: batch.opening_count },
                 { label: 'Mortality', value: batch.mortality },
                 { label: 'Culls', value: batch.culls },
               ],
-              icon: 'bi bi-feather',
+              icon: 'Bird',
             },
             {
               title: 'Total Feed (kg)',
               mainValue: feedUsage ? feedUsage.total_feed : (feedLoading ? 0 : 0),
-              iconColor: "icon-color-feed",
+
               subValues: feedUsage && feedUsage.feed_breakdown.length > 0
                 ? feedUsage.feed_breakdown.map(fb => ({
                     label: fb.composition_name || fb.feed_type,
@@ -226,18 +226,18 @@ const BatchDetails: React.FC = () => {
                       : undefined,
                   }))
                 : (feedLoading ? [{ label: 'Loading...', value: 0 }] : []),
-              icon:'bi-basket',
+              icon:'Package',
             },
             {
               title: 'Total Eggs',
               mainValue: totalEggs,
-              iconColor: "icon-color-eggs",
+
               subValues: [
                 { label: 'Normal', value: batch.table_eggs || 0 },
                 { label: 'Jumbo', value: batch.jumbo || 0 },
                 { label: 'Crack', value: batch.cr || 0 },
               ],
-              icon: 'bi-egg',
+              icon: 'Egg',
             },
           ]}
           loading={false}

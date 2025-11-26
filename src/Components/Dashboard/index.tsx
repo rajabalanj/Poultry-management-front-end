@@ -155,8 +155,7 @@ const DashboardIndex = () => {
     {
       title: "Total Birds",
       mainValue: totalBirds,
-      icon: "bi bi-feather",
-      iconColor: "icon-color-birds",
+      icon: "Bird",
       subValues: [
         { label: "Opening", value: openingCount },
         { label: "Mortality", value: mortality },
@@ -166,8 +165,7 @@ const DashboardIndex = () => {
     {
       title: "Total Feed (kg)",
       mainValue: feedUsage ? feedUsage.total_feed : (feedLoading ? 0 : 0),
-      icon: "bi bi-basket",
-      iconColor: "icon-color-feed",
+      icon: "Package",
       subValues: feedUsage && feedUsage.feed_breakdown.length > 0
         ? feedUsage.feed_breakdown.map(fb => ({
             label: fb.composition_name || fb.feed_type,
@@ -181,8 +179,7 @@ const DashboardIndex = () => {
     {
       title: "Total Eggs",
       mainValue: totalEggs,
-      icon: "bi bi-egg",
-      iconColor: "icon-color-eggs",
+      icon: "Egg",
       subValues: [
         { label: "Normal", value: filteredBatches.reduce((sum, b) => sum + (b.table_eggs || 0), 0) },
         { label: "Jumbo", value: filteredBatches.reduce((sum, b) => sum + (b.jumbo || 0), 0) },
