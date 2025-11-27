@@ -39,7 +39,7 @@ const BatchCard: React.FC<{
       onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-3px)'}
       onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0px)'}
     >
-      <div className="card-body px-0">
+      <div className="card-body px-2">
         <div className="row align-items-center">
           <div className="col-12 col-md-6 d-flex align-items-center">
             <div className="me-3 d-flex align-items-center justify-content-center bg-primary-subtle p-2 rounded-3">
@@ -135,7 +135,7 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
   if ((!batches || batches.length === 0) && !loading) return <div className="text-center">No batches found</div>;
 
   return (
-    <div className="bg-light rounded">
+    <div>
       {requestItems.length > 0 && (
         <div className="mb-3">
           <div className="alert border border-warning text-dark" role="alert">

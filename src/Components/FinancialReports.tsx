@@ -149,7 +149,7 @@ const FinancialReports: React.FC = () => {
     <>
       <PageHeader title="Financial Reports" />
       <div className="container">
-        <div className="card shadow-sm">
+        <div className="card shadow-sm rounded">
           <div className="card-header d-md-none p-3">
             <select className="form-select" value={activeTab} onChange={(e) => setActiveTab(e.target.value as ReportType)}>
               <option value="pnl">Profit & Loss</option>

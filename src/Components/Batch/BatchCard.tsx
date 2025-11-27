@@ -15,13 +15,13 @@ const BatchCard: React.FC<BatchCardProps> = React.memo(({ batch }) => {
 
   return (
     <div
-      className="card mb-2 mt-2 border-top-0 border-end-0 border-start-0 border-bottom"
-      style={{ cursor: 'pointer', borderRadius: 0 }}
+      className="card mb-3 shadow-sm"
+      style={{ cursor: 'pointer', borderRadius: '8px', transition: 'transform 0.2s' }}
       onClick={handleCardClick}
-      onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
-      onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+      onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-3px)'}
+      onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0px)'}
     >
-      <div className="card-body p-2">
+      <div className="card-body">
         <div className="d-flex justify-content-between align-items-center">
           <div>
             <h6 className="mb-1">

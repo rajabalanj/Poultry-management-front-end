@@ -26,7 +26,7 @@ const BatchConfig: React.FC<BatchConfigProps> = ({ batches, loading, error }) =>
   if (visibleBatches.length === 0) return <div className="text-center">No batches found</div>;
 
   return (
-    <div className="p-3 bg-light rounded">
+    <div>
       {batchSections.Layer.length > 0 && (
         <div className="mb-4">
           <h5 className="mb-3">Layer Batches</h5>

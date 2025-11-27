@@ -412,11 +412,12 @@
 }
 
 .footer {
-  background-color: #f8f9fa;
-  color: #6c757d;
-  padding: 1rem 0;
+  background-color: var(--bs-light);
+  color: var(--bs-body-color);
+  padding: 2rem 0;
   text-align: center;
-  border-top: 1px solid #e7e7e7;
+  border-top: 1px solid var(--bs-dark);
+  margin-top: auto; /* if used in flex layout */
 }
 
 .footer-content {

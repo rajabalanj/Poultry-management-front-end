@@ -37,7 +37,7 @@ const HeaderCard: React.FC<HeaderCardProps> = ({ title, mainValue, subValues, ic
 
   return (
     <div className="card h-100 shadow-sm">
-      <div className="card-body p-2 p-sm-3 bg-light rounded">
+      <div className="card-body p-2 p-sm-3">
         <div className="mb-2">
           <div className="d-flex align-items-center mb-2">
             {icon && (() => {

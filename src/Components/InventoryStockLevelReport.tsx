@@ -75,7 +75,7 @@ const InventoryStockLevelReport = () => {
         )}
 
         {reportData.length > 0 && (
-          <div className="card shadow-sm">
+          <div className="card shadow-sm bg-light rounded mb-4">
             <div className="card-body">
               <table className="table table-bordered table-striped">
                 <thead>

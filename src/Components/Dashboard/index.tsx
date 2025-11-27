@@ -225,7 +225,7 @@ const DashboardIndex = () => {
 
         {/* Header Cards */}
         <div className="col-12">
-          <div className="card shadow-sm">
+          <div className="card shadow-sm bg-light rounded">
             <div className="card-body p-0">
               <HeaderCardGroup cards={cards} loading={loading} error={error} onViewDetails={handleViewFeedDetails} />
             </div>
@@ -234,7 +234,7 @@ const DashboardIndex = () => {
 
         {/* Graphs Section */}
         <div className="col-12">
-          <div className="card shadow-sm">
+          <div className="card shadow-sm bg-light rounded">
             <div className="card-body">
               <GraphsSection henDayValue={avgHD} loading={loading} error={error} />
             </div>
@@ -243,7 +243,7 @@ const DashboardIndex = () => {
 
         {/* Batch Table */}
         <div className="col-12">
-          <div className="card shadow-sm">
+          <div className="card shadow-sm bg-light rounded">
             <div className="card-body">
               {loading ? (
                 <div className="text-center">Loading batches...</div>

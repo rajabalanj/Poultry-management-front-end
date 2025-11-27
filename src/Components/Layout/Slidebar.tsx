@@ -115,70 +115,98 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
 
   return (
     <>
-      <div
-        className={`sidebar ${isOpen ? "open" : ""}`}
-        style={sidebarStyle}
-      >
+      <div className={`sidebar ${isOpen ? "open" : ""}`} style={sidebarStyle}>
         <div className="px-3">
           {!isDesktop && (
-            <div className="d-flex justify-content-end p-2" style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 1050 }}>
+            <div
+              className="d-flex justify-content-end p-2"
+              style={{
+                position: "absolute",
+                top: "10px",
+                right: "10px",
+                zIndex: 1050,
+              }}
+            >
               <button
                 type="button"
                 className="btn-close btn-close-white bg-dark rounded-circle p-2"
                 onClick={closeSidebarMobile}
                 aria-label="Close"
                 style={{
-                  fontSize: '1.2rem',
+                  fontSize: "1.2rem",
                   opacity: 0.8,
-                  width: '30px',
-                  height: '30px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
+                  width: "30px",
+                  height: "30px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
               ></button>
             </div>
           )}
           <div style={{ marginTop: isDesktop ? "0" : "-15px" }}>
-          <h5 className="sidebar-header ms-4 d-flex align-items-center mb-4 p-2" style={{ borderRadius: '8px' }}>
+            <h5
+              className="sidebar-header ms-4 d-flex align-items-center mb-4 p-2"
+              style={{ borderRadius: "8px" }}
+            >
               <div className="text-center">
-              <img src={annamalaiyarlogo} alt="Annamalaiyar Logo" style={{ width: '50%', height: 'auto'}} className="rounded" />
-            </div>
-            </h5>            
+                <img
+                  src={annamalaiyarlogo}
+                  alt="Annamalaiyar Logo"
+                  style={{ width: "50%", height: "auto" }}
+                  className="rounded"
+                />
+              </div>
+            </h5>
             <h5 className="ms-4 fw-bold">Menu</h5>
-            
-            <div className="sidebar">
-              <ul className="nav-menu"> {/* New custom class */}
 
+            <div className="sidebar">
+              <ul className="nav-menu">
+                {" "}
+                {/* New custom class */}
                 {/* Dashboard - Simple Link */}
                 <li className="nav-menu-item fw-bold">
                   <Link
                     to="/"
-                    className={`nav-menu-link ${location.pathname === "/" ? "active-link" : ""}`}
+                    className={`nav-menu-link ${
+                      location.pathname === "/" ? "active-link" : ""
+                    }`}
                     onClick={closeSidebarMobile}
                   >
                     <i className="bi bi-house me-2 icon-color-sidebar"></i>
                     Dashboard
                   </Link>
                 </li>
-                <hr className="my-2 text-primary" />
-                
-
+                <li>
+                  <hr className="my-2 text-primary" />
+                </li>
                 {/* Batch Management - Expandable Item */}
                 <li className="nav-menu-item">
                   <div
-                    className={`nav-menu-link fw-bold expandable ${openMenu === 'batch' ? 'active' : ''}`}
-                    onClick={() => toggleMenu('batch')}
+                    className={`nav-menu-link fw-bold expandable ${
+                      openMenu === "batch" ? "active" : ""
+                    }`}
+                    onClick={() => toggleMenu("batch")}
                   >
                     <i className="bi bi-file-earmark-text me-2 icon-color-sidebar"></i>
                     Batch Management
-                    <i className={`bi bi-chevron-right chevron-icon ${openMenu === 'batch' ? 'rotated' : ''}`}></i>
+                    <i
+                      className={`bi bi-chevron-right chevron-icon ${
+                        openMenu === "batch" ? "rotated" : ""
+                      }`}
+                    ></i>
                   </div>
-                  <ul className={`sub-menu ${openMenu === 'batch' ? 'open' : ''}`}>
+                  <ul
+                    className={`sub-menu ${openMenu === "batch" ? "open" : ""}`}
+                  >
                     <li className="sub-menu-item">
                       <Link
                         to="/production"
-                        className={`nav-menu-link ${location.pathname === "/production" ? "active-link" : ""}`}
+                        className={`nav-menu-link ${
+                          location.pathname === "/production"
+                            ? "active-link"
+                            : ""
+                        }`}
                         onClick={closeSidebarMobile}
                       >
                         Production
@@ -187,7 +215,11 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     <li className="sub-menu-item">
                       <Link
                         to="/add-batch"
-                        className={`nav-menu-link ${location.pathname === "/add-batch" ? "active-link" : ""}`}
+                        className={`nav-menu-link ${
+                          location.pathname === "/add-batch"
+                            ? "active-link"
+                            : ""
+                        }`}
                         onClick={closeSidebarMobile}
                       >
                         Add Batch
@@ -196,7 +228,11 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     <li className="sub-menu-item">
                       <Link
                         to="/upload-batch"
-                        className={`nav-menu-link ${location.pathname === "/upload-batch" ? "active-link" : ""}`}
+                        className={`nav-menu-link ${
+                          location.pathname === "/upload-batch"
+                            ? "active-link"
+                            : ""
+                        }`}
                         onClick={closeSidebarMobile}
                       >
                         Upload Batch
@@ -204,51 +240,71 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     </li>
                   </ul>
                 </li>
-                <hr className="my-2 text-primary" />
-
+                <li>
+                  <hr className="my-2 text-primary" />
+                </li>
                 <li className="nav-menu-item fw-bold">
-                      <Link
-                        to="/egg-room-stock"
-                        className={`nav-menu-link ${location.pathname === "/egg-room-stock" ? "active-link" : ""}`}
-                        onClick={closeSidebarMobile}
-                      >
-                        <i className="bi bi-egg me-2 icon-color-sidebar"></i>
-                        Egg Room Stock
-                      </Link>
-                    </li>
-                    <hr className="my-2 text-primary" />
-
-                
-
-
-                
-
+                  <Link
+                    to="/egg-room-stock"
+                    className={`nav-menu-link ${
+                      location.pathname === "/egg-room-stock"
+                        ? "active-link"
+                        : ""
+                    }`}
+                    onClick={closeSidebarMobile}
+                  >
+                    <i className="bi bi-egg me-2 icon-color-sidebar"></i>
+                    Egg Room Stock
+                  </Link>
+                </li>
+                <li>
+                  <hr className="my-2 text-primary" />
+                </li>
                 <li className="nav-menu-item fw-bold">
                   <Link
                     to="/feed-mill-stock"
-                    className={`nav-menu-link ${location.pathname === "/feed-mill-stock" ? "active-link" : ""}`}
+                    className={`nav-menu-link ${
+                      location.pathname === "/feed-mill-stock"
+                        ? "active-link"
+                        : ""
+                    }`}
                     onClick={closeSidebarMobile}
                   >
                     <i className="bi bi-bag me-2 icon-color-sidebar"></i>
                     Feed Compositions
                   </Link>
                 </li>
-                <hr className="my-2 text-primary" />
-
+                <li>
+                  <hr className="my-2 text-primary" />
+                </li>
                 <li className="nav-menu-item">
                   <div
-                    className={`nav-menu-link fw-bold expandable ${openMenu === 'inventory' ? 'active' : ''}`}
-                    onClick={() => toggleMenu('inventory')}
+                    className={`nav-menu-link fw-bold expandable ${
+                      openMenu === "inventory" ? "active" : ""
+                    }`}
+                    onClick={() => toggleMenu("inventory")}
                   >
                     <i className="bi bi-box-seam me-2 icon-color-sidebar"></i>
                     Inventory
-                    <i className={`bi bi-chevron-right chevron-icon ${openMenu === 'inventory' ? 'rotated' : ''}`}></i>
+                    <i
+                      className={`bi bi-chevron-right chevron-icon ${
+                        openMenu === "inventory" ? "rotated" : ""
+                      }`}
+                    ></i>
                   </div>
-                  <ul className={`sub-menu ${openMenu === 'inventory' ? 'open' : ''}`}>
+                  <ul
+                    className={`sub-menu ${
+                      openMenu === "inventory" ? "open" : ""
+                    }`}
+                  >
                     <li className="sub-menu-item">
                       <Link
                         to="/inventory-items"
-                        className={`nav-menu-link ${location.pathname === "/inventory-items" ? "active-link" : ""}`}
+                        className={`nav-menu-link ${
+                          location.pathname === "/inventory-items"
+                            ? "active-link"
+                            : ""
+                        }`}
                         onClick={closeSidebarMobile}
                       >
                         Inventory Items
@@ -257,7 +313,11 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     <li className="sub-menu-item">
                       <Link
                         to="/inventory-stock-level-report"
-                        className={`nav-menu-link ${location.pathname === "/inventory-stock-level-report" ? "active-link" : ""}`}
+                        className={`nav-menu-link ${
+                          location.pathname === "/inventory-stock-level-report"
+                            ? "active-link"
+                            : ""
+                        }`}
                         onClick={closeSidebarMobile}
                       >
                         Stock Levels
@@ -266,7 +326,11 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     <li className="sub-menu-item">
                       <Link
                         to="/low-stock-report"
-                        className={`nav-menu-link ${location.pathname === "/low-stock-report" ? "active-link" : ""}`}
+                        className={`nav-menu-link ${
+                          location.pathname === "/low-stock-report"
+                            ? "active-link"
+                            : ""
+                        }`}
                         onClick={closeSidebarMobile}
                       >
                         Low Stock Report
@@ -275,7 +339,11 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     <li className="sub-menu-item">
                       <Link
                         to="/top-selling-items-report"
-                        className={`nav-menu-link ${location.pathname === "/top-selling-items-report" ? "active-link" : ""}`}
+                        className={`nav-menu-link ${
+                          location.pathname === "/top-selling-items-report"
+                            ? "active-link"
+                            : ""
+                        }`}
                         onClick={closeSidebarMobile}
                       >
                         Top Selling Items Report
@@ -283,59 +351,83 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     </li>
                   </ul>
                 </li>
-                <hr className="my-2 text-primary" />
-
+                <li>
+                  <hr className="my-2 text-primary" />
+                </li>
                 <li className="nav-menu-item fw-bold">
                   <Link
                     to="/purchase-orders"
-                    className={`nav-menu-link ${location.pathname === "/purchase-orders" ? "active-link" : ""}`}
+                    className={`nav-menu-link ${
+                      location.pathname === "/purchase-orders"
+                        ? "active-link"
+                        : ""
+                    }`}
                     onClick={closeSidebarMobile}
                   >
                     <i className="bi bi-cart4 me-2 icon-color-sidebar"></i>
                     Purchase
                   </Link>
                 </li>
-                <hr className="my-2 text-primary" />
-                
+                <li>
+                  <hr className="my-2 text-primary" />
+                </li>
                 <li className="nav-menu-item fw-bold">
                   <Link
                     to="/sales-orders"
-                    className={`nav-menu-link ${location.pathname === "/sales-orders" ? "active-link" : ""}`}
+                    className={`nav-menu-link ${
+                      location.pathname === "/sales-orders" ? "active-link" : ""
+                    }`}
                     onClick={closeSidebarMobile}
                   >
                     <i className="bi bi-receipt me-2 icon-color-sidebar"></i>
                     Sales
                   </Link>
                 </li>
-                <hr className="my-2 text-primary" />
-
+                <li>
+                  <hr className="my-2 text-primary" />
+                </li>
                 <li className="nav-menu-item fw-bold">
                   <Link
                     to="/business-partners"
-                    className={`nav-menu-link ${location.pathname === "/business-partners" ? "active-link" : ""}`}
+                    className={`nav-menu-link ${
+                      location.pathname === "/business-partners"
+                        ? "active-link"
+                        : ""
+                    }`}
                     onClick={closeSidebarMobile}
                   >
                     <i className="bi bi-people me-2 icon-color-sidebar"></i>
                     People
                   </Link>
                 </li>
-                <hr className="my-2 text-primary" />
-
+                <li>
+                  <hr className="my-2 text-primary" />
+                </li>
                 {/* Shed Management - Expandable Item */}
                 <li className="nav-menu-item">
                   <div
-                    className={`nav-menu-link fw-bold expandable ${openMenu === 'shed' ? 'active' : ''}`}
-                    onClick={() => toggleMenu('shed')}
+                    className={`nav-menu-link fw-bold expandable ${
+                      openMenu === "shed" ? "active" : ""
+                    }`}
+                    onClick={() => toggleMenu("shed")}
                   >
                     <i className="bi bi-house-door me-2 icon-color-sidebar"></i>
                     Shed Management
-                    <i className={`bi bi-chevron-right chevron-icon ${openMenu === 'shed' ? 'rotated' : ''}`}></i>
+                    <i
+                      className={`bi bi-chevron-right chevron-icon ${
+                        openMenu === "shed" ? "rotated" : ""
+                      }`}
+                    ></i>
                   </div>
-                  <ul className={`sub-menu ${openMenu === 'shed' ? 'open' : ''}`}>
+                  <ul
+                    className={`sub-menu ${openMenu === "shed" ? "open" : ""}`}
+                  >
                     <li className="sub-menu-item">
                       <Link
                         to="/sheds"
-                        className={`nav-menu-link ${location.pathname === "/sheds" ? "active-link" : ""}`}
+                        className={`nav-menu-link ${
+                          location.pathname === "/sheds" ? "active-link" : ""
+                        }`}
                         onClick={closeSidebarMobile}
                       >
                         Sheds
@@ -344,7 +436,11 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     <li className="sub-menu-item">
                       <Link
                         to="/swap-sheds"
-                        className={`nav-menu-link ${location.pathname === "/swap-sheds" ? "active-link" : ""}`}
+                        className={`nav-menu-link ${
+                          location.pathname === "/swap-sheds"
+                            ? "active-link"
+                            : ""
+                        }`}
                         onClick={closeSidebarMobile}
                       >
                         Swap Sheds
@@ -352,23 +448,38 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     </li>
                   </ul>
                 </li>
-                <hr className="my-2 text-primary" />
-
+                <li>
+                  <hr className="my-2 text-primary" />
+                </li>
                 {/* Finance - Expandable Item */}
                 <li className="nav-menu-item">
                   <div
-                    className={`nav-menu-link fw-bold expandable ${openMenu === 'finance' ? 'active' : ''}`}
-                    onClick={() => toggleMenu('finance')}
+                    className={`nav-menu-link fw-bold expandable ${
+                      openMenu === "finance" ? "active" : ""
+                    }`}
+                    onClick={() => toggleMenu("finance")}
                   >
                     <i className="bi bi-cash-coin me-2 icon-color-sidebar"></i>
                     Finance
-                    <i className={`bi bi-chevron-right chevron-icon ${openMenu === 'finance' ? 'rotated' : ''}`}></i>
+                    <i
+                      className={`bi bi-chevron-right chevron-icon ${
+                        openMenu === "finance" ? "rotated" : ""
+                      }`}
+                    ></i>
                   </div>
-                  <ul className={`sub-menu ${openMenu === 'finance' ? 'open' : ''}`}>
+                  <ul
+                    className={`sub-menu ${
+                      openMenu === "finance" ? "open" : ""
+                    }`}
+                  >
                     <li className="sub-menu-item">
                       <Link
                         to="/financial-reports"
-                        className={`nav-menu-link ${location.pathname === "/financial-reports" ? "active-link" : ""}`}
+                        className={`nav-menu-link ${
+                          location.pathname === "/financial-reports"
+                            ? "active-link"
+                            : ""
+                        }`}
                         onClick={closeSidebarMobile}
                       >
                         Financial Reports
@@ -377,7 +488,11 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     <li className="sub-menu-item">
                       <Link
                         to="/operational-expenses"
-                        className={`nav-menu-link ${location.pathname === "/operational-expenses" ? "active-link" : ""}`}
+                        className={`nav-menu-link ${
+                          location.pathname === "/operational-expenses"
+                            ? "active-link"
+                            : ""
+                        }`}
                         onClick={closeSidebarMobile}
                       >
                         Operational Expenses
@@ -385,22 +500,26 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     </li>
                   </ul>
                 </li>
-
                 {/* Configurations - Simple Link */}
-                {userGroups.includes('admin') && (
-                <li className="nav-menu-item fw-bold">
-                  <Link
-                    to="/configurations"
-                    className={`nav-menu-link ${location.pathname === "/configurations" ? "active-link" : ""}`}
-                    onClick={closeSidebarMobile}
-                  >
-                    <i className="bi bi-gear me-2 icon-color-sidebar"></i>
-                    Configurations
-                  </Link>
-                </li>
+                {userGroups.includes("admin") && (
+                  <li className="nav-menu-item fw-bold">
+                    <Link
+                      to="/configurations"
+                      className={`nav-menu-link ${
+                        location.pathname === "/configurations"
+                          ? "active-link"
+                          : ""
+                      }`}
+                      onClick={closeSidebarMobile}
+                    >
+                      <i className="bi bi-gear me-2 icon-color-sidebar"></i>
+                      Configurations
+                    </Link>
+                  </li>
                 )}
-                <hr className="my-2 text-primary" />
-                
+                <li>
+                  <hr className="my-2 text-primary" />
+                </li>
               </ul>
               {/* </ul> */}
             </div>

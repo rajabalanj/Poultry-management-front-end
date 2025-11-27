@@ -32,7 +32,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   const toggleSidebar = onToggleSidebar ?? sidebar.toggle;
 
   return (
-    <div className="page-header py-3 text-primary fw-bold shadow-sm border-bottom bg-light mb-4">
+    <div className="page-header py-3 text-primary fw-bold shadow-sm border-bottom mb-4">
       <div className="container d-flex justify-content-between align-items-center">
         <div className="d-flex align-items-center">
           {!isDesktop && toggleSidebar && (
@@ -45,6 +45,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
                 border: '1px solid #dee2e6',
                 borderRadius: '6px'
               }}
+              aria-label="Toggle sidebar"
             >
               <i className="bi bi-list" style={{ fontSize: "1.5rem", color: '#2196F3' }}></i>
             </button>

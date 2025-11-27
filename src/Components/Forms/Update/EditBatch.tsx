@@ -237,7 +237,7 @@ const EditBatch: React.FC = () => {
                         <div className="bg-light p-3 rounded mt-3">
                           <div className="d-flex justify-content-between align-items-center">
                             <h6 className="mb-0">Total Eggs</h6>
-                            <span className="h5 text-primary mb-0">{totalEggs}</span>
+                            <span className="h5 mb-0">{totalEggs}</span>
                           </div>
                         </div>
                       </div>
@@ -248,13 +248,14 @@ const EditBatch: React.FC = () => {
                 {/* Notes Section */}
                 <div className="col-12">
                   <div className="card shadow-sm mb-4">
-                    <div className="card-header bg-light">
+                    <div className="card-header bg-primary text-white">
                       <h5 className="mb-0">Notes</h5>
                     </div>
                     <div className="card-body">
                       <textarea
                         className="form-control"
                         value={batch.notes}
+                        placeholder="Optional daily notes, details, or observations..."
                         onChange={(e) => setBatch((prev) => (prev ? { ...prev, notes: e.target.value } : null))}
                         rows={3}
                       />
