@@ -29,7 +29,7 @@ const BatchConfig: React.FC<BatchConfigProps> = ({ batches, loading, error }) =>
     <div className="p-3 bg-light rounded">
       {batchSections.Layer.length > 0 && (
         <div className="mb-4">
-          <h5 className="mb-3 text-primary">Layer Batches</h5>
+          <h5 className="mb-3">Layer Batches</h5>
           {batchSections.Layer.map(batch => (
             <BatchCard
               key={`Layer-${batch.id}`}

@@ -166,13 +166,10 @@ const BatchDetails: React.FC = () => {
   }
 
   const totalEggs = (batch.table_eggs || 0) + (batch.jumbo || 0) + (batch.cr || 0);
-  const formattedBatchDate = new Intl.DateTimeFormat('en-GB').format(new Date(batch.batch_date)).replace(/\//g, '-');
-
 
   return (
     <>
       <PageHeader 
-        title={formattedBatchDate}
         subtitle={`Batch Details - ${batch.batch_no}`}
         buttonLabel="Back"
         buttonLink="/production"

@@ -95,8 +95,9 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
       overflowY: 'auto' // Add scroll for long content
     }
   : {
-      // Mobile styles - using Bootstrap offcanvas style
-      width: '80%', // Use 80% width for better visibility on mobile
+      // Mobile styles - using Bootstrap offcanvas style with responsive width
+      width: window.innerWidth > 768 ? '320px' : '80%', // Use fixed width on larger screens, percentage on mobile
+      maxWidth: '320px', // Set maximum width for all screen sizes
       position: 'fixed',
       top: 0,
       left: 0,

@@ -1,9 +1,7 @@
-import React, { useCallback, useMemo, useState, useEffect } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "bootstrap-icons/font/bootstrap-icons.css";
+import { Circle, Birdhouse } from "lucide-react";
 import { DailyBatch } from "../types/daily_batch";
-import { ShedResponse } from "../types/shed";
-import { shedApi } from "../services/api";
 import ListModal from './Common/ListModal';
 import Loading from './Common/Loading';
 
@@ -19,8 +17,8 @@ const getPerformanceIndicator = (
 
   const isGood = lowerIsBetter ? actual <= standard : actual >= standard;
   const icon = isGood
-    ? <i className="bi bi-arrow-up-circle-fill text-success"></i>
-    : <i className="bi bi-arrow-down-circle-fill text-danger"></i>;
+    ? <Circle className="bg-success text-white rounded-circle" size={20} />
+    : <Circle className="bg-danger text-white rounded-circle" size={20} />;
 
   return icon;
 };
@@ -28,8 +26,7 @@ const getPerformanceIndicator = (
 const BatchCard: React.FC<{
   batch: DailyBatch;
   onView: (batch_id: number, batchDate: string) => void;
-  getShedNumber: (shedId: number | undefined) => string;
-}> = React.memo(({ batch, onView, getShedNumber }) => {
+}> = React.memo(({ batch, onView }) => {
   const handleCardClick = () => {
     onView(batch.batch_id, batch.batch_date);
   };
@@ -42,22 +39,25 @@ const BatchCard: React.FC<{
       onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-3px)'}
       onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0px)'}
     >
-      <div className="card-body">
+      <div className="card-body px-0">
         <div className="row align-items-center">
-          <div className="col-12 col-md-3 me-md-3"> {/* Added me-md-3 for spacing */}
-            <h6 className="mb-1">Batch: {batch.batch_no}</h6>
-            <p className="text-muted mb-0" style={{ fontSize: '0.85rem' }}>Shed: {getShedNumber(batch.shed_id)} | Age: {batch.age} weeks</p>
+          <div className="col-12 col-md-6 d-flex align-items-center">
+            <div className="me-3 d-flex align-items-center justify-content-center bg-primary-subtle p-2 rounded-3">
+            <Birdhouse className="text-primary" size={24} />
           </div>
-          <div className="col-12 col-md-3 me-md-3"> {/* Added me-md-3 for spacing */}
-            <div className="d-flex gap-4 text-center mt-2 mt-md-0"> {/* Removed justify-content-start and justify-content-md-end */}
-              <div>
-                <p className="mb-1 text-muted small">Feed Intake</p>
-                {getPerformanceIndicator(batch.feed_in_kg, batch.standard_feed_in_kg, true)}
-              </div>
-              <div>
-                <p className="mb-1 text-muted small">Hen-Day %</p>
-                {getPerformanceIndicator(batch.hd, batch.standard_hen_day_percentage)}
-              </div>
+            <div>
+              <h5 className="mb-1">{batch.batch_no}</h5>
+              <p className="text-muted mb-0">Age: {batch.age} weeks</p>
+            </div>
+          </div>
+          <div className="col-12 col-md-6 d-flex justify-content gap-4 mt-3 mt-md-0">
+            <div className="text-center">
+              <p className="mb-1 text-muted">Feed Intake</p>
+              {getPerformanceIndicator(batch.feed_in_kg, batch.standard_feed_in_kg, true)}
+            </div>
+            <div className="text-center">
+              <p className="mb-1 text-muted">Hen-Day %</p>
+              {getPerformanceIndicator(batch.hd, batch.standard_hen_day_percentage)}
             </div>
           </div>
         </div>
@@ -75,26 +75,6 @@ interface BatchTableProps {
 
 const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
   const navigate = useNavigate();
-  const [sheds, setSheds] = useState<ShedResponse[]>([]);
-
-  useEffect(() => {
-    const fetchSheds = async () => {
-      try {
-        const availableSheds = await shedApi.getSheds();
-        setSheds(availableSheds);
-      } catch (error) {
-        console.error('Failed to fetch sheds:', error);
-      }
-    };
-    fetchSheds();
-  }, []);
-
-  // Helper function to get shed number by shed ID
-  const getShedNumber = (shedId: number | undefined) => {
-    if (!shedId) return 'No Shed';
-    const shed = sheds.find(s => s.id === shedId);
-    return shed ? shed.shed_no : 'Unknown Shed';
-  };
 
   const handleViewDetails = useCallback(
     (batch_id: number, batchDate: string) => {
@@ -155,7 +135,7 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
   if ((!batches || batches.length === 0) && !loading) return <div className="text-center">No batches found</div>;
 
   return (
-    <div className="p-3 bg-light rounded">
+    <div className="bg-light rounded">
       {requestItems.length > 0 && (
         <div className="mb-3">
           <div className="alert border border-warning text-dark" role="alert">
@@ -178,39 +158,36 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
       )}
       {filteredBatches.Layer.length > 0 && (
         <div className="mb-4">
-          <h5 className="mb-3 text-primary">Layer Batches</h5>
+          <h5 className="mb-3">Layer Batches</h5>
           {filteredBatches.Layer.map(batch => (
             <BatchCard
               key={`Layer-${batch.batch_id}-${batch.batch_date}`}
               batch={batch}
               onView={handleViewDetails}
-              getShedNumber={getShedNumber}
             />
           ))}
         </div>
       )}
       {filteredBatches.Grower.length > 0 && (
         <div className="mb-4">
-          <h5 className="mb-3 text-primary">Grower Batches</h5>
+          <h5 className="mb-3">Grower Batches</h5>
           {filteredBatches.Grower.map(batch => (
             <BatchCard
               key={`Grower-${batch.batch_id}-${batch.batch_date}`}
               batch={batch}
               onView={handleViewDetails}
-              getShedNumber={getShedNumber}
             />
           ))}
         </div>
       )}
       {filteredBatches.Chick.length > 0 && (
         <div className="mb-4">
-          <h5 className="mb-3 text-primary">Chick Batches</h5>
+          <h5 className="mb-3">Chick Batches</h5>
           {filteredBatches.Chick.map(batch => (
             <BatchCard
               key={`Chick-${batch.batch_id}-${batch.batch_date}`}
               batch={batch}
               onView={handleViewDetails}
-              getShedNumber={getShedNumber}
             />
           ))}
         </div>

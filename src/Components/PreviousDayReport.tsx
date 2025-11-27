@@ -468,7 +468,6 @@ const PreviousDayReport = () => {
                   let hdCellClassName = '';
                   let hdCellStyle = {};
                   let feedCellClassName = '';
-                  let feedCellStyle = {};
 
                   // Only apply styling for Layer batches
                   if (row.batch_type === 'Layer') {
@@ -479,11 +478,9 @@ const PreviousDayReport = () => {
                       const difference = standardHDPercentage - actualHDPercentage;
   
                       if (henDayDeviation >= difference) { // Difference is within deviation (e.g., -10 or more)
-                        hdCellClassName = 'text-success fw-bold';
-                        hdCellStyle = { backgroundColor: '#f5fff9' }; // Light green background
+                        hdCellClassName = 'bg-success-subtle fw-bolder';
                       } else { // Difference is outside deviation
-                        hdCellClassName = 'text-danger fw-bold';
-                        hdCellStyle = { backgroundColor: '#fff9f5' }; // Light yellow background
+                        hdCellClassName = 'bg-danger-subtle fw-bolder';
                       }
                     }
   
@@ -493,11 +490,9 @@ const PreviousDayReport = () => {
                       const standardFeed = Number(row.standard_feed_consumption);
   
                       if (actualFeed <= standardFeed) { // Good performance: actual is less than or equal to standard
-                        feedCellClassName = 'text-success fw-bold';
-                        feedCellStyle = { backgroundColor: '#f5fff9' }; // Light green background
+                        feedCellClassName = 'bg-success-subtle fw-bolder';
                       } else { // Needs attention: actual is greater than standard
-                        feedCellClassName = 'text-danger fw-bold';
-                        feedCellStyle = { backgroundColor: '#fff9f5' }; // Light yellow background
+                        feedCellClassName = 'bg-danger-subtle fw-bolder';
                       }
                     }
                   }
@@ -521,7 +516,7 @@ const PreviousDayReport = () => {
                       </td>
                       <td>{row.standard_hen_day_percentage != null ? row.standard_hen_day_percentage.toFixed(2) : ''}</td>
                       {reportType !== 'daily' && <>
-                        <td className={feedCellClassName} style={feedCellStyle}>
+                        <td className={feedCellClassName}>
                           {row.actual_feed_consumed != null ? Number(row.actual_feed_consumed).toFixed(2) : ''}
                         </td>
                         <td>

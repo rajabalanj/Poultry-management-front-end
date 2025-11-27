@@ -37,13 +37,13 @@ const HeaderCard: React.FC<HeaderCardProps> = ({ title, mainValue, subValues, ic
 
   return (
     <div className="card h-100 shadow-sm">
-      <div className="card-body p-2 p-sm-3">
+      <div className="card-body p-2 p-sm-3 bg-light rounded">
         <div className="mb-2">
           <div className="d-flex align-items-center mb-2">
             {icon && (() => {
               const IconComponent = (Icons as any)[icon] || Icons.Circle;
               return (
-                <div className="me-2 d-flex align-items-center justify-content-center rounded-3 bg-primary bg-opacity-10 p-2">
+                <div className="me-2 d-flex align-items-center justify-content-center rounded-3 bg-primary-subtle p-2">
                   <IconComponent className="text-primary" size={20} />
                 </div>
               );

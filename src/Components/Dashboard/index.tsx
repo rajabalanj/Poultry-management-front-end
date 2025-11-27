@@ -225,7 +225,11 @@ const DashboardIndex = () => {
 
         {/* Header Cards */}
         <div className="col-12">
-          <HeaderCardGroup cards={cards} loading={loading} error={error} onViewDetails={handleViewFeedDetails} />
+          <div className="card shadow-sm">
+            <div className="card-body p-0">
+              <HeaderCardGroup cards={cards} loading={loading} error={error} onViewDetails={handleViewFeedDetails} />
+            </div>
+          </div>
         </div>
 
         {/* Graphs Section */}
