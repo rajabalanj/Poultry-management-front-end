@@ -129,19 +129,25 @@ const Dashboard: React.FC = () => {
       <PageHeader title="Dashboard" />
       <div className="container mt-4">
         <div className="row">
-          <div className="col-md-4 mb-3 d-grid">
+          <div className="col-md-3 mb-3 d-grid">
             <button className="btn btn-primary p-3" onClick={() => navigate('/production')} style={{ width: '100%' }}>
               <i className="bi bi-house-door-fill me-2"></i>
               Production
             </button>
           </div>
-          <div className="col-md-4 mb-3 d-grid">
+          <div className="col-md-3 mb-3 d-grid">
+            <button className="btn btn-warning p-3" onClick={() => navigate('/production')} style={{ width: '100%' }}>
+              <i className="bi bi-box-seam-fill me-2"></i>
+              Inventory
+            </button>
+          </div>
+          <div className="col-md-3 mb-3 d-grid">
             <button className="btn btn-success p-3" onClick={() => navigate('/purchase-orders/create')} style={{ width: '100%' }}>
               <i className="bi bi-cart-plus-fill me-2"></i>
               Purchase
             </button>
           </div>
-          <div className="col-md-4 mb-3 d-grid">
+          <div className="col-md-3 mb-3 d-grid">
             <button className="btn btn-info p-3" onClick={() => navigate('/sales-orders/create')} style={{ width: '100%' }}>
               <i className="bi bi-graph-up-arrow me-2"></i>
               Sales

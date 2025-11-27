@@ -201,7 +201,7 @@
 
 /* Icon styling */
 .icon-color-sidebar {
-  color: #2196F3; /* Green color for icons */
+  color: var(--bs-primary); /* Green color for icons */
   font-size: 1.25rem;
   width: 28px; /* Fixed width for consistent icon alignment */
   min-width: 28px;
@@ -443,21 +443,16 @@
   font-size: 0.9rem;
 }
 
-.sidebar-header {
-  color: #FFC107;
-  padding: 0.5rem;
-  border-radius: 0.25rem;
-  margin-bottom: 1rem;
-  text-shadow: none;
-  font-size: 1.2rem;
+.is-readonly {
+  background-color: var(--bs-light) !important;
+  border-color: var(--bs-dark) !important;
+  cursor: not-allowed;
 }
 
-.sidebar-header i {
-  color: #FFC107;
-}
-.is-readonly {
-  background-color: #e9ecef;
-  cursor: not-allowed;
+.is-readonly:focus {
+  background-color: var(--bs-light) !important;
+  outline: none;
+  box-shadow: none;
 }
 
 /* Custom extra small button */
@@ -467,5 +462,5 @@
 }
 
 .form-field-required {
-  color: #dc3545; /* Bootstrap's default danger color */
+  color: var(--bs-danger); /* Bootstrap's default danger color */
 }

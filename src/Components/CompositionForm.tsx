@@ -38,8 +38,11 @@ function CompositionForm({
   onOpenCreateItem,
 }: CompositionFormProps) {
   return (
-    <div className="mt-3">
-      <h5>{title}</h5>
+    <div className="card shadow-sm mb-4">
+      <div className="card-header bg-primary text-white">
+        <h5 className="mb-0">{title}</h5>
+      </div>
+      <div className="card-body">
       <div className="row">
         <div className="mb-3 col-12 col-md-6">
         {initialCompName !== undefined && onCompNameChange && (
@@ -51,7 +54,8 @@ function CompositionForm({
               onChange={onCompNameChange}
             />
           )}
-          <ul className="list-group mb-3">
+          <div className="card mb-3">
+            <ul className="list-group list-group-flush">
             {editItems.map((i) => {
               const item = items.find((fd) => fd.id === i.inventory_item_id);
               if (!item) return null;
@@ -61,21 +65,22 @@ function CompositionForm({
                   className="list-group-item d-flex justify-content-between align-items-center"
                 >
                   <span>{item.name}</span>
-                  <div className="d-flex align-items-center gap-2">
+                  <div className="d-flex align-items-center gap-2 flex-nowrap">
                     <input
                       type="number"
-                      className="form-control form-control-sm w-auto"
+                      className="form-control form-control-sm text-center"
                       value={i.weight}
                       min={0}
                       onChange={(e) =>
                         handleItemWeightChange(i.inventory_item_id, Number(e.target.value))
                       }
-                      style={{ width: '70px' }}
+                      style={{ width: '60px' }}
                     />
                     <span className="text-muted">kg</span>
                     <button
                       onClick={() => handleRemoveItem(i.inventory_item_id)}
-                      className="btn btn-sm btn-danger"
+                      className="btn btn-sm btn-danger flex-shrink-0"
+                      title="Remove Item"
                     >
                       <i className="bi bi-trash"></i>
                     </button>
@@ -83,7 +88,8 @@ function CompositionForm({
                 </li>
               );
             })}
-          </ul>
+            </ul>
+          </div>
         </div>
         <div className="mb-3 col-12 col-md-6">
           <div className="d-flex gap-2 align-items-center mb-2">
@@ -105,10 +111,11 @@ function CompositionForm({
               </button>
             )}
           </div>
-          <div
-            className="list-group"
-            style={{ maxHeight: '150px', overflowY: 'auto' }}
-          >
+          <div className="card" style={{ maxHeight: '200px' }}>
+            <div
+              className="list-group list-group-flush"
+              style={{ maxHeight: '150px', overflowY: 'auto' }}
+            >
             {filteredItems
               .filter((i) => !editItems.some((ei) => ei.inventory_item_id === i.id))
               .map((item) => (
@@ -127,13 +134,15 @@ function CompositionForm({
           </div>
         </div>
       </div>
-      <div className="d-flex gap-2">
+      <div className="d-flex gap-2 mt-3">
         <button onClick={onSave} className="btn btn-primary">
           <i className="bi bi-save me-1"></i>{saveButtonLabel}
         </button>
         <button onClick={onCancel} className="btn btn-secondary">
           <i className="bi bi-x-lg me-1"></i>Cancel
         </button>
+      </div>
+      </div>
       </div>
     </div>
   );

@@ -154,52 +154,58 @@ function FeedMillStock() {
 
   return (
     <div className="container py-3">
-      <div className="mb-3 d-flex align-items-center gap-2">
-        {viewState !== "add" && (
-          <select
-            className="form-select form-select-sm w-auto"
-            value={selectedCompositionId || ""}
-            onChange={handleCompositionChange}
-          >
-            <option value="" disabled>
-              Select Composition
-            </option>
-            {compositions.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
+      <div className="row mb-3">
+        <div className="col-12 col-md-4 mb-2 mb-md-0">
+          {viewState !== "add" && (
+            <select
+              className="form-select form-select text-center"
+              value={selectedCompositionId || ""}
+              onChange={handleCompositionChange}
+            >
+              <option value="" disabled>
+                Select Composition
               </option>
-            ))}
-          </select>
-        )}
+              {compositions.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+        <div className="col-12 col-md-8 d-flex gap-2 flex-wrap">
+          {selectedComposition && viewState !== "edit" && viewState !== "add" && (
+            <button
+              onClick={handleEdit}
+              className="btn btn-success"
+            >
+              <i className="bi bi-pencil me-1"></i>Edit
+            </button>
+          )}
 
-        {selectedComposition && viewState !== "edit" && viewState !== "add" && (
+          {viewState !== "add" && (
+            <button
+              onClick={handleAddComposition}
+              className="btn btn-primary"
+            >
+              <i className="bi bi-plus-lg me-1"></i>Create
+            </button>
+          )}
           <button
-            onClick={handleEdit}
-            className="btn btn-sm btn-success"
+            onClick={() => navigate('/compositions/usage-history')}
+            className="btn btn-info"
           >
-            <i className="bi bi-pencil me-1"></i>Edit
+            All Usages
           </button>
-        )}
-
-        {viewState !== "add" && (
-          <button
-            onClick={handleAddComposition}
-            className="btn btn-sm btn-primary"
-          >
-            <i className="bi bi-plus-lg me-1"></i>Create
-          </button>
-        )}
-        <button
-          onClick={() => navigate('/compositions/usage-history')}
-          className="btn btn-sm btn-info"
-        >
-          View All Usage
-        </button>
+        </div>
       </div>
       {selectedComposition && viewState !== "edit" && viewState !== "add" && (
-        <div className="mt-3">
-          <h5>Items in Composition</h5>
-          <ul className="list-group">
+        <div className="card shadow-sm mb-4">
+          <div className="card-header bg-primary text-white">
+            <h5 className="mb-0">Items in Composition</h5>
+          </div>
+          <div className="card-body">
+            <ul className="list-group">
             {selectedComposition.inventory_items.map((i: any) => {
               const item = inventoryItems.find((id) => id.id === i.inventory_item_id);
               if (!item) return null;
@@ -224,28 +230,32 @@ function FeedMillStock() {
           </ul>
           <div className="mt-3 d-flex align-items-center gap-2">
             <button
-              className="btn btn-primary btn-sm"
+              className="btn btn-primary"
               onClick={() => setViewState("use-composition")}
             >
               Use Composition
             </button>
             <button
-              className="btn btn-info btn-sm"
+              className="btn btn-info"
               onClick={() => {
                 if (selectedCompositionId) {
                   window.location.href = `/compositions/${selectedCompositionId}/usage-history`;
                 }
               }}
             >
-              View Usage History
+              Usage History
             </button>
+            </div>
           </div>
         </div>
       )}
 
       {viewState === "use-composition" && selectedComposition && (
-        <div className="card p-3 mt-3">
-          <h5>Use Composition</h5>
+        <div className="card shadow-sm mb-4">
+          <div className="card-header bg-primary text-white">
+            <h5 className="mb-0">Use Composition</h5>
+          </div>
+          <div className="card-body">
           <div className="d-flex align-items-center gap-2 mb-2">
             <span>Times:</span>
             <button
@@ -291,7 +301,7 @@ function FeedMillStock() {
 
           <div className="d-flex gap-2">
             <button
-              className="btn btn-primary btn-sm"
+              className="btn btn-primary"
               onClick={async () => {
                 if (!selectedBatchNo) {
                   toast.error("Please select a Batch Number");
@@ -319,7 +329,8 @@ function FeedMillStock() {
             >
               Confirm
             </button>
-            <button className="btn btn-secondary btn-sm" onClick={() => setViewState("view")}>Cancel</button>
+            <button className="btn btn-secondary" onClick={() => setViewState("view")}>Cancel</button>
+          </div>
           </div>
         </div>
       )}
@@ -328,7 +339,7 @@ function FeedMillStock() {
         <CompositionForm
           title="Create Composition"
           initialCompName={newCompName}
-          onCompNameChange={(e) => setNewCompName(e.target.value)}
+          onCompNameChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewCompName(e.target.value)}
           search={search}
           handleItemSearch={handleItemSearch}
           filteredItems={filteredItems}
@@ -348,7 +359,7 @@ function FeedMillStock() {
         <CompositionForm
           title="Edit Composition"
           initialCompName={editCompName}
-          onCompNameChange={(e) => setEditCompName(e.target.value)}
+          onCompNameChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditCompName(e.target.value)}
           search={search}
           handleItemSearch={handleItemSearch}
           filteredItems={filteredItems}

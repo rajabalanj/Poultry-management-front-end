@@ -146,7 +146,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
           )}
           <div style={{ marginTop: isDesktop ? "0" : "-15px" }}>
             <h5
-              className="sidebar-header ms-4 d-flex align-items-center mb-4 p-2"
+              className="ms-4 d-flex align-items-center mb-4 p-2"
               style={{ borderRadius: "8px" }}
             >
               <div className="text-center">
