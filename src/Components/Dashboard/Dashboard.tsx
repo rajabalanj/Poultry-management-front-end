@@ -136,7 +136,7 @@ const Dashboard: React.FC = () => {
             </button>
           </div>
           <div className="col-md-3 mb-3 d-grid">
-            <button className="btn btn-warning p-3" onClick={() => navigate('/production')} style={{ width: '100%' }}>
+            <button className="btn btn-warning p-3" onClick={() => navigate('/inventory-items')} style={{ width: '100%' }}>
               <i className="bi bi-box-seam-fill me-2"></i>
               Inventory
             </button>
