@@ -53,6 +53,8 @@ import ShedDetails from './Components/Shed/ShedDetails';
 import EditShed from './Components/Shed/EditShed';
 import MoveShed from './Components/Batch/MoveShed';
 import SwapSheds from './Components/Batch/SwapSheds';
+import PurchaseReport from './Components/Reports/PurchaseReport';
+import SalesReport from './Components/Reports/SalesReports';
 import ScrollToTop from './Components/Common/ScrollToTop';
 
 const ProtectedRoutes = () => (
@@ -150,6 +152,8 @@ const App: React.FC = () => {
               <Route path="/sheds/create" element={<CreateShedForm />} />
               <Route path="/sheds/:shed_id/details" element={<ShedDetails />} />
               <Route path="/sheds/:shed_id/edit" element={<EditShed />} />
+              <Route path="/reports/purchases" element={<PurchaseReport />} />
+              <Route path="/reports/sales" element={<SalesReport />} />
             </Route>
             <Route
               path="/configurations"

@@ -9,9 +9,9 @@ interface SalesOrderTableProps {
   salesOrders: SalesOrderResponse[];
   loading: boolean;
   error: string | null;
-  onDelete: (id: number) => void;
+  onDelete?: (id: number) => void;
   customers: BusinessPartner[];
-  onAddPayment: (id: number) => void;
+  onAddPayment?: (id: number) => void;
 }
 
 const SalesOrderTable: React.FC<SalesOrderTableProps> = ({ salesOrders, loading, error, onDelete, customers, onAddPayment }) => {

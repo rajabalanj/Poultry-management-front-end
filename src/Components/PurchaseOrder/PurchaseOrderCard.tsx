@@ -7,9 +7,9 @@ interface PurchaseOrderCardProps {
   Purchase: PurchaseOrderResponse;
   vendors: BusinessPartner[];
   onView: (id: number) => void;
-  onEdit: (id: number) => void;
-  onDelete: (id: number) => void;
-  onAddPayment: (id: number) => void;
+  onEdit?: (id: number) => void;
+  onDelete?: (id: number) => void;
+  onAddPayment?: (id: number) => void;
 }
 
 const getStatusBadgeClass = (status: PurchaseOrderStatus | PaymentStatus) => {
@@ -29,11 +29,19 @@ const getStatusBadgeClass = (status: PurchaseOrderStatus | PaymentStatus) => {
 };
 
 const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = React.memo(
-  ({ Purchase, vendors, onView }) => {
+  ({ Purchase, vendors, onView, onEdit, onDelete, onAddPayment }) => {
     
+    const vendorName = vendors.find(v => v.id === Purchase.vendor_id)?.name || 'N/A';
 
-  // Map vendor_id to business partner name
-  const vendorName = vendors.find(v => v.id === Purchase.vendor_id)?.name || 'N/A';
+    // Stop event propagation for buttons
+    const handleActionClick = (e: React.MouseEvent, action: ((id: number) => void) | undefined, id: number) => {
+      e.stopPropagation();
+      if (action) {
+        action(id);
+      }
+    };
+
+    const showActions = onEdit || onDelete || onAddPayment;
 
     return (
       <div 
@@ -48,15 +56,31 @@ const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = React.memo(
             <div>
               <h6 className="mb-1">Purchase: {Purchase.po_number}</h6>
               <div className="text-sm">
-                <p className="mb-0">Vendor: {vendorName}</p> {/* Use vendorName */}
+                <p className="mb-0">Vendor: {vendorName}</p>
                 <p className="mb-0">Total Amount: Rs. {(Purchase.total_amount || 0).toFixed(2)}</p>
                 <p className="mb-0">Amount Paid: Rs. {(Purchase.total_amount_paid || 0).toFixed(2)}</p>
                 <p className="mb-0">Status: <span className={`badge ${getStatusBadgeClass(Purchase.status)}`}>{Purchase.status}</span></p>
-                
               </div>
             </div>
-
-
+            {showActions && (
+              <div className="d-flex align-items-center">
+                {onEdit && (
+                  <button className="btn btn-sm btn-outline-primary me-2" onClick={(e) => handleActionClick(e, onEdit, Purchase.id)}>
+                    <i className="bi bi-pencil-fill"></i>
+                  </button>
+                )}
+                {onDelete && (
+                  <button className="btn btn-sm btn-outline-danger me-2" onClick={(e) => handleActionClick(e, onDelete, Purchase.id)}>
+                    <i className="bi bi-trash-fill"></i>
+                  </button>
+                )}
+                {onAddPayment && (
+                  <button className="btn btn-sm btn-outline-success" onClick={(e) => handleActionClick(e, onAddPayment, Purchase.id)}>
+                    <i className="bi bi-credit-card-fill"></i>
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

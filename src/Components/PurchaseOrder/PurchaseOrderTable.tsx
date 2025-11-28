@@ -9,9 +9,9 @@ interface PurchaseOrderTableProps {
   purchaseOrders: PurchaseOrderResponse[];
   loading: boolean;
   error: string | null;
-  onDelete: (id: number) => void;
+  onDelete?: (id: number) => void;
   vendors: BusinessPartner[];
-  onAddPayment: (id: number) => void;
+  onAddPayment?: (id: number) => void;
 }
 
 const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders, loading, error, onDelete, vendors, onAddPayment }) => {

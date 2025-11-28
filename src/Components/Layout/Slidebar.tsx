@@ -53,7 +53,13 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
   ) {
     setOpenMenu("inventory");
   } else if (
-    location.pathname.startsWith("/sales-orders")
+    location.pathname.startsWith("/purchase-orders") ||
+    location.pathname.startsWith("/reports/purchases")
+  ) {
+    setOpenMenu("purchase");
+  } else if (
+    location.pathname.startsWith("/sales-orders") ||
+    location.pathname.startsWith("/reports/sales")
   ) {
     setOpenMenu("sales");
   } else if (
@@ -61,6 +67,10 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
     location.pathname.startsWith("/operational-expenses")
   ) {
     setOpenMenu("finance");
+  } else if (
+    location.pathname.startsWith("/reports")
+  ) {
+    setOpenMenu("reports");
   } else if (
     location.pathname.startsWith("/sheds") ||
     location.pathname.startsWith("/swap-sheds")
@@ -354,34 +364,104 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                 <li>
                   <hr className="my-2 text-primary" />
                 </li>
-                <li className="nav-menu-item fw-bold">
-                  <Link
-                    to="/purchase-orders"
-                    className={`nav-menu-link ${
-                      location.pathname === "/purchase-orders"
-                        ? "active-link"
-                        : ""
+                <li className="nav-menu-item">
+                  <div
+                    className={`nav-menu-link fw-bold expandable ${
+                      openMenu === "purchase" ? "active" : ""
                     }`}
-                    onClick={closeSidebarMobile}
+                    onClick={() => toggleMenu("purchase")}
                   >
                     <i className="bi bi-cart4 me-2 icon-color-sidebar"></i>
                     Purchase
-                  </Link>
+                    <i
+                      className={`bi bi-chevron-right chevron-icon ${
+                        openMenu === "purchase" ? "rotated" : ""
+                      }`}
+                    ></i>
+                  </div>
+                  <ul
+                    className={`sub-menu ${
+                      openMenu === "purchase" ? "open" : ""
+                    }`}
+                  >
+                    <li className="sub-menu-item">
+                      <Link
+                        to="/purchase-orders"
+                        className={`nav-menu-link ${
+                          location.pathname === "/purchase-orders"
+                            ? "active-link"
+                            : ""
+                        }`}
+                        onClick={closeSidebarMobile}
+                      >
+                        Purchase Orders
+                      </Link>
+                    </li>
+                    <li className="sub-menu-item">
+                      <Link
+                        to="/reports/purchases"
+                        className={`nav-menu-link ${
+                          location.pathname === "/reports/purchases"
+                            ? "active-link"
+                            : ""
+                        }`}
+                        onClick={closeSidebarMobile}
+                      >
+                        Purchase Reports
+                      </Link>
+                    </li>
+                  </ul>
                 </li>
                 <li>
                   <hr className="my-2 text-primary" />
                 </li>
-                <li className="nav-menu-item fw-bold">
-                  <Link
-                    to="/sales-orders"
-                    className={`nav-menu-link ${
-                      location.pathname === "/sales-orders" ? "active-link" : ""
+                <li className="nav-menu-item">
+                  <div
+                    className={`nav-menu-link fw-bold expandable ${
+                      openMenu === "sales" ? "active" : ""
                     }`}
-                    onClick={closeSidebarMobile}
+                    onClick={() => toggleMenu("sales")}
                   >
                     <i className="bi bi-receipt me-2 icon-color-sidebar"></i>
                     Sales
-                  </Link>
+                    <i
+                      className={`bi bi-chevron-right chevron-icon ${
+                        openMenu === "sales" ? "rotated" : ""
+                      }`}
+                    ></i>
+                  </div>
+                  <ul
+                    className={`sub-menu ${
+                      openMenu === "sales" ? "open" : ""
+                    }`}
+                  >
+                    <li className="sub-menu-item">
+                      <Link
+                        to="/sales-orders"
+                        className={`nav-menu-link ${
+                          location.pathname === "/sales-orders"
+                            ? "active-link"
+                            : ""
+                        }`}
+                        onClick={closeSidebarMobile}
+                      >
+                        Sales Orders
+                      </Link>
+                    </li>
+                    <li className="sub-menu-item">
+                      <Link
+                        to="/reports/sales"
+                        className={`nav-menu-link ${
+                          location.pathname === "/reports/sales"
+                            ? "active-link"
+                            : ""
+                        }`}
+                        onClick={closeSidebarMobile}
+                      >
+                        Sales Reports
+                      </Link>
+                    </li>
+                  </ul>
                 </li>
                 <li>
                   <hr className="my-2 text-primary" />
