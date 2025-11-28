@@ -73,10 +73,19 @@ const BusinessPartnerIndexPage = () => {
   return (
     <>
       <div className="container">
-      <PageHeader title="People" buttonVariant="primary" buttonLabel="Create People" buttonLink="/business-partners/create" />
+      <PageHeader title="People" buttonVariant="primary" buttonLabel="Add People" buttonLink="/business-partners/create" />
       
       <div className="mb-3">
-        <div className="btn-group" role="group">
+        <div className="card shadow-sm rounded">
+          <div className="card-header d-md-none p-3">
+            <select className="form-select" value={filterType} onChange={(e) => setFilterType(e.target.value as 'all' | 'vendors' | 'customers')}>
+              <option value="all">All Partners</option>
+              <option value="vendors">Vendors Only</option>
+              <option value="customers">Customers Only</option>
+            </select>
+          </div>
+          <div className="card-header d-none d-md-block p-0">
+            <div className="btn-group w-100" role="group">
           <button 
             className={`btn ${filterType === 'all' ? 'btn-primary' : 'btn-outline-primary'}`}
             onClick={() => setFilterType('all')}
@@ -95,6 +104,8 @@ const BusinessPartnerIndexPage = () => {
           >
             Customers Only
           </button>
+            </div>
+          </div>
         </div>
       </div>
 

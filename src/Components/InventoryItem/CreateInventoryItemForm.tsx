@@ -54,7 +54,7 @@ const CreateInventoryItemForm: React.FC<CreateInventoryItemFormProps> = ({ onCre
     return (
         <>
             {!hideHeader && (
-              <PageHeader title="Create New Inventory Item" buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/inventory-items" />
+              <PageHeader title="Create New Inventory Item" buttonVariant="secondary" buttonLabel="Back" buttonLink="/inventory-items" />
             )}
             <div className={hideHeader ? undefined : 'container mt-4'}>
                 <div className="card shadow-sm">

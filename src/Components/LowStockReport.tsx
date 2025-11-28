@@ -45,6 +45,7 @@ const LowStockReport = () => {
         {reportData.length > 0 && (
           <div className="card shadow-sm">
             <div className="card-body">
+              <div className='table-responsive'>
               <table className="table table-bordered table-striped">
                 <thead>
                   <tr>
@@ -67,6 +68,7 @@ const LowStockReport = () => {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           </div>
         )}

@@ -42,7 +42,7 @@ const CreateOperationalExpenseForm: React.FC = () => {
 
     return (
         <>
-            <PageHeader title="Create New Operational Expense" buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/operational-expenses" />
+            <PageHeader title="Create New Operational Expense" buttonVariant="secondary" buttonLabel="Back" buttonLink="/operational-expenses" />
             <div className='container mt-4'>
                 <div className="card shadow-sm">
                     <div className="card-body">

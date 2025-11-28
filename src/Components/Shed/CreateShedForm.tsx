@@ -38,7 +38,7 @@ const CreateShedForm: React.FC = () => {
 
     return (
         <>
-            <PageHeader title="Create New Shed" buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/sheds" />
+            <PageHeader title="Create New Shed" buttonVariant="secondary" buttonLabel="Back" buttonLink="/sheds" />
             <div className='container mt-4'>
                 <div className="card shadow-sm">
                     <div className="card-body">

@@ -104,7 +104,7 @@ const PurchaseOrderIndexPage: React.FC = () => {
       <PageHeader
         title="Purchase"
         buttonVariant="primary"
-        buttonLabel="Create New Purchase"
+        buttonLabel="Create New"
         buttonLink="/purchase-orders/create"
       />
       <div className="container mt-4">
