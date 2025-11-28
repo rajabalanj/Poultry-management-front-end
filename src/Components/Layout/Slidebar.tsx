@@ -99,10 +99,10 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
       position: 'relative', // Keep it in the layout flow
       width: '100%', // Fill the parent Col
       height: '100vh',
-      paddingTop: '20px',
       boxShadow: '2px 0 5px rgba(0,0,0,0.1)',
       transition: 'width 0.3s ease',
-      overflowY: 'auto' // Add scroll for long content
+      overflowY: 'auto', // Add scroll for long content
+      paddingTop: '0', // Remove top padding
     }
   : {
       // Mobile styles - using Bootstrap offcanvas style with responsive width
@@ -115,10 +115,12 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
       transition: 'transform 0.3s ease',
       zIndex: 1030,
       overflowX: 'hidden',
-      backgroundColor: '#fff', // Ensure solid background
+      backgroundColor: 'var(--bs-primary)', // Ensure background color
       boxShadow: '2px 0 5px rgba(0,0,0,0.1)',
       transform: isOpen ? 'translateX(0)' : `translateX(-100%)`,
-      // Remove visibility property to fix the display issue
+      paddingTop: '0', // Remove top padding
+      // Add opacity to make it fully visible on mobile
+      opacity: 1,
     };
 
 
@@ -139,7 +141,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
             >
               <button
                 type="button"
-                className="btn-close btn-close-white bg-dark rounded-circle p-2"
+                className="btn-close btn-close-white p-2"
                 onClick={closeSidebarMobile}
                 aria-label="Close"
                 style={{
@@ -154,28 +156,24 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
               ></button>
             </div>
           )}
-          <div style={{ marginTop: isDesktop ? "0" : "-15px" }}>
-            <h5
-              className="ms-4 d-flex align-items-center mb-4 p-2"
-              style={{ borderRadius: "8px" }}
-            >
-              <div className="text-center">
-                <img
-                  src={annamalaiyarlogo}
-                  alt="Annamalaiyar Logo"
-                  style={{ width: "50%", height: "auto" }}
-                  className="rounded"
-                />
-              </div>
-            </h5>
-            <h5 className="ms-4 fw-bold">Menu</h5>
+          <div className="d-flex align-items-center justify-between px-4 border-bottom border-primary-subtle" style={{ borderBottomWidth: "1px" }}>
+            <div className="text-center">
+              <img
+                src={annamalaiyarlogo}
+                alt="Annamalaiyar Logo"
+                style={{ width: "50%", height: "auto", filter: "brightness(0) invert(1)" }}
+                className="my-3"
+              />
+            </div>
+          </div>
+          <div className="px-3 pt-3">
+            <p className="text-xs text-white px-3 mb-2 text-uppercase tracking-wider" style={{ letterSpacing: "0.1em" }}>Menu</p>
 
             <div className="sidebar">
               <ul className="nav-menu">
-                {" "}
                 {/* New custom class */}
                 {/* Dashboard - Simple Link */}
-                <li className="nav-menu-item fw-bold">
+                <li className="nav-menu-item">
                   <Link
                     to="/"
                     className={`nav-menu-link ${
@@ -183,23 +181,21 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     }`}
                     onClick={closeSidebarMobile}
                   >
-                    <i className="bi bi-house me-2 icon-color-sidebar"></i>
-                    Dashboard
+                    <i className="bi bi-house me-2 sidebar-icon-white"></i>
+                    <span className="sidebar-text-white">Dashboard</span>
                   </Link>
                 </li>
-                <li>
-                  <hr className="my-2 text-primary" />
-                </li>
+                
                 {/* Batch Management - Expandable Item */}
                 <li className="nav-menu-item">
                   <div
-                    className={`nav-menu-link fw-bold expandable ${
+                    className={`nav-menu-link expandable${
                       openMenu === "batch" ? "active" : ""
                     }`}
                     onClick={() => toggleMenu("batch")}
                   >
-                    <i className="bi bi-file-earmark-text me-2 icon-color-sidebar"></i>
-                    Batch Management
+                    <i className="bi bi-file-earmark-text me-2 sidebar-icon-white"></i>
+                    <span className="sidebar-text-white">Batch Management</span>
                     <i
                       className={`bi bi-chevron-right chevron-icon ${
                         openMenu === "batch" ? "rotated" : ""
@@ -219,7 +215,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                         }`}
                         onClick={closeSidebarMobile}
                       >
-                        Production
+                        <span className="sidebar-text-white">Production</span>
                       </Link>
                     </li>
                     <li className="sub-menu-item">
@@ -232,7 +228,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                         }`}
                         onClick={closeSidebarMobile}
                       >
-                        Add Batch
+                        <span className="sidebar-text-white">Add Batch</span>
                       </Link>
                     </li>
                     <li className="sub-menu-item">
@@ -245,15 +241,14 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                         }`}
                         onClick={closeSidebarMobile}
                       >
-                        Upload Batch
+                        <span className="sidebar-text-white">Upload Batch</span>
                       </Link>
                     </li>
                   </ul>
                 </li>
                 <li>
-                  <hr className="my-2 text-primary" />
                 </li>
-                <li className="nav-menu-item fw-bold">
+                <li className="nav-menu-item">
                   <Link
                     to="/egg-room-stock"
                     className={`nav-menu-link ${
@@ -263,14 +258,12 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     }`}
                     onClick={closeSidebarMobile}
                   >
-                    <i className="bi bi-egg me-2 icon-color-sidebar"></i>
-                    Egg Room Stock
+                    <i className="bi bi-egg me-2 sidebar-icon-white"></i>
+                    <span className="sidebar-text-white">Egg Room Stock</span>
                   </Link>
                 </li>
-                <li>
-                  <hr className="my-2 text-primary" />
-                </li>
-                <li className="nav-menu-item fw-bold">
+                
+                <li className="nav-menu-item">
                   <Link
                     to="/feed-mill-stock"
                     className={`nav-menu-link ${
@@ -280,24 +273,22 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     }`}
                     onClick={closeSidebarMobile}
                   >
-                    <i className="bi bi-bag me-2 icon-color-sidebar"></i>
-                    Feed Compositions
+                    <i className="bi bi-bag me-2 sidebar-icon-white"></i>
+                    <span className="sidebar-text-white">Feed Compositions</span>
                   </Link>
                 </li>
-                <li>
-                  <hr className="my-2 text-primary" />
-                </li>
+                
                 <li className="nav-menu-item">
                   <div
-                    className={`nav-menu-link fw-bold expandable ${
+                    className={`nav-menu-link expandable ${
                       openMenu === "inventory" ? "active" : ""
                     }`}
                     onClick={() => toggleMenu("inventory")}
                   >
-                    <i className="bi bi-box-seam me-2 icon-color-sidebar"></i>
-                    Inventory
+                    <i className="bi bi-box-seam me-2 sidebar-icon-white"></i>
+                    <span className="sidebar-text-white">Inventory</span>
                     <i
-                      className={`bi bi-chevron-right chevron-icon ${
+                      className={`bi bi-chevron-right chevron-icon sidebar-icon-white ${
                         openMenu === "inventory" ? "rotated" : ""
                       }`}
                     ></i>
@@ -317,7 +308,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                         }`}
                         onClick={closeSidebarMobile}
                       >
-                        Inventory Items
+                        <span className="sidebar-text-white">Inventory Items</span>
                       </Link>
                     </li>
                     <li className="sub-menu-item">
@@ -330,7 +321,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                         }`}
                         onClick={closeSidebarMobile}
                       >
-                        Stock Levels
+                        <span className="sidebar-text-white">Stock Levels</span>
                       </Link>
                     </li>
                     <li className="sub-menu-item">
@@ -343,7 +334,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                         }`}
                         onClick={closeSidebarMobile}
                       >
-                        Low Stock Report
+                        <span className="sidebar-text-white">Low Stock Report</span>
                       </Link>
                     </li>
                     <li className="sub-menu-item">
@@ -356,25 +347,23 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                         }`}
                         onClick={closeSidebarMobile}
                       >
-                        Top Selling Items Report
+                        <span className="sidebar-text-white">Top Selling Items Report</span>
                       </Link>
                     </li>
                   </ul>
                 </li>
-                <li>
-                  <hr className="my-2 text-primary" />
-                </li>
+                
                 <li className="nav-menu-item">
                   <div
-                    className={`nav-menu-link fw-bold expandable ${
+                    className={`nav-menu-link expandable ${
                       openMenu === "purchase" ? "active" : ""
                     }`}
                     onClick={() => toggleMenu("purchase")}
                   >
-                    <i className="bi bi-cart4 me-2 icon-color-sidebar"></i>
-                    Purchase
+                    <i className="bi bi-cart4 me-2 sidebar-icon-white"></i>
+                    <span className="sidebar-text-white">Purchase</span>
                     <i
-                      className={`bi bi-chevron-right chevron-icon ${
+                      className={`bi bi-chevron-right chevron-icon sidebar-icon-white ${
                         openMenu === "purchase" ? "rotated" : ""
                       }`}
                     ></i>
@@ -394,7 +383,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                         }`}
                         onClick={closeSidebarMobile}
                       >
-                        Purchase Orders
+                        <span className="sidebar-text-white">Purchase Orders</span>
                       </Link>
                     </li>
                     <li className="sub-menu-item">
@@ -407,25 +396,23 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                         }`}
                         onClick={closeSidebarMobile}
                       >
-                        Purchase Reports
+                        <span className="sidebar-text-white">Purchase Reports</span>
                       </Link>
                     </li>
                   </ul>
                 </li>
-                <li>
-                  <hr className="my-2 text-primary" />
-                </li>
+                
                 <li className="nav-menu-item">
                   <div
-                    className={`nav-menu-link fw-bold expandable ${
+                    className={`nav-menu-link expandable ${
                       openMenu === "sales" ? "active" : ""
                     }`}
                     onClick={() => toggleMenu("sales")}
                   >
-                    <i className="bi bi-receipt me-2 icon-color-sidebar"></i>
-                    Sales
+                    <i className="bi bi-receipt me-2 sidebar-icon-white"></i>
+                    <span className="sidebar-text-white">Sales</span>
                     <i
-                      className={`bi bi-chevron-right chevron-icon ${
+                      className={`bi bi-chevron-right chevron-icon sidebar-icon-white ${
                         openMenu === "sales" ? "rotated" : ""
                       }`}
                     ></i>
@@ -445,7 +432,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                         }`}
                         onClick={closeSidebarMobile}
                       >
-                        Sales Orders
+                        <span className="sidebar-text-white">Sales Orders</span>
                       </Link>
                     </li>
                     <li className="sub-menu-item">
@@ -458,15 +445,13 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                         }`}
                         onClick={closeSidebarMobile}
                       >
-                        Sales Reports
+                        <span className="sidebar-text-white">Sales Reports</span>
                       </Link>
                     </li>
                   </ul>
                 </li>
-                <li>
-                  <hr className="my-2 text-primary" />
-                </li>
-                <li className="nav-menu-item fw-bold">
+                
+                <li className="nav-menu-item">
                   <Link
                     to="/business-partners"
                     className={`nav-menu-link ${
@@ -476,25 +461,23 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     }`}
                     onClick={closeSidebarMobile}
                   >
-                    <i className="bi bi-people me-2 icon-color-sidebar"></i>
-                    People
+                    <i className="bi bi-people me-2 sidebar-icon-white"></i>
+                    <span className="sidebar-text-white">People</span>
                   </Link>
                 </li>
-                <li>
-                  <hr className="my-2 text-primary" />
-                </li>
+                
                 {/* Shed Management - Expandable Item */}
                 <li className="nav-menu-item">
                   <div
-                    className={`nav-menu-link fw-bold expandable ${
+                    className={`nav-menu-link expandable ${
                       openMenu === "shed" ? "active" : ""
                     }`}
                     onClick={() => toggleMenu("shed")}
                   >
-                    <i className="bi bi-house-door me-2 icon-color-sidebar"></i>
-                    Shed Management
+                    <i className="bi bi-house-door me-2 sidebar-icon-white"></i>
+                    <span className="sidebar-text-white">Shed Management</span>
                     <i
-                      className={`bi bi-chevron-right chevron-icon ${
+                      className={`bi bi-chevron-right chevron-icon sidebar-icon-white ${
                         openMenu === "shed" ? "rotated" : ""
                       }`}
                     ></i>
@@ -510,7 +493,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                         }`}
                         onClick={closeSidebarMobile}
                       >
-                        Sheds
+                        <span className="sidebar-text-white">Sheds</span>
                       </Link>
                     </li>
                     <li className="sub-menu-item">
@@ -523,26 +506,24 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                         }`}
                         onClick={closeSidebarMobile}
                       >
-                        Swap Sheds
+                        <span className="sidebar-text-white">Swap Sheds</span>
                       </Link>
                     </li>
                   </ul>
                 </li>
-                <li>
-                  <hr className="my-2 text-primary" />
-                </li>
+                
                 {/* Finance - Expandable Item */}
                 <li className="nav-menu-item">
                   <div
-                    className={`nav-menu-link fw-bold expandable ${
+                    className={`nav-menu-link expandable ${
                       openMenu === "finance" ? "active" : ""
                     }`}
                     onClick={() => toggleMenu("finance")}
                   >
-                    <i className="bi bi-cash-coin me-2 icon-color-sidebar"></i>
-                    Finance
+                    <i className="bi bi-cash-coin me-2 sidebar-icon-white"></i>
+                    <span className="sidebar-text-white">Finance</span>
                     <i
-                      className={`bi bi-chevron-right chevron-icon ${
+                      className={`bi bi-chevron-right chevron-icon sidebar-icon-white ${
                         openMenu === "finance" ? "rotated" : ""
                       }`}
                     ></i>
@@ -562,7 +543,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                         }`}
                         onClick={closeSidebarMobile}
                       >
-                        Financial Reports
+                        <span className="sidebar-text-white">Financial Reports</span>
                       </Link>
                     </li>
                     <li className="sub-menu-item">
@@ -575,14 +556,14 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                         }`}
                         onClick={closeSidebarMobile}
                       >
-                        Operational Expenses
+                        <span className="sidebar-text-white">Operational Expenses</span>
                       </Link>
                     </li>
                   </ul>
                 </li>
                 {/* Configurations - Simple Link */}
                 {userGroups.includes("admin") && (
-                  <li className="nav-menu-item fw-bold">
+                  <li className="nav-menu-item">
                     <Link
                       to="/configurations"
                       className={`nav-menu-link ${
@@ -592,14 +573,12 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                       }`}
                       onClick={closeSidebarMobile}
                     >
-                      <i className="bi bi-gear me-2 icon-color-sidebar"></i>
-                      Configurations
+                      <i className="bi bi-gear me-2 sidebar-icon-white"></i>
+                      <span className="sidebar-text-white">Configurations</span>
                     </Link>
                   </li>
                 )}
-                <li>
-                  <hr className="my-2 text-primary" />
-                </li>
+                
               </ul>
               {/* </ul> */}
             </div>

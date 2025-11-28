@@ -6,34 +6,16 @@
   --font-md: 1.1rem;     /* Medium text */
   --font-lg: 1.25rem;    /* Large text */
   --font-xl: 1.5rem;     /* Extra large text */
-  --color-card-birds: #F1C40F; /* Sunflower Yellow */
-  --color-card-feed: #3498DB; /* Peter River Blue */
-  --color-card-eggs: #9B59B6; /* Amethyst Purple */
   --color-sidebar-icon: #071728; /* Emerald Green */
    --sidebar-bg: rgba(255, 255, 255, 0.5); /* Pure white background */
   --sidebar-text: #333333; /* Dark gray for text */
   --sidebar-hover: #dff5ff; /* Light gray for hover */
   --sidebar-active: #dff5ff; /* Light blue for active items */
   --sidebar-border: #e0e0e0; /* Subtle border color */
-  --sidebar-icon: #2196F3; /* Professional blue for icons */
+  --sidebar-icon: var(--bs-primary); /* Professional blue for icons */
   --sidebar-submenu-indicator: #90caf9; /* Lighter blue for submenu indicator */
 }
 
-.icon-color-birds {
-  color: var(--color-card-birds);
-}
-
-.icon-color-feed {
-  color: var(--color-card-feed);
-}
-
-.icon-color-eggs {
-  color: var(--color-card-eggs);
-}
-
-.icon-color-sidebar {
-  color: var(--color-sidebar-icon);
-}
 
 /* Typography classes for mobile */
 .text-xs {
@@ -186,7 +168,7 @@
 }
 
 .nav-menu-link {
-  color: var(--sidebar-text);
+  color: var(--bs-white);
   padding: 0.75rem 1rem;
   margin: 0.15rem 0.5rem;
   border-radius: 6px;
@@ -195,19 +177,8 @@
 }
 
 .nav-menu-link:hover {
-  background-color: var(--sidebar-hover);
+  background-color: var(--bs-primary);
   color: var(--sidebar-icon);
-}
-
-/* Icon styling */
-.icon-color-sidebar {
-  color: var(--bs-primary); /* Green color for icons */
-  font-size: 1.25rem;
-  width: 28px; /* Fixed width for consistent icon alignment */
-  min-width: 28px;
-  text-align: center;
-  margin-right: 0.75rem; /* Space between icon and text */
-  line-height: 1; /* Ensures vertical alignment of icon */
 }
 
 /* Styling for the chevron icon on expandable items */
@@ -242,34 +213,9 @@
 /* Slidebar.css */
 
 /* Style for the active menu link */
-.nav-menu-link.active-link {
-  background-color: var(--sidebar-active);
-  color: var(--sidebar-icon);
-  border-left: 3px solid var(--sidebar-icon);
-  padding-left: calc(1rem - 3px); /* Adjust for border */
-  font-weight: 600;
-}
 
 /* Style for the active expandable menu (parent item) */
-.nav-menu-link.expandable.active {
-  background-color: var(--sidebar-active);
-  color: var(--sidebar-icon); /* Blue text color */
-}
 
-.nav-menu-link.expandable.active .icon-color-sidebar {
-  color: var(--sidebar-icon);
-}
-
-/* Optional: Improve hover state for all links */
-/* .nav-menu-link:hover {
-  background-color: #e2e6ea;
-  text-decoration: none;
-} */
-
-/* Adjustments for sub-menu items */
-/* .sub-menu-item .nav-menu-link {
-  padding-left: 30px; /* Indent sub-menu items */
-/* } */
 
 /* Styles for the chevron icon rotation */
 .chevron-icon {
@@ -320,11 +266,6 @@
   transition: max-height 0.3s ease-in;
 }
 
-/* .sub-menu-item .nav-menu-link {
-  font-weight: normal;
-  font-size: 0.9em;
-} */
-
 .sub-menu-item .nav-menu-link::before {
   content: "";
   position: absolute;
@@ -337,30 +278,20 @@
 }
 
 /* Replace the existing sidebar styles with these */
-.sidebar {
-  background-color: var(--sidebar-bg);
-  border-right: 1px solid var(--sidebar-border);
-}
+
 
 .sidebar.open {
   box-shadow: 2px 0 10px rgba(0,0,0,0.08); /* More subtle shadow */
 }
 
-.sidebar h5 {
-  color: var(--sidebar-text);
+/* .sidebar .nav-menu {
+  color: var(--bs-light);
   font-size: 1.1rem;
   padding: 0 1rem;
   margin-bottom: 1.5rem;
   font-weight: 600;
   letter-spacing: 0.3px;
-}
-
-.icon-color-sidebar {
-  color: var(--sidebar-icon);
-  font-size: 1.1rem;
-  width: 24px;
-  min-width: 24px;
-}
+} */
 
 @media (max-width: 991px) {
   .sidebar {
@@ -463,4 +394,104 @@
 
 .form-field-required {
   color: var(--bs-danger); /* Bootstrap's default danger color */
+}
+
+/* Custom class for sidebar icons to make them white */
+.sidebar-icon-white {
+  color: var(--bs-white) !important;
+}
+
+/* Custom class for sidebar menu text to make it white */
+.sidebar-text-white {
+  color: var(--bs-white) !important;
+}
+
+/* Update sidebar styles to match sample.html design */
+.nav-menu-link {
+  color: var(--bs-white);
+  padding: 0.75rem 1rem;
+  margin: 0.15rem 0.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  background-color: transparent;
+}
+
+.nav-menu-link:hover {
+  background-color: var(--bs-primary-bg-subtle);
+  color: var(--bs-white);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: translateX(3px);
+}
+
+/* Style for the active menu link */
+.nav-menu-link.active-link {
+  background-color: var(--bs-light);
+  color: var(--bs-primary);
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  border-left: 3px solid var(--bs-white);
+  padding-left: calc(1rem - 3px);
+}
+
+/* Style for the active expandable menu (parent item) */
+.nav-menu-link.expandable.active {
+  background-color: var(--bs-primary);
+  color: var(--bs-primary);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* Enhanced sidebar link styles (override and use Bootstrap variables) */
+.sidebar .nav-menu-link {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.625rem 0.75rem; /* close to px-3 py-2.5 */
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--bs-body-color, #e9ecef);
+  background: transparent;
+  transition: background-color 150ms ease, color 150ms ease, transform 120ms ease;
+}
+
+.sidebar .nav-menu-link .sidebar-icon-white {
+  margin-right: 0.5rem;
+  color: inherit;
+}
+
+/* Hover state: subtle tinted background using Bootstrap primary rgb variable when available */
+.sidebar .nav-menu-link:hover {
+  background-color: rgba(var(--bs-primary-rgb, 13,110,253), 0.12);
+  color: var(--bs-primary, #0d6efd);
+  text-decoration: none;
+}
+
+/* Active / selected state: solid primary background and white text */
+.sidebar .nav-menu-link.active-link {
+  background-color: var(--bs-primary, #0d6efd) !important;
+  color: var(--bs-white, #fff) !important;
+  box-shadow: 0 0 0 0.18rem rgba(var(--bs-primary-rgb, 13,110,253), 0.22);
+}
+
+.sidebar .nav-menu-link.active-link .sidebar-icon-white {
+  color: var(--bs-white) !important;
+}
+
+/* Expandable chevron rotation */
+.sidebar .chevron-icon.rotated {
+  transform: rotate(90deg);
+}
+
+/* Smooth submenu open/close (override previous sizes) */
+.sidebar .sub-menu {
+  padding-left: 0.5rem;
+  margin-top: 0.25rem;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 220ms ease;
+}
+.sidebar .sub-menu.open {
+  max-height: 480px;
 }
