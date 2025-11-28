@@ -42,12 +42,10 @@ const PageHeader: React.FC<PageHeaderProps> = ({
               style={{ 
                 width: '40px',
                 height: '40px',
-                border: '1px solid #dee2e6',
-                borderRadius: '6px'
               }}
               aria-label="Toggle sidebar"
             >
-              <i className="bi bi-list" style={{ fontSize: "1.5rem", color: '#2196F3' }}></i>
+              <i className="bi bi-list text-primary" style={{ fontSize: "1.5rem" }}></i>
             </button>
           )}
           <div>

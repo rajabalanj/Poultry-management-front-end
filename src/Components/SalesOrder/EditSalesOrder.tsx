@@ -346,7 +346,7 @@ const EditSalesOrder: React.FC = () => {
                 {items.filter(item => !item.isDeleted).length === 0 && <p className="col-12 text-muted">No active items. Click "Add Item" to add new ones.</p>}
 
                 {items.map((item, index) => (
-                  <div key={item.tempId} className={`col-12 border p-3 mb-3 rounded ${item.isDeleted ? 'bg-danger-subtle border-danger' : 'bg-light'}`}>
+                  <div key={item.tempId} className={`col-12 border p-3 mb-3 ${item.isDeleted ? 'bg-danger-subtle border-danger' : 'bg-light'}`}>
                     <div className="d-flex justify-content-between align-items-center mb-2">
                       <h6>Item {index + 1} {item.isDeleted && <span className="badge bg-danger ms-2">Marked for Deletion</span>}</h6>
                       {!item.isDeleted ? (

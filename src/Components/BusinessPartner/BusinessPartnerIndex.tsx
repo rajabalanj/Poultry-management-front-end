@@ -76,7 +76,7 @@ const BusinessPartnerIndexPage = () => {
       <PageHeader title="People" buttonVariant="primary" buttonLabel="Add People" buttonLink="/business-partners/create" />
       
       <div className="mb-3">
-        <div className="card shadow-sm rounded">
+        <div className="card shadow-sm">
           <div className="card-header d-md-none p-3">
             <select className="form-select" value={filterType} onChange={(e) => setFilterType(e.target.value as 'all' | 'vendors' | 'customers')}>
               <option value="all">All Partners</option>

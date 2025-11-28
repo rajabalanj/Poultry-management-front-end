@@ -42,7 +42,7 @@ const BatchCard: React.FC<{
       <div className="card-body px-2">
         <div className="row align-items-center">
           <div className="col-12 col-md-6 d-flex align-items-center">
-            <div className="me-3 d-flex align-items-center justify-content-center bg-primary-subtle p-2 rounded-3">
+            <div className="me-3 d-flex align-items-center justify-content-center bg-primary-subtle p-2">
             <Birdhouse className="text-primary" size={24} />
           </div>
             <div>

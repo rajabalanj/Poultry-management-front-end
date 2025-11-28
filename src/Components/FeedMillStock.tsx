@@ -161,6 +161,7 @@ function FeedMillStock() {
               className="form-select form-select text-center"
               value={selectedCompositionId || ""}
               onChange={handleCompositionChange}
+              title="Select Composition"
             >
               <option value="" disabled>
                 Select Composition

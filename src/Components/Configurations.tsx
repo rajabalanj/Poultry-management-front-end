@@ -299,7 +299,7 @@ return (
   <PageHeader title="Configurations"></PageHeader>
     <div className="container">
 
-      <div className="p-3 border rounded shadow-sm mb-4 mt-2"> {/* Added mb-4 for spacing */}
+      <div className="p-3 border shadow-sm mb-4 mt-2"> {/* Added mb-4 for spacing */}
         {/* Global Low Feed Thresholds */}
         <div className="mb-4">
           <label className="form-label fw-semibold">

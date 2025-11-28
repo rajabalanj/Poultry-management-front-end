@@ -303,7 +303,7 @@ const CreateSalesOrderForm: React.FC = () => {
                   <h5 className="mt-4 mb-3">Items <span className="form-field-required">*</span></h5>
                   {items.length === 0 && <p className="col-12 text-muted">No items added yet. Click "Add Item" to start.</p>}
                   {items.map((item, index) => (
-                    <div key={item.tempId} className="col-12 border p-3 mb-3 rounded bg-light">
+                    <div key={item.tempId} className="col-12 border p-3 mb-3 bg-light">
                       <div className="d-flex justify-content-between align-items-center mb-2">
                         <h6>Item {index + 1}</h6>
                         <button

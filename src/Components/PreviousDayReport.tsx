@@ -537,7 +537,7 @@ const PreviousDayReport = () => {
             </tbody>
           </table>
           {summaryData && weekData && (
-            <div className="mt-4 p-3 border rounded bg-light">
+            <div className="mt-4 p-3 border bg-light">
               <h5 className="mb-3">Report Summary</h5>
               <table className="table table-bordered">
                 <thead>
@@ -571,7 +571,7 @@ const PreviousDayReport = () => {
             </div>
           )}
           {summaryData && !weekData && (
-            <div className="mt-4 p-3 border rounded bg-light">
+            <div className="mt-4 p-3 border bg-light">
               <h5 className="mb-3">Report Summary</h5>
               <div className="row g-3">
                 <div className="col-md-3"><span className="fw-bold">Opening:</span> {summaryData.opening_count}</div>
@@ -588,7 +588,7 @@ const PreviousDayReport = () => {
             </div>
           )}
           {cumulativeReportData && (
-            <div className="mt-4 p-3 border rounded bg-light">
+            <div className="mt-4 p-3 border bg-light">
               <h5 className="mb-3">Cumulative Report</h5>
               <div className="row g-3">
                 <div className="col-md-6">
