@@ -197,7 +197,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     <i className="bi bi-file-earmark-text me-2 sidebar-icon-white"></i>
                     <span className="sidebar-text-white">Batch Management</span>
                     <i
-                      className={`bi bi-chevron-right chevron-icon ${
+                      className={`bi bi-chevron-right chevron-icon sidebar-icon-white${
                         openMenu === "batch" ? "rotated" : ""
                       }`}
                     ></i>
