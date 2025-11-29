@@ -1,0 +1,131 @@
+/* Deep, saturated primary blue background */
+.sidebar {
+  background-color: #1e40af !important; /* Deep saturated blue */
+}
+
+/* Menu list styling */
+.nav-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.nav-menu-item {
+  list-style: none;
+  margin: 0.5rem 0;
+  padding: 0;
+}
+
+/* Base link styling - tight, consistent spacing */
+.nav-menu-link {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  cursor: pointer;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  user-select: none;
+}
+
+/* Hover state - subtle dark blue */
+.nav-menu-link:hover {
+  background-color: rgba(15, 23, 42, 0.4);
+  color: #ffffff;
+}
+
+/* Active state - high contrast, bright blue block */
+.nav-menu-link.active-link {
+  background-color: #3b82f6;
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.nav-menu-link.active-link:hover {
+  background-color: #2563eb;
+}
+
+/* Expandable menu items */
+.nav-menu-link.expandable {
+  justify-content: space-between;
+}
+
+.nav-menu-link.expandable .chevron-icon {
+  transition: transform 0.3s ease;
+  font-size: 0.8rem;
+  margin-left: auto;
+}
+
+.nav-menu-link.expandable.active .chevron-icon.rotated {
+  transform: rotate(90deg);
+}
+
+/* Sub-menu styling */
+.sub-menu {
+  list-style: none;
+  /* padding: 0.5rem 0; */
+  margin: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  /* background-color: rgba(0, 0, 0, 0.2); */
+  border-radius: 0.375rem;
+  margin: 0.25rem 0.5rem;
+}
+
+.sub-menu.open {
+  max-height: 500px;
+}
+
+.sub-menu-item {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sub-menu-item .nav-menu-link {
+  padding: 0.625rem 1.5rem;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.sub-menu-item .nav-menu-link:hover {
+  background-color: rgba(15, 23, 42, 0.3);
+}
+
+.sub-menu-item .nav-menu-link.active-link {
+  background-color: #3b82f6;
+  color: #ffffff;
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+}
+
+/* Icon styling */
+.sidebar-icon-white {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.1rem;
+}
+
+.nav-menu-link.active-link .sidebar-icon-white {
+  color: #ffffff;
+}
+
+/* Text styling */
+.sidebar-text-white {
+  color: inherit;
+  flex: 1;
+}
+
+/* Menu label */
+.nav-menu + p,
+.px-3 .text-uppercase {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}

@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import "bootstrap-icons/font/bootstrap-icons.min.css";
+import "./Slidebar.css"; // Import custom sidebar styles
 import { useAuth } from "../../hooks/useAuth";
 import { useSidebar } from "../../hooks/useSidebar";
 import annamalaiyarlogo from "../../styles/annamalaiyarlogo.png"; // Import the image
-
-// import './Slidebar.css'; // Make sure you have this import for the new CSS
 
 // Using Bootstrap's lg breakpoint (≥992px) instead of hardcoded value
 
@@ -103,6 +102,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
       transition: 'width 0.3s ease',
       overflowY: 'auto', // Add scroll for long content
       paddingTop: '0', // Remove top padding
+      backgroundColor: '#1e40af', // Deep saturated blue
     }
   : {
       // Mobile styles - using Bootstrap offcanvas style with responsive width
@@ -115,7 +115,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
       transition: 'transform 0.3s ease',
       zIndex: 1030,
       overflowX: 'hidden',
-      backgroundColor: 'var(--bs-primary)', // Ensure background color
+      backgroundColor: '#1e40af', // Deep saturated blue
       boxShadow: '2px 0 5px rgba(0,0,0,0.1)',
       transform: isOpen ? 'translateX(0)' : `translateX(-100%)`,
       paddingTop: '0', // Remove top padding
