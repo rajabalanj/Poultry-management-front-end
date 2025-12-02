@@ -49,7 +49,14 @@ const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, custom
                 <td>{new Date(so.order_date).toLocaleDateString()}</td>
                 <td>{so.total_amount.toFixed(2)}</td>
                 <td>{so.total_amount_paid.toFixed(2)}</td>
-                <td><span className={`badge bg-secondary`}>{so.status}</span></td>
+                <td><span className={`badge ${
+              so.status === 'Draft' ? 'bg-warning' :
+              so.status === 'Approved' ? 'bg-primary' :
+              so.status === 'Partially Paid' ? 'bg-info' :
+              so.status === 'Paid' ? 'bg-success' :
+              so.status === 'Cancelled' ? 'bg-danger' :
+              'bg-secondary'
+            }`}>{so.status}</span></td>
               </tr>
             );
           })}

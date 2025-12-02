@@ -24,13 +24,13 @@ import EditInventoryItem from './Components/InventoryItem/EditInventoryItem';
 import InventoryStockLevelReport from './Components/InventoryStockLevelReport';
 import LowStockReport from './Components/LowStockReport';
 import TopSellingItemsReport from './Components/TopSellingItemsReport';
-import PurchaseOrderIndexPage from './Components/PurchaseOrder/PurchaseOrderIndex';
+import PurchaseResponsive from './Components/Purchase/PurchaseResponsive';
 import CreatePurchaseOrderForm from './Components/PurchaseOrder/CreatePurchaseOrderForm';
 import PurchaseOrderDetails from './Components/PurchaseOrder/PurchaseOrderDetails';
 import EditPurchaseOrder from './Components/PurchaseOrder/EditPurchaseOrder';
 import AddPaymentForm from './Components/PurchaseOrder/AddPaymentForm';
 import Dashboard from './Components/Dashboard/Dashboard';
-import SalesOrderIndexPage from './Components/SalesOrder/SalesOrderIndex';
+import SalesResponsive from './Components/Sales/SalesResponsive';
 import CreateSalesOrderForm from './Components/SalesOrder/CreateSalesOrderForm';
 import SalesOrderDetails from './Components/SalesOrder/SalesOrderDetails';
 import EditSalesOrder from './Components/SalesOrder/EditSalesOrder';
@@ -53,8 +53,8 @@ import ShedDetails from './Components/Shed/ShedDetails';
 import EditShed from './Components/Shed/EditShed';
 import MoveShed from './Components/Batch/MoveShed';
 import SwapSheds from './Components/Batch/SwapSheds';
-import PurchaseReport from './Components/Reports/PurchaseReport';
-import SalesReport from './Components/Reports/SalesReports';
+
+
 import ScrollToTop from './Components/Common/ScrollToTop';
 
 const ProtectedRoutes = () => (
@@ -130,12 +130,12 @@ const App: React.FC = () => {
               <Route path="/inventory-stock-level-report" element={<InventoryStockLevelReport />} />
               <Route path="/low-stock-report" element={<LowStockReport />} />
               <Route path="/top-selling-items-report" element={<TopSellingItemsReport />} />
-              <Route path="/purchase-orders" element={<PurchaseOrderIndexPage />} />
+              <Route path="/purchase-orders" element={<PurchaseResponsive />} />
               <Route path="/purchase-orders/create" element={<CreatePurchaseOrderForm />} />
               <Route path="/purchase-orders/:po_id/details" element={<PurchaseOrderDetails />} />
               <Route path="/purchase-orders/:po_id/edit" element={<EditPurchaseOrder />} />
               <Route path="/purchase-orders/:po_id/add-payment" element={<AddPaymentForm />} />
-              <Route path="/sales-orders" element={<SalesOrderIndexPage />} />
+              <Route path="/sales-orders" element={<SalesResponsive />} />
               <Route path="/sales-orders/create" element={<CreateSalesOrderForm />} />
               <Route path="/sales-orders/:so_id/details" element={<SalesOrderDetails />} />
               <Route path="/sales-orders/:so_id/edit" element={<EditSalesOrder />} />
@@ -152,8 +152,8 @@ const App: React.FC = () => {
               <Route path="/sheds/create" element={<CreateShedForm />} />
               <Route path="/sheds/:shed_id/details" element={<ShedDetails />} />
               <Route path="/sheds/:shed_id/edit" element={<EditShed />} />
-              <Route path="/reports/purchases" element={<PurchaseReport />} />
-              <Route path="/reports/sales" element={<SalesReport />} />
+              <Route path="/reports/purchases" element={<PurchaseResponsive />} />
+              <Route path="/reports/sales" element={<SalesResponsive />} />
             </Route>
             <Route
               path="/configurations"

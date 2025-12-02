@@ -49,7 +49,12 @@ const PurchaseReportTable: React.FC<PurchaseReportTableProps> = ({ purchaseOrder
                 <td>{new Date(po.order_date).toLocaleDateString()}</td>
                 <td>{po.total_amount.toFixed(2)}</td>
                 <td>{po.total_amount_paid.toFixed(2)}</td>
-                <td><span className={`badge bg-secondary`}>{po.status}</span></td>
+                <td><span className={`badge ${
+              po.status === 'Draft' ? 'bg-warning' :
+              po.status === 'Partially Paid' ? 'bg-info' :
+              po.status === 'Paid' ? 'bg-success' :
+              'bg-secondary'
+            }`}>{po.status}</span></td>
               </tr>
             );
           })}
