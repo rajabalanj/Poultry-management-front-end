@@ -92,7 +92,6 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
       transition: 'width 0.3s ease',
       overflowY: 'auto', // Add scroll for long content
       paddingTop: '0', // Remove top padding
-      backgroundColor: '#1e40af', // Deep saturated blue
     }
   : {
       // Mobile styles - using Bootstrap offcanvas style with responsive width
@@ -105,7 +104,6 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
       transition: 'transform 0.3s ease',
       zIndex: 1030,
       overflowX: 'hidden',
-      backgroundColor: '#1e40af', // Deep saturated blue
       boxShadow: '2px 0 5px rgba(0,0,0,0.1)',
       transform: isOpen ? 'translateX(0)' : `translateX(-100%)`,
       paddingTop: '0', // Remove top padding
@@ -131,7 +129,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
             >
               <button
                 type="button"
-                className="btn-close btn-close-white p-2"
+                className="btn-close p-2"
                 onClick={closeSidebarMobile}
                 aria-label="Close"
                 style={{
@@ -151,13 +149,13 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
               <img
                 src={annamalaiyarlogo}
                 alt="Annamalaiyar Logo"
-                style={{ width: "50%", height: "auto", filter: "brightness(0) invert(1)" }}
+                style={{ width: "50%", height: "auto" }}
                 className="my-3"
               />
             </div>
           </div>
-          <div className="px-3 pt-3">
-            <p className="text-xs text-white px-3 mb-2 text-uppercase tracking-wider" style={{ letterSpacing: "0.1em" }}>Menu</p>
+          <div className="px-2 pt-2">
+            <p className="text-xs text-dark px-3 mb-2 text-uppercase tracking-wider">Menu</p>
 
             <div className="sidebar">
               <ul className="nav-menu">
@@ -171,8 +169,8 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     }`}
                     onClick={closeSidebarMobile}
                   >
-                    <i className="bi bi-house me-2 sidebar-icon-white"></i>
-                    <span className="sidebar-text-white">Dashboard</span>
+                    <i className="bi bi-house me-2 sidebar-icon"></i>
+                    <span className="sidebar-text">Dashboard</span>
                   </Link>
                 </li>
                 
@@ -184,10 +182,10 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     }`}
                     onClick={() => toggleMenu("batch")}
                   >
-                    <i className="bi bi-file-earmark-text me-2 sidebar-icon-white"></i>
-                    <span className="sidebar-text-white">Batch Management</span>
+                    <i className="bi bi-file-earmark-text me-2 sidebar-icon"></i>
+                    <span className="sidebar-text">Batch Management</span>
                     <i
-                      className={`bi bi-chevron-right chevron-icon sidebar-icon-white${
+                      className={`bi bi-chevron-right chevron-icon sidebar-icon${
                         openMenu === "batch" ? "rotated" : ""
                       }`}
                     ></i>
@@ -205,7 +203,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                         }`}
                         onClick={closeSidebarMobile}
                       >
-                        <span className="sidebar-text-white">Production</span>
+                        <span className="sidebar-text">Production</span>
                       </Link>
                     </li>
                     <li className="sub-menu-item">
@@ -218,7 +216,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                         }`}
                         onClick={closeSidebarMobile}
                       >
-                        <span className="sidebar-text-white">Add Batch</span>
+                        <span className="sidebar-text">Add Batch</span>
                       </Link>
                     </li>
                     <li className="sub-menu-item">
@@ -231,7 +229,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                         }`}
                         onClick={closeSidebarMobile}
                       >
-                        <span className="sidebar-text-white">Upload Batch</span>
+                        <span className="sidebar-text">Upload Batch</span>
                       </Link>
                     </li>
                   </ul>
@@ -248,8 +246,8 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     }`}
                     onClick={closeSidebarMobile}
                   >
-                    <i className="bi bi-egg me-2 sidebar-icon-white"></i>
-                    <span className="sidebar-text-white">Egg Room Stock</span>
+                    <i className="bi bi-egg me-2 sidebar-icon"></i>
+                    <span className="sidebar-text">Egg Room Stock</span>
                   </Link>
                 </li>
                 
@@ -263,8 +261,8 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     }`}
                     onClick={closeSidebarMobile}
                   >
-                    <i className="bi bi-bag me-2 sidebar-icon-white"></i>
-                    <span className="sidebar-text-white">Feed Compositions</span>
+                    <i className="bi bi-bag me-2 sidebar-icon"></i>
+                    <span className="sidebar-text">Feed Compositions</span>
                   </Link>
                 </li>
                 
@@ -275,10 +273,10 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     }`}
                     onClick={() => toggleMenu("inventory")}
                   >
-                    <i className="bi bi-box-seam me-2 sidebar-icon-white"></i>
-                    <span className="sidebar-text-white">Inventory</span>
+                    <i className="bi bi-box-seam me-2 sidebar-icon"></i>
+                    <span className="sidebar-text">Inventory</span>
                     <i
-                      className={`bi bi-chevron-right chevron-icon sidebar-icon-white ${
+                      className={`bi bi-chevron-right chevron-icon sidebar-icon ${
                         openMenu === "inventory" ? "rotated" : ""
                       }`}
                     ></i>
@@ -298,7 +296,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                         }`}
                         onClick={closeSidebarMobile}
                       >
-                        <span className="sidebar-text-white">Inventory Items</span>
+                        <span className="sidebar-text">Inventory Items</span>
                       </Link>
                     </li>
                     <li className="sub-menu-item">
@@ -311,7 +309,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                         }`}
                         onClick={closeSidebarMobile}
                       >
-                        <span className="sidebar-text-white">Stock Levels</span>
+                        <span className="sidebar-text">Stock Levels</span>
                       </Link>
                     </li>
                     <li className="sub-menu-item">
@@ -324,7 +322,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                         }`}
                         onClick={closeSidebarMobile}
                       >
-                        <span className="sidebar-text-white">Low Stock Report</span>
+                        <span className="sidebar-text">Low Stock Report</span>
                       </Link>
                     </li>
                     <li className="sub-menu-item">
@@ -337,7 +335,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                         }`}
                         onClick={closeSidebarMobile}
                       >
-                        <span className="sidebar-text-white">Top Selling Items Report</span>
+                        <span className="sidebar-text">Top Selling Items Report</span>
                       </Link>
                     </li>
                   </ul>
@@ -353,8 +351,8 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     }`}
                     onClick={closeSidebarMobile}
                   >
-                    <i className="bi bi-cart4 me-2 sidebar-icon-white"></i>
-                    <span className="sidebar-text-white">Purchase</span>
+                    <i className="bi bi-cart4 me-2 sidebar-icon"></i>
+                    <span className="sidebar-text">Purchase</span>
                   </Link>
                 </li>
                 
@@ -368,8 +366,8 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     }`}
                     onClick={closeSidebarMobile}
                   >
-                    <i className="bi bi-receipt me-2 sidebar-icon-white"></i>
-                    <span className="sidebar-text-white">Sales</span>
+                    <i className="bi bi-receipt me-2 sidebar-icon"></i>
+                    <span className="sidebar-text">Sales</span>
                   </Link>
                 </li>
                 
@@ -383,8 +381,8 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     }`}
                     onClick={closeSidebarMobile}
                   >
-                    <i className="bi bi-people me-2 sidebar-icon-white"></i>
-                    <span className="sidebar-text-white">People</span>
+                    <i className="bi bi-people me-2 sidebar-icon"></i>
+                    <span className="sidebar-text">People</span>
                   </Link>
                 </li>
                 
@@ -396,10 +394,10 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     }`}
                     onClick={() => toggleMenu("shed")}
                   >
-                    <i className="bi bi-house-door me-2 sidebar-icon-white"></i>
-                    <span className="sidebar-text-white">Shed Management</span>
+                    <i className="bi bi-house-door me-2 sidebar-icon"></i>
+                    <span className="sidebar-text">Shed Management</span>
                     <i
-                      className={`bi bi-chevron-right chevron-icon sidebar-icon-white ${
+                      className={`bi bi-chevron-right chevron-icon sidebar-icon ${
                         openMenu === "shed" ? "rotated" : ""
                       }`}
                     ></i>
@@ -415,7 +413,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                         }`}
                         onClick={closeSidebarMobile}
                       >
-                        <span className="sidebar-text-white">Sheds</span>
+                        <span className="sidebar-text">Sheds</span>
                       </Link>
                     </li>
                     <li className="sub-menu-item">
@@ -428,7 +426,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                         }`}
                         onClick={closeSidebarMobile}
                       >
-                        <span className="sidebar-text-white">Swap Sheds</span>
+                        <span className="sidebar-text">Swap Sheds</span>
                       </Link>
                     </li>
                   </ul>
@@ -442,10 +440,10 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     }`}
                     onClick={() => toggleMenu("finance")}
                   >
-                    <i className="bi bi-cash-coin me-2 sidebar-icon-white"></i>
-                    <span className="sidebar-text-white">Finance</span>
+                    <i className="bi bi-cash-coin me-2 sidebar-icon"></i>
+                    <span className="sidebar-text">Finance</span>
                     <i
-                      className={`bi bi-chevron-right chevron-icon sidebar-icon-white ${
+                      className={`bi bi-chevron-right chevron-icon sidebar-icon ${
                         openMenu === "finance" ? "rotated" : ""
                       }`}
                     ></i>
@@ -465,7 +463,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                         }`}
                         onClick={closeSidebarMobile}
                       >
-                        <span className="sidebar-text-white">Financial Reports</span>
+                        <span className="sidebar-text">Financial Reports</span>
                       </Link>
                     </li>
                     <li className="sub-menu-item">
@@ -478,7 +476,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                         }`}
                         onClick={closeSidebarMobile}
                       >
-                        <span className="sidebar-text-white">Operational Expenses</span>
+                        <span className="sidebar-text">Operational Expenses</span>
                       </Link>
                     </li>
                   </ul>
@@ -495,8 +493,8 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                       }`}
                       onClick={closeSidebarMobile}
                     >
-                      <i className="bi bi-gear me-2 sidebar-icon-white"></i>
-                      <span className="sidebar-text-white">Configurations</span>
+                      <i className="bi bi-gear me-2 sidebar-icon"></i>
+                      <span className="sidebar-text">Configurations</span>
                     </Link>
                   </li>
                 )}
