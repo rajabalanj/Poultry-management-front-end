@@ -94,7 +94,7 @@ const DashboardIndex = () => {
             : [];
 
         setBatches(batchesData);
-        
+
         // Clear any previous error if fetch succeeded
         setError(null);
       } catch (err) {
@@ -190,23 +190,26 @@ const DashboardIndex = () => {
 
   return (
     <div className="container">
-      <div className="row g-3">
-        {/* Filters Section */}
-        <div className="col-12">
-          <div className="card shadow-sm">
-            <div className="card-body">
-              <div className="row g-3 align-items-end">
-                <div className="col-auto d-flex align-items-center mt-3">
-            <label className="form-label me-3 mb-0">Batch Date</label>
+      <div className="card shadow-sm mb-4">
+        <div className="card-body p-4">
+          <div className="mb-4">
+            <div className="row g-3">
+              <div className="col-12 col-md-6">
+                <div className="d-flex align-items-center">
+                  <label className="form-label me-3 mb-0">Batch Date</label>
                   <DatePicker
                     selected={batchDate ? new Date(batchDate) : null}
                     maxDate={new Date()}
                     onChange={(date: Date | null) => date && setBatchDate(date.toISOString().split('T')[0])}
                     dateFormat="dd-MM-yyyy"
                     className="form-control"
+                    placeholderText="Select a date"
                   />
                 </div>
-                <div className="col-12 col-md-4">
+              </div>
+              <div className="col-12 col-md-6">
+                <div className="d-flex align-items-center">
+                  <label className="form-label me-3 mb-0">Shed</label>
                   <select
                     className="form-select"
                     value={selectedShedNo}
@@ -221,88 +224,72 @@ const DashboardIndex = () => {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Header Cards */}
-        <div className="col-12">
-          <div className="card shadow-sm bg-light rounded">
-            <div className="card-body p-0">
-              <HeaderCardGroup cards={cards} loading={loading} error={error} onViewDetails={handleViewFeedDetails} />
-            </div>
+          <div className="mb-4">
+            <HeaderCardGroup cards={cards} loading={loading} error={error} onViewDetails={handleViewFeedDetails} />
+          </div>
+          <div className="mb-4">
+            <GraphsSection henDayValue={avgHD} loading={loading} error={error} />
+          </div>
+          <div>
+            {loading ? (
+              <div className="text-center">Loading batches...</div>
+            ) : error ? (
+              <div className="text-center text-danger">{error}</div>
+            ) : filteredBatches.length > 0 ? (
+              <BatchTable batches={filteredBatches} loading={loading} error={error} />
+            ) : (<div className="text-center">No batches found for the selected filters.</div>)}
           </div>
         </div>
-
-        {/* Graphs Section */}
-        <div className="col-12">
-          <div className="card shadow-sm bg-light rounded">
-            <div className="card-body">
-              <GraphsSection henDayValue={avgHD} loading={loading} error={error} />
-            </div>
-          </div>
-        </div>
-
-        {/* Batch Table */}
-        <div className="col-12">
-          <div className="card shadow-sm bg-light rounded">
-            <div className="card-body">
-              {loading ? (
-                <div className="text-center">Loading batches...</div>
-              ) : error ? (
-                <div className="text-center text-danger">{error}</div>
-              ) : filteredBatches.length > 0 ? (
-                <BatchTable batches={filteredBatches} loading={loading} error={error} />
-              ) : (<div className="text-center">No batches found for the selected filters.</div>)}
-            </div>
-          </div>
-        </div>
-
-        {/* Report Download Section */}
-        <div className="col-12">
-          <div className="card shadow-sm">
-            <div className="card-body">
-              <h5 className="card-title">Report</h5>
-              <div className="row g-3 align-items-end">
-                <div className="col-auto d-flex align-items-center mt-3">
-            <label className="form-label me-3 mb-0">Start Date</label>
-                  <DatePicker
-                    selected={startDate ? new Date(startDate) : null}
-                    onChange={(date: Date | null) => date && setStartDate(date.toISOString().split('T')[0])}
-                    maxDate={endDate ? new Date(endDate) : new Date()}
-                    dateFormat="dd-MM-yyyy"
-                    className="form-control"
-                  />
-                </div>
-                <div className="col-auto d-flex align-items-center mt-3">
-            <label className="form-label me-3 mb-0">End Date</label>
-                  <DatePicker
-                    selected={endDate ? new Date(endDate) : null}
-                    onChange={(date: Date | null) => date && setEndDate(date.toISOString().split('T')[0])}
-                    minDate={startDate ? new Date(startDate) : undefined}
-                    maxDate={new Date()}
-                    dateFormat="dd-MM-yyyy"
-                    className="form-control"
-                  />
-                </div>
-                <div className="col-12 col-md-4 d-flex align-items-end justify-content-start justify-content-md-start">
-                  <button
-                    className="btn btn-primary mb-2"
-                    onClick={handleDownloadReport}
-                  >
-                    View Data
-                  </button>
-                  {dateRangeError && (
-                    <div className="text-danger mt-2">
-                      {dateRangeError}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
       </div>
 
+      {/* Report Download Section */}
+      <div className="card shadow-sm mb-4">
+        <div className="card-header bg-primary text-white py-3">
+          <h5 className="card-title mb-0">Report</h5>
+        </div>
+        <div className="card-body">
+          <div className="row g-3 align-items-end">
+            <div className="col-auto d-flex align-items-center mt-3">
+              <label className="form-label me-3 mb-0">Start Date</label>
+              <DatePicker
+                selected={startDate ? new Date(startDate) : null}
+                onChange={(date: Date | null) => date && setStartDate(date.toISOString().split('T')[0])}
+                maxDate={endDate ? new Date(endDate) : new Date()}
+                dateFormat="dd-MM-yyyy"
+                className="form-control"
+                placeholderText="Select start date"
+              />
+            </div>
+            <div className="col-auto d-flex align-items-center mt-3">
+              <label className="form-label me-3 mb-0">End Date</label>
+              <DatePicker
+                selected={endDate ? new Date(endDate) : null}
+                onChange={(date: Date | null) => date && setEndDate(date.toISOString().split('T')[0])}
+                minDate={startDate ? new Date(startDate) : undefined}
+                maxDate={new Date()}
+                dateFormat="dd-MM-yyyy"
+                className="form-control"
+                placeholderText="Select end date"
+              />
+            </div>
+            <div className="col-12 col-md-4 d-flex align-items-end justify-content-start justify-content-md-start">
+              <button
+                className="btn btn-primary mb-2"
+                onClick={handleDownloadReport}
+              >
+                View Data
+              </button>
+              {dateRangeError && (
+                <div className="text-danger mt-2">
+                  {dateRangeError}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Feed Details Modal */}
       <ListModal
         show={showFeedModal}
         onHide={handleCloseFeedModal}

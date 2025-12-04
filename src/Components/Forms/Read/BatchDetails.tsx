@@ -170,34 +170,38 @@ const BatchDetails: React.FC = () => {
   return (
     <>
       <PageHeader 
-        subtitle={`Batch Details - ${batch.batch_no}`}
+        subtitle={`View ${batch.batch_no}`}
         buttonLabel="Back"
         buttonLink="/production"
+        buttonIcon="bi-arrow-left"
       />
       <div className="container">
-        <div className="col-12 mb-4">
-          <div className="card shadow-sm">
-            <div className="card-body">
-              <h5 className="card-title">View Another Date's Report</h5>
-              <div className="d-flex align-items-center mt-3">
-                <label className="form-label me-3 mb-0">Report Date</label>
-                <DatePicker
-                  selected={batch_date ? new Date(batch_date) : null}
-                  onChange={(date: Date | null) => handleDateChange(date)}
-                  dateFormat="dd-MM-yyyy"
-                  showMonthDropdown
-                  showYearDropdown
-                  dropdownMode="select"
-                  className="form-control"
-                  maxDate={new Date()}
-                />
+        <div className="card shadow-sm mb-4">
+          <div className="card-body p-4">
+            <div className="mb-4">
+              <div className="row g-3">
+                <div className="col-12 col-md-6">
+                  <div className="d-flex align-items-center">
+                    <label className="form-label me-3 mb-0">Batch Date</label>
+                    <DatePicker
+                      selected={batch_date ? new Date(batch_date) : null}
+                      onChange={(date: Date | null) => handleDateChange(date)}
+                      dateFormat="dd-MM-yyyy"
+                      showMonthDropdown
+                      showYearDropdown
+                      dropdownMode="select"
+                      className="form-control"
+                      maxDate={new Date()}
+                      style={{ maxWidth: "200px" }}
+                      placeholderText="Select a date"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
-
-        <HeaderCardGroup
-          cards={[
+            <div className="mb-4">
+              <HeaderCardGroup
+            cards={[
             {
               title: 'Total Birds',
               mainValue: batch.closing_count,
@@ -240,9 +244,12 @@ const BatchDetails: React.FC = () => {
           loading={false}
           error={null}
           onViewDetails={handleViewFeedDetails}
-        />
-        <GraphsSection henDayValue={Number((batch.hd *100).toFixed(2))} loading={false} error={null} />
-        <div className="p-4">
+            />
+            </div>
+            <div className="mb-4">
+              <GraphsSection henDayValue={Number((batch.hd *100).toFixed(2))} loading={false} error={null} />
+            </div>
+            <div>
           <div className="row">
             <div className="col-12 col-md-6 mb-4 mt-4">
               <label className="form-label">Shed No.</label>
@@ -323,6 +330,8 @@ const BatchDetails: React.FC = () => {
                       </button>
                     </div>
                   </div>
+          </div>
+        </div>
         
         {/* Report Download Section */}
         <div className="col-12 mb-4 mt-4">

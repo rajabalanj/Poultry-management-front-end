@@ -44,7 +44,7 @@ const HeaderCardGroup: React.FC<HeaderCardGroupProps> = ({ cards, loading, error
   if (!cards || cards.length === 0) return <div>No data available</div>;
 
   return (
-    <div className="p-3">
+    <div>
       <div className="row g-3 g-md-2">
         {cards.map((card, index) => (
           <div className="col-12 col-md-6 col-lg-4" key={index}>

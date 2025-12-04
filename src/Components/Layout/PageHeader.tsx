@@ -12,6 +12,7 @@ interface PageHeaderProps {
   buttonLink?: string;
   buttonVariant?: 'secondary' | 'primary';
   onToggleSidebar?: () => void;
+  buttonIcon?: string; // Bootstrap icon class name (e.g., "bi-arrow-left", "bi-plus")
 }
 
 const PageHeader: React.FC<PageHeaderProps> = ({
@@ -21,6 +22,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   buttonLink,
   buttonVariant = 'secondary',
   onToggleSidebar,
+  buttonIcon,
 }) => {
   const navigate = useNavigate();
   const auth = useAuth();
@@ -32,8 +34,8 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   const toggleSidebar = onToggleSidebar ?? sidebar.toggle;
 
   return (
-    <div className="page-header py-3 text-primary fw-bold shadow-sm border-bottom mb-4">
-      <div className="container d-flex justify-content-between align-items-center">
+    <div className="page-header p-md-3 py-3 text-primary fw-bold shadow-sm border-bottom mb-4">
+      <div className="d-flex justify-content-between align-items-center w-100">
         <div className="d-flex align-items-center">
           {!isDesktop && toggleSidebar && (
             <button
@@ -59,15 +61,18 @@ const PageHeader: React.FC<PageHeaderProps> = ({
             <button
               className={`btn btn-${buttonVariant} btn-sm d-flex align-items-center justify-content-center text-sm me-3`}
               onClick={() => (buttonLink ? navigate(buttonLink) : navigate(-1))}
+              style={{ minWidth: isDesktop ? 'auto' : '32px', height: isDesktop ? 'auto' : '32px', padding: isDesktop ? '' : '0' }}
+              aria-label={buttonLabel}
             >
-              {buttonLabel}
+              {buttonIcon && <i className={`bi ${buttonIcon} ${isDesktop ? 'me-2' : ''}`} style={{ fontSize: isDesktop ? '1rem' : '1.25rem' }}></i>}
+              {isDesktop && buttonLabel}
             </button>
           )}
 
           {auth.isAuthenticated ? (
             <div className="position-relative">
               <div className="d-flex align-items-center" onClick={() => setShowLogout(!showLogout)} style={{ cursor: 'pointer' }}>
-                <i className="bi bi-person-circle fs-4"></i>
+                <i className="bi bi-person-circle" style={{ fontSize: '2rem' }}></i>
               </div>
               {showLogout && (
                 <div className="position-absolute bg-white shadow-sm rounded p-2" style={{ top: '100%', right: 0, zIndex: 1000 }}>

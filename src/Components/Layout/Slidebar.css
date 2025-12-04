@@ -100,7 +100,7 @@
 }
 
 .sidebar-icon {
-  color: var(--bs-dark);
+  color: var(--bs-primary);
   font-size: 1.1rem;
   transition: all 0.2s ease;
   position: relative;
