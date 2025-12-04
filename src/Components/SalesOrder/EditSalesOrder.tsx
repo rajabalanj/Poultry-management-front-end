@@ -271,7 +271,7 @@ const EditSalesOrder: React.FC = () => {
 
   return (
     <>
-      <PageHeader title={`Edit Sales: ${so_id || 'Loading...'}`} buttonVariant="secondary" buttonLabel="Back"/>
+      <PageHeader title={`Edit Sales: ${so_id || 'Loading...'}`} buttonVariant="secondary" buttonLabel="Back" buttonIcon='bi-arrow-left'/>
       <div className="container mt-4">
         <div className="card shadow-sm">
           <div className="card-body">

@@ -252,7 +252,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
 
   return (
     <>
-      <PageHeader title={formStep === 'createOrder' ? "Create New Purchase" : `Add Payment for PO #${newPurchaseOrder?.id}`} buttonVariant="secondary" buttonLabel="Back" buttonLink="/purchase-orders" />
+      <PageHeader title={formStep === 'createOrder' ? "Create New Purchase" : `Add Payment for PO #${newPurchaseOrder?.id}`} buttonVariant="secondary" buttonLabel="Back" buttonLink="/purchase-orders" buttonIcon='bi-arrow-left'/>
       <div className="container mt-4">
         <div className="card shadow-sm">
           <div className="card-body">

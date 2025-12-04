@@ -78,6 +78,7 @@ const OperationalExpensesIndexPage: React.FC = () => {
         buttonVariant="primary"
         buttonLabel="Add New Expense"
         buttonLink="/operational-expenses/create"
+        buttonIcon="bi-plus-lg"
       />
       <div className="container mt-4">
         <div className="card shadow-sm mb-3">

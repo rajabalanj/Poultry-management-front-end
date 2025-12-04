@@ -73,7 +73,7 @@ const BusinessPartnerIndexPage = () => {
   return (
     <>
       <div className="container">
-      <PageHeader title="People" buttonVariant="primary" buttonLabel="Add People" buttonLink="/business-partners/create" />
+      <PageHeader title="People" buttonVariant="primary" buttonLabel="Add People" buttonLink="/business-partners/create" buttonIcon="bi-plus-lg" />
       
       <div className="mb-3">
         <div className="card shadow-sm">

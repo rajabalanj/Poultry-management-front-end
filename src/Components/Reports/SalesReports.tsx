@@ -61,6 +61,10 @@ const SalesReport: React.FC = () => {
     <>
       <PageHeader
         title="Sales Reports"
+        buttonVariant="primary"
+        buttonLabel="Create New"
+        buttonLink="/sales-orders/create"
+        buttonIcon="bi-plus-lg"
       />
       <div className="container mt-4">
         <div className="card shadow-sm mb-4 p-3">

@@ -180,7 +180,7 @@ const SalesOrderDetails: React.FC = () => {
 
   return (
     <>
-      <PageHeader title={`Sales Details: ${salesOrder.so_number}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/sales-orders" />
+      <PageHeader title={`Sales Details: ${salesOrder.so_number}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/sales-orders" buttonIcon="bi-arrow-left" />
       <div className="container mt-4">
         <div className="card shadow-sm mb-4">
           <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">

@@ -32,7 +32,7 @@ const LowStockReport = () => {
 
   return (
     <>
-      <PageHeader title="Low Stock Report" buttonLabel="Back" buttonVariant="secondary" />
+      <PageHeader title="Low Stock Report"/>
       <div className="container">
         {isLoading && <Loading message="Loading report..." />}
         {error && <div className="alert alert-danger text-center">{error}</div>}

@@ -40,7 +40,7 @@ const ShedDetails: React.FC = () => {
 
     return (
         <>
-            <PageHeader title="Shed Details" buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/sheds" />
+            <PageHeader title="Shed Details" buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/sheds" buttonIcon='bi-arrow-left' />
             <div className="container mt-4">
                 <div className="card shadow-sm">
                     <div className="card-header bg-primary text-white">

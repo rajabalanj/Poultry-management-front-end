@@ -56,7 +56,7 @@ const BusinessPartnerDetails: React.FC = () => {
 
   return (
     <>
-      <PageHeader title="People Details" buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/business-partners" />
+      <PageHeader title="People Details" buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/business-partners" buttonIcon="bi-arrow-left"/>
       <div className="container mt-4">
         <div className="card shadow-sm">
           <div className="card-header bg-primary text-white">

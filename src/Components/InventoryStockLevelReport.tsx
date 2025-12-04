@@ -38,7 +38,7 @@ const InventoryStockLevelReport = () => {
 
   return (
     <>
-      <PageHeader title="Inventory Stock Levels" buttonLabel="Back" buttonVariant="secondary" />
+      <PageHeader title="Inventory Stock Levels"/>
       <div className="container">
         <div className="col-12 mb-4">
           <div className="card shadow-sm">

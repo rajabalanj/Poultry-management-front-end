@@ -79,7 +79,7 @@ const fetchAuditLog = async () => {
 
   return (
     <>
-      <PageHeader title="Inventory Item Details" buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/inventory-items" />
+      <PageHeader title="Inventory Item Details" buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/inventory-items" buttonIcon="bi-arrow-left"/>
       <div className="container mt-4">
         <div className="card shadow-sm">
           <div className="card-header bg-primary text-white">

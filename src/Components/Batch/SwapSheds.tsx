@@ -67,8 +67,6 @@ const SwapSheds: React.FC = () => {
     <>
       <PageHeader
         title="Swap Sheds Between Batches"
-        buttonLabel="Back to Production"
-        buttonLink="/production"
       />
       <div className="container">
         <div className="card shadow-sm">

@@ -115,6 +115,7 @@ const InventoryItemIndexPage: React.FC = () => {
         buttonVariant="primary"
         buttonLabel="Add New Item"
         buttonLink="/inventory-items/create"
+        buttonIcon="bi-plus-lg"
       />
       <div className="container mt-4">
         {/* Filter Section */}

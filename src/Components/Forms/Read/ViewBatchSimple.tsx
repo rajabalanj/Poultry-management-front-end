@@ -55,6 +55,7 @@ const ViewBatchSimple: React.FC = () => {
         title="View Batch"
         buttonLabel="Back"
         buttonLink='/configurations'
+        buttonIcon="bi-arrow-left"
       />
       <div className="container">
         <div className="p-4">

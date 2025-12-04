@@ -158,6 +158,7 @@ const EditBatch: React.FC = () => {
         title={new Intl.DateTimeFormat('en-GB').format(new Date(batch.batch_date)).replace(/\//g, '-')}
         subtitle={` ${batch.batch_no}`}
         buttonLabel="Back"
+        buttonIcon="bi-arrow-left"
       />
       <div className="container mt-4">
         <div className="card shadow-sm mb-4">

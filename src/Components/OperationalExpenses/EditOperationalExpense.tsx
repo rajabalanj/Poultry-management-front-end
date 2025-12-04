@@ -87,7 +87,7 @@ const EditOperationalExpense: React.FC = () => {
 
     return (
         <>
-            <PageHeader title={`Edit Expense: ${expense.expense_type}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/operational-expenses" />
+            <PageHeader title={`Edit Expense: ${expense.expense_type}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/operational-expenses" buttonIcon='bi-arrow-left'/>
             <div className="container mt-4">
                 <div className="card shadow-sm">
                     <div className="card-body">

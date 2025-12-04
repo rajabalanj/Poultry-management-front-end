@@ -284,7 +284,7 @@ const PreviousDayReport = () => {
 
   return (
     <>
-    <PageHeader title="Batch Reports" buttonLabel='Back' buttonVariant='secondary'/>
+    <PageHeader title="Batch Reports" buttonLabel='Back' buttonVariant='secondary' buttonIcon="bi-arrow-left"/>
     <div className="container">
         <div className="col-12 mb-4">
           <div className="card shadow-sm">

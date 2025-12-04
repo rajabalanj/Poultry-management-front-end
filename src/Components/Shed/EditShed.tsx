@@ -73,7 +73,7 @@ const EditShed: React.FC = () => {
 
     return (
         <>
-            <PageHeader title={`Edit Shed: ${shed.shed_no}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/sheds" />
+            <PageHeader title={`Edit Shed: ${shed.shed_no}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/sheds" buttonIcon='bi-arrow-left'/>
             <div className="container mt-4">
                 <div className="card shadow-sm">
                     <div className="card-body">

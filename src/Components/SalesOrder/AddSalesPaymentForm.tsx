@@ -118,6 +118,8 @@ const AddSalesPaymentForm: React.FC = () => {
         title={`Add Payment for Sales: ${salesOrder.so_number}`}
         buttonVariant="secondary"
         buttonLabel="Back"
+        buttonLink={`/sales-orders/${so_id}/details`}
+        buttonIcon="bi-arrow-left"
       />
       <div className="container mt-4">
         <div className="card shadow-sm">

@@ -66,7 +66,7 @@ const CreateBusinessPartnerForm: React.FC<CreateBusinessPartnerFormProps> = ({ o
     return (
         <>
             {!hideHeader && (
-              <PageHeader title="Create New People" buttonVariant="secondary" buttonLabel="Back" buttonLink="/business-partners" />
+              <PageHeader title="Create New People" buttonVariant="secondary" buttonLabel="Back" buttonLink="/business-partners" buttonIcon='bi-arrow-left' />
             )}
             <div className={hideHeader ? undefined : 'container mt-4'}>
                 <div className="card shadow-sm">

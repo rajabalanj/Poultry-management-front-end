@@ -106,6 +106,7 @@ const PurchaseOrderIndexPage: React.FC = () => {
         buttonVariant="primary"
         buttonLabel="Create New"
         buttonLink="/purchase-orders/create"
+        buttonIcon="bi-plus-lg"
       />
       <div className="container mt-4">
         <div className="card shadow-sm mb-4 p-3">

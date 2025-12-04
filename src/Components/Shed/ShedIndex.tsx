@@ -70,6 +70,7 @@ const ShedIndexPage: React.FC = () => {
         buttonVariant="primary"
         buttonLabel="Add New Shed"
         buttonLink="/sheds/create"
+        buttonIcon="bi-plus-lg"
       />
       <div className="container mt-4">
         <ShedTable

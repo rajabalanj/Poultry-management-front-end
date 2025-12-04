@@ -85,6 +85,7 @@ const CompositionUsageHistory = () => {
         title={composition ? `Usage History for "${composition.name}"` : "Composition Usage History"}
         buttonLabel="Back to Feed Mill"
         buttonLink="/feed-mill-stock"
+        buttonIcon="bi-arrow-left"
       />
     <div className="container">
       

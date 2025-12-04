@@ -87,7 +87,7 @@ const EditInventoryItem: React.FC = () => {
 
   return (
     <>
-      <PageHeader title={`Edit Item: ${item.name}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/inventory-items" />
+      <PageHeader title={`Edit Item: ${item.name}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/inventory-items" buttonIcon="bi-arrow-left"/>
       <div className="container mt-4">
         <div className="card shadow-sm">
           <div className="card-body">

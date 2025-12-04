@@ -103,6 +103,7 @@ const EditBatchSimple: React.FC = () => {
         title="Edit Batch"
         buttonLabel="Back"
         buttonLink='/configurations'
+        buttonIcon="bi-arrow-left"
       />
     <div className="container">
       <div className="p-4">

@@ -60,6 +60,7 @@ const MoveShed: React.FC = () => {
         title="Move Batch to a New Shed"
         buttonLabel="Back to Batch Details"
         buttonLink={batch_id ? `/batch/${batch_id}/${new Date().toISOString()}/details` : '/production'}
+        buttonIcon="bi-arrow-left"
       />
       <div className="container">
         <div className="card shadow-sm">
