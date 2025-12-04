@@ -112,6 +112,11 @@
   transform: scale(1.1);
 }
 
+/* Change parent icon color when submenu item is active */
+.nav-menu-link.expandable.active .sidebar-icon {
+  color: var(--bs-white);
+}
+
 .sidebar-text {
   color: inherit;
   flex: 1;
