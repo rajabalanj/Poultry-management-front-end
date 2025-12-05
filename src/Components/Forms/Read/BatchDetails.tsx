@@ -183,18 +183,19 @@ const BatchDetails: React.FC = () => {
                 <div className="col-12 col-md-6">
                   <div className="d-flex align-items-center">
                     <label className="form-label me-3 mb-0">Batch Date</label>
-                    <DatePicker
-                      selected={batch_date ? new Date(batch_date) : null}
-                      onChange={(date: Date | null) => handleDateChange(date)}
-                      dateFormat="dd-MM-yyyy"
-                      showMonthDropdown
-                      showYearDropdown
-                      dropdownMode="select"
-                      className="form-control"
-                      maxDate={new Date()}
-                      style={{ maxWidth: "200px" }}
-                      placeholderText="Select a date"
-                    />
+                    <div style={{ maxWidth: "200px" }}>
+                      <DatePicker
+                        selected={batch_date ? new Date(batch_date) : null}
+                        onChange={(date: Date | null) => handleDateChange(date)}
+                        dateFormat="dd-MM-yyyy"
+                        showMonthDropdown
+                        showYearDropdown
+                        dropdownMode="select"
+                        className="form-control"
+                        maxDate={new Date()}
+                        placeholderText="Select a date"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
