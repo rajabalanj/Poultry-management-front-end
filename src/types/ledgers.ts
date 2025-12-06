@@ -1,8 +1,10 @@
 
 export interface GeneralLedgerEntry {
     date: string;
-    description: string;
-    journal_ref_id?: string;
+    transaction_type: string;
+    party: string;
+    reference_document: string;
+    details: string;
     debit: number;
     credit: number;
     balance: number;

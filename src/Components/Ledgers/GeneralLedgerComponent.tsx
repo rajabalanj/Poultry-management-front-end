@@ -78,8 +78,10 @@ const GeneralLedgerComponent: React.FC = () => {
                             <thead>
                                 <tr>
                                     <th>Date</th>
-                                    <th>Description</th>
-                                    <th>Journal Ref ID</th>
+                                    <th>Transaction Type</th>
+                                    <th>Party</th>
+                                    <th>Reference Document</th>
+                                    <th>Details</th>
                                     <th>Debit</th>
                                     <th>Credit</th>
                                     <th>Balance</th>
@@ -89,8 +91,10 @@ const GeneralLedgerComponent: React.FC = () => {
                                 {ledgerData.entries.map((entry, index) => (
                                     <tr key={index}>
                                         <td>{entry.date}</td>
-                                        <td>{entry.description}</td>
-                                        <td>{entry.journal_ref_id}</td>
+                                        <td>{entry.transaction_type}</td>
+                                        <td>{entry.party}</td>
+                                        <td>{entry.reference_document}</td>
+                                        <td>{entry.details}</td>
                                         <td>{entry.debit.toFixed(2)}</td>
                                         <td>{entry.credit.toFixed(2)}</td>
                                         <td>{entry.balance.toFixed(2)}</td>

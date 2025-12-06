@@ -2,7 +2,8 @@
   background-color: var(--bs-light) !important;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   height: 100vh;
 }
 

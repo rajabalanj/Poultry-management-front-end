@@ -155,8 +155,7 @@ const EditBatch: React.FC = () => {
   return (
     <>
       <PageHeader
-        title={new Intl.DateTimeFormat('en-GB').format(new Date(batch.batch_date)).replace(/\//g, '-')}
-        subtitle={` ${batch.batch_no}`}
+        subtitle={`Update ${batch.batch_no}`}
         buttonLabel="Back"
         buttonIcon="bi-arrow-left"
       />
