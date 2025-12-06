@@ -4,6 +4,8 @@ export interface GeneralLedgerEntry {
     transaction_type: string;
     party: string;
     reference_document: string;
+    transaction_id: number;
+    reference_id: number;
     details: string;
     debit: number;
     credit: number;

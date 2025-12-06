@@ -16,7 +16,7 @@ import {
   SalesOrderItemResponse, 
 } from '../../types/SalesOrderItem';
 import { BusinessPartner } from '../../types/BusinessPartner';
-import { InventoryItemResponse } from '../../types/InventoryItem';
+import { InventoryItemResponse, InventoryItemCategory } from '../../types/InventoryItem';
 import { format } from 'date-fns';
 
 interface FormSalesOrderItem extends SalesOrderItemResponse {
@@ -68,7 +68,7 @@ const EditSalesOrder: React.FC = () => {
         const [soData, customersData, inventoryItemsData] = await Promise.all([
           salesOrderApi.getSalesOrder(Number(so_id)),
           businessPartnerApi.getCustomers(),
-          inventoryItemApi.getInventoryItems(),
+          inventoryItemApi.getInventoryItems(0, 1000, InventoryItemCategory.SUPPLIES),
         ]);
 
         // Set main SO details

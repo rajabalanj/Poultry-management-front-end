@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
+import { Link } from 'react-router-dom';
 import { ledgerApi } from '../../services/api';
 import { GeneralLedger } from '../../types/ledgers';
 import Loading from '../Common/Loading';
@@ -93,7 +94,19 @@ const GeneralLedgerComponent: React.FC = () => {
                                         <td>{entry.date}</td>
                                         <td>{entry.transaction_type}</td>
                                         <td>{entry.party}</td>
-                                        <td>{entry.reference_document}</td>
+                                        <td>
+                                            {entry.transaction_type.toLowerCase().includes('purchase') ? (
+                                                <Link to={`/purchase-orders/${entry.reference_id}/details`} className="text-decoration-none">
+                                                    {entry.reference_document}
+                                                </Link>
+                                            ) : entry.transaction_type.toLowerCase().includes('sales') ? (
+                                                <Link to={`/sales-orders/${entry.reference_id}/details`} className="text-decoration-none">
+                                                    {entry.reference_document}
+                                                </Link>
+                                            ) : (
+                                                entry.reference_document
+                                            )}
+                                        </td>
                                         <td>{entry.details}</td>
                                         <td>{entry.debit.toFixed(2)}</td>
                                         <td>{entry.credit.toFixed(2)}</td>
