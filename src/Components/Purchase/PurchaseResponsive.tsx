@@ -1,214 +1,72 @@
-import React, { useCallback, useEffect, useState } from "react";
-import "bootstrap-icons/font/bootstrap-icons.css";
-import PageHeader from "../Layout/PageHeader";
-import { Modal, Button } from "react-bootstrap";
-import { purchaseOrderApi, businessPartnerApi } from "../../services/api";
-import { PurchaseOrderResponse, PurchaseOrderStatus } from "../../types/PurchaseOrder";
-import { BusinessPartner } from "../../types/BusinessPartner";
-import { toast } from 'react-toastify';
-import PurchaseOrderTable from "../PurchaseOrder/PurchaseOrderTable";
-import PurchaseReportTable from "../Reports/PurchaseReportTable";
-import DatePicker from 'react-datepicker';
-import { format } from 'date-fns';
-import { useNavigate } from "react-router-dom";
+// src/Components/Purchase/PurchaseResponsive.tsx
+import React from 'react';
 import { useMediaQuery } from 'react-responsive';
+import { useLocation } from 'react-router-dom';
+import PageHeader from '../Layout/PageHeader';
+import { Modal, Button } from 'react-bootstrap';
+import { usePurchaseOrders } from '../../hooks/usePurchaseOrders'; // New hook
+import PurchaseOrderTable from '../PurchaseOrder/PurchaseOrderTable';
+import PurchaseReportTable from '../Reports/PurchaseReportTable';
+import PurchaseFilter from './PurchaseFilter'; // New filter component
 
 const PurchaseResponsive: React.FC = () => {
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrderResponse[]>([]);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [poToDelete, setPoToDelete] = useState<number | null>(null);
-  const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(null);
-  const [vendors, setVendors] = useState<BusinessPartner[]>([]);
-  const [filterVendorId, setFilterVendorId] = useState<number | ''>('');
-  const [filterStatus, setFilterStatus] = useState<PurchaseOrderStatus | ''>('');
-  const [filterStartDate, setFilterStartDate] = useState<Date | null>(null);
-  const [filterEndDate, setFilterEndDate] = useState<Date | null>(null);
+  const {
+    loading,
+    error,
+    purchaseOrders,
+    vendors,
+    filters,
+    setFilters,
+    deleteModal,
+    handleAddPayment,
+  } = usePurchaseOrders();
 
-  // Determine if the view should be mobile or desktop
   const isMobile = useMediaQuery({ maxWidth: 768 });
-  const isDesktop = useMediaQuery({ minWidth: 769 });
+  const location = useLocation();
 
-  useEffect(() => {
-    const fetchVendors = async () => {
-      try {
-        const response = await businessPartnerApi.getVendors();
-        setVendors(response);
-      } catch (error: any) {
-        console.error("Failed to fetch vendors for filter:", error);
-      }
-    };
-    fetchVendors();
-  }, []);
+  // Determine title based on the route
+  const isReportView = location.pathname.includes('/reports/purchases');
+  const title = isReportView ? "Purchase Reports" : "Purchases";
 
-  useEffect(() => {
-    const fetchPurchaseOrderList = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await purchaseOrderApi.getPurchaseOrders(
-          0,
-          100,
-          filterVendorId === '' ? undefined : filterVendorId,
-          filterStatus === '' ? undefined : filterStatus,
-          filterStartDate ? format(filterStartDate, 'yyyy-MM-dd') : undefined,
-          filterEndDate ? format(filterEndDate, 'yyyy-MM-dd') : undefined,
-        );
-        setPurchaseOrders(response);
-      } catch (error: any) {
-        setError(error?.message || 'Failed to fetch Purchase list');
-        toast.error(error?.message || 'Failed to fetch Purchase list');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchPurchaseOrderList();
-  }, [filterVendorId, filterStatus, filterStartDate, filterEndDate]);
-
-  const handleDelete = useCallback((id: number) => {
-    setPoToDelete(id);
-    setDeleteErrorMessage(null);
-    setShowDeleteModal(true);
-  }, []);
-
-  const handleAddPayment = useCallback((id: number) => {
-    navigate(`/purchase-orders/${id}/add-payment`);
-  }, [navigate]);
-
-  const confirmDelete = async () => {
-    if (poToDelete !== null) {
-      try {
-        await purchaseOrderApi.deletePurchaseOrder(poToDelete);
-        setPurchaseOrders((prevPOs) => prevPOs.filter((Purchase) => Purchase.id !== poToDelete));
-        toast.success("Purchase deleted successfully!");
-      } catch (error: any) {
-        const message = error?.message || 'Failed to delete Purchase';
-        setDeleteErrorMessage(message);
-        toast.error(message);
-      } finally {
-        if (!deleteErrorMessage) {
-          setPoToDelete(null);
-          setShowDeleteModal(false);
-        }
-      }
-    }
-  };
-
-  const cancelDelete = () => {
-    setPoToDelete(null);
-    setShowDeleteModal(false);
-    setDeleteErrorMessage(null);
-  };
-
-  // Render different content based on screen size
   const renderContent = () => {
     if (isMobile) {
-      // Mobile view - show PurchaseOrderIndex
+      // Mobile view - Management view with PurchaseOrderTable
       return (
         <>
           <PageHeader
-            title="Purchase"
+            title={title}
             buttonVariant="primary"
             buttonLabel="Create New"
             buttonLink="/purchase-orders/create"
           />
           <div className="container mt-4">
-            <div className="card shadow-sm mb-4 p-3">
-              <h5 className="mb-3">Filter Purchase</h5>
-              <div className="row g-3">
-                <div className="col-md-3">
-                  <label htmlFor="vendorFilter" className="form-label">Vendor:</label>
-                  <select
-                    id="vendorFilter"
-                    className="form-select"
-                    value={filterVendorId}
-                    onChange={(e) => setFilterVendorId(Number(e.target.value) || '')}
-                  >
-                    <option value="">All Vendors</option>
-                    {vendors.map((vendor) => (
-                      <option key={vendor.id} value={vendor.id}>{vendor.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="col-md-3">
-                  <label htmlFor="statusFilter" className="form-label">Status:</label>
-                  <select
-                    id="statusFilter"
-                    className="form-select"
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value as PurchaseOrderStatus | '')}
-                  >
-                    <option value="">All Statuses</option>
-                    {Object.values(PurchaseOrderStatus).map((status) => (
-                      <option key={status} value={status}>{status}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="col-md-3">
-                  <label htmlFor="startDateFilter" className="form-label">Start Date:</label>
-                  <div>
-                  <DatePicker
-                    selected={filterStartDate}
-                    onChange={(date: Date | null) => setFilterStartDate(date)}
-                    className="form-control"
-                    placeholderText="Select start date"
-                    isClearable={true}
-                    dateFormat="dd-MM-yyyy"
-                    maxDate={filterEndDate ?? undefined}
-                    showMonthDropdown
-                    showYearDropdown
-                    dropdownMode="select"
-                    popperPlacement="bottom-start"
-                    />
-                  </div>
-                </div>
-                <div className="col-md-3">
-                  <label htmlFor="endDateFilter" className="form-label">End Date:</label>
-                  <div>
-                  <DatePicker
-                    selected={filterEndDate}
-                    onChange={(date: Date | null) => setFilterEndDate(date)}
-                    dateFormat="dd-MM-yyyy"
-                    className="form-control"
-                    placeholderText="Select end date"
-                    isClearable
-                    minDate={filterStartDate ?? undefined}
-                    showMonthDropdown
-                    showYearDropdown
-                    dropdownMode="select"
-                    popperPlacement="bottom-start"
-                  />
-                  </div>
-                </div>
-              </div>
-            </div>
+            <PurchaseFilter vendors={vendors} filters={filters} setFilters={setFilters} />
 
             <PurchaseOrderTable
               purchaseOrders={purchaseOrders}
               loading={loading}
               error={error}
-              onDelete={handleDelete}
+              onDelete={deleteModal.handleDelete}
               vendors={vendors}
               onAddPayment={handleAddPayment}
             />
-            <Modal show={showDeleteModal} onHide={cancelDelete}>
+            
+            <Modal show={deleteModal.show} onHide={deleteModal.cancelDelete}>
               <Modal.Header closeButton>
                 <Modal.Title>Confirm Delete</Modal.Title>
               </Modal.Header>
               <Modal.Body>
-                {deleteErrorMessage ? (
-                  <div className="text-danger mb-3">{deleteErrorMessage}</div>
+                {deleteModal.errorMessage ? (
+                  <div className="text-danger mb-3">{deleteModal.errorMessage}</div>
                 ) : (
-                  "Are you sure you want to delete this Purchase? This action cannot be undone."
+                  "Are you sure you want to delete this purchase order? This action cannot be undone."
                 )}
               </Modal.Body>
               <Modal.Footer>
-                <Button variant="secondary" onClick={cancelDelete}>
+                <Button variant="secondary" onClick={deleteModal.cancelDelete}>
                   Cancel
                 </Button>
-                <Button variant="danger" onClick={confirmDelete} disabled={!!deleteErrorMessage}>
+                <Button variant="danger" onClick={deleteModal.confirmDelete} disabled={!!deleteModal.errorMessage}>
                   Delete
                 </Button>
               </Modal.Footer>
@@ -216,106 +74,33 @@ const PurchaseResponsive: React.FC = () => {
           </div>
         </>
       );
-    } else if (isDesktop) {
-      // Desktop view - show PurchaseReport
-      return (
-        <>
-          <PageHeader
-            title="Purchase Reports"
-            buttonVariant="primary"
-            buttonLabel="Create New"
-            buttonLink="/purchase-orders/create"
-            buttonIcon="bi-plus-lg"
-          />
-          <div className="container mt-4">
-            <div className="card shadow-sm mb-4 p-3">
-              <h5 className="mb-3">Filter Purchase</h5>
-              <div className="row g-3">
-                <div className="col-md-3">
-                  <label htmlFor="vendorFilter" className="form-label">Vendor:</label>
-                  <select
-                    id="vendorFilter"
-                    className="form-select"
-                    value={filterVendorId}
-                    onChange={(e) => setFilterVendorId(Number(e.target.value) || '')}
-                  >
-                    <option value="">All Vendors</option>
-                    {vendors.map((vendor) => (
-                      <option key={vendor.id} value={vendor.id}>{vendor.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="col-md-3">
-                  <label htmlFor="statusFilter" className="form-label">Status:</label>
-                  <select
-                    id="statusFilter"
-                    className="form-select"
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value as PurchaseOrderStatus | '')}
-                  >
-                    <option value="">All Statuses</option>
-                    {Object.values(PurchaseOrderStatus).map((status) => (
-                      <option key={status} value={status}>{status}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="col-md-3">
-                  <label htmlFor="startDateFilter" className="form-label">Start Date:</label>
-                  <div>
-                  <DatePicker
-                    selected={filterStartDate}
-                    onChange={(date: Date | null) => setFilterStartDate(date)}
-                    className="form-control"
-                    placeholderText="Select start date"
-                    isClearable={true}
-                    dateFormat="dd-MM-yyyy"
-                    maxDate={filterEndDate ?? undefined}
-                    showMonthDropdown
-                    showYearDropdown
-                    dropdownMode="select"
-                    popperPlacement="bottom-start"
-                    />
-                  </div>
-                </div>
-                <div className="col-md-3">
-                  <label htmlFor="endDateFilter" className="form-label">End Date:</label>
-                  <div>
-                  <DatePicker
-                    selected={filterEndDate}
-                    onChange={(date: Date | null) => setFilterEndDate(date)}
-                    dateFormat="dd-MM-yyyy"
-                    className="form-control"
-                    placeholderText="Select end date"
-                    isClearable
-                    minDate={filterStartDate ?? undefined}
-                    showMonthDropdown
-                    showYearDropdown
-                    dropdownMode="select"
-                    popperPlacement="bottom-start"
-                  />
-                  </div>
-                </div>
-              </div>
-            </div>
+    } 
+    
+    // Desktop view - Report view with PurchaseReportTable
+    return (
+      <>
+        <PageHeader
+          title={title}
+          buttonVariant="primary"
+          buttonLabel="Create New"
+          buttonLink="/purchase-orders/create"
+          buttonIcon="bi-plus-lg"
+        />
+        <div className="container mt-4">
+          <PurchaseFilter vendors={vendors} filters={filters} setFilters={setFilters} />
 
-            <PurchaseReportTable
-              purchaseOrders={purchaseOrders}
-              loading={loading}
-              error={error}
-              vendors={vendors}
-            />
-          </div>
-        </>
-      );
-    }
-    return null; // Default fallback
+          <PurchaseReportTable
+            purchaseOrders={purchaseOrders}
+            loading={loading}
+            error={error}
+            vendors={vendors}
+          />
+        </div>
+      </>
+    );
   };
 
-  return (
-    <>
-      {renderContent()}
-    </>
-  );
+  return <>{renderContent()}</>;
 };
 
 export default PurchaseResponsive;
