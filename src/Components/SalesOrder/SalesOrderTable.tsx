@@ -1,12 +1,16 @@
 // src/components/SalesOrder/SalesOrderTable.tsx
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { SalesOrderResponse } from "../../types/SalesOrder";
+import { SalesOrderItemResponse } from "../../types/SalesOrderItem";
 import { BusinessPartner } from "../../types/BusinessPartner";
 import SalesOrderCard from "../SalesOrder/SalesOrderCard";
 import { toPng } from 'html-to-image';
 import { Button } from 'react-bootstrap';
 import { toast } from 'react-toastify';
+import ItemsModal from '../Common/ItemsModal';
+import { inventoryItemApi } from "../../services/api";
+import { InventoryItemResponse } from "../../types/InventoryItem";
 
 interface SalesOrderTableProps {
   salesOrders: SalesOrderResponse[];
@@ -21,6 +25,36 @@ const SalesOrderTable: React.FC<SalesOrderTableProps> = ({ salesOrders, loading,
   const navigate = useNavigate();
   const tableRef = useRef<HTMLDivElement>(null);
   const [isSharing, setIsSharing] = useState(false);
+
+  const [showItemsModal, setShowItemsModal] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<SalesOrderItemResponse[]>([]);
+  const [selectedSOId, setSelectedSOId] = useState<string | null>(null);
+  const [inventoryItems, setInventoryItems] = useState<InventoryItemResponse[]>([]);
+
+  useEffect(() => {
+    // Pre-fetch inventory items to make modal loading faster
+    const fetchInventoryItems = async () => {
+      try {
+        const items = await inventoryItemApi.getInventoryItems();
+        setInventoryItems(items);
+      } catch (error) {
+        console.error("Failed to pre-fetch inventory items:", error);
+      }
+    };
+    fetchInventoryItems();
+  }, []);
+
+  const getItemName = (itemId: number) => {
+    const item = inventoryItems.find(i => i.id === itemId);
+    return item?.name || 'N/A';
+  };
+
+  const handleViewItems = useCallback((items: SalesOrderItemResponse[], so_number: string) => {
+    setSelectedItems(items);
+    setSelectedSOId(so_number);
+    setShowItemsModal(true);
+  }, []);
+
 
   const handleShareAsImage = async () => {
     if (!tableRef.current) {
@@ -104,14 +138,15 @@ const SalesOrderTable: React.FC<SalesOrderTableProps> = ({ salesOrders, loading,
       <SalesOrderCard
         key={so.id}
         so={so}
-  customers={customers}
+        customers={customers}
         onView={handleViewDetails}
         onEdit={handleEdit}
         onDelete={onDelete}
         onAddPayment={onAddPayment}
+        onViewItems={handleViewItems}
       />
     ));
-  }, [salesOrders, customers, handleViewDetails, handleEdit, onDelete, onAddPayment]); // Add customers to dependencies
+  }, [salesOrders, customers, handleViewDetails, handleEdit, onDelete, onAddPayment, handleViewItems]);
 
   if (loading) return <div className="text-center">Loading sales...</div>;
   if (error) return <div className="text-center text-danger">{error}</div>;
@@ -136,6 +171,7 @@ const SalesOrderTable: React.FC<SalesOrderTableProps> = ({ salesOrders, loading,
                 <th>Total Amount</th>
                 <th>Amount Paid</th>
                 <th>Status</th>
+                <th>Items</th>
               </tr>
             </thead>
             <tbody>
@@ -156,6 +192,9 @@ const SalesOrderTable: React.FC<SalesOrderTableProps> = ({ salesOrders, loading,
                   so.status === 'Cancelled' ? 'bg-danger' :
                   'bg-secondary'
                 }`}>{so.status}</span></td>
+                <td>
+                    {so.items?.map(item => getItemName(item.inventory_item_id)).join(', ') || 'N/A'}
+                  </td>
                   </tr>
                 );
               })}
@@ -163,6 +202,12 @@ const SalesOrderTable: React.FC<SalesOrderTableProps> = ({ salesOrders, loading,
           </table>
         </div>
       </div>
+      <ItemsModal
+        show={showItemsModal}
+        onHide={() => setShowItemsModal(false)}
+        items={selectedItems}
+        title={`Items for SO: ${selectedSOId}`}
+      />
     </>
   );
 };

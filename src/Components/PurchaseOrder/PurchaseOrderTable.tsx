@@ -1,12 +1,16 @@
 // src/components/PurchaseOrder/PurchaseOrderTable.tsx
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { PurchaseOrderResponse } from "../../types/PurchaseOrder";
+import { PurchaseOrderItemResponse } from "../../types/PurchaseOrderItem";
 import { BusinessPartner } from "../../types/BusinessPartner";
 import PurchaseOrderCard from "./PurchaseOrderCard";
 import { toPng } from 'html-to-image';
 import { Button } from 'react-bootstrap';
 import { toast } from 'react-toastify';
+import ItemsModal from '../Common/ItemsModal';
+import { inventoryItemApi } from "../../services/api";
+import { InventoryItemResponse } from "../../types/InventoryItem";
 
 interface PurchaseOrderTableProps {
   purchaseOrders: PurchaseOrderResponse[];
@@ -21,6 +25,35 @@ const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders,
   const navigate = useNavigate();
   const tableRef = useRef<HTMLDivElement>(null);
   const [isSharing, setIsSharing] = useState(false);
+
+  const [showItemsModal, setShowItemsModal] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<PurchaseOrderItemResponse[]>([]);
+  const [selectedPOId, setSelectedPOId] = useState<string | null>(null);
+  const [inventoryItems, setInventoryItems] = useState<InventoryItemResponse[]>([]);
+
+  useEffect(() => {
+    // Pre-fetch inventory items to make modal loading faster
+    const fetchInventoryItems = async () => {
+      try {
+        const items = await inventoryItemApi.getInventoryItems();
+        setInventoryItems(items);
+      } catch (error) {
+        console.error("Failed to pre-fetch inventory items:", error);
+      }
+    };
+    fetchInventoryItems();
+  }, []);
+
+  const getItemName = (itemId: number) => {
+    const item = inventoryItems.find(i => i.id === itemId);
+    return item?.name || 'N/A';
+  };
+
+  const handleViewItems = useCallback((items: PurchaseOrderItemResponse[], po_number: string) => {
+    setSelectedItems(items);
+    setSelectedPOId(po_number);
+    setShowItemsModal(true);
+  }, []);
 
   const handleShareAsImage = async () => {
     if (!tableRef.current) {
@@ -108,9 +141,10 @@ const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders,
         onEdit={handleEdit}
         onDelete={onDelete}
         onAddPayment={onAddPayment}
+        onViewItems={handleViewItems}
       />
     ));
-  }, [purchaseOrders, vendors, handleViewDetails, handleEdit, onDelete, onAddPayment]); // Add vendors to dependencies
+  }, [purchaseOrders, vendors, handleViewDetails, handleEdit, onDelete, onAddPayment, handleViewItems]);
 
   if (loading) return <div className="text-center">Loading Purchase...</div>;
   if (error) return <div className="text-center text-danger">{error}</div>;
@@ -135,6 +169,7 @@ const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders,
                 <th>Total Amount</th>
                 <th>Amount Paid</th>
                 <th>Status</th>
+                <th>Items</th>
               </tr>
             </thead>
             <tbody>
@@ -153,6 +188,9 @@ const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders,
                   po.status === 'Paid' ? 'bg-success' :
                   'bg-secondary'
                 }`}>{po.status}</span></td>
+                <td>
+                  {po.items?.map(item => getItemName(item.inventory_item_id)).join(', ') || 'N/A'}
+                </td>
                   </tr>
                 );
               })}
@@ -160,6 +198,12 @@ const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders,
           </table>
         </div>
       </div>
+      <ItemsModal
+        show={showItemsModal}
+        onHide={() => setShowItemsModal(false)}
+        items={selectedItems}
+        title={`Items for PO: ${selectedPOId}`}
+      />
     </>
   );
 };

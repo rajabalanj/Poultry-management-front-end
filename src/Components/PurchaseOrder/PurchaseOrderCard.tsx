@@ -1,6 +1,7 @@
 // src/components/PurchaseOrder/PurchaseOrderCard.tsx
 import React from "react";
 import { PurchaseOrderResponse, PurchaseOrderStatus, PaymentStatus } from "../../types/PurchaseOrder";
+import { PurchaseOrderItemResponse } from "../../types/PurchaseOrderItem";
 import { BusinessPartner } from "../../types/BusinessPartner";
 
 interface PurchaseOrderCardProps {
@@ -10,6 +11,7 @@ interface PurchaseOrderCardProps {
   onEdit?: (id: number) => void;
   onDelete?: (id: number) => void;
   onAddPayment?: (id: number) => void;
+  onViewItems: (items: PurchaseOrderItemResponse[], po_number: string) => void;
 }
 
 const getStatusBadgeClass = (status: PurchaseOrderStatus | PaymentStatus) => {
@@ -29,15 +31,15 @@ const getStatusBadgeClass = (status: PurchaseOrderStatus | PaymentStatus) => {
 };
 
 const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = React.memo(
-  ({ Purchase, vendors, onView, onEdit, onDelete, onAddPayment }) => {
+  ({ Purchase, vendors, onView, onEdit, onDelete, onAddPayment, onViewItems }) => {
     
     const vendorName = vendors.find(v => v.id === Purchase.vendor_id)?.name || 'N/A';
 
     // Stop event propagation for buttons
-    const handleActionClick = (e: React.MouseEvent, action: ((id: number) => void) | undefined, id: number) => {
+    const handleActionClick = (e: React.MouseEvent, action: ((...args: any[]) => void) | undefined, ...args: any[]) => {
       e.stopPropagation();
       if (action) {
-        action(id);
+        action(...args);
       }
     };
 
@@ -62,25 +64,30 @@ const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = React.memo(
                 <p className="mb-0">Status: <span className={`badge ${getStatusBadgeClass(Purchase.status)}`}>{Purchase.status}</span></p>
               </div>
             </div>
-            {showActions && (
-              <div className="d-flex align-items-center">
-                {onEdit && (
-                  <button className="btn btn-sm btn-outline-primary me-2" onClick={(e) => handleActionClick(e, onEdit, Purchase.id)}>
-                    <i className="bi bi-pencil-fill"></i>
-                  </button>
-                )}
-                {onDelete && (
-                  <button className="btn btn-sm btn-outline-danger me-2" onClick={(e) => handleActionClick(e, onDelete, Purchase.id)}>
-                    <i className="bi bi-trash-fill"></i>
-                  </button>
-                )}
-                {onAddPayment && (
-                  <button className="btn btn-sm btn-outline-success" onClick={(e) => handleActionClick(e, onAddPayment, Purchase.id)}>
-                    <i className="bi bi-credit-card-fill"></i>
-                  </button>
-                )}
-              </div>
-            )}
+            <div className="d-flex align-items-center">
+              <button className="btn btn-sm btn-outline-info me-2" onClick={(e) => handleActionClick(e, onViewItems, Purchase.items, Purchase.po_number)}>
+                  <i className="bi bi-list-ul"></i>
+              </button>
+              {showActions && (
+                <>
+                  {onEdit && (
+                    <button className="btn btn-sm btn-outline-primary me-2" onClick={(e) => handleActionClick(e, onEdit, Purchase.id)}>
+                      <i className="bi bi-pencil-fill"></i>
+                    </button>
+                  )}
+                  {onDelete && (
+                    <button className="btn btn-sm btn-outline-danger me-2" onClick={(e) => handleActionClick(e, onDelete, Purchase.id)}>
+                      <i className="bi bi-trash-fill"></i>
+                    </button>
+                  )}
+                  {onAddPayment && (
+                    <button className="btn btn-sm btn-outline-success" onClick={(e) => handleActionClick(e, onAddPayment, Purchase.id)}>
+                      <i className="bi bi-credit-card-fill"></i>
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>

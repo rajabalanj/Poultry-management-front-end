@@ -1,11 +1,13 @@
 // src/Components/Reports/SalesReportsTable.tsx
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 import { SalesOrderResponse } from '../../types/SalesOrder';
+import { SalesOrderItemResponse } from '../../types/SalesOrderItem';
 import { BusinessPartner } from '../../types/BusinessPartner';
 import { useNavigate } from 'react-router-dom';
 import { toPng } from 'html-to-image';
 import { Button } from 'react-bootstrap';
 import { toast } from 'react-toastify';
+import ItemsModal from '../Common/ItemsModal';
 
 interface SalesReportTableProps {
   salesOrders: SalesOrderResponse[];
@@ -18,6 +20,9 @@ const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, custom
   const navigate = useNavigate();
   const tableRef = useRef<HTMLDivElement>(null);
   const [isSharing, setIsSharing] = useState(false);
+  const [showItemsModal, setShowItemsModal] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<SalesOrderItemResponse[]>([]);
+  const [selectedSOId, setSelectedSOId] = useState<string | null>(null);
 
   const handleViewDetails = (id: number) => {
     if (!id) {
@@ -26,6 +31,12 @@ const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, custom
     }
     navigate(`/sales-orders/${id}/details`);
   };
+
+  const handleViewItems = useCallback((items: SalesOrderItemResponse[] | undefined, so_number: string) => {
+    setSelectedItems(items || []);
+    setSelectedSOId(so_number);
+    setShowItemsModal(true);
+  }, []);
 
   const handleShareAsImage = async () => {
     if (!tableRef.current) {
@@ -102,6 +113,7 @@ const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, custom
               <th>Total Amount</th>
               <th>Amount Paid</th>
               <th>Status</th>
+              <th>Items</th>
             </tr>
           </thead>
           <tbody>
@@ -122,12 +134,30 @@ const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, custom
                 so.status === 'Cancelled' ? 'bg-danger' :
                 'bg-secondary'
               }`}>{so.status}</span></td>
+              <td>
+                <Button 
+                  variant="outline-info" 
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleViewItems(so.items, so.so_number);
+                  }}
+                >
+                  View Items
+                </Button>
+              </td>
                 </tr>
               );
             })}
           </tbody>
         </table>
       </div>
+      <ItemsModal
+        show={showItemsModal}
+        onHide={() => setShowItemsModal(false)}
+        items={selectedItems}
+        title={`Items for SO: ${selectedSOId}`}
+      />
     </>
   );
 };

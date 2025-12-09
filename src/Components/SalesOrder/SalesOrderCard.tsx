@@ -1,6 +1,7 @@
 // src/components/SalesOrder/SalesOrderCard.tsx
 import React from "react";
 import { SalesOrderResponse, SalesOrderStatus, PaymentStatus } from "../../types/SalesOrder";
+import { SalesOrderItemResponse } from "../../types/SalesOrderItem";
 import { BusinessPartner } from "../../types/BusinessPartner";
 
 interface SalesOrderCardProps {
@@ -10,6 +11,7 @@ interface SalesOrderCardProps {
   onEdit?: (id: number) => void;
   onDelete?: (id: number) => void;
   onAddPayment?: (id: number) => void;
+  onViewItems: (items: SalesOrderItemResponse[], so_number: string) => void;
 }
 
 const getStatusBadgeClass = (status: SalesOrderStatus | PaymentStatus) => {
@@ -29,15 +31,15 @@ const getStatusBadgeClass = (status: SalesOrderStatus | PaymentStatus) => {
 };
 
 const SalesOrderCard: React.FC<SalesOrderCardProps> = React.memo(
-  ({ so, customers, onView, onEdit, onDelete, onAddPayment }) => {
+  ({ so, customers, onView, onEdit, onDelete, onAddPayment, onViewItems }) => {
     
     const customerName = customers.find(c => c.id === so.customer_id)?.name || 'N/A';
 
         // Stop event propagation for buttons
-        const handleActionClick = (e: React.MouseEvent, action: ((id: number) => void) | undefined, id: number) => {
+        const handleActionClick = (e: React.MouseEvent, action: ((...args: any[]) => void) | undefined, ...args: any[]) => {
           e.stopPropagation();
           if (action) {
-            action(id);
+            action(...args);
           }
         };
     
@@ -62,29 +64,35 @@ const SalesOrderCard: React.FC<SalesOrderCardProps> = React.memo(
                     <p className="mb-0">Status: <span className={`badge ${getStatusBadgeClass(so.status)}`}>{so.status}</span></p>
                   </div>
                 </div>
-                {showActions && (
-                  <div className="d-flex align-items-center">
-                    {onEdit && (
-                      <button className="btn btn-sm btn-outline-primary me-2" onClick={(e) => handleActionClick(e, onEdit, so.id)}>
-                        <i className="bi bi-pencil-fill"></i>
-                      </button>
+                <div className="d-flex align-items-center">
+                    <button className="btn btn-sm btn-outline-info me-2" onClick={(e) => handleActionClick(e, onViewItems, so.items, so.so_number)}>
+                        <i className="bi bi-list-ul"></i>
+                    </button>
+                    {showActions && (
+                    <>
+                        {onEdit && (
+                        <button className="btn btn-sm btn-outline-primary me-2" onClick={(e) => handleActionClick(e, onEdit, so.id)}>
+                            <i className="bi bi-pencil-fill"></i>
+                        </button>
+                        )}
+                        {onDelete && (
+                        <button className="btn btn-sm btn-outline-danger me-2" onClick={(e) => handleActionClick(e, onDelete, so.id)}>
+                            <i className="bi bi-trash-fill"></i>
+                        </button>
+                        )}
+                        {onAddPayment && (
+                        <button className="btn btn-sm btn-outline-success" onClick={(e) => handleActionClick(e, onAddPayment, so.id)}>
+                            <i className="bi bi-credit-card-fill"></i>
+                        </button>
+                        )}
+                    </>
                     )}
-                    {onDelete && (
-                      <button className="btn btn-sm btn-outline-danger me-2" onClick={(e) => handleActionClick(e, onDelete, so.id)}>
-                        <i className="bi bi-trash-fill"></i>
-                      </button>
-                    )}
-                    {onAddPayment && (
-                      <button className="btn btn-sm btn-outline-success" onClick={(e) => handleActionClick(e, onAddPayment, so.id)}>
-                        <i className="bi bi-credit-card-fill"></i>
-                      </button>
-                    )}
-                  </div>
-                )}
+                </div>
               </div>
             </div>
           </div>
-        );  }
+        );
+    }
 );
 
 export default SalesOrderCard;
