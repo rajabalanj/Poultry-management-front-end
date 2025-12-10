@@ -7,6 +7,12 @@
   height: 100vh;
 }
 
+.sidebar-content {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
+
 .nav-menu-item {
   list-style: none;
   margin: 0.5rem 0;

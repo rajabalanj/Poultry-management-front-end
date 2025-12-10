@@ -8,6 +8,8 @@ import { Modal, Button } from "react-bootstrap";
 import { CompositionResponse } from "../../../types/compositon";
 import Loading from '../../Common/Loading';
 import { useEscapeKey } from '../../../hooks/useEscapeKey';
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 interface UsageHistoryItem {
   id: number;
@@ -73,6 +75,13 @@ const EditBatch: React.FC = () => {
       setCompositions(comps);
     });
   }, []);
+
+  const handleDateChange = (newDate: Date | null) => {
+    if (batchId && newDate) {
+      const formattedDate = newDate.toISOString().split('T')[0];
+      navigate(`/batch/${batchId}/${formattedDate}/edit`);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -162,6 +171,24 @@ const EditBatch: React.FC = () => {
       <div className="container mt-4">
         <div className="card shadow-sm mb-4">
           <div className="card-body">
+            <div className="mb-4">
+        <div className="d-flex align-items-center">
+          <label className="form-label me-3 mb-0">Batch Date</label>
+          <div style={{ maxWidth: "200px" }}>
+            <DatePicker
+              selected={batch_date ? new Date(batch_date) : null}
+              onChange={(date: Date | null) => handleDateChange(date)}
+              dateFormat="dd-MM-yyyy"
+              showMonthDropdown
+              showYearDropdown
+              dropdownMode="select"
+              className="form-control"
+              maxDate={new Date()}
+              placeholderText="Select a date"
+            />
+          </div>
+        </div>
+      </div>
             <form onSubmit={handleSubmit}>
               <div className="row">
                 {/* Birds Section */}

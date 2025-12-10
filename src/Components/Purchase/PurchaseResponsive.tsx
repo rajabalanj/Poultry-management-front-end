@@ -38,6 +38,7 @@ const PurchaseResponsive: React.FC = () => {
             buttonVariant="primary"
             buttonLabel="Create New"
             buttonLink="/purchase-orders/create"
+            buttonIcon="bi-plus-lg"
           />
           <div className="container mt-4">
             <PurchaseFilter vendors={vendors} filters={filters} setFilters={setFilters} />

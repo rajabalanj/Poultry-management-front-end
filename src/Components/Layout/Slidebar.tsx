@@ -116,7 +116,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
   return (
     <>
       <div className={`sidebar ${isOpen ? "open" : ""}`} style={sidebarStyle}>
-        <div className="px-3">
+        <div>
           {!isDesktop && (
             <div
               className="d-flex justify-content-end p-2"
@@ -157,7 +157,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
           <div className="px-2 pt-2">
             <p className="text-xs text-dark px-3 mb-2 text-uppercase tracking-wider">Menu</p>
 
-            <div className="sidebar">
+            <div className="sidebar-content">
               <ul className="nav-menu">
                 {/* New custom class */}
                 {/* Dashboard - Simple Link */}

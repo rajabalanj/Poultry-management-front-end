@@ -44,6 +44,7 @@ const SalesResponsive: React.FC = () => {
             buttonVariant="primary"
             buttonLabel="Create New"
             buttonLink="/sales-orders/create"
+            buttonIcon="bi-plus-lg"
           />
           <div className="container mt-4">
             <SalesFilter customers={customers} filters={filters} setFilters={setFilters} />
