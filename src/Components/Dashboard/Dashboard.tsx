@@ -170,6 +170,9 @@ const Dashboard: React.FC = () => {
                       onChange={(date: Date | null) => date && setBatchDate(date.toISOString().split('T')[0])}
                       dateFormat="dd-MM-yyyy"
                       className="form-control"
+                      dropdownMode="select"
+                      showMonthDropdown
+                      showYearDropdown
                     />
                   </div>
                 </div>

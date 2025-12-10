@@ -114,6 +114,9 @@ const SwapSheds: React.FC = () => {
                   onChange={(date: Date | null) => setSwapDate(date)}
                   dateFormat="dd-MM-yyyy"
                   className="form-control"
+                  dropdownMode="select"
+                  showMonthDropdown
+                  showYearDropdown
                   required
                 />
               </div>

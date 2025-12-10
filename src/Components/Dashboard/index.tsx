@@ -204,6 +204,9 @@ const DashboardIndex = () => {
                     dateFormat="dd-MM-yyyy"
                     className="form-control"
                     placeholderText="Select a date"
+                    dropdownMode="select"
+                    showMonthDropdown
+                    showYearDropdown
                   />
                 </div>
               </div>
@@ -258,6 +261,9 @@ const DashboardIndex = () => {
                 dateFormat="dd-MM-yyyy"
                 className="form-control"
                 placeholderText="Select start date"
+                dropdownMode="select"
+                showMonthDropdown
+                showYearDropdown
               />
             </div>
             <div className="col-auto d-flex align-items-center mt-3">
@@ -270,6 +276,9 @@ const DashboardIndex = () => {
                 dateFormat="dd-MM-yyyy"
                 className="form-control"
                 placeholderText="Select end date"
+                showMonthDropdown
+                showYearDropdown
+                dropdownMode="select"
               />
             </div>
             <div className="col-12 col-md-4 d-flex align-items-end justify-content-start justify-content-md-start">

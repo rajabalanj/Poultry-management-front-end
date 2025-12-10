@@ -176,6 +176,7 @@ const fetchAuditLog = async () => {
                       className="form-control"
                       placeholderText="Select start date"
                       isClearable
+                      dropdownMode="select"
                       showYearDropdown
                       showMonthDropdown
                       scrollableYearDropdown
@@ -190,6 +191,7 @@ const fetchAuditLog = async () => {
                       className="form-control"
                       placeholderText="Select end date"
                       isClearable
+                      dropdownMode="select"
                       showYearDropdown
                       showMonthDropdown
                       scrollableYearDropdown
