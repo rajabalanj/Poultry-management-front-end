@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
-import DatePicker from 'react-datepicker';
+import CustomDatePicker from '../Common/CustomDatePicker';
 import { salesOrderApi, inventoryItemApi, businessPartnerApi } from '../../services/api';
 import CreateBusinessPartnerForm from '../BusinessPartner/CreateBusinessPartnerForm';
 import CreateInventoryItemForm from '../InventoryItem/CreateInventoryItemForm';
@@ -313,7 +313,7 @@ const EditSalesOrder: React.FC = () => {
                 <div className="col-md-6">
                   <label htmlFor="orderDate" className="form-label">Date <span className="form-field-required">*</span></label>
                   <div>
-                  <DatePicker
+                  <CustomDatePicker
                     selected={orderDate}
                     onChange={(date: Date | null) => setOrderDate(date)}
                     dateFormat="dd-MM-yyyy"

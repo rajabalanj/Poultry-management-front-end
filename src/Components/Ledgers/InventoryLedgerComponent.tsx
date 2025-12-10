@@ -5,7 +5,7 @@ import { ledgerApi, inventoryItemApi } from '../../services/api';
 import { InventoryLedger } from '../../types/ledgers';
 import Loading from '../Common/Loading';
 import { InventoryItemResponse } from '../../types/InventoryItem';
-import DatePicker from 'react-datepicker';
+import CustomDatePicker from '../Common/CustomDatePicker';
 
 const InventoryLedgerComponent: React.FC = () => {
     const today = new Date().toISOString().slice(0, 10);
@@ -70,7 +70,7 @@ const InventoryLedgerComponent: React.FC = () => {
                 </div>
                 <div className="col-md-3">
                     <label htmlFor="invStartDate" className="form-label me-3 mb-0">Start Date</label>
-                    <DatePicker
+                    <CustomDatePicker
                         id="invStartDate"
                         selected={startDate ? new Date(startDate) : null}
                         onChange={(date: Date | null) => date && setStartDate(date.toISOString().slice(0, 10))}
@@ -84,7 +84,7 @@ const InventoryLedgerComponent: React.FC = () => {
                 </div>
                 <div className="col-md-3">
                     <label htmlFor="invEndDate" className="form-label me-3 mb-0">End Date</label>
-                    <DatePicker
+                    <CustomDatePicker
                         id="invEndDate"
                         selected={endDate ? new Date(endDate) : null}
                         onChange={(date: Date | null) => date && setEndDate(date.toISOString().slice(0, 10))}

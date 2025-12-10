@@ -3,7 +3,7 @@ import { toast } from 'react-toastify';
 import { Modal, Button } from 'react-bootstrap';
 import PageHeader from './Layout/PageHeader';
 import { financialReportsApi, operationalExpenseApi } from '../services/api';
-import DatePicker from 'react-datepicker';
+import CustomDatePicker from './Common/CustomDatePicker';
 import { BalanceSheet, ProfitAndLoss } from '../types/financialReports';
 import { OperationalExpense } from '../types/operationalExpense';
 import Loading from './Common/Loading';
@@ -200,7 +200,7 @@ const FinancialReports: React.FC = () => {
                 <div className="row g-3 align-items-end p-3 border-bottom">
                   <div className="col-md-4">
                     <label htmlFor="pnlStartDate" className="form-label me-3 mb-0">Start Date</label>
-                    <DatePicker
+                    <CustomDatePicker
                       id="pnlStartDate"
                       selected={pnlStartDate ? new Date(pnlStartDate) : null}
                       onChange={(date: Date | null) => date && setPnlStartDate(date.toISOString().slice(0, 10))}
@@ -214,7 +214,7 @@ const FinancialReports: React.FC = () => {
                   </div>
                   <div className="col-md-4">
                     <label htmlFor="pnlEndDate" className="form-label me-3 mb-0">End Date</label>
-                    <DatePicker
+                    <CustomDatePicker
                       id="pnlEndDate"
                       selected={pnlEndDate ? new Date(pnlEndDate) : null}
                       onChange={(date: Date | null) => date && setPnlEndDate(date.toISOString().slice(0, 10))}
@@ -241,7 +241,7 @@ const FinancialReports: React.FC = () => {
                 <div className="row g-3 align-items-end p-3 border-bottom">
                   <div className="col-md-4">
                     <label htmlFor="bsAsOfDate" className="form-label me-3 mb-0">As of Date</label>
-                    <DatePicker
+                    <CustomDatePicker
                       id="bsAsOfDate"
                       selected={bsAsOfDate ? new Date(bsAsOfDate) : null}
                       onChange={(date: Date | null) => date && setBsAsOfDate(date.toISOString().slice(0, 10))}

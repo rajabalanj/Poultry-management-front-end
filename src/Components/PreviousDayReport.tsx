@@ -9,7 +9,7 @@ import { GridRow } from '../types/GridRow';
 import { fetchBatchData, exportBatchDataToExcel, fetchWeeklyLayerReport, CumulativeReport } from '../utility/api-utils';
 import { BatchResponse } from '../types/batch';
 import { ShedResponse } from '../types/shed';
-import DatePicker from 'react-datepicker';
+import CustomDatePicker from './Common/CustomDatePicker';
 import { useEscapeKey } from '../hooks/useEscapeKey';
 import { configApi, batchApi, shedApi } from '../services/api';
 
@@ -343,7 +343,7 @@ const PreviousDayReport = () => {
                   <>
                     <div className="col-auto d-flex align-items-center mt-3">
             <label className="form-label me-3 mb-0">Start Date</label>
-                      <DatePicker
+                      <CustomDatePicker
                         selected={startDate ? new Date(startDate) : null}
                         onChange={(date: Date | null) => date && setStartDate(date.toISOString().slice(0, 10))}
                         showMonthDropdown
@@ -355,7 +355,7 @@ const PreviousDayReport = () => {
                     </div>
                     <div className="col-auto d-flex align-items-center mt-3">
             <label className="form-label me-3 mb-0">End Date</label>
-                      <DatePicker
+                      <CustomDatePicker
                         selected={endDate ? new Date(endDate) : null}
                         onChange={(date: Date | null) => date && setEndDate(date.toISOString().slice(0, 10))}
                         showMonthDropdown

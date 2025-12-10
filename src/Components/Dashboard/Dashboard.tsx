@@ -5,7 +5,7 @@ import HeaderCardGroup from './HeaderCardGroup';
 import GraphsSection from './GraphsSection';
 import { dailyBatchApi, compositionApi } from '../../services/api';
 import { DailyBatch } from '../../types/daily_batch';
-import DatePicker from 'react-datepicker';
+import CustomDatePicker from '../Common/CustomDatePicker';
 import ListModal from '../Common/ListModal';
 
 const BATCH_DATE_KEY = 'dashboard_batch_date';
@@ -164,7 +164,7 @@ const Dashboard: React.FC = () => {
                 <div className="row g-3 align-items-end mb-3">
                   <div className="col-auto d-flex align-items-center bg-white p-2 rounded">
                     <label className="form-label me-3 mb-0">Batch Date</label>
-                    <DatePicker
+                    <CustomDatePicker
                       selected={batchDate ? new Date(batchDate) : null}
                       maxDate={new Date()}
                       onChange={(date: Date | null) => date && setBatchDate(date.toISOString().split('T')[0])}

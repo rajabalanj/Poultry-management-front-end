@@ -4,7 +4,7 @@ import { batchApi } from '../../../services/api';
 import { toast } from 'react-toastify';
 import PageHeader from '../../Layout/PageHeader';
 import { useLocation } from 'react-router-dom';
-import DatePicker from 'react-datepicker';
+import CustomDatePicker from '../../Common/CustomDatePicker';
 
 const AddBatch: React.FC = () => {
   const [batch_no, setBatchNo] = useState('');
@@ -107,7 +107,7 @@ const AddBatch: React.FC = () => {
               <label className="form-label mb-1">Batch Start Date</label> {/* Added mb-1 for small vertical spacing */}
               {/* Wrap DatePicker in a div to ensure it's on a new line */}
               <div>
-                <DatePicker
+                <CustomDatePicker
                   selected={batch_date ? new Date(batch_date) : null}
                   onChange={(date: Date | null) =>
                     date && setBatchDate(date.toISOString().slice(0, 10))

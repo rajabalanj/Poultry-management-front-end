@@ -5,7 +5,7 @@ import { BatchResponse } from '../../types/batch';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
 import Loading from '../Common/Loading';
-import DatePicker from 'react-datepicker';
+import CustomDatePicker from '../Common/CustomDatePicker';
 
 const SwapSheds: React.FC = () => {
   const navigate = useNavigate();
@@ -108,7 +108,7 @@ const SwapSheds: React.FC = () => {
               </div>
               <div className="mb-3">
                 <label htmlFor="swapDate" className="form-label">Swap Date</label>
-                <DatePicker
+                <CustomDatePicker
                   id="swapDate"
                   selected={swapDate}
                   onChange={(date: Date | null) => setSwapDate(date)}

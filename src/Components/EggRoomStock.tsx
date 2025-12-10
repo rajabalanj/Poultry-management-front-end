@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useEggRoomStock } from '../hooks/useEggRoomStock';
-import DatePicker from 'react-datepicker';
+import CustomDatePicker from './Common/CustomDatePicker';
 import { StockFormSection } from '../Components/StockFormSection';
 import { SaveControls } from '../Components/SaveControls';
 import PageHeader from '../Components/Layout/PageHeader';
@@ -353,7 +353,7 @@ const EggRoomStock: React.FC = () => {
             <div className="row g-3 mb-3">
               <div className="d-flex align-items-center mt-3">
                 <label className="form-label me-3 mb-0">Report Date</label>
-                <DatePicker
+                <CustomDatePicker
                   selected={selectedDate ? new Date(selectedDate) : null}
                   onChange={(date: Date | null) => date && setSelectedDate(date.toISOString().slice(0, 10))}
                   maxDate={new Date()}
@@ -409,7 +409,7 @@ const EggRoomStock: React.FC = () => {
           <div className="row g-3 mb-3">
           <div className="col-auto d-flex align-items-center mt-3">
             <label className="form-label me-3 mb-0">Start Date</label>
-            <DatePicker
+            <CustomDatePicker
               selected={startDate}
               onChange={(date: Date | null) => date && setStartDate(date)}
               maxDate={endDate || new Date()}
@@ -424,7 +424,7 @@ const EggRoomStock: React.FC = () => {
           </div>
           <div className="col-auto d-flex align-items-center mt-3">
             <label className="form-label me-3 mb-0">End Date</label>
-            <DatePicker
+            <CustomDatePicker
               selected={endDate}
               onChange={(date: Date | null) => date && setEndDate(date)}
               minDate={startDate || undefined}

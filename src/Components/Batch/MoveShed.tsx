@@ -5,7 +5,7 @@ import { ShedResponse } from '../../types/shed';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
 import Loading from '../Common/Loading';
-import DatePicker from 'react-datepicker';
+import CustomDatePicker from '../Common/CustomDatePicker';
 
 const MoveShed: React.FC = () => {
   const { batch_id } = useParams<{ batch_id: string }>();
@@ -85,7 +85,7 @@ const MoveShed: React.FC = () => {
               </div>
               <div className="mb-3">
                 <label htmlFor="moveDate" className="form-label">Move Date</label>
-                <DatePicker
+                <CustomDatePicker
                   selected={moveDate}
                   onChange={(date: Date | null) => setMoveDate(date)}
                   dateFormat="dd-MM-yyyy"

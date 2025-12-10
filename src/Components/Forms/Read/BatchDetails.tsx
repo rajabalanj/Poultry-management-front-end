@@ -9,7 +9,7 @@ import PageHeader from '../../Layout/PageHeader';
 import HeaderCardGroup from '../../Dashboard/HeaderCardGroup';
 import GraphsSection from '../../Dashboard/GraphsSection';
 import ListModal from '../../Common/ListModal'; // Import ListModal
-import DatePicker from 'react-datepicker';
+import CustomDatePicker from '../../Common/CustomDatePicker';
 import Loading from '../../Common/Loading';
 import { useEscapeKey } from '../../../hooks/useEscapeKey';
 
@@ -184,16 +184,12 @@ const BatchDetails: React.FC = () => {
                   <div className="d-flex align-items-center">
                     <label className="form-label me-3 mb-0">Batch Date</label>
                     <div style={{ maxWidth: "200px" }}>
-                      <DatePicker
+                      <CustomDatePicker
                         selected={batch_date ? new Date(batch_date) : null}
                         onChange={(date: Date | null) => handleDateChange(date)}
-                        dateFormat="dd-MM-yyyy"
-                        showMonthDropdown
-                        showYearDropdown
-                        dropdownMode="select"
-                        className="form-control"
                         maxDate={new Date()}
                         placeholderText="Select a date"
+                        className="w-100"
                       />
                     </div>
                   </div>
@@ -371,7 +367,7 @@ const BatchDetails: React.FC = () => {
                   <>
                     <div className="col-auto d-flex align-items-center mt-3">
             <label className="form-label me-3 mb-0">Start Date</label>
-                      <DatePicker
+                      <CustomDatePicker
                         selected={startDate ? new Date(startDate) : null}
                         onChange={(date: Date | null) => date && setStartDate(date.toISOString().split('T')[0])}
                         maxDate={endDate ? new Date(endDate) : new Date()}
@@ -384,7 +380,7 @@ const BatchDetails: React.FC = () => {
                     </div>
                     <div className="col-auto d-flex align-items-center mt-3">
             <label className="form-label me-3 mb-0">End Date</label>
-                      <DatePicker
+                      <CustomDatePicker
                         selected={endDate ? new Date(endDate) : null}
                         onChange={(date: Date | null) => date && setEndDate(date.toISOString().split('T')[0])}
                         minDate={startDate ? new Date(startDate) : undefined}

@@ -1,5 +1,5 @@
 import React from 'react';
-import DatePicker from 'react-datepicker';
+import CustomDatePicker from '../Common/CustomDatePicker';
 import { BusinessPartner } from '../../types/BusinessPartner';
 import { SalesOrderStatus } from '../../types/SalesOrder';
 
@@ -55,7 +55,7 @@ const SalesFilter: React.FC<SalesFilterProps> = ({ customers, filters, setFilter
         <div className="col-md-3">
           <label htmlFor="startDateFilter" className="form-label">Start Date:</label>
           <div>
-            <DatePicker
+            <CustomDatePicker
               selected={filters.startDate}
               onChange={(date: Date | null) => setFilters.setStartDate(date)}
               className="form-control"
@@ -73,7 +73,7 @@ const SalesFilter: React.FC<SalesFilterProps> = ({ customers, filters, setFilter
         <div className="col-md-3">
           <label htmlFor="endDateFilter" className="form-label">End Date:</label>
           <div>
-            <DatePicker
+            <CustomDatePicker
               selected={filters.endDate}
               onChange={(date: Date | null) => setFilters.setEndDate(date)}
               dateFormat="dd-MM-yyyy"

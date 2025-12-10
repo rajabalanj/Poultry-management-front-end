@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import PageHeader from "../Layout/PageHeader";
-import DatePicker from 'react-datepicker';
+import CustomDatePicker from '../Common/CustomDatePicker';
 import { SalesOrderResponse, SalesOrderStatus, PaymentStatus, PaymentResponse, PaymentUpdate } from "../../types/SalesOrder";
 import { BusinessPartner } from "../../types/BusinessPartner";
 import { InventoryItemResponse } from "../../types/InventoryItem"; // Add InventoryItemResponse
@@ -411,7 +411,7 @@ const SalesOrderDetails: React.FC = () => {
             <Form.Group className="mb-3">
               <Form.Label>Payment Date</Form.Label>
               <div>
-              <DatePicker
+              <CustomDatePicker
                 selected={editPaymentForm.payment_date ? new Date(editPaymentForm.payment_date) : null}
                 onChange={(date: Date | null) => date && setEditPaymentForm({ ...editPaymentForm, payment_date: format(date, 'yyyy-MM-dd') })}
                 dateFormat="dd-MM-yyyy"

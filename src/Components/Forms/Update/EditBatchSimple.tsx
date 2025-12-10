@@ -5,7 +5,7 @@ import { BatchResponse, BatchUpdate } from '../../../types/batch';
 import { toast } from 'react-toastify';
 import PageHeader from '../../Layout/PageHeader';
 import Loading from '../../Common/Loading';
-import DatePicker from 'react-datepicker';
+import CustomDatePicker from '../../Common/CustomDatePicker';
 
 const EditBatchSimple: React.FC = () => {
   const { batchId } = useParams<{ batchId: string }>();
@@ -112,7 +112,7 @@ const EditBatchSimple: React.FC = () => {
             <div className="col-md-6">
               <label className="form-label mb-1">Batch Start Date</label>
               <div>
-              <DatePicker
+              <CustomDatePicker
                 selected={date ? new Date(date) : null}
                 onChange={(d: Date | null) => d && setDate(d.toISOString().split('T')[0])}
                 dateFormat="dd-MM-yyyy"

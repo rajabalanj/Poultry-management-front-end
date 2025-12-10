@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
-import DatePicker from 'react-datepicker';
+import CustomDatePicker from '../Common/CustomDatePicker';
 import { salesOrderApi } from '../../services/api';
 import { PaymentCreate as SalesPaymentCreate, SalesOrderResponse } from '../../types/SalesOrder';
 import { format } from 'date-fns';
@@ -149,7 +149,7 @@ const AddSalesPaymentForm: React.FC = () => {
                 <div className="col-md-6">
                   <label htmlFor="paymentDate" className="form-label">Payment Date <span className="form-field-required">*</span></label>
                   <div>
-                  <DatePicker
+                  <CustomDatePicker
                     selected={paymentDate}
                     onChange={(date: Date | null) => date && setPaymentDate(date)}
                     dateFormat="dd-MM-yyyy"

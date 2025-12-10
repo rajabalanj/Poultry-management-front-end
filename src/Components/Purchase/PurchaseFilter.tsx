@@ -1,6 +1,6 @@
 // src/Components/Purchase/PurchaseFilter.tsx
 import React from 'react';
-import DatePicker from 'react-datepicker';
+import CustomDatePicker from '../Common/CustomDatePicker';
 import { BusinessPartner } from '../../types/BusinessPartner';
 import { PurchaseOrderStatus } from '../../types/PurchaseOrder';
 
@@ -56,7 +56,7 @@ const PurchaseFilter: React.FC<PurchaseFilterProps> = ({ vendors, filters, setFi
         <div className="col-md-3">
           <label htmlFor="startDateFilter" className="form-label">Start Date:</label>
           <div>
-            <DatePicker
+            <CustomDatePicker
               selected={filters.startDate}
               onChange={(date: Date | null) => setFilters.setStartDate(date)}
               className="form-control"
@@ -74,7 +74,7 @@ const PurchaseFilter: React.FC<PurchaseFilterProps> = ({ vendors, filters, setFi
         <div className="col-md-3">
           <label htmlFor="endDateFilter" className="form-label">End Date:</label>
           <div>
-            <DatePicker
+            <CustomDatePicker
               selected={filters.endDate}
               onChange={(date: Date | null) => setFilters.setEndDate(date)}
               dateFormat="dd-MM-yyyy"

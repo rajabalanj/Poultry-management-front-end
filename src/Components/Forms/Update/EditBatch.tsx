@@ -8,8 +8,7 @@ import { Modal, Button } from "react-bootstrap";
 import { CompositionResponse } from "../../../types/compositon";
 import Loading from '../../Common/Loading';
 import { useEscapeKey } from '../../../hooks/useEscapeKey';
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import CustomDatePicker from "../../Common/CustomDatePicker";
 
 interface UsageHistoryItem {
   id: number;
@@ -175,16 +174,12 @@ const EditBatch: React.FC = () => {
         <div className="d-flex align-items-center">
           <label className="form-label me-3 mb-0">Batch Date</label>
           <div style={{ maxWidth: "200px" }}>
-            <DatePicker
+            <CustomDatePicker
               selected={batch_date ? new Date(batch_date) : null}
               onChange={(date: Date | null) => handleDateChange(date)}
-              dateFormat="dd-MM-yyyy"
-              showMonthDropdown
-              showYearDropdown
-              dropdownMode="select"
-              className="form-control"
               maxDate={new Date()}
               placeholderText="Select a date"
+              className="w-100"
             />
           </div>
         </div>

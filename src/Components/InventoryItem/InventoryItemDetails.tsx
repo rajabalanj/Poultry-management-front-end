@@ -7,8 +7,7 @@ import { inventoryItemApi } from "../../services/api";
 import { InventoryItemResponse } from "../../types/InventoryItem";
 import { InventoryItemAudit } from "../../types/InventoryItemAudit";
 import Loading from '../Common/Loading';
-import DatePicker from "react-datepicker";
-
+import CustomDatePicker from '../Common/CustomDatePicker';
 const InventoryItemDetails: React.FC = () => {
   const { item_id } = useParams<{ item_id: string }>();
   const navigate = useNavigate();
@@ -169,7 +168,7 @@ const fetchAuditLog = async () => {
                 <div className="row mb-3">
                   <div className="col-md-5">
                     <label className="form-label">Start Date (Optional)</label>
-                    <DatePicker
+                    <CustomDatePicker
                       selected={startDate}
                       onChange={(date: Date | null) => setStartDate(date)}
                       dateFormat="dd-MM-yyyy"
@@ -179,12 +178,11 @@ const fetchAuditLog = async () => {
                       dropdownMode="select"
                       showYearDropdown
                       showMonthDropdown
-                      scrollableYearDropdown
                     />
                   </div>
                   <div className="col-md-5 mb-3 mb-md-0">
                     <label className="form-label">End Date (Optional)</label>
-                    <DatePicker
+                    <CustomDatePicker
                       selected={endDate}
                       onChange={(date: Date | null) => setEndDate(date)}
                       dateFormat="dd-MM-yyyy"
@@ -194,7 +192,6 @@ const fetchAuditLog = async () => {
                       dropdownMode="select"
                       showYearDropdown
                       showMonthDropdown
-                      scrollableYearDropdown
                     />
                   </div>
                   <div className="col-md-2 d-flex align-items-end">

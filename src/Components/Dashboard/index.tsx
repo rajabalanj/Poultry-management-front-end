@@ -6,7 +6,7 @@ import BatchTable from '../BatchTable';
 import { dailyBatchApi, compositionApi, shedApi } from '../../services/api';
 import { DailyBatch } from '../../types/daily_batch';
 import { ShedResponse } from '../../types/shed';
-import DatePicker from 'react-datepicker';
+import CustomDatePicker from '../Common/CustomDatePicker';
 import ListModal from '../Common/ListModal'; // Import ListModal
 
 const BATCH_DATE_KEY = 'dashboard_batch_date';
@@ -197,7 +197,7 @@ const DashboardIndex = () => {
               <div className="col-12 col-md-6">
                 <div className="d-flex align-items-center">
                   <label className="form-label me-3 mb-0">Batch Date</label>
-                  <DatePicker
+                  <CustomDatePicker
                     selected={batchDate ? new Date(batchDate) : null}
                     maxDate={new Date()}
                     onChange={(date: Date | null) => date && setBatchDate(date.toISOString().split('T')[0])}
@@ -254,7 +254,7 @@ const DashboardIndex = () => {
           <div className="row g-3 align-items-end">
             <div className="col-auto d-flex align-items-center mt-3">
               <label className="form-label me-3 mb-0">Start Date</label>
-              <DatePicker
+              <CustomDatePicker
                 selected={startDate ? new Date(startDate) : null}
                 onChange={(date: Date | null) => date && setStartDate(date.toISOString().split('T')[0])}
                 maxDate={endDate ? new Date(endDate) : new Date()}
@@ -268,7 +268,7 @@ const DashboardIndex = () => {
             </div>
             <div className="col-auto d-flex align-items-center mt-3">
               <label className="form-label me-3 mb-0">End Date</label>
-              <DatePicker
+              <CustomDatePicker
                 selected={endDate ? new Date(endDate) : null}
                 onChange={(date: Date | null) => date && setEndDate(date.toISOString().split('T')[0])}
                 minDate={startDate ? new Date(startDate) : undefined}

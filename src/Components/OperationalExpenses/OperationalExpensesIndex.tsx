@@ -8,7 +8,7 @@ import { OperationalExpense } from "../../types/operationalExpense";
 import { toast } from 'react-toastify';
 import OperationalExpensesTable from "./OperationalExpensesTable";
 import ErrorBoundary from "../Common/ErrorBoundary";
-import DatePicker from 'react-datepicker';
+import CustomDatePicker from '../Common/CustomDatePicker';
 
 const OperationalExpensesIndexPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -86,7 +86,7 @@ const OperationalExpensesIndexPage: React.FC = () => {
             <div className="row g-3 align-items-end">
               <div className="col-12 col-md-4">
                 <label htmlFor="opExStartDate" className="form-label me-3 mb-0">Start Date</label>
-                <DatePicker
+                <CustomDatePicker
                   id="opExStartDate"
                   selected={startDate ? new Date(startDate) : null}
                   onChange={(date: Date | null) => date && setStartDate(date.toISOString().slice(0, 10))}
@@ -100,7 +100,7 @@ const OperationalExpensesIndexPage: React.FC = () => {
               </div>
               <div className="col-12 col-md-4">
                 <label htmlFor="opExEndDate" className="form-label me-3 mb-0">End Date</label>
-                <DatePicker
+                <CustomDatePicker
                   id="opExEndDate"
                   selected={endDate ? new Date(endDate) : null}
                   onChange={(date: Date | null) => date && setEndDate(date.toISOString().slice(0, 10))}

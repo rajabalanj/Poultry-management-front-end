@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { ledgerApi } from '../../services/api';
 import { GeneralLedger } from '../../types/ledgers';
 import Loading from '../Common/Loading';
-import DatePicker from 'react-datepicker';
+import CustomDatePicker from '../Common/CustomDatePicker';
 
 const GeneralLedgerComponent: React.FC = () => {
     const today = new Date().toISOString().slice(0, 10);
@@ -36,7 +36,7 @@ const GeneralLedgerComponent: React.FC = () => {
             <div className="row g-3 align-items-end p-3 border-bottom">
                 <div className="col-md-4">
                     <label htmlFor="glStartDate" className="form-label me-3 mb-0">Start Date</label>
-                    <DatePicker
+                    <CustomDatePicker
                         id="glStartDate"
                         selected={startDate ? new Date(startDate) : null}
                         onChange={(date: Date | null) => date && setStartDate(date.toISOString().slice(0, 10))}
@@ -50,7 +50,7 @@ const GeneralLedgerComponent: React.FC = () => {
                 </div>
                 <div className="col-md-4">
                     <label htmlFor="glEndDate" className="form-label me-3 mb-0">End Date</label>
-                    <DatePicker
+                    <CustomDatePicker
                         id="glEndDate"
                         selected={endDate ? new Date(endDate) : null}
                         onChange={(date: Date | null) => date && setEndDate(date.toISOString().slice(0, 10))}
