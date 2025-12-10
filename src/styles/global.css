@@ -376,7 +376,7 @@
 
 .is-readonly {
   background-color: var(--bs-light) !important;
-  border-color: var(--bs-dark) !important;
+  /* border-color: var(--bs-dark) !important; */
   cursor: not-allowed;
 }
 

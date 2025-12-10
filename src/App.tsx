@@ -12,7 +12,7 @@ import DashboardIndex from "./Components/Dashboard";
 import FeedMillStock from "./Components/FeedMillStock";
 import PreviousDayReport from './Components/PreviousDayReport';
 import CompositionUsageHistory from "./Components/CompositionUsageHistory";
-import UploadBatchNew from './Components/UploadBatchNew'
+import UploadBatch from './Components/UploadBatch'
 import EditBatchSimple from './Components/Forms/Update/EditBatchSimple';
 import Configurations from './Components/Configurations';
 import ViewBatchSimple from './Components/Forms/Read/ViewBatchSimple';
@@ -100,7 +100,7 @@ const App: React.FC = () => {
                 path="/batch/:batchId/edit-simple"
                 element={<EditBatchSimple />}
               />
-              <Route path="/upload-batch" element={<UploadBatchNew />} />
+              <Route path="/upload-batch" element={<UploadBatch />} />
               <Route
                 path="/feed-mill-stock"
                 element={
