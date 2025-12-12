@@ -252,7 +252,7 @@ const BatchDetails: React.FC = () => {
               <label className="form-label">Shed No.</label>
               <input
                 type="string"
-                className="form-control"
+                className="form-control is-readonly"
                 value={getShedNumber(batch.shed_id)}
                 readOnly
               />
@@ -261,7 +261,7 @@ const BatchDetails: React.FC = () => {
               <label className="form-label">Age</label>
               <input
                 type="text"
-                className="form-control"
+                className="form-control is-readonly"
                 value={batch.age}
                 readOnly
               />
@@ -270,7 +270,7 @@ const BatchDetails: React.FC = () => {
               <label className="form-label">Standard Hen Day Percentage</label>
               <input
                 type="number"
-                className="form-control"
+                className="form-control is-readonly"
                 value={
                   batch.standard_hen_day_percentage !== undefined && batch.standard_hen_day_percentage !== null && !isNaN(Number(batch.standard_hen_day_percentage))
                     ? Number(batch.standard_hen_day_percentage).toFixed(2)
@@ -282,7 +282,7 @@ const BatchDetails: React.FC = () => {
             <div className="col-12 col-md-6 mb-4 mt-4">
               <label className="form-label">Notes</label>
               <textarea
-                className="form-control"
+                className="form-control is-readonly"
                 value={batch.notes || ''}
                 readOnly
               />
