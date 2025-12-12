@@ -1,15 +1,18 @@
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { toast } from 'react-toastify';
 import PageHeader from './Layout/PageHeader';
 import Loading from './Common/Loading';
 import { inventoryItemApi } from '../services/api';
 import { InventoryStockLevel } from '../types/inventoryStockLevel';
+import { toPng } from 'html-to-image';
 
 const LowStockReport = () => {
   const [reportData, setReportData] = useState<InventoryStockLevel[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSharing, setIsSharing] = useState(false);
+  const tableRef = useRef<HTMLDivElement>(null);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -30,6 +33,60 @@ const LowStockReport = () => {
     fetchData();
   }, []);
 
+  const handleShare = async () => {
+    if (!tableRef.current) {
+      toast.error("Table element not found.");
+      return;
+    }
+
+    if (!navigator.share) {
+      toast.error("Web Share API is not supported in your browser.");
+      return;
+    }
+
+    const tableNode = tableRef.current;
+    setIsSharing(true);
+
+    const originalTableStyle = {
+      width: tableNode.style.width,
+      minWidth: tableNode.style.minWidth,
+      whiteSpace: tableNode.style.whiteSpace,
+    };
+
+    try {
+      tableNode.style.width = 'auto';
+      tableNode.style.minWidth = '1200px';
+      tableNode.style.whiteSpace = 'nowrap';
+
+      const dataUrl = await toPng(tableNode, {
+        backgroundColor: '#ffffff',
+      });
+      const blob = await (await fetch(dataUrl)).blob();
+      const file = new File([blob], `low-stock-report.png`, { type: 'image/png' });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title: 'Low Stock Report',
+          text: `Low Stock Report.`,
+          files: [file],
+        });
+        toast.success("Report shared successfully!");
+      } else {
+        toast.error("Sharing files is not supported on this device.");
+      }
+    } catch (error: any) {
+      if (error.name !== 'AbortError') {
+        console.error('Sharing failed', error);
+        toast.error(`Failed to share report: ${error.message}`);
+      }
+    } finally {
+      tableNode.style.width = originalTableStyle.width;
+      tableNode.style.minWidth = originalTableStyle.minWidth;
+      tableNode.style.whiteSpace = originalTableStyle.whiteSpace;
+      setIsSharing(false);
+    }
+  };
+
   return (
     <>
       <PageHeader title="Low Stock Report"/>
@@ -45,6 +102,17 @@ const LowStockReport = () => {
         {reportData.length > 0 && (
           <div className="card shadow-sm">
             <div className="card-body">
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <h5 className="mb-0">Low Stock Items</h5>
+                <button
+                  className="btn btn-secondary"
+                  onClick={handleShare}
+                  disabled={isSharing}
+                >
+                  {isSharing ? 'Generating...' : 'Share as Image'}
+                </button>
+              </div>
+            <div ref={tableRef}>
               <div className='table-responsive'>
               <table className="table table-bordered table-striped">
                 <thead>
@@ -69,6 +137,7 @@ const LowStockReport = () => {
                 </tbody>
               </table>
               </div>
+            </div>
             </div>
           </div>
         )}
