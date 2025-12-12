@@ -175,7 +175,6 @@ const AddSalesPaymentForm: React.FC = () => {
                   <label htmlFor="paymentMode" className="form-label">Payment Mode <span className="form-field-required">*</span></label>
                   <StyledSelect
                     id="paymentMode"
-                    className="form-select"
                     value={selectedPaymentModeOption}
                     onChange={(option, _action) => setPaymentMode(option ? String(option.value) : '')}
                     options={paymentModeOptions}

@@ -57,7 +57,6 @@ const PurchaseLedgerComponent: React.FC = () => {
                     <label htmlFor="vendorId" className="form-label">Vendor ID</label>
                     <StyledSelect
                         id="vendorId"
-                        className="form-select"
                         value={selectedVendorOption}
                         onChange={(option, _action) => setVendorId(option ? String(option.value) : '')}
                         options={vendorOptions}

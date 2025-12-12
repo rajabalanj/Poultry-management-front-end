@@ -57,7 +57,6 @@ const SalesLedgerComponent: React.FC = () => {
                     <label htmlFor="customerId" className="form-label">Customer ID</label>
                     <StyledSelect
                         id="customerId"
-                        className="form-select"
                         value={selectedCustomerOption}
                         onChange={(option, _action) => setCustomerId(option ? String(option.value) : '')}
                         options={customerOptions}

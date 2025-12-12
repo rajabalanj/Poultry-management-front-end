@@ -273,7 +273,6 @@ const CreateSalesOrderForm: React.FC = () => {
                     <div className="d-flex gap-2 align-items-center">
                     <StyledSelect
                         id="customerSelect"
-                        className="form-select"
                         value={selectedCustomerOption}
                         onChange={(option, _action) => setCustomerId(option ? Number(option.value) : '')}
                         options={customerOptions}
@@ -341,7 +340,6 @@ const CreateSalesOrderForm: React.FC = () => {
                             <div className="d-flex gap-2 align-items-center">
                             <StyledSelect
                               id={`itemId-${item.tempId}`}
-                              className="form-select"
                               value={inventoryItemOptions.find(option => option.value === item.inventory_item_id)}
                               onChange={(option, _action) => handleItemChange(item.tempId, 'inventory_item_id', option ? option.value : '')}
                               options={inventoryItemOptions}
@@ -474,7 +472,6 @@ const CreateSalesOrderForm: React.FC = () => {
                     <label htmlFor="paymentMode" className="form-label">Payment Mode <span className="form-field-required">*</span></label>
                     <StyledSelect
                       id="paymentMode"
-                      className="form-select"
                       value={selectedPaymentModeOption}
                       onChange={(option, _action) => setPaymentMode(option ? String(option.value) : '')}
                       options={paymentModeOptions}

@@ -65,7 +65,6 @@ const InventoryLedgerComponent: React.FC = () => {
                     <label htmlFor="itemId" className="form-label">Item ID</label>
                     <StyledSelect
                         id="itemId"
-                        className="form-select"
                         value={selectedItemOption}
                         onChange={(option, _action) => setItemId(option ? String(option.value) : '')}
                         options={itemOptions}

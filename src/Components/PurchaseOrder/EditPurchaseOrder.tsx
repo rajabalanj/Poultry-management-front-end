@@ -319,7 +319,6 @@ const EditPurchaseOrder: React.FC = () => {
                   <div className="d-flex gap-2 align-items-center">
                   <StyledSelect
                       id="vendorSelect"
-                      className="form-select"
                       value={selectedVendorOption}
                       onChange={(option, _action) => setVendorId(option ? Number(option.value) : '')}
                       options={vendorOptions}
@@ -416,7 +415,6 @@ const EditPurchaseOrder: React.FC = () => {
                           <div className="d-flex gap-2 align-items-center">
                           <StyledSelect
                             id={`itemId-${item.tempId}`}
-                            className="form-select"
                             value={inventoryItemOptions.find(option => option.value === item.inventory_item_id)}
                             onChange={(option, _action) => handleItemChange(item.tempId, 'inventory_item_id', option ? option.value : '')}
                             options={inventoryItemOptions}

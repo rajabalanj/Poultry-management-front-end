@@ -298,7 +298,6 @@ const PreviousDayReport = () => {
                 <div className="col-12 col-md-auto">
                     <label htmlFor="batchNoSelect" className="form-label">Batch Number</label>
                     <StyledSelect
-                        className="form-select"
                         id="batchNoSelect"
                         value={batchOptions.find(b => b.value === batchNo)}
                         onChange={(option, _action) => setBatchNo(option ? String(option.value) : '')}

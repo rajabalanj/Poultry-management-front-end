@@ -299,7 +299,7 @@ const EditSalesOrder: React.FC = () => {
                   <div className="d-flex">
                   <StyledSelect
                       id="customerSelect"
-                      className="form-select me-2"
+                      className="me-2"
                       value={selectedCustomerOption}
                       onChange={(option, _action) => setCustomerId(option ? Number(option.value) : '')}
                       options={customerOptions}
@@ -388,7 +388,7 @@ const EditSalesOrder: React.FC = () => {
                           <div className="d-flex">
                           <StyledSelect
                               id={`itemId-${item.tempId}`}
-                              className="form-select me-2"
+                              className="me-2"
                               value={inventoryItemOptions.find(option => option.value === item.inventory_item_id)}
                               onChange={(option, _action) => handleItemChange(item.tempId, 'inventory_item_id', option ? option.value : '')}
                               options={inventoryItemOptions}
