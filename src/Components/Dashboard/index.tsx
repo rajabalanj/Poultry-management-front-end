@@ -8,6 +8,7 @@ import { DailyBatch } from '../../types/daily_batch';
 import { ShedResponse } from '../../types/shed';
 import CustomDatePicker from '../Common/CustomDatePicker';
 import ListModal from '../Common/ListModal'; // Import ListModal
+import StyledSelect from '../Common/StyledSelect';
 
 const BATCH_DATE_KEY = 'dashboard_batch_date';
 
@@ -213,16 +214,18 @@ const DashboardIndex = () => {
               <div className="col-12 col-md-6">
                 <div className="d-flex align-items-center">
                   <label className="form-label me-3 mb-0">Shed</label>
-                  <select
-                    className="form-select"
-                    value={selectedShedNo}
-                    onChange={(e) => setSelectedShedNo(e.target.value)}
-                  >
-                    <option value="">All Sheds</option>
-                    {sheds.map(shed => (
-                      <option key={shed.id} value={shed.shed_no}>{shed.shed_no}</option>
-                    ))}
-                  </select>
+                  <StyledSelect
+                    value={{ value: selectedShedNo, label: selectedShedNo || "All Sheds" }}
+                    onChange={(option) => setSelectedShedNo(option ? String(option.value) : "")}
+                    options={[
+                      { value: "", label: "All Sheds" },
+                      ...sheds.map(shed => ({
+                        value: shed.shed_no,
+                        label: shed.shed_no
+                      }))
+                    ]}
+                    placeholder="Select a Shed"
+                  />
                 </div>
               </div>
             </div>

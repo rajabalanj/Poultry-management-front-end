@@ -7,6 +7,7 @@ import { inventoryItemApi, configApi } from "../../services/api"; // Import the 
 import { InventoryItemResponse, InventoryItemCategory } from "../../types/InventoryItem";
 import { toast } from 'react-toastify';
 import InventoryItemTable from "./InventoryItemTable"; // Import the InventoryItemTable
+import StyledSelect from "../Common/StyledSelect";
 
 
 const InventoryItemIndexPage: React.FC = () => {
@@ -120,17 +121,21 @@ const InventoryItemIndexPage: React.FC = () => {
       <div className="container mt-4">
         {/* Filter Section */}
         <div className="mb-4">
-          <select
+          <StyledSelect
             id="categoryFilter"
-            className="form-select w-auto" // Added w-auto to make it take less width
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value as InventoryItemCategory | '')}
-          >
-            <option value="">All Categories</option>
-            {Object.values(InventoryItemCategory).map((category) => (
-              <option key={category} value={category}>{category}</option>
-            ))}
-          </select>
+            className="w-auto" // Added w-auto to make it take less width
+            value={{ value: filterCategory, label: filterCategory || "All Categories" }}
+            onChange={(option) => setFilterCategory(option ? option.value as InventoryItemCategory : '')}
+            options={[
+              { value: "", label: "All Categories" },
+              ...Object.values(InventoryItemCategory).map((category) => ({
+                value: category,
+                label: category
+              }))
+            ]}
+            placeholder="Select Category"
+            isClearable
+          />
         </div>
 
         {Object.entries(groupedItems).map(([category, items]) => (

@@ -9,6 +9,7 @@ import { CompositionResponse } from "../../../types/compositon";
 import Loading from '../../Common/Loading';
 import { useEscapeKey } from '../../../hooks/useEscapeKey';
 import CustomDatePicker from "../../Common/CustomDatePicker";
+import StyledSelect from "../../Common/StyledSelect";
 
 interface UsageHistoryItem {
   id: number;
@@ -313,19 +314,17 @@ const EditBatch: React.FC = () => {
               <div className="col-md-6">
                 <div className="mb-3">
                   <label htmlFor="compositionSelect" className="form-label">Select Composition:</label>
-                  <select
+                  <StyledSelect
                     id="compositionSelect"
-                    className="form-select"
-                    value={selectedCompositionId || ""}
-                    onChange={(e) => setSelectedCompositionId(Number(e.target.value))}
-                  >
-                    <option value="">Select a Composition</option>
-                    {compositions.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
+                    value={selectedCompositionId ? compositions.find(c => c.id === selectedCompositionId) ? { value: selectedCompositionId, label: compositions.find(c => c.id === selectedCompositionId)?.name || "" } : null : null}
+                    onChange={(option) => setSelectedCompositionId(option ? Number(option.value) : null)}
+                    options={compositions.map((c) => ({
+                      value: c.id,
+                      label: c.name
+                    }))}
+                    placeholder="Select a Composition"
+                    isClearable
+                  />
                 </div>
                 <div className="d-flex align-items-center gap-2 mb-3">
                   <span>Times:</span>

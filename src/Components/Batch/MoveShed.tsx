@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
 import Loading from '../Common/Loading';
 import CustomDatePicker from '../Common/CustomDatePicker';
+import StyledSelect from '../Common/StyledSelect';
 
 const MoveShed: React.FC = () => {
   const { batch_id } = useParams<{ batch_id: string }>();
@@ -68,20 +69,18 @@ const MoveShed: React.FC = () => {
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
                 <label htmlFor="shed" className="form-label">New Shed</label>
-                <select
+                <StyledSelect
                   id="shed"
-                  className="form-select"
-                  value={newShedId}
-                  onChange={(e) => setNewShedId(Number(e.target.value))}
+                  value={newShedId ? sheds.find(shed => shed.id === newShedId) ? { value: newShedId, label: sheds.find(shed => shed.id === newShedId)?.shed_no || "" } : null : null}
+                  onChange={(option) => setNewShedId(option ? Number(option.value) : '')}
+                  options={sheds.map((shed) => ({
+                    value: shed.id,
+                    label: shed.shed_no
+                  }))}
+                  placeholder="Select a shed"
+                  isClearable
                   required
-                >
-                  <option value="" disabled>Select a shed</option>
-                  {sheds.map((shed) => (
-                    <option key={shed.id} value={shed.id}>
-                      {shed.shed_no}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
               <div className="mb-3">
                 <label htmlFor="moveDate" className="form-label">Move Date</label>

@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
 import Loading from '../Common/Loading';
 import CustomDatePicker from '../Common/CustomDatePicker';
+import StyledSelect from '../Common/StyledSelect';
 
 const SwapSheds: React.FC = () => {
   const navigate = useNavigate();
@@ -74,37 +75,33 @@ const SwapSheds: React.FC = () => {
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
                 <label htmlFor="batch1" className="form-label">First Batch</label>
-                <select
+                <StyledSelect
                   id="batch1"
-                  className="form-select"
-                  value={batchId1}
-                  onChange={(e) => setBatchId1(Number(e.target.value))}
+                  value={batchId1 ? batches.find(batch => batch.id === batchId1) ? { value: batchId1, label: `${batches.find(batch => batch.id === batchId1)?.batch_no} - ${batches.find(batch => batch.id === batchId1)?.current_shed?.shed_no || batches.find(batch => batch.id === batchId1)?.shed_no || 'No Shed'}` } : null : null}
+                  onChange={(option) => setBatchId1(option ? Number(option.value) : '')}
+                  options={batches.map((batch) => ({
+                    value: batch.id,
+                    label: `${batch.batch_no} - ${batch.current_shed?.shed_no || batch.shed_no || 'No Shed'}`
+                  }))}
+                  placeholder="Select a batch"
+                  isClearable
                   required
-                >
-                  <option value="" disabled>Select a batch</option>
-                  {batches.map((batch) => (
-                    <option key={batch.id} value={batch.id}>
-                      {batch.batch_no} - {batch.current_shed?.shed_no || batch.shed_no || 'No Shed'}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
               <div className="mb-3">
                 <label htmlFor="batch2" className="form-label">Second Batch</label>
-                <select
+                <StyledSelect
                   id="batch2"
-                  className="form-select"
-                  value={batchId2}
-                  onChange={(e) => setBatchId2(Number(e.target.value))}
+                  value={batchId2 ? batches.find(batch => batch.id === batchId2) ? { value: batchId2, label: `${batches.find(batch => batch.id === batchId2)?.batch_no} - ${batches.find(batch => batch.id === batchId2)?.current_shed?.shed_no || batches.find(batch => batch.id === batchId2)?.shed_no || 'No Shed'}` } : null : null}
+                  onChange={(option) => setBatchId2(option ? Number(option.value) : '')}
+                  options={batches.map((batch) => ({
+                    value: batch.id,
+                    label: `${batch.batch_no} - ${batch.current_shed?.shed_no || batch.shed_no || 'No Shed'}`
+                  }))}
+                  placeholder="Select a batch"
+                  isClearable
                   required
-                >
-                  <option value="" disabled>Select a batch</option>
-                  {batches.map((batch) => (
-                    <option key={batch.id} value={batch.id}>
-                      {batch.batch_no} - {batch.current_shed?.shed_no || batch.shed_no || 'No Shed'}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
               <div className="mb-3">
                 <label htmlFor="swapDate" className="form-label">Swap Date</label>

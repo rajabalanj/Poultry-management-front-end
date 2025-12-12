@@ -11,8 +11,21 @@ import GeneralLedgerComponent from './Ledgers/GeneralLedgerComponent';
 import PurchaseLedgerComponent from './Ledgers/PurchaseLedgerComponent';
 import SalesLedgerComponent from './Ledgers/SalesLedgerComponent';
 import InventoryLedgerComponent from './Ledgers/InventoryLedgerComponent';
+import StyledSelect from './Common/StyledSelect';
 
 type ReportType = 'pnl' | 'balance-sheet' | 'general-ledger' | 'purchase-ledger' | 'sales-ledger' | 'inventory-ledger';
+
+const getReportLabel = (value: ReportType): string => {
+  switch (value) {
+    case 'pnl': return 'Profit & Loss';
+    case 'balance-sheet': return 'Balance Sheet';
+    case 'general-ledger': return 'General Ledger';
+    case 'purchase-ledger': return 'Purchase Ledger';
+    case 'sales-ledger': return 'Sales Ledger';
+    case 'inventory-ledger': return 'Inventory Ledger';
+    default: return '';
+  }
+};
 
 const FinancialReports: React.FC = () => {
   const today = new Date().toISOString().slice(0, 10);
@@ -151,14 +164,19 @@ const FinancialReports: React.FC = () => {
       <div className="container">
         <div className="card shadow-sm">
           <div className="card-header d-md-none p-3">
-            <select className="form-select" value={activeTab} onChange={(e) => setActiveTab(e.target.value as ReportType)}>
-              <option value="pnl">Profit & Loss</option>
-              <option value="balance-sheet">Balance Sheet</option>
-              <option value="general-ledger">General Ledger</option>
-              <option value="purchase-ledger">Purchase Ledger</option>
-              <option value="sales-ledger">Sales Ledger</option>
-              <option value="inventory-ledger">Inventory Ledger</option>
-            </select>
+            <StyledSelect
+              value={{ value: activeTab, label: getReportLabel(activeTab) }}
+              onChange={(option) => setActiveTab(option?.value as ReportType || 'pnl')}
+              options={[
+                { value: 'pnl', label: 'Profit & Loss' },
+                { value: 'balance-sheet', label: 'Balance Sheet' },
+                { value: 'general-ledger', label: 'General Ledger' },
+                { value: 'purchase-ledger', label: 'Purchase Ledger' },
+                { value: 'sales-ledger', label: 'Sales Ledger' },
+                { value: 'inventory-ledger', label: 'Inventory Ledger' }
+              ]}
+              placeholder="Select Report"
+            />
           </div>
           <div className="card-header d-none d-md-block p-0">
             <ul className="nav nav-tabs card-header-tabs">

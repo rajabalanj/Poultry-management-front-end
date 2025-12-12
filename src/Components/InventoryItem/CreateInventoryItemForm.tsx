@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
 import { inventoryItemApi } from '../../services/api';
 import { InventoryItemCreate, InventoryItemUnit, InventoryItemCategory, InventoryItemResponse } from '../../types/InventoryItem';
+import StyledSelect from '../Common/StyledSelect';
 
 interface CreateInventoryItemFormProps {
     onCreated?: (item: InventoryItemResponse) => void;
@@ -75,31 +76,31 @@ const CreateInventoryItemForm: React.FC<CreateInventoryItemFormProps> = ({ onCre
                                 </div>
                                 <div className="col-md-6">
                                     <label htmlFor="itemUnit" className="form-label">Unit <span className="form-field-required">*</span></label>
-                                    <select
-                                        className="form-select"
+                                    <StyledSelect
                                         id="itemUnit"
-                                        value={unit}
-                                        onChange={(e) => setUnit(e.target.value as InventoryItemUnit)}
+                                        value={{ value: unit, label: unit }}
+                                        onChange={(option) => setUnit(option ? option.value as InventoryItemUnit : InventoryItemUnit.KG)}
+                                        options={Object.values(InventoryItemUnit).map((u) => ({
+                                            value: u,
+                                            label: u
+                                        }))}
+                                        placeholder="Select a Unit"
                                         required
-                                    >
-                                        {Object.values(InventoryItemUnit).map((u) => (
-                                            <option key={u} value={u}>{u}</option>
-                                        ))}
-                                    </select>
+                                    />
                                 </div>
                                 <div className="col-md-6">
                                     <label htmlFor="itemCategory" className="form-label">Category <span className="form-field-required">*</span></label>
-                                    <select
-                                        className="form-select"
+                                    <StyledSelect
                                         id="itemCategory"
-                                        value={category}
-                                        onChange={(e) => setCategory(e.target.value as InventoryItemCategory)}
+                                        value={{ value: category, label: category }}
+                                        onChange={(option) => setCategory(option ? option.value as InventoryItemCategory : InventoryItemCategory.FEED)}
+                                        options={Object.values(InventoryItemCategory).map((c) => ({
+                                            value: c,
+                                            label: c
+                                        }))}
+                                        placeholder="Select a Category"
                                         required
-                                    >
-                                        {Object.values(InventoryItemCategory).map((c) => (
-                                            <option key={c} value={c}>{c}</option>
-                                        ))}
-                                    </select>
+                                    />
                                 </div>
 
                                 <div className="col-12 mt-4">

@@ -6,6 +6,16 @@ import { businessPartnerApi } from "../../services/api";
 import { BusinessPartner } from "../../types/BusinessPartner";
 import { toast } from 'react-toastify';
 import BusinessPartnerTable from "./BusinessPartnerTable";
+import StyledSelect from "../Common/StyledSelect";
+
+const getFilterLabel = (value: 'all' | 'vendors' | 'customers'): string => {
+  switch (value) {
+    case 'all': return 'All Partners';
+    case 'vendors': return 'Vendors Only';
+    case 'customers': return 'Customers Only';
+    default: return '';
+  }
+};
 
 const BusinessPartnerIndexPage = () => {
   const [loading, setLoading] = useState(false);
@@ -78,11 +88,16 @@ const BusinessPartnerIndexPage = () => {
       <div className="mb-3">
         <div className="card shadow-sm">
           <div className="card-header d-md-none p-3">
-            <select className="form-select" value={filterType} onChange={(e) => setFilterType(e.target.value as 'all' | 'vendors' | 'customers')}>
-              <option value="all">All Partners</option>
-              <option value="vendors">Vendors Only</option>
-              <option value="customers">Customers Only</option>
-            </select>
+            <StyledSelect
+              value={{ value: filterType, label: getFilterLabel(filterType) }}
+              onChange={(option) => setFilterType(option?.value as 'all' | 'vendors' | 'customers' || 'all')}
+              options={[
+                { value: 'all', label: 'All Partners' },
+                { value: 'vendors', label: 'Vendors Only' },
+                { value: 'customers', label: 'Customers Only' }
+              ]}
+              placeholder="Select Filter"
+            />
           </div>
           <div className="card-header d-none d-md-block p-0">
             <div className="btn-group w-100" role="group">

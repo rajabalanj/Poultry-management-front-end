@@ -3,7 +3,8 @@ import { compositionApi, batchApi, inventoryItemApi, getTenantId } from "../serv
 import { InventoryItemResponse, InventoryItemCategory } from "../types/InventoryItem";
 import { BatchResponse } from "../types/batch";
 import CompositionForm from "./CompositionForm";
-import Select, { StylesConfig, SingleValue } from 'react-select';
+import { StylesConfig, SingleValue } from 'react-select';
+import StyledSelect from './Common/StyledSelect';
 import { toast } from "react-toastify";
 import { useNavigate } from 'react-router-dom';
 
@@ -196,12 +197,10 @@ function FeedMillStock() {
       <div className="row mb-3">
         <div className="col-12 col-md-4 mb-2 mb-md-0">
           {viewState !== "add" && (
-            <Select
-              className="text-center"
+            <StyledSelect
               value={selectedCompositionOption}
               onChange={handleCompositionSelectChange}
               options={compositionOptions}
-              styles={customStyles}
               placeholder="Select Composition"
               isClearable
             />
@@ -308,7 +307,7 @@ function FeedMillStock() {
           </div>
           <div className="mb-3">
             <label htmlFor="batchNoSelect" className="form-label">Select Batch Number:</label>
-            <Select
+            <StyledSelect
               id="batchNoSelect"
               value={selectedBatchOption}
               onChange={handleBatchSelectChange}

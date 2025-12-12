@@ -6,6 +6,7 @@ import Loading from './Common/Loading';
 import { inventoryItemApi } from '../services/api';
 import { InventoryStockLevel } from '../types/inventoryStockLevel';
 import { InventoryItemCategory } from '../types/InventoryItem';
+import StyledSelect from './Common/StyledSelect';
 
 const InventoryStockLevelReport = () => {
   const [reportData, setReportData] = useState<InventoryStockLevel[]>([]);
@@ -32,8 +33,8 @@ const InventoryStockLevelReport = () => {
     fetchData(category);
   }, [category]);
 
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setCategory(e.target.value);
+  const handleCategoryChange = (option: any) => {
+    setCategory(option ? option.value : '');
   };
 
   return (
@@ -47,19 +48,19 @@ const InventoryStockLevelReport = () => {
               <div className="row g-3 align-items-end">
                 <div className="col-12 col-md-auto">
                   <label htmlFor="categorySelect" className="form-label">Category</label>
-                  <select
+                  <StyledSelect
                     id="categorySelect"
-                    className="form-select"
-                    value={category}
+                    value={{ value: category, label: category || "All" }}
                     onChange={handleCategoryChange}
-                  >
-                    <option value="">All</option>
-                    {Object.values(InventoryItemCategory).map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
+                    options={[
+                      { value: "", label: "All" },
+                      ...Object.values(InventoryItemCategory).map((cat) => ({
+                        value: cat,
+                        label: cat
+                      }))
+                    ]}
+                    placeholder="Select Category"
+                  />
                 </div>
               </div>
             </div>
