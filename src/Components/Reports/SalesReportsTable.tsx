@@ -14,9 +14,14 @@ interface SalesReportTableProps {
   customers: BusinessPartner[];
   loading: boolean;
   error: string | null;
+  pagination?: {
+    currentPage: number;
+    totalPages: number;
+    setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
+  };
 }
 
-const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, customers, loading, error }) => {
+const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, customers, loading, error, pagination }) => {
   const navigate = useNavigate();
   const tableRef = useRef<HTMLDivElement>(null);
   const [isSharing, setIsSharing] = useState(false);
@@ -152,6 +157,27 @@ const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, custom
           </tbody>
         </table>
       </div>
+      {pagination && pagination.totalPages > 1 && (
+        <div className="d-flex justify-content-between align-items-center mt-3">
+          <button
+            className="btn btn-secondary"
+            onClick={() => pagination.setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={pagination.currentPage === 1}
+          >
+            Previous
+          </button>
+          <span>
+            Page {pagination.currentPage} of {pagination.totalPages}
+          </span>
+          <button
+            className="btn btn-secondary"
+            onClick={() => pagination.setCurrentPage((prev) => Math.min(prev + 1, pagination.totalPages))}
+            disabled={pagination.currentPage === pagination.totalPages}
+          >
+            Next
+          </button>
+        </div>
+      )}
       <ItemsModal
         show={showItemsModal}
         onHide={() => setShowItemsModal(false)}

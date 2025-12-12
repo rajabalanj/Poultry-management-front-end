@@ -51,7 +51,6 @@ const PurchaseFilter: React.FC<PurchaseFilterProps> = ({ vendors, filters, setFi
           <label htmlFor="vendorFilter" className="form-label">Vendor:</label>
           <StyledSelect
             id="vendorFilter"
-            className="form-select"
             value={selectedVendorOption}
             onChange={(option, _action) => setFilters.setVendorId(option ? Number(option.value) : '')}
             options={vendorOptions}
@@ -62,7 +61,6 @@ const PurchaseFilter: React.FC<PurchaseFilterProps> = ({ vendors, filters, setFi
           <label htmlFor="statusFilter" className="form-label">Status:</label>
           <StyledSelect
             id="statusFilter"
-            className="form-select"
             value={selectedStatusOption}
             onChange={(option, _action) => setFilters.setStatus(option ? (option.value as PurchaseOrderStatus) : '')}
             options={statusOptions}
@@ -71,8 +69,7 @@ const PurchaseFilter: React.FC<PurchaseFilterProps> = ({ vendors, filters, setFi
         </div>
         <div className="col-md-3">
           <label htmlFor="startDateFilter" className="form-label">Start Date:</label>
-          <div>
-            <CustomDatePicker
+          <CustomDatePicker
               selected={filters.startDate}
               onChange={(date: Date | null) => setFilters.setStartDate(date)}
               className="form-control"
@@ -85,12 +82,10 @@ const PurchaseFilter: React.FC<PurchaseFilterProps> = ({ vendors, filters, setFi
               isClearable={true}
               maxDate={filters.endDate ?? undefined}
             />
-          </div>
         </div>
         <div className="col-md-3">
           <label htmlFor="endDateFilter" className="form-label">End Date:</label>
-          <div>
-            <CustomDatePicker
+          <CustomDatePicker
               selected={filters.endDate}
               onChange={(date: Date | null) => setFilters.setEndDate(date)}
               dateFormat="dd-MM-yyyy"
@@ -103,7 +98,6 @@ const PurchaseFilter: React.FC<PurchaseFilterProps> = ({ vendors, filters, setFi
               isClearable
               minDate={filters.startDate ?? undefined}
             />
-          </div>
         </div>
       </div>
     </div>

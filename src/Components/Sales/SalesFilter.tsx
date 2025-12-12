@@ -51,7 +51,6 @@ const SalesFilter: React.FC<SalesFilterProps> = ({ customers, filters, setFilter
           <label htmlFor="customerFilter" className="form-label">Customer:</label>
           <StyledSelect
             id="customerFilter"
-            className="form-select"
             value={selectedCustomerOption}
             onChange={(option, _action) => setFilters.setCustomerId(option ? Number(option.value) : '')}
             options={customerOptions}
@@ -62,7 +61,6 @@ const SalesFilter: React.FC<SalesFilterProps> = ({ customers, filters, setFilter
           <label htmlFor="statusFilter" className="form-label">Status:</label>
           <StyledSelect
             id="statusFilter"
-            className="form-select"
             value={selectedStatusOption}
             onChange={(option, _action) => setFilters.setStatus(option ? (option.value as SalesOrderStatus) : '')}
             options={statusOptions}
@@ -71,8 +69,7 @@ const SalesFilter: React.FC<SalesFilterProps> = ({ customers, filters, setFilter
         </div>
         <div className="col-md-3">
           <label htmlFor="startDateFilter" className="form-label">Start Date:</label>
-          <div>
-            <CustomDatePicker
+          <CustomDatePicker
               selected={filters.startDate}
               onChange={(date: Date | null) => setFilters.setStartDate(date)}
               className="form-control"
@@ -85,12 +82,10 @@ const SalesFilter: React.FC<SalesFilterProps> = ({ customers, filters, setFilter
               isClearable={true}
               maxDate={filters.endDate ?? undefined}
             />
-          </div>
         </div>
         <div className="col-md-3">
           <label htmlFor="endDateFilter" className="form-label">End Date:</label>
-          <div>
-            <CustomDatePicker
+          <CustomDatePicker
               selected={filters.endDate}
               onChange={(date: Date | null) => setFilters.setEndDate(date)}
               dateFormat="dd-MM-yyyy"
@@ -103,7 +98,6 @@ const SalesFilter: React.FC<SalesFilterProps> = ({ customers, filters, setFilter
               isClearable
               minDate={filters.startDate ?? undefined}
             />
-          </div>
         </div>
       </div>
     </div>

@@ -14,9 +14,14 @@ interface PurchaseReportTableProps {
   vendors: BusinessPartner[];
   loading: boolean;
   error: string | null;
+  pagination?: {
+    currentPage: number;
+    totalPages: number;
+    setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
+  };
 }
 
-const PurchaseReportTable: React.FC<PurchaseReportTableProps> = ({ purchaseOrders, vendors, loading, error }) => {
+const PurchaseReportTable: React.FC<PurchaseReportTableProps> = ({ purchaseOrders, vendors, loading, error, pagination }) => {
   const navigate = useNavigate();
   const tableRef = useRef<HTMLDivElement>(null);
   const [isSharing, setIsSharing] = useState(false);
@@ -150,6 +155,27 @@ const PurchaseReportTable: React.FC<PurchaseReportTableProps> = ({ purchaseOrder
           </tbody>
         </table>
       </div>
+      {pagination && pagination.totalPages > 1 && (
+        <div className="d-flex justify-content-between align-items-center mt-3">
+          <button
+            className="btn btn-secondary"
+            onClick={() => pagination.setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={pagination.currentPage === 1}
+          >
+            Previous
+          </button>
+          <span>
+            Page {pagination.currentPage} of {pagination.totalPages}
+          </span>
+          <button
+            className="btn btn-secondary"
+            onClick={() => pagination.setCurrentPage((prev) => Math.min(prev + 1, pagination.totalPages))}
+            disabled={pagination.currentPage === pagination.totalPages}
+          >
+            Next
+          </button>
+        </div>
+      )}
       <ItemsModal
         show={showItemsModal}
         onHide={() => setShowItemsModal(false)}

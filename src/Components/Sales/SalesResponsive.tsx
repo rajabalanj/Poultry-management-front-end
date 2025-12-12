@@ -1,5 +1,5 @@
 // src/Components/Sales/SalesResponsive.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { useMediaQuery } from 'react-responsive';
 import { useLocation } from 'react-router-dom';
 import PageHeader from '../Layout/PageHeader';
@@ -23,6 +23,15 @@ const SalesResponsive: React.FC = () => {
 
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const location = useLocation();
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const rowsPerPage = 10;
+  
+  // Calculate pagination
+  const totalPages = salesOrders.length > 0 ? Math.ceil(salesOrders.length / rowsPerPage) : 0;
+  const validSalesOrders = salesOrders.filter(order => order && Object.keys(order).length > 0);
+  const paginatedSalesOrders = validSalesOrders.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
 
   // Determine title based on the route
   const isReportView = location.pathname.includes('/reports/sales');
@@ -50,12 +59,17 @@ const SalesResponsive: React.FC = () => {
             <SalesFilter customers={customers} filters={filters} setFilters={setFilters} />
 
             <SalesOrderTable
-              salesOrders={salesOrders}
+              salesOrders={paginatedSalesOrders}
               loading={loading}
               error={error}
               onDelete={deleteModal.handleDelete}
               customers={customers}
               onAddPayment={handleAddPayment}
+              pagination={{
+                currentPage,
+                totalPages,
+                setCurrentPage
+              }}
             />
             
             <Modal show={deleteModal.show} onHide={deleteModal.cancelDelete}>
@@ -97,10 +111,15 @@ const SalesResponsive: React.FC = () => {
           <SalesFilter customers={customers} filters={filters} setFilters={setFilters} />
 
           <SalesReportTable
-            salesOrders={salesOrders}
+            salesOrders={paginatedSalesOrders}
             loading={loading}
             error={error}
             customers={customers}
+            pagination={{
+              currentPage,
+              totalPages,
+              setCurrentPage
+            }}
           />
         </div>
       </>

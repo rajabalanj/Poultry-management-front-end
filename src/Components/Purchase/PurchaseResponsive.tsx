@@ -1,5 +1,5 @@
 // src/Components/Purchase/PurchaseResponsive.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { useMediaQuery } from 'react-responsive';
 import { useLocation } from 'react-router-dom';
 import PageHeader from '../Layout/PageHeader';
@@ -23,6 +23,15 @@ const PurchaseResponsive: React.FC = () => {
 
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const location = useLocation();
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const rowsPerPage = 10;
+  
+  // Calculate pagination
+  const totalPages = purchaseOrders.length > 0 ? Math.ceil(purchaseOrders.length / rowsPerPage) : 0;
+  const validPurchaseOrders = purchaseOrders.filter(order => order && Object.keys(order).length > 0);
+  const paginatedPurchaseOrders = validPurchaseOrders.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
 
   // Determine title based on the route
   const isReportView = location.pathname.includes('/reports/purchases');
@@ -44,12 +53,17 @@ const PurchaseResponsive: React.FC = () => {
             <PurchaseFilter vendors={vendors} filters={filters} setFilters={setFilters} />
 
             <PurchaseOrderTable
-              purchaseOrders={purchaseOrders}
+              purchaseOrders={paginatedPurchaseOrders}
               loading={loading}
               error={error}
               onDelete={deleteModal.handleDelete}
               vendors={vendors}
               onAddPayment={handleAddPayment}
+              pagination={{
+                currentPage,
+                totalPages,
+                setCurrentPage
+              }}
             />
             
             <Modal show={deleteModal.show} onHide={deleteModal.cancelDelete}>
@@ -91,10 +105,15 @@ const PurchaseResponsive: React.FC = () => {
           <PurchaseFilter vendors={vendors} filters={filters} setFilters={setFilters} />
 
           <PurchaseReportTable
-            purchaseOrders={purchaseOrders}
+            purchaseOrders={paginatedPurchaseOrders}
             loading={loading}
             error={error}
             vendors={vendors}
+            pagination={{
+              currentPage,
+              totalPages,
+              setCurrentPage
+            }}
           />
         </div>
       </>

@@ -19,9 +19,14 @@ interface PurchaseOrderTableProps {
   onDelete?: (id: number) => void;
   vendors: BusinessPartner[];
   onAddPayment?: (id: number) => void;
+  pagination?: {
+    currentPage: number;
+    totalPages: number;
+    setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
+  };
 }
 
-const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders, loading, error, onDelete, vendors, onAddPayment }) => {
+const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders, loading, error, onDelete, vendors, onAddPayment, pagination }) => {
   const navigate = useNavigate();
   const tableRef = useRef<HTMLDivElement>(null);
   const [isSharing, setIsSharing] = useState(false);
@@ -198,6 +203,27 @@ const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders,
           </table>
         </div>
       </div>
+      {pagination && pagination.totalPages > 1 && (
+        <div className="d-flex justify-content-between align-items-center mt-3">
+          <button
+            className="btn btn-secondary"
+            onClick={() => pagination.setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={pagination.currentPage === 1}
+          >
+            Previous
+          </button>
+          <span>
+            Page {pagination.currentPage} of {pagination.totalPages}
+          </span>
+          <button
+            className="btn btn-secondary"
+            onClick={() => pagination.setCurrentPage((prev) => Math.min(prev + 1, pagination.totalPages))}
+            disabled={pagination.currentPage === pagination.totalPages}
+          >
+            Next
+          </button>
+        </div>
+      )}
       <ItemsModal
         show={showItemsModal}
         onHide={() => setShowItemsModal(false)}
