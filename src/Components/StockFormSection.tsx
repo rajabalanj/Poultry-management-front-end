@@ -51,7 +51,7 @@ export const StockFormSection: React.FC<StockFormSectionProps> = ({
                   type="number"
                   className={`form-control ${readOnly ? 'is-readonly' : ''}`}
                   style={{ flex: 1, textAlign: 'center' }}
-                  value={controlledBy ? (values[controlledBy] as number || '') : (values[key] as number || '')}
+                  value={controlledBy ? (values[controlledBy] as number) : (values[key] as number)}
                   onChange={(e) => onChange(key, e.target.value)}
                   min={0}
                   readOnly={readOnly} // Apply readOnly property
@@ -92,7 +92,7 @@ export const StockFormSection: React.FC<StockFormSectionProps> = ({
               type="number"
               className={`form-control ${readOnly ? 'is-readonly' : ''}`}
               style={{ textAlign: 'center' }}
-              value={controlledBy ? (values[controlledBy] as number || '') : (values[key] as number || '')}
+              value={controlledBy ? (values[controlledBy] as number) : (values[key] as number)}
               onChange={(e) => onChange(key, e.target.value)}
               min={0}
               readOnly={readOnly} // Apply readOnly property
