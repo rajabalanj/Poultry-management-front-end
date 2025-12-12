@@ -2,6 +2,8 @@ import React, { useRef, useState, useEffect } from 'react';
 import { dailyBatchApi, batchApi } from '../services/api';
 import PageHeader from './Layout/PageHeader';
 import { BatchResponse } from '../types/batch';
+import StyledSelect from './Common/StyledSelect';
+import { SingleValue } from 'react-select';
 
 const UploadBatch: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -36,8 +38,12 @@ const UploadBatch: React.FC = () => {
     setMessage(null);
   };
 
-  const handleBatchSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedBatchId(Number(e.target.value));
+  type OptionType = { value: number | string; label: string };
+
+  const handleBatchSelect = (
+    selectedOption: SingleValue<OptionType>
+  ) => {
+    setSelectedBatchId(selectedOption ? Number(selectedOption.value) : null);
   };
 
   const handleUpload = async () => {
@@ -76,6 +82,13 @@ const UploadBatch: React.FC = () => {
       setUploading(false);
     }
   };
+
+  const batchOptions: OptionType[] = batches.map((batch) => ({
+    value: batch.id,
+    label: batch.batch_no,
+  }));
+  const selectedBatchOption = batchOptions.find(option => option.value === selectedBatchId);
+
 
   return (
     <>
@@ -118,20 +131,14 @@ const UploadBatch: React.FC = () => {
           {reportType === 'weekly' && (
             <div className="form-group mb-3">
               <label htmlFor="batchSelect" className="form-label">Select Batch</label>
-              <select
-                className="form-select"
+              <StyledSelect
                 id="batchSelect"
-                value={selectedBatchId || ''}
-                onChange={handleBatchSelect}
-                disabled={loadingBatches}
-              >
-                <option value="" disabled>Select a batch</option>
-                {batches.map((batch) => (
-                  <option key={batch.id} value={batch.id}>
-                    {batch.batch_no}
-                  </option>
-                ))}
-              </select>
+                value={selectedBatchOption}
+                onChange={(option, _action) => handleBatchSelect(option)}
+                options={batchOptions}
+                isLoading={loadingBatches}
+                placeholder="Select a batch"
+              />
               {loadingBatches && (
                 <div className="form-text">Loading batches...</div>
               )}

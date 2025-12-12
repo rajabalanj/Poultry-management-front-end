@@ -7,8 +7,10 @@ import CustomDatePicker from '../Common/CustomDatePicker';
 import { format } from 'date-fns'; // Import format
 import { purchaseOrderApi, s3Upload } from '../../services/api';
 import { PaymentCreate, PurchaseOrderResponse } from '../../types/PurchaseOrder';
+import StyledSelect from '../Common/StyledSelect';
 
 const paymentModes = ["Cash", "Bank Transfer", "Cheque", "Online Payment", "Other"];
+type OptionType = { value: string; label: string };
 
 const AddPaymentForm: React.FC = () => {
   const { po_id } = useParams<{ po_id: string }>();
@@ -81,7 +83,7 @@ const AddPaymentForm: React.FC = () => {
 
     // Optional: Add validation for overpayment
     if (purchaseOrder && (Number(amountPaid) + purchaseOrder.total_amount_paid) > purchaseOrder.total_amount + 0.01) { // Add small epsilon for floating point
-        toast.warn(`Amount entered (${amountPaid.toFixed(2)}) would overpay this Purchase. Total due: Rs. ${(purchaseOrder.total_amount - purchaseOrder.total_amount_paid).toFixed(2)}.`);
+        toast.warn(`Amount entered (${(Number(amountPaid)).toFixed(2)}) would overpay this Purchase. Total due: Rs. ${(purchaseOrder.total_amount - purchaseOrder.total_amount_paid).toFixed(2)}.`);
         // Allow to proceed or return, depending on business logic. For now, warn and allow.
     }
 
@@ -118,6 +120,12 @@ const AddPaymentForm: React.FC = () => {
   if (errorPo) return <div className="text-center text-danger mt-5">{errorPo}</div>;
   if (!purchaseOrder) return <div className="text-center mt-5">Purchase not found.</div>;
 
+  const paymentModeOptions: OptionType[] = paymentModes.map((mode) => ({
+    value: mode,
+    label: mode,
+  }));
+  const selectedPaymentModeOption = paymentModeOptions.find(option => option.value === paymentMode);
+
 
   return (
     <>
@@ -145,7 +153,7 @@ const AddPaymentForm: React.FC = () => {
                     type="number"
                     className="form-control"
                     id="amountPaid"
-                    // value={amountPaid}
+                    value={amountPaid}
                     onChange={(e) => setAmountPaid(Number(e.target.value))}
                     min="0.01"
                     step="0.01"
@@ -172,19 +180,17 @@ const AddPaymentForm: React.FC = () => {
                 </div>
                 <div className="col-md-6">
                   <label htmlFor="paymentMode" className="form-label">Payment Mode <span className="form-field-required">*</span></label>
-                  <select
+                  <StyledSelect
                     id="paymentMode"
                     className="form-select"
-                    value={paymentMode}
-                    onChange={(e) => setPaymentMode(e.target.value)}
+                    value={selectedPaymentModeOption}
+                    onChange={(option, _action) => setPaymentMode(option ? String(option.value) : '')}
+                    options={paymentModeOptions}
+                    placeholder="Select Mode"
+                    isClearable
                     required
-                    disabled={isLoading}
-                  >
-                    <option value="">Select Mode</option>
-                    {paymentModes.map((mode) => (
-                      <option key={mode} value={mode}>{mode}</option>
-                    ))}
-                  </select>
+                    isDisabled={isLoading}
+                  />
                 </div>
                 <div className="col-md-6">
                   <label htmlFor="referenceNumber" className="form-label">Reference Number (Optional)</label>

@@ -5,6 +5,9 @@ import { ledgerApi, businessPartnerApi } from '../../services/api';
 import { PurchaseLedger } from '../../types/ledgers';
 import Loading from '../Common/Loading';
 import { BusinessPartner } from '../../types/BusinessPartner';
+import StyledSelect from '../Common/StyledSelect';
+
+type OptionType = { value: string; label: string };
 
 const PurchaseLedgerComponent: React.FC = () => {
     const [vendorId, setVendorId] = useState('');
@@ -41,24 +44,25 @@ const PurchaseLedgerComponent: React.FC = () => {
         }
     };
 
+    const vendorOptions: OptionType[] = vendors.map((vendor) => ({
+        value: String(vendor.id),
+        label: `${vendor.id} - ${vendor.name}`,
+    }));
+    const selectedVendorOption = vendorOptions.find(option => option.value === vendorId);
+
     return (
         <div>
             <div className="row g-3 align-items-end p-3 border-bottom">
                 <div className="col-md-4">
                     <label htmlFor="vendorId" className="form-label">Vendor ID</label>
-                    <select
+                    <StyledSelect
                         id="vendorId"
                         className="form-select"
-                        value={vendorId}
-                        onChange={(e) => setVendorId(e.target.value)}
-                    >
-                        <option value="">Select a Vendor</option>
-                        {vendors.map((vendor) => (
-                            <option key={vendor.id} value={vendor.id}>
-                                {vendor.id} - {vendor.name}
-                            </option>
-                        ))}
-                    </select>
+                        value={selectedVendorOption}
+                        onChange={(option, _action) => setVendorId(option ? String(option.value) : '')}
+                        options={vendorOptions}
+                        placeholder="Select a Vendor"
+                    />
                 </div>
                 <div className="col-md-4 d-flex justify-content-center justify-content-md-end">
                     <button className="btn btn-primary mb-2" onClick={handleFetchLedger} disabled={loading}>

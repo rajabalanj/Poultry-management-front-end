@@ -3,6 +3,7 @@ import { compositionApi, batchApi, inventoryItemApi, getTenantId } from "../serv
 import { InventoryItemResponse, InventoryItemCategory } from "../types/InventoryItem";
 import { BatchResponse } from "../types/batch";
 import CompositionForm from "./CompositionForm";
+import Select, { StylesConfig, SingleValue } from 'react-select';
 import { toast } from "react-toastify";
 import { useNavigate } from 'react-router-dom';
 
@@ -67,10 +68,6 @@ function FeedMillStock() {
   const selectedComposition = compositions.find(
     (c) => c.id === selectedCompositionId
   );
-
-  const handleCompositionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedCompositionId(Number(e.target.value));
-  };
 
   const handleEdit = () => {
     if (!selectedComposition) return;
@@ -152,26 +149,62 @@ function FeedMillStock() {
     setViewState("view");
   };
 
+  type OptionType = { value: number | string; label: string };
+
+  const customStyles: StylesConfig<OptionType, false> = {
+    option: (provided, state) => ({
+      ...provided,
+      backgroundColor: state.isFocused
+        ? 'var(--bs-primary)'
+        : 'var(--bs-white)',
+      color: state.isFocused ? 'var(--bs-white)' : 'var(--bs-body-color)',
+      ':active': {
+        ...provided[':active'],
+        backgroundColor: 'rgba(13, 110, 253, 0.2)',
+      },
+    }),
+    control: (provided) => ({
+      ...provided,
+      textAlign: 'center',
+    }),
+  };
+
+  const compositionOptions: OptionType[] = compositions.map(c => ({ value: c.id, label: c.name }));
+  const selectedCompositionOption = compositionOptions.find(option => option.value === selectedCompositionId);
+
+  const handleCompositionSelectChange = (selectedOption: SingleValue<OptionType>) => {
+    if (selectedOption) {
+      setSelectedCompositionId(selectedOption.value as number);
+    } else {
+      setSelectedCompositionId(null);
+    }
+  };
+
+  const batchOptions: OptionType[] = batches.map(b => ({ value: b.batch_no, label: b.batch_no }));
+  const selectedBatchOption = batchOptions.find(option => option.value === selectedBatchNo);
+
+  const handleBatchSelectChange = (selectedOption: SingleValue<OptionType>) => {
+    if (selectedOption) {
+      setSelectedBatchNo(selectedOption.value as string);
+    } else {
+      setSelectedBatchNo('');
+    }
+  };
+
   return (
     <div className="container py-3">
       <div className="row mb-3">
         <div className="col-12 col-md-4 mb-2 mb-md-0">
           {viewState !== "add" && (
-            <select
-              className="form-select form-select text-center"
-              value={selectedCompositionId || ""}
-              onChange={handleCompositionChange}
-              title="Select Composition"
-            >
-              <option value="" disabled>
-                Select Composition
-              </option>
-              {compositions.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+            <Select
+              className="text-center"
+              value={selectedCompositionOption}
+              onChange={handleCompositionSelectChange}
+              options={compositionOptions}
+              styles={customStyles}
+              placeholder="Select Composition"
+              isClearable
+            />
           )}
         </div>
         <div className="col-12 col-md-8 d-flex gap-2 flex-wrap">
@@ -275,19 +308,15 @@ function FeedMillStock() {
           </div>
           <div className="mb-3">
             <label htmlFor="batchNoSelect" className="form-label">Select Batch Number:</label>
-            <select
+            <Select
               id="batchNoSelect"
-              className="form-select form-select-sm"
-              value={selectedBatchNo}
-              onChange={(e) => setSelectedBatchNo(e.target.value)}
-            >
-              <option value="">Select a Batch</option>
-              {batches.map((batch) => (
-                <option key={batch.id} value={batch.batch_no}>
-                  {batch.batch_no}
-                </option>
-              ))}
-            </select>
+              value={selectedBatchOption}
+              onChange={handleBatchSelectChange}
+              options={batchOptions}
+              styles={customStyles}
+              placeholder="Select a Batch"
+              isClearable
+            />
           </div>
           <div className="mb-3">
             <label htmlFor="batchDate" className="form-label">Batch Date:</label>

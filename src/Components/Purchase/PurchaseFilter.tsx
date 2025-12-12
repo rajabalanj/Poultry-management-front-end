@@ -3,6 +3,7 @@ import React from 'react';
 import CustomDatePicker from '../Common/CustomDatePicker';
 import { BusinessPartner } from '../../types/BusinessPartner';
 import { PurchaseOrderStatus } from '../../types/PurchaseOrder';
+import StyledSelect from '../Common/StyledSelect';
 
 interface PurchaseFilterProps {
   vendors: BusinessPartner[];
@@ -20,38 +21,53 @@ interface PurchaseFilterProps {
   };
 }
 
+type OptionType = { value: number | string; label: string };
+
 const PurchaseFilter: React.FC<PurchaseFilterProps> = ({ vendors, filters, setFilters }) => {
+
+  const vendorOptions: OptionType[] = [
+    { value: '', label: 'All Vendors' },
+    ...vendors.map((vendor) => ({
+      value: vendor.id,
+      label: vendor.name,
+    })),
+  ];
+  const selectedVendorOption = vendorOptions.find(option => option.value === filters.vendorId);
+
+  const statusOptions: OptionType[] = [
+    { value: '', label: 'All Statuses' },
+    ...Object.values(PurchaseOrderStatus).map((status) => ({
+      value: status,
+      label: status,
+    })),
+  ];
+  const selectedStatusOption = statusOptions.find(option => option.value === filters.status);
+
   return (
     <div className="card shadow-sm mb-4 p-3">
       <h5 className="mb-3">Filter Purchases</h5>
       <div className="row g-3">
         <div className="col-md-3">
           <label htmlFor="vendorFilter" className="form-label">Vendor:</label>
-          <select
+          <StyledSelect
             id="vendorFilter"
             className="form-select"
-            value={filters.vendorId}
-            onChange={(e) => setFilters.setVendorId(Number(e.target.value) || '')}
-          >
-            <option value="">All Vendors</option>
-            {vendors.map((vendor) => (
-              <option key={vendor.id} value={vendor.id}>{vendor.name}</option>
-            ))}
-          </select>
+            value={selectedVendorOption}
+            onChange={(option, _action) => setFilters.setVendorId(option ? Number(option.value) : '')}
+            options={vendorOptions}
+            placeholder="All Vendors"
+          />
         </div>
         <div className="col-md-3">
           <label htmlFor="statusFilter" className="form-label">Status:</label>
-          <select
+          <StyledSelect
             id="statusFilter"
             className="form-select"
-            value={filters.status}
-            onChange={(e) => setFilters.setStatus(e.target.value as PurchaseOrderStatus | '')}
-          >
-            <option value="">All Statuses</option>
-            {Object.values(PurchaseOrderStatus).map((status) => (
-              <option key={status} value={status}>{status}</option>
-            ))}
-          </select>
+            value={selectedStatusOption}
+            onChange={(option, _action) => setFilters.setStatus(option ? (option.value as PurchaseOrderStatus) : '')}
+            options={statusOptions}
+            placeholder="All Statuses"
+          />
         </div>
         <div className="col-md-3">
           <label htmlFor="startDateFilter" className="form-label">Start Date:</label>

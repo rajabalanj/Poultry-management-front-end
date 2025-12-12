@@ -7,8 +7,10 @@ import CustomDatePicker from '../Common/CustomDatePicker';
 import { salesOrderApi } from '../../services/api';
 import { PaymentCreate as SalesPaymentCreate, SalesOrderResponse } from '../../types/SalesOrder';
 import { format } from 'date-fns';
+import StyledSelect from '../Common/StyledSelect';
 
 const paymentModes = ["Cash", "Bank Transfer", "Cheque", "Online Payment", "Other"];
+type OptionType = { value: string; label: string };
 
 const AddSalesPaymentForm: React.FC = () => {
   const { so_id } = useParams<{ so_id: string }>();
@@ -111,6 +113,12 @@ const AddSalesPaymentForm: React.FC = () => {
   if (errorSo) return <div className="text-center text-danger mt-5">{errorSo}</div>;
   if (!salesOrder) return <div className="text-center mt-5">Sales Order not found.</div>;
 
+  const paymentModeOptions: OptionType[] = paymentModes.map((mode) => ({
+    value: mode,
+    label: mode,
+  }));
+  const selectedPaymentModeOption = paymentModeOptions.find(option => option.value === paymentMode);
+
 
   return (
     <>
@@ -165,19 +173,17 @@ const AddSalesPaymentForm: React.FC = () => {
                 </div>
                 <div className="col-md-6">
                   <label htmlFor="paymentMode" className="form-label">Payment Mode <span className="form-field-required">*</span></label>
-                  <select
+                  <StyledSelect
                     id="paymentMode"
                     className="form-select"
-                    value={paymentMode}
-                    onChange={(e) => setPaymentMode(e.target.value)}
+                    value={selectedPaymentModeOption}
+                    onChange={(option, _action) => setPaymentMode(option ? String(option.value) : '')}
+                    options={paymentModeOptions}
+                    placeholder="Select Mode"
+                    isClearable
                     required
-                    disabled={isLoading}
-                  >
-                    <option value="">Select Mode</option>
-                    {paymentModes.map((mode) => (
-                      <option key={mode} value={mode}>{mode}</option>
-                    ))}
-                  </select>
+                    isDisabled={isLoading}
+                  />
                 </div>
                 <div className="col-md-6">
                   <label htmlFor="referenceNumber" className="form-label">Reference Number (Optional)</label>

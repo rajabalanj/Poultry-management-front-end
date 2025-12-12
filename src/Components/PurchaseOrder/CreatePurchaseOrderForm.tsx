@@ -15,7 +15,8 @@ import {
 import { PurchaseOrderItemCreate } from '../../types/PurchaseOrderItem';
 import { BusinessPartner } from '../../types/BusinessPartner';
 import { InventoryItemResponse } from '../../types/InventoryItem';
-import Loading from '../Common/Loading'
+import Loading from '../Common/Loading';
+import StyledSelect from '../Common/StyledSelect';
 
 interface FormPurchaseOrderItem extends PurchaseOrderItemCreate {
   tempId: number;
@@ -23,6 +24,8 @@ interface FormPurchaseOrderItem extends PurchaseOrderItemCreate {
   inventory_item_unit?: string;
   available_stock?: number;
 }
+
+type OptionType = { value: number | string; label: string };
 
 const CreatePurchaseOrderForm: React.FC = () => {
   const navigate = useNavigate();
@@ -58,6 +61,23 @@ const CreatePurchaseOrderForm: React.FC = () => {
   const grandTotal = useMemo(() => {
     return items.reduce((sum, item) => sum + (item.quantity * item.price_per_unit), 0);
   }, [items]);
+
+  const vendorOptions: OptionType[] = vendors.map((vendor) => ({
+    value: vendor.id,
+    label: vendor.name,
+  }));
+  const selectedVendorOption = vendorOptions.find(option => option.value === vendorId);
+
+  const inventoryItemOptions: OptionType[] = inventoryItems.map((item) => ({
+    value: item.id,
+    label: `${item.name} (${item.unit})`,
+  }));
+
+  const paymentModeOptions: OptionType[] = paymentModes.map((mode) => ({
+    value: mode,
+    label: mode,
+  }));
+  const selectedPaymentModeOption = paymentModeOptions.find(option => option.value === paymentMode);
 
   // ... (rest of the useEffect for fetching initial data remains the same)
   useEffect(() => {
@@ -264,19 +284,16 @@ const CreatePurchaseOrderForm: React.FC = () => {
                   <div className="col-md-6">
                     <label htmlFor="vendorSelect" className="form-label">Vendor <span className="form-field-required">*</span></label>
                     <div className="d-flex gap-2 align-items-center">
-                      <select
+                      <StyledSelect
                         id="vendorSelect"
                         className="form-select"
-                        value={vendorId}
-                        onChange={(e) => setVendorId(Number(e.target.value))}
-                        required
-                        disabled={isLoading || vendors.length === 0}
-                      >
-                        <option value="">Select a Vendor</option>
-                        {vendors.map((vendor) => (
-                          <option key={vendor.id} value={vendor.id}>{vendor.name}</option>
-                        ))}
-                      </select>
+                        value={selectedVendorOption}
+                        onChange={(option, _action) => setVendorId(option ? Number(option.value) : '')}
+                        options={vendorOptions}
+                        placeholder="Select a Vendor"
+                        isClearable
+                        isLoading={isLoading || vendors.length === 0}
+                      />
                       <button
                         type="button"
                         className="btn btn-sm btn-outline-primary"
@@ -353,21 +370,16 @@ const CreatePurchaseOrderForm: React.FC = () => {
                         <div className="col-md-6">
                           <label htmlFor={`itemId-${item.tempId}`} className="form-label">Inventory Item <span className="form-field-required">*</span></label>
                           <div className="d-flex gap-2 align-items-center">
-                            <select
+                            <StyledSelect
                               id={`itemId-${item.tempId}`}
                               className="form-select"
-                              value={item.inventory_item_id || ''}
-                              onChange={(e) => handleItemChange(item.tempId, 'inventory_item_id', e.target.value)}
-                              required
-                              disabled={isLoading || inventoryItems.length === 0}
-                            >
-                              <option value="">Select an Item</option>
-                              {inventoryItems.map((invItem) => (
-                                <option key={invItem.id} value={invItem.id}>
-                                  {invItem.name} ({invItem.unit})
-                                </option>
-                              ))}
-                            </select>
+                              value={inventoryItemOptions.find(option => option.value === item.inventory_item_id)}
+                              onChange={(option, _action) => handleItemChange(item.tempId, 'inventory_item_id', option ? option.value : '')}
+                              options={inventoryItemOptions}
+                              placeholder="Select an Item"
+                              isClearable
+                              isLoading={isLoading || inventoryItems.length === 0}
+                            />
                             <button
                               type="button"
                               className="btn btn-sm btn-outline-primary"
@@ -496,10 +508,17 @@ const CreatePurchaseOrderForm: React.FC = () => {
                   </div>
                   <div className="col-md-6">
                     <label htmlFor="paymentMode" className="form-label">Payment Mode <span className="form-field-required">*</span></label>
-                    <select id="paymentMode" className="form-select" value={paymentMode} onChange={(e) => setPaymentMode(e.target.value)} required disabled={isLoading}>
-                      <option value="">Select Mode</option>
-                      {paymentModes.map(mode => <option key={mode} value={mode}>{mode}</option>)}
-                    </select>
+                    <StyledSelect
+                      id="paymentMode"
+                      className="form-select"
+                      value={selectedPaymentModeOption}
+                      onChange={(option, _action) => setPaymentMode(option ? String(option.value) : '')}
+                      options={paymentModeOptions}
+                      placeholder="Select Mode"
+                      isClearable
+                      required
+                      isDisabled={isLoading}
+                    />
                   </div>
                   <div className="col-md-6">
                     <label htmlFor="referenceNumber" className="form-label">Reference Number</label>

@@ -18,6 +18,7 @@ import {
 import { BusinessPartner } from '../../types/BusinessPartner';
 import { InventoryItemResponse, InventoryItemCategory } from '../../types/InventoryItem';
 import { format } from 'date-fns';
+import StyledSelect from '../Common/StyledSelect';
 
 interface FormSalesOrderItem extends SalesOrderItemResponse {
   tempId: number; // For new items, to uniquely identify them before they have a backend ID
@@ -27,6 +28,9 @@ interface FormSalesOrderItem extends SalesOrderItemResponse {
   inventory_item_name?: string;
   inventory_item_unit?: string;
 }
+
+type OptionType = { value: number; label: string };
+
 
 const EditSalesOrder: React.FC = () => {
   const { so_id } = useParams<{ so_id: string }>();
@@ -269,6 +273,17 @@ const EditSalesOrder: React.FC = () => {
   if (initialLoading) return <div className="text-center mt-5">Loading sales order for editing...</div>;
   if (error) return <div className="text-center text-danger mt-5">{error}</div>;
 
+  const customerOptions: OptionType[] = customers.map((customer) => ({
+    value: customer.id,
+    label: customer.name,
+  }));
+  const selectedCustomerOption = customerOptions.find(option => option.value === customerId);
+
+  const inventoryItemOptions: OptionType[] = inventoryItems.map((item) => ({
+    value: item.id,
+    label: `${item.name} (${item.unit})`,
+  }));
+
   return (
     <>
       <PageHeader title={`Edit Sales: ${so_id || 'Loading...'}`} buttonVariant="secondary" buttonLabel="Back" buttonIcon='bi-arrow-left'/>
@@ -282,19 +297,16 @@ const EditSalesOrder: React.FC = () => {
                 <div className="col-md-6">
                   <label htmlFor="customerSelect" className="form-label">Customer <span className="form-field-required">*</span></label>
                   <div className="d-flex">
-                    <select
+                  <StyledSelect
                       id="customerSelect"
                       className="form-select me-2"
-                      value={customerId}
-                      onChange={(e) => setCustomerId(Number(e.target.value))}
-                      required
-                      disabled={isLoading || customers.length === 0}
-                    >
-                      <option value="">Select a Customer</option>
-                      {customers.map((customer) => (
-                        <option key={customer.id} value={customer.id}>{customer.name}</option>
-                      ))}
-                    </select>
+                      value={selectedCustomerOption}
+                      onChange={(option, _action) => setCustomerId(option ? Number(option.value) : '')}
+                      options={customerOptions}
+                      placeholder="Select a Customer"
+                      isClearable
+                      isLoading={isLoading || customers.length === 0}
+                    />
                     <button
                       type="button"
                       className="btn btn-outline-primary"
@@ -374,21 +386,16 @@ const EditSalesOrder: React.FC = () => {
                         <div className="col-md-6">
                           <label htmlFor={`itemId-${item.tempId}`} className="form-label">Inventory Item <span className="form-field-required">*</span></label>
                           <div className="d-flex">
-                            <select
+                          <StyledSelect
                               id={`itemId-${item.tempId}`}
                               className="form-select me-2"
-                              value={item.inventory_item_id || ''}
-                              onChange={(e) => handleItemChange(item.tempId, 'inventory_item_id', e.target.value)}
-                              required
-                              disabled={isLoading}
-                            >
-                              <option value="">Select an Item</option>
-                              {inventoryItems.map((invItem) => (
-                                <option key={invItem.id} value={invItem.id}>
-                                  {invItem.name} ({invItem.unit})
-                                </option>
-                              ))}
-                            </select>
+                              value={inventoryItemOptions.find(option => option.value === item.inventory_item_id)}
+                              onChange={(option, _action) => handleItemChange(item.tempId, 'inventory_item_id', option ? option.value : '')}
+                              options={inventoryItemOptions}
+                              placeholder="Select an Item"
+                              isClearable
+                              isLoading={isLoading}
+                            />
                             {/* add-item button removed on edit page */}
                           </div>
                           {inventoryItems.length === 0 && !isLoading && (

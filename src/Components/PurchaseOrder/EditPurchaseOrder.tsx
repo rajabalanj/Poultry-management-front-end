@@ -18,6 +18,8 @@ import {
 } from '../../types/PurchaseOrderItem';
 import { BusinessPartner } from '../../types/BusinessPartner';
 import { InventoryItemResponse } from '../../types/InventoryItem';
+import StyledSelect from '../Common/StyledSelect';
+
 interface FormPurchaseOrderItem extends PurchaseOrderItemResponse {
   tempId: number; // For new items, to uniquely identify them before they have a backend ID
   isNew?: boolean; // Flag to indicate if this item is newly added
@@ -26,6 +28,8 @@ interface FormPurchaseOrderItem extends PurchaseOrderItemResponse {
   inventory_item_name?: string;
   inventory_item_unit?: string;
 }
+
+type OptionType = { value: number; label: string };
 
 const EditPurchaseOrder: React.FC = () => {
   const { po_id } = useParams<{ po_id: string }>();
@@ -289,6 +293,17 @@ const EditPurchaseOrder: React.FC = () => {
   if (initialLoading) return <div className="text-center mt-5">Loading purchase for editing...</div>;
   if (error) return <div className="text-center text-danger mt-5">{error}</div>;
 
+  const vendorOptions: OptionType[] = vendors.map((vendor) => ({
+    value: vendor.id,
+    label: vendor.name,
+  }));
+  const selectedVendorOption = vendorOptions.find(option => option.value === vendorId);
+
+  const inventoryItemOptions: OptionType[] = inventoryItems.map((item) => ({
+    value: item.id,
+    label: `${item.name} (${item.unit})`,
+  }));
+
   return (
     <>
       <PageHeader title={`Edit Purchase: ${poNumber || 'Loading...'}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/purchase-orders" buttonIcon='bi-arrow-left' />
@@ -302,19 +317,16 @@ const EditPurchaseOrder: React.FC = () => {
                 <div className="col-md-6">
                   <label htmlFor="vendorSelect" className="form-label">Vendor <span className="form-field-required">*</span></label>
                   <div className="d-flex gap-2 align-items-center">
-                    <select
+                  <StyledSelect
                       id="vendorSelect"
                       className="form-select"
-                      value={vendorId}
-                      onChange={(e) => setVendorId(Number(e.target.value))}
-                      required
-                      disabled={isLoading || vendors.length === 0}
-                    >
-                      <option value="">Select a Vendor</option>
-                      {vendors.map((vendor) => (
-                        <option key={vendor.id} value={vendor.id}>{vendor.name}</option>
-                      ))}
-                    </select>
+                      value={selectedVendorOption}
+                      onChange={(option, _action) => setVendorId(option ? Number(option.value) : '')}
+                      options={vendorOptions}
+                      placeholder="Select a Vendor"
+                      isClearable
+                      isLoading={isLoading || vendors.length === 0}
+                    />
                     <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => setShowCreateVendorModal(true)} title="Add Vendor">
                       <i className="bi bi-plus-lg"></i>
                     </button>
@@ -402,21 +414,16 @@ const EditPurchaseOrder: React.FC = () => {
                         <div className="col-md-6">
                           <label htmlFor={`itemId-${item.tempId}`} className="form-label">Inventory Item <span className="form-field-required">*</span></label>
                           <div className="d-flex gap-2 align-items-center">
-                          <select
+                          <StyledSelect
                             id={`itemId-${item.tempId}`}
-                            className="form-select" 
-                            value={item.inventory_item_id || ''}
-                            onChange={(e) => handleItemChange(item.tempId, 'inventory_item_id', e.target.value)}
-                            required
-                            disabled={isLoading}
-                          >
-                            <option value="">Select an Item</option>
-                            {inventoryItems.map((invItem) => (
-                              <option key={invItem.id} value={invItem.id}>
-                                {invItem.name} ({invItem.unit})
-                              </option>
-                            ))}
-                          </select>
+                            className="form-select"
+                            value={inventoryItemOptions.find(option => option.value === item.inventory_item_id)}
+                            onChange={(option, _action) => handleItemChange(item.tempId, 'inventory_item_id', option ? option.value : '')}
+                            options={inventoryItemOptions}
+                            placeholder="Select an Item"
+                            isClearable
+                            isLoading={isLoading}
+                          />
                           {/* add-item button removed on edit page */}
                           </div>
                           {inventoryItems.length === 0 && !isLoading && (

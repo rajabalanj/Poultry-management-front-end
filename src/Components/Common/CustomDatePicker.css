@@ -98,7 +98,6 @@
 .react-datepicker__month-select:hover,
 .react-datepicker__year-select:hover {
   border-color: var(--bs-primary);
-  background-color: var(--bs-light);
 }
 
 .react-datepicker__month-select:focus,
@@ -118,9 +117,11 @@
 
 .react-datepicker__month-select option:hover,
 .react-datepicker__year-select option:hover {
-  background-color: var(--bs-primary);
-  color: var(--bs-white);
+  background-color: rgba(var(--bs-primary-rgb, 13, 110, 253), 0.1);
+  color: var(--bs-body-color);
 }
+
+/* Selected option styling removed from date picker dropdowns */
 
 /* Style the calendar footer to match Bootstrap */
 .custom-datepicker-calendar .react-datepicker__footer {
@@ -175,7 +176,6 @@
 
 .form-select:hover {
   border-color: var(--bs-primary);
-  background-color: var(--bs-light);
 }
 
 .form-select:focus {
@@ -192,9 +192,11 @@
 }
 
 .form-select option:hover {
-  background-color: var(--bs-primary);
-  color: var(--bs-white);
+  background-color: rgba(var(--bs-primary-rgb, 13, 110, 253), 0.1);
+  color: var(--bs-body-color);
 }
+
+/* Selected option styling removed */
 
 /* Adjust the calendar position to avoid being cut off */
 .react-datepicker-popper {

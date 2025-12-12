@@ -12,6 +12,7 @@ import { ShedResponse } from '../types/shed';
 import CustomDatePicker from './Common/CustomDatePicker';
 import { useEscapeKey } from '../hooks/useEscapeKey';
 import { configApi, batchApi, shedApi } from '../services/api';
+import StyledSelect from './Common/StyledSelect';
 
 const PreviousDayReport = () => {
   const formatDateForDisplay = (dateString: string) => {
@@ -58,6 +59,9 @@ const PreviousDayReport = () => {
   const rowsPerPage = 10;
   const validGridData = gridData.filter(row => row && Object.keys(row).length > 0);
   const totalPages = validGridData.length > 0 ? Math.ceil(validGridData.length / rowsPerPage) : 0;
+
+  const batchOptions = batches.map(b => ({ value: b.batch_no, label: b.batch_no }));
+  batchOptions.unshift({ value: '', label: 'All Batches (Daily Report Only)' });
 
   useEffect(() => {
     shedApi.getSheds().then(shedData => {
@@ -293,19 +297,14 @@ const PreviousDayReport = () => {
               <div className="row g-3 align-items-end">
                 <div className="col-12 col-md-auto">
                     <label htmlFor="batchNoSelect" className="form-label">Batch Number</label>
-                    <select
+                    <StyledSelect
                         className="form-select"
                         id="batchNoSelect"
-                        value={batchNo}
-                        onChange={(e) => setBatchNo(e.target.value)}
-                    >
-                        <option value="">All Batches (Daily Report Only)</option>
-                        {batches.map(b => (
-                            <option key={b.id} value={b.batch_no}>
-                                {b.batch_no}
-                            </option>
-                        ))}
-                    </select>
+                        value={batchOptions.find(b => b.value === batchNo)}
+                        onChange={(option, _action) => setBatchNo(option ? String(option.value) : '')}
+                        options={batchOptions}
+                        placeholder="All Batches (Daily Report Only)"
+                    />
                 </div>
                 <div className="col-12 col-md-auto">
                     <label className="form-label d-block">&nbsp;</label> {/* Spacer for alignment */}

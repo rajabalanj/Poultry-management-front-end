@@ -16,6 +16,7 @@ import { SalesOrderItemCreate } from '../../types/SalesOrderItem';
 import { BusinessPartner } from '../../types/BusinessPartner';
 import { InventoryItemResponse, InventoryItemCategory } from '../../types/InventoryItem';
 import { format } from 'date-fns'; // Import format for date formatting
+import StyledSelect from '../Common/StyledSelect';
 
 interface FormSalesOrderItem extends SalesOrderItemCreate {
   tempId: number;
@@ -23,6 +24,9 @@ interface FormSalesOrderItem extends SalesOrderItemCreate {
   inventory_item_unit?: string;
   available_stock?: number;
 }
+
+type OptionType = { value: number | string; label: string };
+
 
 const CreateSalesOrderForm: React.FC = () => {
   const navigate = useNavigate();
@@ -236,6 +240,24 @@ const CreateSalesOrderForm: React.FC = () => {
     }
   };
 
+  const customerOptions: OptionType[] = customers.map((customer) => ({
+    value: customer.id,
+    label: customer.name,
+  }));
+  const selectedCustomerOption = customerOptions.find(option => option.value === customerId);
+
+  const inventoryItemOptions: OptionType[] = inventoryItems.map((item) => ({
+    value: item.id,
+    label: `${item.name} (${item.unit})`,
+  }));
+
+  const paymentModeOptions: OptionType[] = paymentModes.map((mode) => ({
+    value: mode,
+    label: mode,
+  }));
+  const selectedPaymentModeOption = paymentModeOptions.find(option => option.value === paymentMode);
+
+
   return (
     <>
       <PageHeader title={formStep === 'createOrder' ? "Create New Sales Order" : `Add Payment for SO #${newSalesOrder?.id}`} buttonVariant="secondary" buttonLabel="Back" buttonLink="/sales-orders" buttonIcon='bi-arrow-left'/>
@@ -249,19 +271,16 @@ const CreateSalesOrderForm: React.FC = () => {
                   <div className="col-md-6">
                     <label htmlFor="customerSelect" className="form-label">Customer <span className="form-field-required">*</span></label>
                     <div className="d-flex gap-2 align-items-center">
-                      <select
+                    <StyledSelect
                         id="customerSelect"
                         className="form-select"
-                        value={customerId}
-                        onChange={(e) => setCustomerId(Number(e.target.value))}
-                        required
-                        disabled={isLoading || customers.length === 0}
-                      >
-                        <option value="">Select a Customer</option>
-                        {customers.map((customer) => (
-                          <option key={customer.id} value={customer.id}>{customer.name}</option>
-                        ))}
-                      </select>
+                        value={selectedCustomerOption}
+                        onChange={(option, _action) => setCustomerId(option ? Number(option.value) : '')}
+                        options={customerOptions}
+                        placeholder="Select a Customer"
+                        isClearable
+                        isLoading={isLoading || customers.length === 0}
+                      />
                       <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => setShowCreateCustomerModal(true)} title="Add Customer">
                         <i className="bi bi-plus-lg"></i>
                       </button>
@@ -320,21 +339,16 @@ const CreateSalesOrderForm: React.FC = () => {
                         <div className="col-md-6">
                           <label htmlFor={`itemId-${item.tempId}`} className="form-label">Inventory Item <span className="form-field-required">*</span></label>
                             <div className="d-flex gap-2 align-items-center">
-                            <select
+                            <StyledSelect
                               id={`itemId-${item.tempId}`}
                               className="form-select"
-                              value={item.inventory_item_id || ''}
-                              onChange={(e) => handleItemChange(item.tempId, 'inventory_item_id', e.target.value)}
-                              required
-                              disabled={isLoading || inventoryItems.length === 0}
-                            >
-                            <option value="">Select an Item</option>
-                            {inventoryItems.map((invItem) => (
-                              <option key={invItem.id} value={invItem.id}>
-                                {invItem.name} ({invItem.unit})
-                              </option>
-                            ))}
-                            </select>
+                              value={inventoryItemOptions.find(option => option.value === item.inventory_item_id)}
+                              onChange={(option, _action) => handleItemChange(item.tempId, 'inventory_item_id', option ? option.value : '')}
+                              options={inventoryItemOptions}
+                              placeholder="Select an Item"
+                              isClearable
+                              isLoading={isLoading || inventoryItems.length === 0}
+                            />
                             <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => setShowCreateItemModal(true)} title="Add Item">
                               <i className="bi bi-plus-lg"></i>
                             </button>
@@ -458,10 +472,17 @@ const CreateSalesOrderForm: React.FC = () => {
                   </div>
                   <div className="col-md-6">
                     <label htmlFor="paymentMode" className="form-label">Payment Mode <span className="form-field-required">*</span></label>
-                    <select id="paymentMode" className="form-select" value={paymentMode} onChange={(e) => setPaymentMode(e.target.value)} required disabled={isLoading}>
-                      <option value="">Select Mode</option>
-                      {paymentModes.map(mode => <option key={mode} value={mode}>{mode}</option>)}
-                    </select>
+                    <StyledSelect
+                      id="paymentMode"
+                      className="form-select"
+                      value={selectedPaymentModeOption}
+                      onChange={(option, _action) => setPaymentMode(option ? String(option.value) : '')}
+                      options={paymentModeOptions}
+                      placeholder="Select Mode"
+                      isClearable
+                      required
+                      isDisabled={isLoading}
+                    />
                   </div>
                   <div className="col-md-6">
                     <label htmlFor="referenceNumber" className="form-label">Reference Number</label>

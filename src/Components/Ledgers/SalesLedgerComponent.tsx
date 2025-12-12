@@ -5,6 +5,9 @@ import { ledgerApi, businessPartnerApi } from '../../services/api';
 import { SalesLedger } from '../../types/ledgers';
 import Loading from '../Common/Loading';
 import { BusinessPartner } from '../../types/BusinessPartner';
+import StyledSelect from '../Common/StyledSelect';
+
+type OptionType = { value: string; label: string };
 
 const SalesLedgerComponent: React.FC = () => {
     const [customerId, setCustomerId] = useState('');
@@ -41,24 +44,25 @@ const SalesLedgerComponent: React.FC = () => {
         }
     };
 
+    const customerOptions: OptionType[] = customers.map((customer) => ({
+        value: String(customer.id),
+        label: `${customer.id} - ${customer.name}`,
+    }));
+    const selectedCustomerOption = customerOptions.find(option => option.value === customerId);
+
     return (
         <div>
             <div className="row g-3 align-items-end p-3 border-bottom">
                 <div className="col-md-4">
                     <label htmlFor="customerId" className="form-label">Customer ID</label>
-                    <select
+                    <StyledSelect
                         id="customerId"
                         className="form-select"
-                        value={customerId}
-                        onChange={(e) => setCustomerId(e.target.value)}
-                    >
-                        <option value="">Select a Customer</option>
-                        {customers.map((customer) => (
-                            <option key={customer.id} value={customer.id}>
-                                {customer.id} - {customer.name}
-                            </option>
-                        ))}
-                    </select>
+                        value={selectedCustomerOption}
+                        onChange={(option, _action) => setCustomerId(option ? String(option.value) : '')}
+                        options={customerOptions}
+                        placeholder="Select a Customer"
+                    />
                 </div>
                 <div className="col-md-4 d-flex justify-content-center justify-content-md-end">
                     <button className="btn btn-primary mb-2" onClick={handleFetchLedger} disabled={loading}>

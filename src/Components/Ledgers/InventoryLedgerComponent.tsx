@@ -6,6 +6,9 @@ import { InventoryLedger } from '../../types/ledgers';
 import Loading from '../Common/Loading';
 import { InventoryItemResponse } from '../../types/InventoryItem';
 import CustomDatePicker from '../Common/CustomDatePicker';
+import StyledSelect from '../Common/StyledSelect';
+
+type OptionType = { value: string; label: string };
 
 const InventoryLedgerComponent: React.FC = () => {
     const today = new Date().toISOString().slice(0, 10);
@@ -49,24 +52,25 @@ const InventoryLedgerComponent: React.FC = () => {
         }
     };
 
+    const itemOptions: OptionType[] = inventoryItems.map((item) => ({
+        value: String(item.id),
+        label: `${item.id} - ${item.name}`,
+    }));
+    const selectedItemOption = itemOptions.find(option => option.value === itemId);
+
     return (
         <div>
             <div className="row g-3 align-items-end p-3 border-bottom">
                 <div className="col-md-3">
                     <label htmlFor="itemId" className="form-label">Item ID</label>
-                    <select
+                    <StyledSelect
                         id="itemId"
                         className="form-select"
-                        value={itemId}
-                        onChange={(e) => setItemId(e.target.value)}
-                    >
-                        <option value="">Select an Item</option>
-                        {inventoryItems.map((item) => (
-                            <option key={item.id} value={item.id}>
-                                {item.id} - {item.name}
-                            </option>
-                        ))}
-                    </select>
+                        value={selectedItemOption}
+                        onChange={(option, _action) => setItemId(option ? String(option.value) : '')}
+                        options={itemOptions}
+                        placeholder="Select an Item"
+                    />
                 </div>
                 <div className="col-md-3">
                     <label htmlFor="invStartDate" className="form-label me-3 mb-0">Start Date</label>
