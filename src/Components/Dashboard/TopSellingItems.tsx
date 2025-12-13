@@ -1,9 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { reportsApi } from '../../services/api';
 import { TopSellingItem } from '../../types/topSellingItem';
 import { Card, Table, Form, Button, Row, Col } from 'react-bootstrap';
 import Loading from '../Common/Loading';
 import { exportTableToExcel } from '../../utility/export-utils';
+import PageHeader from '../Layout/PageHeader';
+import { toast } from 'react-toastify';
+import { toPng } from 'html-to-image';
 
 const TopSellingItems = () => {
   const [items, setItems] = useState<TopSellingItem[]>([]);
@@ -12,6 +15,8 @@ const TopSellingItems = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [limit, setLimit] = useState(10);
+  const [isSharing, setIsSharing] = useState(false);
+  const reportRef = useRef<HTMLDivElement>(null);
 
   const fetchTopSellingItems = async () => {
     setLoading(true);
@@ -39,76 +44,133 @@ const TopSellingItems = () => {
     exportTableToExcel('top-selling-items-table', 'top_selling_items', 'Top Items');
   };
 
+  const handleShare = async () => {
+    if (!reportRef.current) {
+      toast.error("Report element not found.");
+      return;
+    }
+
+    if (!navigator.share) {
+      toast.error("Web Share API is not supported in your browser.");
+      return;
+    }
+
+    const reportNode = reportRef.current;
+    setIsSharing(true);
+
+    try {
+      const dataUrl = await toPng(reportNode, {
+        backgroundColor: '#ffffff',
+        style: { margin: '0', padding: '10px' }
+      });
+      const blob = await (await fetch(dataUrl)).blob();
+      const file = new File([blob], `top-selling-items-report.png`, { type: 'image/png' });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title: 'Top Selling Items Report',
+          text: `Top Selling Items Report.`,
+          files: [file],
+        });
+        toast.success("Report shared successfully!");
+      } else {
+        toast.error("Sharing files is not supported on this device.");
+      }
+    } catch (error: any) {
+      if (error.name !== 'AbortError') {
+        console.error('Sharing failed', error);
+        toast.error(`Failed to share report: ${error.message}`);
+      }
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
   return (
-    <Card>
-      <Card.Header className="d-flex justify-content-between align-items-center">
-        <Card.Title className="mb-0">Top Selling Items</Card.Title>
-        <Button
-          variant="success"
-          size="sm"
-          onClick={handleExport}
-          disabled={items.length === 0}
-        >
-          Export to Excel
-        </Button>
-      </Card.Header>
-      <Card.Body>
-        <Form>
-          <Row className="mb-3">
-            <Form.Group as={Col} controlId="startDate">
-              <Form.Label>Start Date</Form.Label>
-              <Form.Control
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-              />
-            </Form.Group>
-            <Form.Group as={Col} controlId="endDate">
-              <Form.Label>End Date</Form.Label>
-              <Form.Control
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-              />
-            </Form.Group>
-            <Form.Group as={Col} controlId="limit">
-              <Form.Label>Limit</Form.Label>
-              <Form.Control
-                type="number"
-                value={limit}
-                onChange={(e) => setLimit(Number(e.target.value))}
-              />
-            </Form.Group>
-          </Row>
-          <Button variant="primary" onClick={handleFetchClick} disabled={loading}>
-            {loading ? 'Fetching...' : 'Fetch'}
-          </Button>
-        </Form>
-        <hr />
-        {loading && <Loading />}
-        {error && <div className="alert alert-danger">{error}</div>}
-        {!loading && !error && (
-          <Table striped bordered hover responsive id="top-selling-items-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Item Name</th>
-                <th>Total Quantity Sold</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item, index) => (
-                <tr key={item.item_id}>
-                  <td>{index + 1}</td>
-                  <td>{item.name}</td>
-                  <td>{item.total_quantity_sold}</td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        )}
-      </Card.Body>
-    </Card>
+    <div className="container">
+      <PageHeader title="Top Selling Items Report" />
+      <div ref={reportRef}>
+        <Card>
+          <Card.Header className="d-flex justify-content-between align-items-center">
+            <Card.Title className="mb-0">Top Selling Items</Card.Title>
+            <div className="d-flex gap-2">
+              <Button
+                variant="info"
+                size="sm"
+                onClick={handleShare}
+                disabled={isSharing || items.length === 0}
+              >
+                {isSharing ? 'Sharing...' : 'Share as Image'}
+              </Button>
+              <Button
+                variant="success"
+                size="sm"
+                onClick={handleExport}
+                disabled={items.length === 0}
+              >
+                Export to Excel
+              </Button>
+            </div>
+          </Card.Header>
+          <Card.Body>
+            <Form>
+              <Row className="mb-3">
+                <Form.Group as={Col} controlId="startDate">
+                  <Form.Label>Start Date</Form.Label>
+                  <Form.Control
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                  />
+                </Form.Group>
+                <Form.Group as={Col} controlId="endDate">
+                  <Form.Label>End Date</Form.Label>
+                  <Form.Control
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                  />
+                </Form.Group>
+                <Form.Group as={Col} controlId="limit">
+                  <Form.Label>Limit</Form.Label>
+                  <Form.Control
+                    type="number"
+                    value={limit}
+                    onChange={(e) => setLimit(Number(e.target.value))}
+                  />
+                </Form.Group>
+              </Row>
+              <Button variant="primary" onClick={handleFetchClick} disabled={loading}>
+                {loading ? 'Fetching...' : 'Fetch'}
+              </Button>
+            </Form>
+            <hr />
+            {loading && <Loading />}
+            {error && <div className="alert alert-danger">{error}</div>}
+            {!loading && !error && (
+              <Table striped bordered hover responsive id="top-selling-items-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Item Name</th>
+                    <th>Total Quantity Sold</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((item, index) => (
+                    <tr key={item.item_id}>
+                      <td>{index + 1}</td>
+                      <td>{item.name}</td>
+                      <td>{item.total_quantity_sold}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            )}
+          </Card.Body>
+        </Card>
+      </div>
+    </div>
   );
 };
 

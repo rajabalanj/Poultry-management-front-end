@@ -23,7 +23,7 @@ import InventoryItemDetails from './Components/InventoryItem/InventoryItemDetail
 import EditInventoryItem from './Components/InventoryItem/EditInventoryItem';
 import InventoryStockLevelReport from './Components/InventoryStockLevelReport';
 import LowStockReport from './Components/LowStockReport';
-import TopSellingItemsReport from './Components/TopSellingItemsReport';
+import TopSellingItems from './Components/Dashboard/TopSellingItems';
 import PurchaseResponsive from './Components/Purchase/PurchaseResponsive';
 import CreatePurchaseOrderForm from './Components/PurchaseOrder/CreatePurchaseOrderForm';
 import PurchaseOrderDetails from './Components/PurchaseOrder/PurchaseOrderDetails';
@@ -129,7 +129,7 @@ const App: React.FC = () => {
               <Route path="/inventory-items/:item_id/edit" element={<EditInventoryItem />} />
               <Route path="/inventory-stock-level-report" element={<InventoryStockLevelReport />} />
               <Route path="/low-stock-report" element={<LowStockReport />} />
-              <Route path="/top-selling-items-report" element={<TopSellingItemsReport />} />
+              <Route path="/top-selling-items-report" element={<TopSellingItems />} />
               <Route path="/purchase-orders" element={<PurchaseResponsive />} />
               <Route path="/purchase-orders/create" element={<CreatePurchaseOrderForm />} />
               <Route path="/purchase-orders/:po_id/details" element={<PurchaseOrderDetails />} />
