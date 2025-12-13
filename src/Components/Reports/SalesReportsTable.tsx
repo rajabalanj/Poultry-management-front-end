@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { toPng } from 'html-to-image';
 import { Button } from 'react-bootstrap';
 import { toast } from 'react-toastify';
+import { exportTableToExcel } from '../../utility/export-utils';
 import ItemsModal from '../Common/ItemsModal';
 
 interface SalesReportTableProps {
@@ -101,16 +102,23 @@ const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, custom
   if (error) return <div className="text-center text-danger">{error}</div>;
   if (salesOrders.length === 0) return <div className="text-center">No Sales Orders found</div>;
 
+  const handleExport = () => {
+    exportTableToExcel('sales-report-table', 'sales_report', 'Sales Report');
+  };
+
   return (
     <>
-      <div className="mb-3 d-flex justify-content-end">
+      <div className="mb-3 d-flex justify-content-end gap-2">
+        <Button variant="success" onClick={handleExport} disabled={salesOrders.length === 0}>
+          Export to Excel
+        </Button>
         <Button variant="secondary" onClick={handleShareAsImage} disabled={isSharing}>
           {isSharing ? 'Generating...' : 'Share as Image'}
         </Button>
       </div>
       <div className="table-responsive" ref={tableRef}>
         <table className="table table-striped table-hover">
-          <thead className="thead-dark">
+          <thead className="thead-dark" id="sales-report-table">
             <tr>
               <th>SO Number</th>
               <th>Customer</th>

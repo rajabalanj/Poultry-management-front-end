@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { toPng } from 'html-to-image';
 import { Button } from 'react-bootstrap';
 import { toast } from 'react-toastify';
+import { exportTableToExcel } from '../../utility/export-utils';
 import ItemsModal from '../Common/ItemsModal';
 
 interface PurchaseReportTableProps {
@@ -101,15 +102,23 @@ const PurchaseReportTable: React.FC<PurchaseReportTableProps> = ({ purchaseOrder
   if (error) return <div className="text-center text-danger">{error}</div>;
   if (purchaseOrders.length === 0) return <div className="text-center">No Purchase Orders found</div>;
 
+  const handleExport = () => {
+    exportTableToExcel('purchase-report-table', 'purchase_report', 'Purchase Report');
+  };
+
   return (
     <>
-      <div className="mb-3 d-flex justify-content-end">
+      <div className="mb-3 d-flex justify-content-end gap-2">
+        <Button variant="success" onClick={handleExport} disabled={purchaseOrders.length === 0}>
+          Export to Excel
+        </Button>
         <Button variant="secondary" onClick={handleShareAsImage} disabled={isSharing}>
           {isSharing ? 'Generating...' : 'Share as Image'}
         </Button>
       </div>
       <div className="table-responsive" ref={tableRef}>
-        <table className="table table-striped table-hover">
+        {/* The table now has an ID for the export function to target */}
+        <table className="table table-striped table-hover" id="purchase-report-table">
           <thead className="thead-dark">
             <tr>
               <th>PO Number</th>

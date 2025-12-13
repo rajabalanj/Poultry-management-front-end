@@ -8,6 +8,7 @@ import SalesOrderCard from "../SalesOrder/SalesOrderCard";
 import { toPng } from 'html-to-image';
 import { Button } from 'react-bootstrap';
 import { toast } from 'react-toastify';
+import { exportTableToExcel } from '../../utility/export-utils';
 import ItemsModal from '../Common/ItemsModal';
 import { inventoryItemApi } from "../../services/api";
 import { InventoryItemResponse } from "../../types/InventoryItem";
@@ -157,9 +158,16 @@ const SalesOrderTable: React.FC<SalesOrderTableProps> = ({ salesOrders, loading,
   if (error) return <div className="text-center text-danger">{error}</div>;
   if (salesOrders.length === 0) return <div className="text-center">No sales found</div>;
 
+  const handleExport = () => {
+    exportTableToExcel('sales-order-table', 'sales_orders', 'Sales Orders');
+  };
+
   return (
     <>
-      <div className="mb-3 d-flex justify-content-end">
+      <div className="mb-3 d-flex justify-content-end gap-2">
+        <Button variant="success" onClick={handleExport} disabled={salesOrders.length === 0}>
+          Export to Excel
+        </Button>
         <Button variant="secondary" onClick={handleShareAsImage} disabled={isSharing}>
           {isSharing ? 'Generating...' : 'Share as Image'}
         </Button>
@@ -167,7 +175,7 @@ const SalesOrderTable: React.FC<SalesOrderTableProps> = ({ salesOrders, loading,
       <div className="px-2">{soCards}</div>
       <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
         <div className="table-responsive" ref={tableRef}>
-          <table className="table table-striped table-hover">
+          <table className="table table-striped table-hover" id="sales-order-table">
             <thead className="thead-dark">
               <tr>
                 <th>SO Number</th>

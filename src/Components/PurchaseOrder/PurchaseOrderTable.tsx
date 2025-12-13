@@ -8,6 +8,7 @@ import PurchaseOrderCard from "./PurchaseOrderCard";
 import { toPng } from 'html-to-image';
 import { Button } from 'react-bootstrap';
 import { toast } from 'react-toastify';
+import { exportTableToExcel } from '../../utility/export-utils';
 import ItemsModal from '../Common/ItemsModal';
 import { inventoryItemApi } from "../../services/api";
 import { InventoryItemResponse } from "../../types/InventoryItem";
@@ -155,9 +156,16 @@ const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders,
   if (error) return <div className="text-center text-danger">{error}</div>;
   if (purchaseOrders.length === 0) return <div className="text-center">No Purchase found</div>;
 
+  const handleExport = () => {
+    exportTableToExcel('purchase-order-table', 'purchase_orders', 'Purchase Orders');
+  };
+
   return (
     <>
-      <div className="mb-3 d-flex justify-content-end">
+      <div className="mb-3 d-flex justify-content-end gap-2">
+        <Button variant="success" onClick={handleExport} disabled={purchaseOrders.length === 0}>
+          Export to Excel
+        </Button>
         <Button variant="secondary" onClick={handleShareAsImage} disabled={isSharing}>
           {isSharing ? 'Generating...' : 'Share as Image'}
         </Button>
@@ -165,7 +173,7 @@ const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders,
       <div className="px-2">{poCards}</div>
       <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
         <div className="table-responsive" ref={tableRef}>
-          <table className="table table-striped table-hover">
+          <table className="table table-striped table-hover" id="purchase-order-table">
             <thead className="thead-dark">
               <tr>
                 <th>PO Number</th>
