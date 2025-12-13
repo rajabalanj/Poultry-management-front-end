@@ -217,6 +217,19 @@ export const reportsApi = {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch weekly layer report'));
     }
   },
+  getMonthlyEggProduction: async (startDate: string, endDate: string): Promise<{ month: string, total_eggs: number }[]> => {
+    try {
+      const response = await api.get<{ month: string, total_eggs: number }[]>('/reports/monthly-egg-production', {
+        params: {
+          start_date: startDate,
+          end_date: endDate,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch monthly egg production report'));
+    }
+  },
 
   getTopSellingItems: async (startDate?: string, endDate?: string, limit?: number): Promise<TopSellingItem[]> => {
     try {

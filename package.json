@@ -26,11 +26,13 @@
     "react-bootstrap": "^2.10.10",
     "react-datepicker": "^8.4.0",
     "react-dom": "^19.0.0",
+    "react-is": "^19.2.3",
     "react-oidc-context": "^3.3.0",
     "react-responsive": "^10.0.1",
     "react-router-dom": "^7.5.0",
     "react-select": "^5.10.2",
-    "react-toastify": "^11.0.5"
+    "react-toastify": "^11.0.5",
+    "recharts": "^3.5.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
