@@ -6,7 +6,8 @@ import { toast } from 'react-toastify';
 import PageHeader from './Layout/PageHeader';
 import Loading from './Common/Loading';
 import { GridRow } from '../types/GridRow';
-import { fetchBatchData, exportBatchDataToExcel, fetchWeeklyLayerReport, CumulativeReport } from '../utility/api-utils';
+import { fetchBatchData, fetchWeeklyLayerReport, CumulativeReport } from '../utility/api-utils';
+import { exportTableToExcel } from '../utility/export-utils';
 import { BatchResponse } from '../types/batch';
 import { ShedResponse } from '../types/shed';
 import CustomDatePicker from './Common/CustomDatePicker';
@@ -194,7 +195,8 @@ const PreviousDayReport = () => {
 
   const handleExport = () => {
     const batchIdForExport = batchNo ? batches.find(b => b.batch_no.toLowerCase() === batchNo.toLowerCase().trim())?.id : undefined;
-    exportBatchDataToExcel(gridData, String(batchIdForExport) || '');
+    const fileName = `batch_${batchIdForExport || 'all'}_report`;
+    exportTableToExcel('report-table', fileName, 'Batch Report');
   };
 
   const handleShare = async () => {
@@ -436,7 +438,7 @@ const PreviousDayReport = () => {
 
       {validGridData.length > 0 && (
         <div ref={reportContentRef}>
-          <table className="table table-bordered">
+          <table id="report-table" className="table table-bordered">
             <thead>
               <tr>
                 {batchIdFromUrl && <th>Batch Date</th>}

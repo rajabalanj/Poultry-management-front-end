@@ -6,6 +6,7 @@ import Loading from './Common/Loading';
 import { inventoryItemApi } from '../services/api';
 import { InventoryStockLevel } from '../types/inventoryStockLevel';
 import { toPng } from 'html-to-image';
+import { exportTableToExcel } from '../utility/export-utils';
 
 const LowStockReport = () => {
   const [reportData, setReportData] = useState<InventoryStockLevel[]>([]);
@@ -32,6 +33,10 @@ const LowStockReport = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const handleExport = async () => {
+    exportTableToExcel('low-stock-report-table', 'low_stock_report', 'Low Stock');
+  };
 
   const handleShare = async () => {
     if (!tableRef.current) {
@@ -104,17 +109,26 @@ const LowStockReport = () => {
             <div className="card-body">
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <h5 className="mb-0">Low Stock Items</h5>
-                <button
-                  className="btn btn-secondary"
-                  onClick={handleShare}
-                  disabled={isSharing}
-                >
-                  {isSharing ? 'Generating...' : 'Share as Image'}
-                </button>
+                <div className="d-flex gap-2">
+                  <button
+                    className="btn btn-secondary"
+                    onClick={handleShare}
+                    disabled={isSharing || reportData.length === 0}
+                  >
+                    {isSharing ? 'Generating...' : 'Share as Image'}
+                  </button>
+                  <button
+                    className="btn btn-success"
+                    onClick={handleExport}
+                    disabled={reportData.length === 0}
+                  >
+                    Export to Excel
+                  </button>
+                </div>
               </div>
             <div ref={tableRef}>
               <div className='table-responsive'>
-              <table className="table table-bordered table-striped">
+              <table id="low-stock-report-table" className="table table-bordered table-striped">
                 <thead>
                   <tr>
                     <th>Name</th>

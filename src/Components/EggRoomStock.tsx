@@ -9,6 +9,7 @@ import { EggRoomStockEntry } from '../types/eggRoomReport';
 import { eggRoomReportApi } from '../services/api';
 import * as htmlToImage from 'html-to-image';
 import { toast } from 'react-toastify';
+import { exportTableToExcel } from '../utility/export-utils';
 
 // Define a common type for the fields to ensure consistency
 type StockFieldConfig = {
@@ -202,6 +203,11 @@ const EggRoomStock: React.FC = () => {
       }
     }
     setShowDateModal(false);
+  };
+
+  const handleExport = async () => {
+    const fileName = `egg-room-report-${activeTab}`;
+    exportTableToExcel('egg-room-report-table', fileName, 'Egg Room Report');
   };
 
   const handleShare = async () => {
@@ -457,6 +463,14 @@ const EggRoomStock: React.FC = () => {
               >
                 {isSharing ? "Generating..." : "Share as Image"}
               </button>
+              <button
+                className="btn btn-success"
+                onClick={handleExport}
+                disabled={reports.length === 0 || reportLoading || isSharing}
+                style={{ minWidth: '140px' }}
+              >
+                Export to Excel
+              </button>
             </div>
           
           {dateRangeError && (
@@ -531,7 +545,7 @@ const EggRoomStock: React.FC = () => {
                 </li>
               ))}
             </ul>
-            <table className="table table-bordered" ref={tableRef}>
+            <table id="egg-room-report-table" className="table table-bordered" ref={tableRef}>
               <thead>
                 <tr>
                   <th className="text-center align-middle">Date</th>

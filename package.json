@@ -17,6 +17,7 @@
     "bootstrap": "^5.3.7",
     "bootstrap-icons": "^1.11.3",
     "date-fns": "^4.1.0",
+    "exceljs": "^4.4.0",
     "file-saver": "^2.0.5",
     "html-to-image": "^1.11.13",
     "lucide-react": "^0.554.0",

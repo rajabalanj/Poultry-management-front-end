@@ -3,6 +3,7 @@ import { reportsApi } from '../../services/api';
 import { TopSellingItem } from '../../types/topSellingItem';
 import { Card, Table, Form, Button, Row, Col } from 'react-bootstrap';
 import Loading from '../Common/Loading';
+import { exportTableToExcel } from '../../utility/export-utils';
 
 const TopSellingItems = () => {
   const [items, setItems] = useState<TopSellingItem[]>([]);
@@ -34,10 +35,22 @@ const TopSellingItems = () => {
     fetchTopSellingItems();
   };
 
+  const handleExport = async () => {
+    exportTableToExcel('top-selling-items-table', 'top_selling_items', 'Top Items');
+  };
+
   return (
     <Card>
-      <Card.Header>
-        <Card.Title>Top Selling Items</Card.Title>
+      <Card.Header className="d-flex justify-content-between align-items-center">
+        <Card.Title className="mb-0">Top Selling Items</Card.Title>
+        <Button
+          variant="success"
+          size="sm"
+          onClick={handleExport}
+          disabled={items.length === 0}
+        >
+          Export to Excel
+        </Button>
       </Card.Header>
       <Card.Body>
         <Form>
@@ -75,7 +88,7 @@ const TopSellingItems = () => {
         {loading && <Loading />}
         {error && <div className="alert alert-danger">{error}</div>}
         {!loading && !error && (
-          <Table striped bordered hover responsive>
+          <Table striped bordered hover responsive id="top-selling-items-table">
             <thead>
               <tr>
                 <th>#</th>

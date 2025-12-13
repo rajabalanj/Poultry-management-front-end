@@ -1,6 +1,4 @@
 import { dailyBatchApi, reportsApi } from '../services/api';
-import { toast } from 'react-toastify';
-import { saveAs } from 'file-saver';
 import { GridRow } from '../types/GridRow';
 import { DailyBatch } from '../types/daily_batch';
 
@@ -138,56 +136,4 @@ export const fetchBatchData = async (start_date: string, end_date: string, batch
     details: (response as DailyBatch[]).map(mapBatchToGridRow),
     summary: null,
   };
-};
-
-export const exportBatchDataToExcel = (gridData: GridRow[], batchId?: string): void => {
-  if (!Array.isArray(gridData) || gridData.length === 0) {
-    toast.error('No data to export');
-    return;
-  }
-
-  const csvContent = [
-    [
-      'Batch No',
-      'Shed No',
-      'Batch Date',
-      'Age',
-      'Opening',
-      'Mortality',
-      'Culls',
-      'Closing Count',
-      'Table',
-      'Jumbo',
-      'CR',
-      'Total Eggs',
-      'HD',
-      'Standard HD Percentage',
-      'Actual Feed Consumed',
-      'Standard Feed Consumption',
-    ],
-    ...gridData.map((row) => [
-      row.batch_no,
-      row.shed_no,
-      row.batch_date,
-      row.age,
-      row.opening_count,
-      row.mortality,
-      row.culls,
-      row.closing_count,
-      row.table_eggs,
-      row.jumbo,
-      row.cr,
-      row.total_eggs,
-      row.hd,
-      row.standard_hen_day_percentage?.toFixed(2), // Ensure 2 decimal places
-      row.actual_feed_consumed,
-      row.standard_feed_consumption,
-    ]),
-  ]
-    .map((e) => e.join(','))
-    .join('\n');
-
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  saveAs(blob, `batch_${batchId || 'all'}_report.csv`);
-  toast.success('Data exported successfully!');
 };
