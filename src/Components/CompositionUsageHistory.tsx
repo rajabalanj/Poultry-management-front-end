@@ -2,27 +2,17 @@ import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { compositionApi, batchApi } from "../services/api";
 import PageHeader from "./Layout/PageHeader";
-import { Modal, Button } from "react-bootstrap";
+import { Modal, Button, Pagination } from "react-bootstrap";
 import { toast } from "react-toastify";
-import { CompositionResponse } from "../types/compositon";
+import { CompositionResponse, CompositionUsage } from "../types/compositon";
 import { BatchResponse } from "../types/batch";
 import { toPng } from 'html-to-image';
 import { exportTableToExcel } from '../utility/export-utils';
 import Loading from './Common/Loading';
 
-interface UsageHistoryItem {
-  id: number;
-  composition_id: number;
-  times: number;
-  used_at: string;
-  batch_id?: number;
-  composition_name?: string;
-  items?: { inventory_item_id: number; inventory_item_name?: string; weight: number; unit?: string }[];
-}
-
 const CompositionUsageHistory = () => {
   const { compositionId } = useParams<{ compositionId: string }>();
-  const [history, setHistory] = useState<UsageHistoryItem[]>([]);
+  const [history, setHistory] = useState<CompositionUsage[]>([]);
   const [batches, setBatches] = useState<BatchResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,23 +21,31 @@ const CompositionUsageHistory = () => {
   const [usageToRevert, setUsageToRevert] = useState<number | null>(null);
   const tableRef = useRef<HTMLDivElement>(null);
   const [isSharing, setIsSharing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const ITEMS_PER_PAGE = 10;
 
 
   useEffect(() => {
     const fetchHistory = async () => {
       try {
         setLoading(true);
+        const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+        const limit = ITEMS_PER_PAGE;
+        let response;
+
         if (compositionId) {
           const [usageData, compositionData] = await Promise.all([
-            compositionApi.getCompositionUsageHistoryById(Number(compositionId)),
+            compositionApi.getCompositionUsageHistoryById(Number(compositionId), offset, limit),
             compositionApi.getComposition(Number(compositionId)),
           ]);
-          setHistory(usageData);
+          response = usageData;
           setComposition(compositionData);
         } else {
-          const usageData = await compositionApi.getCompositionUsageHistory();
-          setHistory(usageData);
+          response = await compositionApi.getCompositionUsageHistory(offset, limit);
         }
+        setHistory(response.data);
+        setTotalItems(response.total);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load usage history");
       } finally {
@@ -55,7 +53,7 @@ const CompositionUsageHistory = () => {
       }
     };
     fetchHistory();
-  }, [compositionId]);
+  }, [compositionId, currentPage]);
 
   useEffect(() => { // This useEffect should probably not be here if batches are many.
     const fetchBatches = async () => {
@@ -76,9 +74,9 @@ const CompositionUsageHistory = () => {
     return batch ? batch.batch_no : 'Unknown Batch';
   };
 
-  const getCompositionWeight = (item: UsageHistoryItem) => {
+  const getCompositionWeight = (item: CompositionUsage) => {
     if (item.items) {
-      return item.items.reduce((sum, compItem) => sum + compItem.weight, 0);
+      return item.items.reduce((sum: number, compItem: { weight: number }) => sum + compItem.weight, 0);
     }
     return 0;
   };
@@ -129,6 +127,7 @@ const CompositionUsageHistory = () => {
     }
   };
 
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
 
   return (
     <>
@@ -196,6 +195,19 @@ const CompositionUsageHistory = () => {
 
           </table>
         </div>
+        {totalPages > 1 && (
+            <Pagination className="justify-content-center">
+                {Array.from({ length: totalPages }, (_, index) => (
+                    <Pagination.Item
+                        key={index + 1}
+                        active={index + 1 === currentPage}
+                        onClick={() => setCurrentPage(index + 1)}
+                    >
+                        {index + 1}
+                    </Pagination.Item>
+                ))}
+            </Pagination>
+        )}
         </>)}
       <Modal show={showRevertModal} onHide={() => setShowRevertModal(false)}>
   <Modal.Header closeButton>

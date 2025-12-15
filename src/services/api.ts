@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import { CompositionResponse } from '../types/compositon';
+import { CompositionResponse, PaginatedCompositionUsageHistoryResponse } from '../types/compositon';
 import { DailyBatch, WeeklyLayerReportResponse } from '../types/daily_batch';
 import { TopSellingItem } from '../types/topSellingItem';import { BatchResponse, BatchUpdate, CreateBatchPayload, CreateBatchResponse } from '../types/batch';
 import { EggRoomReportResponse, EggRoomReportCreate, EggRoomReportUpdate, EggRoomSingleReportResponse } from '../types/eggRoomReport.ts';
@@ -409,18 +409,22 @@ export const compositionApi = {
   },
 
 
-  getCompositionUsageHistory: async () => {
+  getCompositionUsageHistory: async (offset: number = 0, limit: number = 10): Promise<PaginatedCompositionUsageHistoryResponse> => {
     try {
-      const response = await api.get('/compositions/usage-history');
+      const response = await api.get('/compositions/usage-history', {
+        params: { offset, limit }
+      });
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch composition usage history'));
     }
   },
 
-  getCompositionUsageHistoryById: async (compositionId: number) => {
+  getCompositionUsageHistoryById: async (compositionId: number, offset: number = 0, limit: number = 10): Promise<PaginatedCompositionUsageHistoryResponse> => {
     try {
-      const response = await api.get(`/compositions/${compositionId}/usage-history`);
+      const response = await api.get(`/compositions/${compositionId}/usage-history`, {
+        params: { offset, limit }
+      });
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch composition usage history'));
