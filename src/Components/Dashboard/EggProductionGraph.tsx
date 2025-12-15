@@ -26,6 +26,20 @@ const EggProductionGraph: React.FC<EggProductionGraphProps> = ({ data, loading, 
     return <div className="text-center">No data available for the selected period.</div>;
   }
 
+  const formatMonth = (dateString: string): string => {
+    const [year, month] = dateString.split('-');
+    if (!year || !month) return dateString; // Fallback for unexpected format
+    const date = new Date(parseInt(year), parseInt(month) - 1);
+    const monthName = date.toLocaleString('en-US', { month: 'short' });
+    const yearShort = year.slice(-2);
+    return `${monthName}-${yearShort}`;
+  };
+
+  const formattedData = data.map(item => ({
+    ...item,
+    month: formatMonth(item.month),
+  }));
+
   return (
     <div className="card shadow-sm h-100">
         <div className="card-body">
@@ -35,7 +49,7 @@ const EggProductionGraph: React.FC<EggProductionGraphProps> = ({ data, loading, 
             </h5>
             <ResponsiveContainer width="100%" height={300}>
                 <LineChart
-                    data={data}
+                    data={formattedData}
                     margin={{
                         top: 5,
                         right: 30,
