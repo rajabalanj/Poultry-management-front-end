@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { compositionApi, batchApi } from "../services/api";
 import PageHeader from "./Layout/PageHeader";
@@ -6,6 +6,8 @@ import { Modal, Button } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { CompositionResponse } from "../types/compositon";
 import { BatchResponse } from "../types/batch";
+import { toPng } from 'html-to-image';
+import { exportTableToExcel } from '../utility/export-utils';
 import Loading from './Common/Loading';
 
 interface UsageHistoryItem {
@@ -27,6 +29,8 @@ const CompositionUsageHistory = () => {
   const [composition, setComposition] = useState<CompositionResponse | null>(null);
   const [showRevertModal, setShowRevertModal] = useState(false);
   const [usageToRevert, setUsageToRevert] = useState<number | null>(null);
+  const tableRef = useRef<HTMLDivElement>(null);
+  const [isSharing, setIsSharing] = useState(false);
 
 
   useEffect(() => {
@@ -34,18 +38,18 @@ const CompositionUsageHistory = () => {
       try {
         setLoading(true);
         if (compositionId) {
-          const [historyData, compositionData] = await Promise.all([
+          const [usageData, compositionData] = await Promise.all([
             compositionApi.getCompositionUsageHistoryById(Number(compositionId)),
             compositionApi.getComposition(Number(compositionId)),
           ]);
-          setHistory(historyData);
+          setHistory(usageData);
           setComposition(compositionData);
         } else {
-          const historyData = await compositionApi.getCompositionUsageHistory();
-          setHistory(historyData);
+          const usageData = await compositionApi.getCompositionUsageHistory();
+          setHistory(usageData);
         }
       } catch (err) {
-        setError("Failed to load usage history");
+        setError(err instanceof Error ? err.message : "Failed to load usage history");
       } finally {
         setLoading(false);
       }
@@ -53,7 +57,7 @@ const CompositionUsageHistory = () => {
     fetchHistory();
   }, [compositionId]);
 
-  useEffect(() => {
+  useEffect(() => { // This useEffect should probably not be here if batches are many.
     const fetchBatches = async () => {
       try {
         const availableBatches = await batchApi.getBatches();
@@ -79,6 +83,53 @@ const CompositionUsageHistory = () => {
     return 0;
   };
 
+  const handleExport = () => {
+    exportTableToExcel('composition-usage-history-table', 'composition_usage_history', 'Composition Usage History');
+  };
+
+  const handleShareAsImage = async () => {
+    if (!tableRef.current) {
+      toast.error("Table element not found.");
+      return;
+    }
+
+    if (!navigator.share) {
+      toast.error("Web Share API is not supported in your browser.");
+      return;
+    }
+
+    const tableNode = tableRef.current;
+    setIsSharing(true);
+
+    try {
+      const dataUrl = await toPng(tableNode, {
+        backgroundColor: '#ffffff',
+        style: { padding: '10px' }
+      });
+      const blob = await (await fetch(dataUrl)).blob();
+      const file = new File([blob], `composition-usage-history.png`, { type: 'image/png' });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title: 'Composition Usage History',
+          text: `Composition Usage History`,
+          files: [file],
+        });
+        toast.success("Report shared successfully!");
+      } else {
+        toast.error("Sharing files is not supported on this device.");
+      }
+    } catch (error: any) {
+      if (error.name !== 'AbortError') {
+        console.error('Sharing failed', error);
+        toast.error(`Failed to share report: ${error.message}`);
+      }
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
+
   return (
     <>
     <PageHeader
@@ -92,8 +143,17 @@ const CompositionUsageHistory = () => {
       {loading && <Loading message="Loading data..." />}
       {error && <div className="text-danger">{error}</div>}
       {!loading && !error && (
-        <div className="table-responsive">
-          <table className="table table-bordered mt-3">
+        <>
+        <div className="mb-3 d-flex justify-content-end gap-2">
+            <Button variant="success" onClick={handleExport} disabled={history.length === 0 || loading}>
+              Export to Excel
+            </Button>
+            <Button variant="secondary" onClick={handleShareAsImage} disabled={isSharing || history.length === 0 || loading}>
+              {isSharing ? 'Generating...' : 'Share as Image'}
+            </Button>
+          </div>
+        <div className="table-responsive" ref={tableRef}>
+          <table className="table table-bordered mt-3" id="composition-usage-history-table">
             <thead>
               <tr>
                 <th>Date</th>
@@ -136,7 +196,7 @@ const CompositionUsageHistory = () => {
 
           </table>
         </div>
-      )}
+        </>)}
       <Modal show={showRevertModal} onHide={() => setShowRevertModal(false)}>
   <Modal.Header closeButton>
     <Modal.Title>Confirm Revert</Modal.Title>

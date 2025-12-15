@@ -6,6 +6,7 @@ import CustomDatePicker from '../Common/CustomDatePicker';
 import Loading from '../Common/Loading';
 import * as Icons from 'lucide-react';
 import EggProductionGraph from './EggProductionGraph';
+import CompositionUsagePieChart from './CompositionUsagePieChart';
 
 const BATCH_DATE_KEY = 'dashboard_batch_date';
 
@@ -20,17 +21,25 @@ const Dashboard: React.FC = () => {
   const [feedUsage, setFeedUsage] = useState<{ total_feed: number } | null>(null);
   const [feedLoading, setFeedLoading] = useState(false);
 
-  // State for Egg Production Trend Graph
+  // State for Graphs
   const [startDate, setStartDate] = useState<string>(() => {
     const date = new Date();
     date.setMonth(date.getMonth() - 6);
     return date.toISOString().split('T')[0];
   });
   const [endDate, setEndDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [dateRangeError, setDateRangeError] = useState<string | null>(null);
+
+  // State for Egg Production Trend Graph
   const [eggTrendData, setEggTrendData] = useState<{ month: string; total_eggs: number }[]>([]);
   const [eggTrendLoading, setEggTrendLoading] = useState(true);
   const [eggTrendError, setEggTrendError] = useState<string | null>(null);
-  const [dateRangeError, setDateRangeError] = useState<string | null>(null);
+  
+  // State for Composition Usage Pie Chart
+  const [compositionUsageData, setCompositionUsageData] = useState<{ composition_name: string; total_usage: number; unit: string }[]>([]);
+  const [compositionUsageLoading, setCompositionUsageLoading] = useState(true);
+  const [compositionUsageError, setCompositionUsageError] = useState<string | null>(null);
+
 
   // Effect for daily stats
   useEffect(() => {
@@ -72,54 +81,70 @@ const Dashboard: React.FC = () => {
     sessionStorage.setItem(BATCH_DATE_KEY, batchDate);
   }, [batchDate]);
 
-    // Effect for Egg Production Trend Graph
-  useEffect(() => {
-    const fetchEggTrendData = async () => {
+    // Effect for Graphs
+    useEffect(() => {
       const start = new Date(startDate);
       const end = new Date(endDate);
-
+  
       if (start > end) {
         setDateRangeError('End Date cannot be before Start Date.');
         setEggTrendData([]);
+        setCompositionUsageData([]); // Clear data for pie chart as well
         return;
       }
-      
       setDateRangeError(null);
-      setEggTrendLoading(true);
-      setEggTrendError(null);
-
-      try {
-        const apiData = await reportsApi.getMonthlyEggProduction(startDate, endDate);
-        
-        const getMonthsInRange = (start: Date, end: Date) => {
-          const months = [];
-          let current = new Date(start.getFullYear(), start.getMonth(), 1);
-          while (current <= end) {
-            months.push(current.toISOString().slice(0, 7)); // "YYYY-MM"
-            current.setMonth(current.getMonth() + 1);
+  
+      // Fetch egg trend data
+      const fetchEggTrendData = async () => {
+        setEggTrendLoading(true);
+        setEggTrendError(null);
+        try {
+          const apiData = await reportsApi.getMonthlyEggProduction(startDate, endDate);
+          const getMonthsInRange = (start: Date, end: Date) => {
+            const months = [];
+            let current = new Date(start.getFullYear(), start.getMonth(), 1);
+            while (current <= end) {
+              months.push(current.toISOString().slice(0, 7)); // "YYYY-MM"
+              current.setMonth(current.getMonth() + 1);
+            }
+            return months;
+          };
+          const allMonths = getMonthsInRange(start, end);
+          const dataMap = new Map(apiData.map(item => [item.month, item.total_eggs]));
+          const processedData = allMonths.map(month => ({
+            month,
+            total_eggs: dataMap.get(month) || 0,
+          }));
+          setEggTrendData(processedData);
+        } catch (err) {
+          setEggTrendError('Failed to load egg production data.');
+          console.error(err);
+        } finally {
+          setEggTrendLoading(false);
+        }
+      };
+      
+      // Fetch composition usage data
+      const fetchCompositionUsageData = async () => {
+          setCompositionUsageLoading(true);
+          setCompositionUsageError(null);
+          try {
+              const apiData = await reportsApi.getCompositionUsageReport(startDate, endDate);
+              // Filter out items with zero usage to avoid cluttering the pie chart
+              const filteredReport = apiData.report.filter(item => item.total_usage > 0);
+              setCompositionUsageData(filteredReport);
+          } catch (err) {
+              setCompositionUsageError('Failed to load composition usage data.');
+              console.error(err);
+          } finally {
+              setCompositionUsageLoading(false);
           }
-          return months;
-        };
-
-        const allMonths = getMonthsInRange(start, end);
-        const dataMap = new Map(apiData.map(item => [item.month, item.total_eggs]));
-        
-        const processedData = allMonths.map(month => ({
-          month,
-          total_eggs: dataMap.get(month) || 0,
-        }));
-
-        setEggTrendData(processedData);
-      } catch (err) {
-        setEggTrendError('Failed to load egg production data.');
-        console.error(err);
-      } finally {
-        setEggTrendLoading(false);
-      }
-    };
-
-    fetchEggTrendData();
-  }, [startDate, endDate]);
+      };
+  
+      fetchEggTrendData();
+      fetchCompositionUsageData();
+  
+    }, [startDate, endDate]);
 
 
   const totalBirds = batches.reduce((sum, b) => sum + (b.closing_count || 0), 0);
@@ -181,25 +206,29 @@ const Dashboard: React.FC = () => {
         </div>
 
         
-
-        <div className="row mt-4">
-            <div className="col-12">
-                <div className="card shadow-sm mb-4">
-                    <div className="card-body">
-                    <div className="row g-3 align-items-end mb-3">
-                        <div className="col-auto d-flex align-items-center">
+        <div className="card shadow-sm my-4">
+            <div className="card-body">
+                <h5 className="card-title">Graphical Reports</h5>
+                <div className="row g-3 align-items-end mb-3">
+                    <div className="col-auto d-flex align-items-center">
                         <label className="form-label me-3 mb-0">Start Date</label>
                         <CustomDatePicker selected={startDate ? new Date(startDate) : null} onChange={(date: Date | null) => date && setStartDate(date.toISOString().split('T')[0])} maxDate={endDate ? new Date(endDate) : new Date()} dateFormat="dd-MM-yyyy" className="form-control" placeholderText="Select start date" dropdownMode="select" showMonthDropdown showYearDropdown />
-                        </div>
-                        <div className="col-auto d-flex align-items-center">
+                    </div>
+                    <div className="col-auto d-flex align-items-center">
                         <label className="form-label me-3 mb-0">End Date</label>
                         <CustomDatePicker selected={endDate ? new Date(endDate) : null} onChange={(date: Date | null) => date && setEndDate(date.toISOString().split('T')[0])} minDate={startDate ? new Date(startDate) : undefined} maxDate={new Date()} dateFormat="dd-MM-yyyy" className="form-control" placeholderText="Select end date" showMonthDropdown showYearDropdown dropdownMode="select" />
-                        </div>
-                    </div>
-                    {dateRangeError && <div className="alert alert-danger">{dateRangeError}</div>}
-                    <EggProductionGraph data={eggTrendData} loading={eggTrendLoading} error={eggTrendError} />
                     </div>
                 </div>
+                {dateRangeError && <div className="alert alert-danger">{dateRangeError}</div>}
+            </div>
+        </div>
+
+        <div className="row g-4">
+            <div className="col-12 col-xl-8">
+                <EggProductionGraph data={eggTrendData} loading={eggTrendLoading} error={eggTrendError} />
+            </div>
+            <div className="col-12 col-xl-4">
+                <CompositionUsagePieChart data={compositionUsageData} loading={compositionUsageLoading} error={compositionUsageError} />
             </div>
         </div>
 

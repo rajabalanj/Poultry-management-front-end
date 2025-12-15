@@ -244,6 +244,20 @@ export const reportsApi = {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch top selling items'));
     }
   },
+
+  getCompositionUsageReport: async (startDate: string, endDate: string): Promise<{ report: { composition_name: string, total_usage: number, unit: string }[] }> => {
+    try {
+      const response = await api.get<{ report: { composition_name: string, total_usage: number, unit: string }[] }>('/reports/composition-usage-report', {
+        params: {
+          start_date: startDate,
+          end_date: endDate,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch composition usage report'));
+    }
+  },
 };
 
 // Move the `getSnapshot` function to a new `dailyBatchApi` object
@@ -395,11 +409,9 @@ export const compositionApi = {
   },
 
 
-  getCompositionUsageHistory: async (compositionId?: number) => {
+  getCompositionUsageHistory: async () => {
     try {
-      const response = await api.get('/compositions/usage-history', {
-        params: compositionId ? { composition_id: compositionId } : {},
-      });
+      const response = await api.get('/compositions/usage-history');
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch composition usage history'));
