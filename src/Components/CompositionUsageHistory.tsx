@@ -2,13 +2,14 @@ import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { compositionApi, batchApi } from "../services/api";
 import PageHeader from "./Layout/PageHeader";
-import { Modal, Button, Pagination } from "react-bootstrap";
+import { Modal, Button, Pagination, Card, Row, Col } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { CompositionResponse, CompositionUsage } from "../types/compositon";
 import { BatchResponse } from "../types/batch";
 import { toPng } from 'html-to-image';
 import { exportTableToExcel } from '../utility/export-utils';
 import Loading from './Common/Loading';
+import CustomDatePicker from './Common/CustomDatePicker';
 
 const CompositionUsageHistory = () => {
   const { compositionId } = useParams<{ compositionId: string }>();
@@ -23,6 +24,8 @@ const CompositionUsageHistory = () => {
   const [isSharing, setIsSharing] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
   const ITEMS_PER_PAGE = 10;
 
 
@@ -32,17 +35,29 @@ const CompositionUsageHistory = () => {
         setLoading(true);
         const offset = (currentPage - 1) * ITEMS_PER_PAGE;
         const limit = ITEMS_PER_PAGE;
+
+        // Format dates as YYYY-MM-DD for the API (avoid timezone issues)
+        const formatDate = (date: Date) => {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        };
+
+        const startDateStr = startDate ? formatDate(startDate) : undefined;
+        const endDateStr = endDate ? formatDate(endDate) : undefined;
+
         let response;
 
         if (compositionId) {
           const [usageData, compositionData] = await Promise.all([
-            compositionApi.getCompositionUsageHistoryById(Number(compositionId), offset, limit),
+            compositionApi.getCompositionUsageHistoryById(Number(compositionId), offset, limit, startDateStr, endDateStr),
             compositionApi.getComposition(Number(compositionId)),
           ]);
           response = usageData;
           setComposition(compositionData);
         } else {
-          response = await compositionApi.getCompositionUsageHistory(offset, limit);
+          response = await compositionApi.getCompositionUsageHistory(offset, limit, startDateStr, endDateStr);
         }
         setHistory(response.data);
         setTotalItems(response.total);
@@ -53,7 +68,7 @@ const CompositionUsageHistory = () => {
       }
     };
     fetchHistory();
-  }, [compositionId, currentPage]);
+  }, [compositionId, currentPage, startDate, endDate]);
 
   useEffect(() => { // This useEffect should probably not be here if batches are many.
     const fetchBatches = async () => {
@@ -138,7 +153,40 @@ const CompositionUsageHistory = () => {
         buttonIcon="bi-arrow-left"
       />
     <div className="container">
-      
+      <Card className="mb-4">
+        <Card.Body>
+          <Card.Title>Date Filters</Card.Title>
+          <Row>
+            <Col md={6}>
+              <div className="mb-3">
+                <label htmlFor="startDate" className="form-label">Start Date</label>
+                <CustomDatePicker
+                  id="startDate"
+                  selected={startDate}
+                  onChange={(date) => setStartDate(date)}
+                  placeholderText="Select start date"
+                  isClearable
+                  maxDate={endDate ?? undefined}
+                />
+              </div>
+            </Col>
+            <Col md={6}>
+              <div className="mb-3">
+                <label htmlFor="endDate" className="form-label">End Date</label>
+                <CustomDatePicker
+                  id="endDate"
+                  selected={endDate}
+                  onChange={(date) => setEndDate(date)}
+                  placeholderText="Select end date"
+                  isClearable
+                  minDate={startDate ?? undefined}
+                />
+              </div>
+            </Col>
+          </Row>
+        </Card.Body>
+      </Card>
+
       {loading && <Loading message="Loading data..." />}
       {error && <div className="text-danger">{error}</div>}
       {!loading && !error && (

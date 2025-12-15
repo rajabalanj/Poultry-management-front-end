@@ -5,7 +5,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import './CustomDatePicker.css';
 
 interface CustomDatePickerProps {
-  selected: Date | null;
+  selected: Date | null | undefined;
   onChange: (date: Date | null) => void;
   dateFormat?: string;
   showMonthDropdown?: boolean;
@@ -41,8 +41,8 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
 }) => {
   return (
     <DatePicker
-      selected={selected}
-      onChange={onChange}
+      selected={selected ?? null}
+      onChange={(date) => onChange(date ?? null)}
       dateFormat={dateFormat}
       showMonthDropdown={showMonthDropdown}
       showYearDropdown={showYearDropdown}

@@ -409,10 +409,14 @@ export const compositionApi = {
   },
 
 
-  getCompositionUsageHistory: async (offset: number = 0, limit: number = 10): Promise<PaginatedCompositionUsageHistoryResponse> => {
+  getCompositionUsageHistory: async (offset: number = 0, limit: number = 10, startDate?: string, endDate?: string): Promise<PaginatedCompositionUsageHistoryResponse> => {
     try {
+      const params: { [key: string]: any } = { offset, limit };
+      if (startDate) params.start_date = startDate;
+      if (endDate) params.end_date = endDate;
+
       const response = await api.get('/compositions/usage-history', {
-        params: { offset, limit }
+        params
       });
       return response.data;
     } catch (error) {
@@ -420,10 +424,14 @@ export const compositionApi = {
     }
   },
 
-  getCompositionUsageHistoryById: async (compositionId: number, offset: number = 0, limit: number = 10): Promise<PaginatedCompositionUsageHistoryResponse> => {
+  getCompositionUsageHistoryById: async (compositionId: number, offset: number = 0, limit: number = 10, startDate?: string, endDate?: string): Promise<PaginatedCompositionUsageHistoryResponse> => {
     try {
+      const params: { [key: string]: any } = { offset, limit };
+      if (startDate) params.start_date = startDate;
+      if (endDate) params.end_date = endDate;
+
       const response = await api.get(`/compositions/${compositionId}/usage-history`, {
-        params: { offset, limit }
+        params
       });
       return response.data;
     } catch (error) {
