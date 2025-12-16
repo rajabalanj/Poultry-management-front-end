@@ -42,6 +42,7 @@ const CreateSalesOrderForm: React.FC = () => {
   const [orderDate, setOrderDate] = useState<Date>(new Date()); // ADD THIS STATE: Default to current date
   
   const [notes, setNotes] = useState('');
+  const [billNo, setBillNo] = useState<string>('');
   const [items, setItems] = useState<FormSalesOrderItem[]>([]);
 
 
@@ -174,6 +175,7 @@ const CreateSalesOrderForm: React.FC = () => {
       customer_id: Number(customerId),
       order_date: format(orderDate, 'yyyy-MM-dd'),
       notes: notes || undefined,
+      bill_no: billNo || undefined,
       items: items.map(item => ({
         inventory_item_id: item.inventory_item_id,
         quantity: item.quantity,
@@ -260,54 +262,96 @@ const CreateSalesOrderForm: React.FC = () => {
 
   return (
     <>
-      <PageHeader title={formStep === 'createOrder' ? "Create New Sales Order" : `Add Payment for SO #${newSalesOrder?.id}`} buttonVariant="secondary" buttonLabel="Back" buttonLink="/sales-orders" buttonIcon='bi-arrow-left'/>
+      <PageHeader
+        title={
+          formStep === "createOrder"
+            ? "Create New Sales Order"
+            : `Add Payment for SO #${newSalesOrder?.id}`
+        }
+        buttonVariant="secondary"
+        buttonLabel="Back"
+        buttonLink="/sales-orders"
+        buttonIcon="bi-arrow-left"
+      />
       <div className="container mt-4">
         <div className="card shadow-sm">
           <div className="card-body">
-            {formStep === 'createOrder' ? (
+            {formStep === "createOrder" ? (
               <form onSubmit={handleSubmit}>
                 <div className="row g-3">
                   <h5 className="mb-3">Step 1: Sales Order Details</h5>
                   <div className="col-md-6">
-                    <label htmlFor="customerSelect" className="form-label">Customer <span className="form-field-required">*</span></label>
+                    <label htmlFor="customerSelect" className="form-label">
+                      Customer <span className="form-field-required">*</span>
+                    </label>
                     <div className="d-flex gap-2 align-items-center">
-                    <StyledSelect
+                      <StyledSelect
                         id="customerSelect"
                         value={selectedCustomerOption}
-                        onChange={(option, _action) => setCustomerId(option ? Number(option.value) : '')}
+                        onChange={(option, _action) =>
+                          setCustomerId(option ? Number(option.value) : "")
+                        }
                         options={customerOptions}
                         placeholder="Select a Customer"
                         isClearable
                         isLoading={isLoading || customers.length === 0}
                       />
-                      <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => setShowCreateCustomerModal(true)} title="Add Customer">
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-primary"
+                        onClick={() => setShowCreateCustomerModal(true)}
+                        title="Add Customer"
+                      >
                         <i className="bi bi-plus-lg"></i>
                       </button>
                     </div>
                     {customers.length === 0 && !isLoading && (
-                      <div className="text-danger mt-1">No customers found. Please add a customer first.</div>
+                      <div className="text-danger mt-1">
+                        No customers found. Please add a customer first.
+                      </div>
                     )}
                   </div>
-                  
+
                   <div className="col-md-6">
-                    <label htmlFor="orderDate" className="form-label">Date <span className="form-field-required">*</span></label>
+                    <label htmlFor="orderDate" className="form-label">
+                      Date <span className="form-field-required">*</span>
+                    </label>
                     <div>
-                    <CustomDatePicker
-                      selected={orderDate}
-                      onChange={(date: Date | null) => date && setOrderDate(date)}
-                      dateFormat="dd-MM-yyyy"
-                      className="form-control"
-                      showMonthDropdown
-                      showYearDropdown
-                      dropdownMode="select"
-                      id="orderDate"
-                      disabled={isLoading}
-                    />
+                      <CustomDatePicker
+                        selected={orderDate}
+                        onChange={(date: Date | null) =>
+                          date && setOrderDate(date)
+                        }
+                        dateFormat="dd-MM-yyyy"
+                        className="form-control"
+                        showMonthDropdown
+                        showYearDropdown
+                        dropdownMode="select"
+                        id="orderDate"
+                        disabled={isLoading}
+                      />
                     </div>
                   </div>
-                  
+
+                  <div className="col-md-6">
+                    <label htmlFor="billNo" className="form-label">
+                      Bill No
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="billNo"
+                      value={billNo}
+                      onChange={(e) => setBillNo(e.target.value)}
+                      placeholder="Enter bill number"
+                      disabled={isLoading}
+                    />
+                  </div>
+
                   <div className="col-12">
-                    <label htmlFor="notes" className="form-label">Notes</label>
+                    <label htmlFor="notes" className="form-label">
+                      Notes
+                    </label>
                     <textarea
                       className="form-control"
                       id="notes"
@@ -319,10 +363,19 @@ const CreateSalesOrderForm: React.FC = () => {
                     ></textarea>
                   </div>
 
-                  <h5 className="mt-4 mb-3">Items <span className="form-field-required">*</span></h5>
-                  {items.length === 0 && <p className="col-12 text-muted">No items added yet. Click "Add Item" to start.</p>}
+                  <h5 className="mt-4 mb-3">
+                    Items <span className="form-field-required">*</span>
+                  </h5>
+                  {items.length === 0 && (
+                    <p className="col-12 text-muted">
+                      No items added yet. Click "Add Item" to start.
+                    </p>
+                  )}
                   {items.map((item, index) => (
-                    <div key={item.tempId} className="col-12 border p-3 mb-3 bg-light">
+                    <div
+                      key={item.tempId}
+                      className="col-12 border p-3 mb-3 bg-light"
+                    >
                       <div className="d-flex justify-content-between align-items-center mb-2">
                         <h6>Item {index + 1}</h6>
                         <button
@@ -336,46 +389,93 @@ const CreateSalesOrderForm: React.FC = () => {
                       </div>
                       <div className="row g-2">
                         <div className="col-md-6">
-                          <label htmlFor={`itemId-${item.tempId}`} className="form-label">Inventory Item <span className="form-field-required">*</span></label>
-                            <div className="d-flex gap-2 align-items-center">
+                          <label
+                            htmlFor={`itemId-${item.tempId}`}
+                            className="form-label"
+                          >
+                            Inventory Item{" "}
+                            <span className="form-field-required">*</span>
+                          </label>
+                          <div className="d-flex gap-2 align-items-center">
                             <StyledSelect
                               id={`itemId-${item.tempId}`}
-                              value={inventoryItemOptions.find(option => option.value === item.inventory_item_id)}
-                              onChange={(option, _action) => handleItemChange(item.tempId, 'inventory_item_id', option ? option.value : '')}
+                              value={inventoryItemOptions.find(
+                                (option) =>
+                                  option.value === item.inventory_item_id
+                              )}
+                              onChange={(option, _action) =>
+                                handleItemChange(
+                                  item.tempId,
+                                  "inventory_item_id",
+                                  option ? option.value : ""
+                                )
+                              }
                               options={inventoryItemOptions}
                               placeholder="Select an Item"
                               isClearable
-                              isLoading={isLoading || inventoryItems.length === 0}
+                              isLoading={
+                                isLoading || inventoryItems.length === 0
+                              }
                             />
-                            <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => setShowCreateItemModal(true)} title="Add Item">
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-outline-primary"
+                              onClick={() => setShowCreateItemModal(true)}
+                              title="Add Item"
+                            >
                               <i className="bi bi-plus-lg"></i>
                             </button>
-                            </div>
+                          </div>
                           {inventoryItems.length === 0 && !isLoading && (
-                              <div className="text-danger mt-1">No inventory items found. Please add items first.</div>
+                            <div className="text-danger mt-1">
+                              No inventory items found. Please add items first.
+                            </div>
                           )}
                         </div>
                         <div className="col-md-3">
-                          <label htmlFor={`quantity-${item.tempId}`} className="form-label">Quantity <span className="form-field-required">*</span></label>
+                          <label
+                            htmlFor={`quantity-${item.tempId}`}
+                            className="form-label"
+                          >
+                            Quantity{" "}
+                            <span className="form-field-required">*</span>
+                          </label>
                           <input
                             type="number"
                             className="form-control"
                             id={`quantity-${item.tempId}`}
                             value={item.quantity}
-                            onChange={(e) => handleItemChange(item.tempId, 'quantity', Number(e.target.value))}
+                            onChange={(e) =>
+                              handleItemChange(
+                                item.tempId,
+                                "quantity",
+                                Number(e.target.value)
+                              )
+                            }
                             min="1"
                             required
                             disabled={isLoading}
                           />
                         </div>
                         <div className="col-md-3">
-                          <label htmlFor={`pricePerUnit-${item.tempId}`} className="form-label">Price per Unit</label>
+                          <label
+                            htmlFor={`pricePerUnit-${item.tempId}`}
+                            className="form-label"
+                          >
+                            Price per Unit
+                          </label>
                           <input
                             type="number"
                             className="form-control"
                             id={`pricePerUnit-${item.tempId}`}
                             value={item.price_per_unit}
-                            onChange={(e) => handleItemChange(item.tempId, 'price_per_unit', Number(e.target.value))}
+                            onChange={(e) =>
+                              handleItemChange(
+                                item.tempId,
+                                "price_per_unit",
+                                Number(e.target.value)
+                              )
+                            }
                             step="0.01"
                             disabled={isLoading}
                           />
@@ -383,7 +483,11 @@ const CreateSalesOrderForm: React.FC = () => {
 
                         <div className="col-md-12">
                           <p className="text-end mb-0">
-                            Line Total: <strong>Rs. {(item.quantity * item.price_per_unit).toFixed(2)}</strong>
+                            Line Total:{" "}
+                            <strong>
+                              Rs.{" "}
+                              {(item.quantity * item.price_per_unit).toFixed(2)}
+                            </strong>
                           </p>
                         </div>
                       </div>
@@ -392,7 +496,10 @@ const CreateSalesOrderForm: React.FC = () => {
 
                   {items.length > 0 && (
                     <div className="col-12 text-end">
-                      <h5>Grand Total: <strong>Rs. {grandTotal.toFixed(2)}</strong></h5>
+                      <h5>
+                        Grand Total:{" "}
+                        <strong>Rs. {grandTotal.toFixed(2)}</strong>
+                      </h5>
                     </div>
                   )}
 
@@ -413,12 +520,12 @@ const CreateSalesOrderForm: React.FC = () => {
                       className="btn btn-primary me-2"
                       disabled={isLoading}
                     >
-                      {isLoading ? 'Creating...' : 'Proceed to Add Payment'}
+                      {isLoading ? "Creating..." : "Proceed to Add Payment"}
                     </button>
                     <button
                       type="button"
                       className="btn btn-secondary"
-                      onClick={() => navigate('/sales-orders')}
+                      onClick={() => navigate("/sales-orders")}
                       disabled={isLoading}
                     >
                       Cancel
@@ -431,14 +538,23 @@ const CreateSalesOrderForm: React.FC = () => {
                 <h5 className="mb-3">Step 2: Add Payment</h5>
                 {newSalesOrder && (
                   <div className="alert alert-info">
-                    <strong>SO Total:</strong> Rs. {Number(newSalesOrder.total_amount || 0).toFixed(2)} | 
-                    <strong>Paid:</strong> Rs. {Number(newSalesOrder.total_amount_paid || 0).toFixed(2)} | 
-                    <strong>Due:</strong> Rs. {(Number(newSalesOrder.total_amount || 0) - Number(newSalesOrder.total_amount_paid || 0)).toFixed(2)}
+                    <strong>SO Total:</strong> Rs.{" "}
+                    {Number(newSalesOrder.total_amount || 0).toFixed(2)} |
+                    <strong>Paid:</strong> Rs.{" "}
+                    {Number(newSalesOrder.total_amount_paid || 0).toFixed(2)} |
+                    <strong>Due:</strong> Rs.{" "}
+                    {(
+                      Number(newSalesOrder.total_amount || 0) -
+                      Number(newSalesOrder.total_amount_paid || 0)
+                    ).toFixed(2)}
                   </div>
                 )}
                 <div className="row g-3">
                   <div className="col-md-6">
-                    <label htmlFor="amountPaid" className="form-label">Amount Paid (Rs.) <span className="form-field-required">*</span></label>
+                    <label htmlFor="amountPaid" className="form-label">
+                      Amount Paid (Rs.){" "}
+                      <span className="form-field-required">*</span>
+                    </label>
                     <input
                       type="number"
                       className="form-control"
@@ -452,28 +568,38 @@ const CreateSalesOrderForm: React.FC = () => {
                     />
                   </div>
                   <div className="col-md-6">
-                    <label htmlFor="paymentDate" className="form-label">Payment Date <span className="form-field-required">*</span></label>
+                    <label htmlFor="paymentDate" className="form-label">
+                      Payment Date{" "}
+                      <span className="form-field-required">*</span>
+                    </label>
                     <div>
-                    <CustomDatePicker
-                      selected={paymentDate}
-                      onChange={(date: Date | null) => date && setPaymentDate(date)}
-                      dateFormat="dd-MM-yyyy"
-                      className="form-control"
-                      showMonthDropdown
-                      showYearDropdown
-                      dropdownMode="select"
-                      id="paymentDate"
-                      required
-                      disabled={isLoading}
-                    />
+                      <CustomDatePicker
+                        selected={paymentDate}
+                        onChange={(date: Date | null) =>
+                          date && setPaymentDate(date)
+                        }
+                        dateFormat="dd-MM-yyyy"
+                        className="form-control"
+                        showMonthDropdown
+                        showYearDropdown
+                        dropdownMode="select"
+                        id="paymentDate"
+                        required
+                        disabled={isLoading}
+                      />
                     </div>
                   </div>
                   <div className="col-md-6">
-                    <label htmlFor="paymentMode" className="form-label">Payment Mode <span className="form-field-required">*</span></label>
+                    <label htmlFor="paymentMode" className="form-label">
+                      Payment Mode{" "}
+                      <span className="form-field-required">*</span>
+                    </label>
                     <StyledSelect
                       id="paymentMode"
                       value={selectedPaymentModeOption}
-                      onChange={(option, _action) => setPaymentMode(option ? String(option.value) : '')}
+                      onChange={(option, _action) =>
+                        setPaymentMode(option ? String(option.value) : "")
+                      }
                       options={paymentModeOptions}
                       placeholder="Select Mode"
                       isClearable
@@ -482,20 +608,48 @@ const CreateSalesOrderForm: React.FC = () => {
                     />
                   </div>
                   <div className="col-md-6">
-                    <label htmlFor="referenceNumber" className="form-label">Reference Number</label>
-                    <input type="text" className="form-control" id="referenceNumber" value={referenceNumber} onChange={(e) => setReferenceNumber(e.target.value)} disabled={isLoading} />
+                    <label htmlFor="referenceNumber" className="form-label">
+                      Reference Number
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="referenceNumber"
+                      value={referenceNumber}
+                      onChange={(e) => setReferenceNumber(e.target.value)}
+                      disabled={isLoading}
+                    />
                   </div>
                   <div className="col-12">
-                    <label htmlFor="paymentNotes" className="form-label">Notes</label>
-                    <textarea className="form-control" id="paymentNotes" rows={3} value={paymentNotes} onChange={(e) => setPaymentNotes(e.target.value)} disabled={isLoading}></textarea>
+                    <label htmlFor="paymentNotes" className="form-label">
+                      Notes
+                    </label>
+                    <textarea
+                      className="form-control"
+                      id="paymentNotes"
+                      rows={3}
+                      value={paymentNotes}
+                      onChange={(e) => setPaymentNotes(e.target.value)}
+                      disabled={isLoading}
+                    ></textarea>
                   </div>
-
                 </div>
                 <div className="col-12 mt-4">
-                  <button type="submit" className="btn btn-primary me-2" disabled={isLoading}>
-                    {isLoading ? 'Saving Payment...' : 'Save Payment'}
+                  <button
+                    type="submit"
+                    className="btn btn-primary me-2"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Saving Payment..." : "Save Payment"}
                   </button>
-                  <button type="button" className="btn btn-secondary" onClick={() => navigate(`/sales-orders/${newSalesOrder?.id}/details`)} disabled={isLoading}>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() =>
+                      navigate(`/sales-orders/${newSalesOrder?.id}/details`)
+                    }
+                    disabled={isLoading}
+                  >
                     Skip & Finish
                   </button>
                 </div>
@@ -506,15 +660,30 @@ const CreateSalesOrderForm: React.FC = () => {
       </div>
       {showCreateCustomerModal && (
         <>
-          <div className="modal fade show" tabIndex={-1} role="dialog" style={{ display: 'block' }} aria-modal="true">
+          <div
+            className="modal fade show"
+            tabIndex={-1}
+            role="dialog"
+            style={{ display: "block" }}
+            aria-modal="true"
+          >
             <div className="modal-dialog modal-lg" role="document">
               <div className="modal-content">
                 <div className="modal-header">
                   <h5 className="modal-title">Create Customer</h5>
-                  <button type="button" className="btn-close" aria-label="Close" onClick={() => setShowCreateCustomerModal(false)}></button>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    aria-label="Close"
+                    onClick={() => setShowCreateCustomerModal(false)}
+                  ></button>
                 </div>
                 <div className="modal-body">
-                  <CreateBusinessPartnerForm hideHeader onCreated={handleCustomerCreatedInline} onCancel={() => setShowCreateCustomerModal(false)} />
+                  <CreateBusinessPartnerForm
+                    hideHeader
+                    onCreated={handleCustomerCreatedInline}
+                    onCancel={() => setShowCreateCustomerModal(false)}
+                  />
                 </div>
               </div>
             </div>
@@ -525,15 +694,30 @@ const CreateSalesOrderForm: React.FC = () => {
 
       {showCreateItemModal && (
         <>
-          <div className="modal fade show" tabIndex={-1} role="dialog" style={{ display: 'block' }} aria-modal="true">
+          <div
+            className="modal fade show"
+            tabIndex={-1}
+            role="dialog"
+            style={{ display: "block" }}
+            aria-modal="true"
+          >
             <div className="modal-dialog modal-lg" role="document">
               <div className="modal-content">
                 <div className="modal-header">
                   <h5 className="modal-title">Create Inventory Item</h5>
-                  <button type="button" className="btn-close" aria-label="Close" onClick={() => setShowCreateItemModal(false)}></button>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    aria-label="Close"
+                    onClick={() => setShowCreateItemModal(false)}
+                  ></button>
                 </div>
                 <div className="modal-body">
-                  <CreateInventoryItemForm hideHeader onCreated={handleItemCreatedInline} onCancel={() => setShowCreateItemModal(false)} />
+                  <CreateInventoryItemForm
+                    hideHeader
+                    onCreated={handleItemCreatedInline}
+                    onCancel={() => setShowCreateItemModal(false)}
+                  />
                 </div>
               </div>
             </div>

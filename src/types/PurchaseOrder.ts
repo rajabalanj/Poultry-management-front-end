@@ -28,10 +28,9 @@ export interface PaymentResponse {
 
 export interface PurchaseOrderBase {
   vendor_id: number;
-  
   order_date: string; // ADD THIS FIELD - Date string (YYYY-MM-DD)
-  
   notes?: string;
+  bill_no?: string;
 }
 
 export interface PurchaseOrderCreate extends PurchaseOrderBase {
@@ -45,6 +44,7 @@ export interface PurchaseOrderUpdate {
   
   notes?: string;
   status?: PurchaseOrderStatus;
+  bill_no?: string;
 }
 
 export interface PurchaseOrderResponse extends PurchaseOrderBase {

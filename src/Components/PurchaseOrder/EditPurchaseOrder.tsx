@@ -50,6 +50,7 @@ const EditPurchaseOrder: React.FC = () => {
   const [orderDate, setOrderDate] = useState<Date | null>(null);
   
   const [notes, setNotes] = useState('');
+  const [billNo, setBillNo] = useState<string>('');
   
   const [items, setItems] = useState<FormPurchaseOrderItem[]>([]);
   const [originalItems, setOriginalItems] = useState<FormPurchaseOrderItem[]>([]);
@@ -85,6 +86,7 @@ const EditPurchaseOrder: React.FC = () => {
         setOrderDate(poData.order_date ? new Date(poData.order_date) : null);
         
         setNotes(poData.notes || '');
+        setBillNo(poData.bill_no || '');
         
         setCurrentReceipt(poData.payment_receipt || null);
 
@@ -238,8 +240,8 @@ const EditPurchaseOrder: React.FC = () => {
       const poUpdateData: PurchaseOrderUpdate = {
         vendor_id: Number(vendorId),
         order_date: orderDate ? format(orderDate, 'yyyy-MM-dd') : undefined,
-        
         notes: notes || undefined,
+        bill_no: billNo || undefined,
         
       };
       await purchaseOrderApi.updatePurchaseOrder(Number(po_id), poUpdateData);
@@ -349,6 +351,18 @@ const EditPurchaseOrder: React.FC = () => {
                     id="orderDate"
                     disabled={isLoading} />
                   </div>
+                </div>
+                <div className="col-md-6">
+                  <label htmlFor="billNo" className="form-label">Bill No</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="billNo"
+                    value={billNo}
+                    onChange={(e) => setBillNo(e.target.value)}
+                    placeholder="Enter bill number"
+                    disabled={isLoading}
+                  />
                 </div>
                 <div className="col-12">
                   <label htmlFor="notes" className="form-label">Notes</label>

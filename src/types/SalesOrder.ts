@@ -21,10 +21,9 @@ export enum PaymentStatus {
 
 export interface SalesOrderBase {
   customer_id: number;
-  
   order_date: string; // ADD THIS FIELD - Date string (YYYY-MM-DD)
-  
   notes?: string;
+  bill_no?: string; // Optional bill number
 }
 
 export interface SalesOrderCreate extends SalesOrderBase {
@@ -33,11 +32,12 @@ export interface SalesOrderCreate extends SalesOrderBase {
 
 export interface SalesOrderUpdate {
   customer_id?: number;
-  
+
   order_date?: string; // Allow updating if needed, or make it not updateable depending on business logic
-  
+
   notes?: string;
   status?: SalesOrderStatus;
+  bill_no?: string; // Optional bill number
 }
 
 export interface SalesOrderResponse extends SalesOrderBase {

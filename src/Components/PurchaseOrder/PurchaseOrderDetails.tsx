@@ -205,7 +205,9 @@ const PurchaseOrderDetails: React.FC = () => {
               <div className="col-md-6">
                 <strong>Date:</strong> {format(new Date(purchaseOrder.order_date), 'MMM dd, yyyy')}
               </div>
-              
+              <div className="col-md-6">
+                <strong>Bill No:</strong> {purchaseOrder.bill_no || 'N/A'}
+              </div>
               <div className="col-md-6">
                 <strong>Status:</strong> <span className={`badge ${getStatusBadgeClass(purchaseOrder.status)}`}>{purchaseOrder.status}</span>
               </div>

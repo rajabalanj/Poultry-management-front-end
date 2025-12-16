@@ -42,6 +42,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
   const [orderDate, setOrderDate] = useState<Date>(new Date()); // ADD THIS STATE: Default to current date
   
   const [notes, setNotes] = useState('');
+  const [billNo, setBillNo] = useState<string>('');
   const [items, setItems] = useState<FormPurchaseOrderItem[]>([]);
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
 
@@ -191,7 +192,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
     const newPurchaseOrder: PurchaseOrderCreate = {
       vendor_id: Number(vendorId),
       order_date: format(orderDate, 'yyyy-MM-dd'), // ADD THIS LINE: Format to YYYY-MM-DD
-      
+      bill_no: billNo || undefined,
       notes: notes || undefined,
       items: items.map(item => ({
         inventory_item_id: item.inventory_item_id,
@@ -323,7 +324,18 @@ const CreatePurchaseOrderForm: React.FC = () => {
                     />
                     </div>
                   </div>
-                  
+                  <div className="col-md-6">
+                  <label htmlFor="billNo" className="form-label">Bill No</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="billNo"
+                    value={billNo}
+                    onChange={(e) => setBillNo(e.target.value)}
+                    placeholder="Enter bill number"
+                    disabled={isLoading}
+                  />
+                </div>
                   <div className="col-12">
                     <label htmlFor="notes" className="form-label">Notes</label>
                     <textarea

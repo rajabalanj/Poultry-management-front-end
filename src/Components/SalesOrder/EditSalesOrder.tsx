@@ -13,7 +13,7 @@ import {
 import {
   SalesOrderItemCreate,
   SalesOrderItemUpdate,
-  SalesOrderItemResponse, 
+  SalesOrderItemResponse,
 } from '../../types/SalesOrderItem';
 import { BusinessPartner } from '../../types/BusinessPartner';
 import { InventoryItemResponse, InventoryItemCategory } from '../../types/InventoryItem';
@@ -46,10 +46,11 @@ const EditSalesOrder: React.FC = () => {
 
   // Sales Order states, initialized from fetched data
   const [customerId, setCustomerId] = useState<number | ''>('');
-  
+
   const [orderDate, setOrderDate] = useState<Date | null>(null);
-  
+
   const [notes, setNotes] = useState('');
+  const [billNo, setBillNo] = useState<string>('');
   const [items, setItems] = useState<FormSalesOrderItem[]>([]);
   const [originalItems, setOriginalItems] = useState<FormSalesOrderItem[]>([]);
 
@@ -77,10 +78,11 @@ const EditSalesOrder: React.FC = () => {
 
         // Set main SO details
         setCustomerId(soData.customer_id);
-        
+
         setOrderDate(soData.order_date ? new Date(soData.order_date) : null);
-        
+
         setNotes(soData.notes || '');
+        setBillNo(soData.bill_no || '');
 
         // Map existing items to form state, adding tempId for consistency and flags
         const formItems: FormSalesOrderItem[] = soData.items?.map(item => ({
@@ -227,6 +229,7 @@ const EditSalesOrder: React.FC = () => {
         customer_id: Number(customerId),
         order_date: orderDate ? format(orderDate, 'yyyy-MM-dd') : undefined,
         notes: notes || undefined,
+        bill_no: billNo || undefined,
       };
       await salesOrderApi.updateSalesOrder(Number(so_id), soUpdateData);
 
@@ -244,9 +247,9 @@ const EditSalesOrder: React.FC = () => {
         } else if (!item.isNew && !item.isDeleted) { // Existing item, potentially updated
           const originalItem = originalItems.find(oi => oi.id === item.id);
 
-          const hasChanged = !originalItem || 
+          const hasChanged = !originalItem ||
                                originalItem.inventory_item_id !== item.inventory_item_id ||
-                               originalItem.quantity !== item.quantity || 
+                               originalItem.quantity !== item.quantity ||
                                originalItem.price_per_unit !== item.price_per_unit;
 
           if (hasChanged) {
@@ -321,7 +324,7 @@ const EditSalesOrder: React.FC = () => {
                     <div className="text-danger mt-1">No customers found. Please add a customer first.</div>
                   )}
                 </div>
-                
+
                 <div className="col-md-6">
                   <label htmlFor="orderDate" className="form-label">Date <span className="form-field-required">*</span></label>
                   <div>
@@ -338,7 +341,19 @@ const EditSalesOrder: React.FC = () => {
                   />
                   </div>
                 </div>
-                
+
+                <div className="col-md-6">
+                  <label htmlFor="billNo" className="form-label">Bill No</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="billNo"
+                    value={billNo}
+                    onChange={(e) => setBillNo(e.target.value)}
+                    placeholder="Enter bill number"
+                    disabled={isLoading}
+                  />
+                </div>
                 <div className="col-12">
                   <label htmlFor="notes" className="form-label">Notes</label>
                   <textarea
@@ -351,7 +366,7 @@ const EditSalesOrder: React.FC = () => {
                     disabled={isLoading}
                   ></textarea>
                 </div>
-                
+
 
                 {/* Sales Order Items Section */}
                 <h5 className="mt-4 mb-3">Items <span className="form-field-required">*</span></h5>
