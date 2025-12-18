@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios';
+import { format } from 'date-fns';
 import { CompositionResponse, PaginatedCompositionUsageHistoryResponse } from '../types/compositon';
 import { DailyBatch, WeeklyLayerReportResponse } from '../types/daily_batch';
 import { TopSellingItem } from '../types/topSellingItem';import { BatchResponse, BatchUpdate, CreateBatchPayload, CreateBatchResponse } from '../types/batch';
@@ -1006,6 +1007,32 @@ export const purchaseOrderApi = {
       throw new Error(getApiErrorMessage(error, 'Failed to delete payment'));
     }
   },
+
+  exportDetailedReport: async (
+    filters: {
+      vendorId?: number | '';
+      status?: PurchaseOrderStatus | '';
+      startDate?: Date | null;
+      endDate?: Date | null;
+    },
+    formatType: 'excel' | 'pdf'
+  ): Promise<Blob> => {
+    try {
+      const params: { [key: string]: any } = { format: formatType };
+      if (filters.vendorId) params.vendor_id = filters.vendorId;
+      if (filters.status) params.status = filters.status;
+      if (filters.startDate) params.start_date = format(filters.startDate, 'yyyy-MM-dd');
+      if (filters.endDate) params.end_date = format(filters.endDate, 'yyyy-MM-dd');
+
+      const response = await api.get('/purchase-orders/reports/detailed/export', {
+        params,
+        responseType: 'blob',
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to export detailed purchase report'));
+    }
+  },
 };
 
 // Helper function to handle backend returning decimal values as strings
@@ -1173,6 +1200,32 @@ export const salesOrderApi = {
       await api.delete(`/sales-payments/${paymentId}`);
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to delete sales payment'));
+    }
+  },
+
+  exportDetailedReport: async (
+    filters: {
+      customerId?: number | '';
+      status?: SalesOrderStatus | '';
+      startDate?: Date | null;
+      endDate?: Date | null;
+    },
+    formatType: 'excel' | 'pdf'
+  ): Promise<Blob> => {
+    try {
+      const params: { [key: string]: any } = { format: formatType };
+      if (filters.customerId) params.customer_id = filters.customerId;
+      if (filters.status) params.status = filters.status;
+      if (filters.startDate) params.start_date = format(filters.startDate, 'yyyy-MM-dd');
+      if (filters.endDate) params.end_date = format(filters.endDate, 'yyyy-MM-dd');
+
+      const response = await api.get('/sales-orders/reports/detailed/export', {
+        params,
+        responseType: 'blob',
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to export detailed sales report'));
     }
   },
 };

@@ -109,6 +109,7 @@ const PurchaseResponsive: React.FC = () => {
             loading={loading}
             error={error}
             vendors={vendors}
+            filters={filters}
             pagination={{
               currentPage,
               totalPages,

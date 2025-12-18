@@ -1,20 +1,19 @@
 // src/Components/Reports/SalesReportsTable.tsx
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { SalesOrderResponse } from '../../types/SalesOrder';
 import { SalesOrderItemResponse } from '../../types/SalesOrderItem';
 import { BusinessPartner } from '../../types/BusinessPartner';
 import { useNavigate } from 'react-router-dom';
-import { toPng } from 'html-to-image';
 import { Button } from 'react-bootstrap';
 import { toast } from 'react-toastify';
-import { exportTableToExcel } from '../../utility/export-utils';
-import ItemsModal from '../Common/ItemsModal';
+import { salesOrderApi } from '../../services/api';
 
 interface SalesReportTableProps {
   salesOrders: SalesOrderResponse[];
   customers: BusinessPartner[];
   loading: boolean;
   error: string | null;
+  filters?: Record<string, any>;
   pagination?: {
     currentPage: number;
     totalPages: number;
@@ -22,13 +21,11 @@ interface SalesReportTableProps {
   };
 }
 
-const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, customers, loading, error, pagination }) => {
+const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, customers, loading, error, pagination, filters = {} }) => {
   const navigate = useNavigate();
-  const tableRef = useRef<HTMLDivElement>(null);
   const [isSharing, setIsSharing] = useState(false);
-  const [showItemsModal, setShowItemsModal] = useState(false);
-  const [selectedItems, setSelectedItems] = useState<SalesOrderItemResponse[]>([]);
-  const [selectedSOId, setSelectedSOId] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const [expandedRows, setExpandedRows] = useState<number[]>([]);
 
   const handleViewDetails = (id: number) => {
     if (!id) {
@@ -38,63 +35,47 @@ const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, custom
     navigate(`/sales-orders/${id}/details`);
   };
 
-  const handleViewItems = useCallback((items: SalesOrderItemResponse[] | undefined, so_number: string) => {
-    setSelectedItems(items || []);
-    setSelectedSOId(so_number);
-    setShowItemsModal(true);
-  }, []);
-
   const handleShareAsImage = async () => {
-    if (!tableRef.current) {
-      toast.error("Table element not found.");
-      return;
-    }
-
     if (!navigator.share) {
       toast.error("Web Share API is not supported in your browser.");
       return;
     }
-
-    const tableNode = tableRef.current;
     setIsSharing(true);
-
-    const originalTableStyle = {
-      width: tableNode.style.width,
-      minWidth: tableNode.style.minWidth,
-      whiteSpace: tableNode.style.whiteSpace,
-    };
-
     try {
-      tableNode.style.width = 'auto';
-      tableNode.style.minWidth = '1200px'; 
-      tableNode.style.whiteSpace = 'nowrap';
-
-      const dataUrl = await toPng(tableNode, {
-        backgroundColor: '#ffffff',
-      });
-      const blob = await (await fetch(dataUrl)).blob();
-      const file = new File([blob], `sales-report.png`, { type: 'image/png' });
+      const blob = await salesOrderApi.exportDetailedReport(filters, 'pdf');
+      const file = new File([blob], `sales-report.pdf`, { type: 'application/pdf' });
 
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          title: 'Sales Report',
-          text: `Sales Report`,
-          files: [file],
-        });
-        toast.success("Report shared successfully!");
+        await navigator.share({ title: 'Sales Report', text: 'Detailed Sales Report', files: [file] });
+        toast.success('Report shared successfully!');
       } else {
-        toast.error("Sharing files is not supported on this device.");
+        toast.error('Sharing files is not supported on this device.');
       }
     } catch (error: any) {
-      if (error.name !== 'AbortError') {
-        console.error('Sharing failed', error);
-        toast.error(`Failed to share report: ${error.message}`);
-      }
+      console.error('Sharing failed', error);
+      toast.error(`Failed to share report: ${error.message || 'Unknown error'}`);
     } finally {
-      tableNode.style.width = originalTableStyle.width;
-      tableNode.style.minWidth = originalTableStyle.minWidth;
-      tableNode.style.whiteSpace = originalTableStyle.whiteSpace;
       setIsSharing(false);
+    }
+  };
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const blob = await salesOrderApi.exportDetailedReport(filters, 'excel');
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = 'sales_report.xlsx';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(link.href);
+      toast.success('Sales report exported successfully!');
+    } catch (error: any) {
+      console.error('Export failed', error);
+      toast.error(`Failed to export report: ${error.message || 'Unknown error'}`);
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -102,64 +83,109 @@ const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, custom
   if (error) return <div className="text-center text-danger">{error}</div>;
   if (salesOrders.length === 0) return <div className="text-center">No Sales Orders found</div>;
 
-  const handleExport = () => {
-    exportTableToExcel('sales-report-table', 'sales_report', 'Sales Report');
-  };
-
   return (
     <>
       <div className="mb-3 d-flex justify-content-end gap-2">
-        <Button variant="success" onClick={handleExport} disabled={salesOrders.length === 0}>
-          Export to Excel
+        <Button variant="success" onClick={handleExport} disabled={isExporting || salesOrders.length === 0}>
+          {isExporting ? 'Exporting...' : 'Export to Excel'}
         </Button>
         <Button variant="secondary" onClick={handleShareAsImage} disabled={isSharing}>
-          {isSharing ? 'Generating...' : 'Share as Image'}
+          {isSharing ? 'Generating...' : 'Share as PDF'}
         </Button>
       </div>
-      <div className="table-responsive" ref={tableRef}>
+      <div className="table-responsive">
         <table className="table table-striped table-hover">
           <thead className="thead-dark" id="sales-report-table">
             <tr>
+              <th style={{ width: 48 }}></th>
               <th>SO Number</th>
               <th>Customer</th>
               <th>Order Date</th>
               <th>Total Amount</th>
               <th>Amount Paid</th>
               <th>Status</th>
-              <th>Items</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {salesOrders.map((so) => {
               const customerName = customers.find(c => c.id === so.customer_id)?.name || 'N/A';
+              const isExpanded = expandedRows.includes(so.id);
               return (
-                <tr key={so.id} onClick={() => handleViewDetails(so.id)} style={{ cursor: 'pointer' }}>
-                  <td>{so.so_number}</td>
-                  <td>{customerName}</td>
-                  <td>{new Date(so.order_date).toLocaleDateString()}</td>
-                  <td>{so.total_amount.toFixed(2)}</td>
-                  <td>{so.total_amount_paid.toFixed(2)}</td>
-                  <td><span className={`badge ${
-                so.status === 'Draft' ? 'bg-warning' :
-                so.status === 'Approved' ? 'bg-primary' :
-                so.status === 'Partially Paid' ? 'bg-info' :
-                so.status === 'Paid' ? 'bg-success' :
-                so.status === 'Cancelled' ? 'bg-danger' :
-                'bg-secondary'
-              }`}>{so.status}</span></td>
-              <td>
-                <Button 
-                  variant="outline-info" 
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleViewItems(so.items, so.so_number);
-                  }}
-                >
-                  View Items
-                </Button>
-              </td>
-                </tr>
+                <React.Fragment key={so.id}>
+                  <tr onClick={() => handleViewDetails(so.id)} style={{ cursor: 'pointer' }}>
+                    <td>
+                      <Button
+                        variant="link"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExpandedRows(prev => prev.includes(so.id) ? prev.filter(id => id !== so.id) : [...prev, so.id]);
+                        }}
+                      >
+                        {isExpanded ? '▾' : '▸'}
+                      </Button>
+                    </td>
+                    <td>{so.so_number}</td>
+                    <td>{customerName}</td>
+                    <td>{new Date(so.order_date).toLocaleDateString()}</td>
+                    <td>{so.total_amount.toFixed(2)}</td>
+                    <td>{so.total_amount_paid.toFixed(2)}</td>
+                    <td><span className={`badge ${
+                  so.status === 'Draft' ? 'bg-warning' :
+                  so.status === 'Approved' ? 'bg-primary' :
+                  so.status === 'Partially Paid' ? 'bg-info' :
+                  so.status === 'Paid' ? 'bg-success' :
+                  so.status === 'Cancelled' ? 'bg-danger' :
+                  'bg-secondary'
+                }`}>{so.status}</span></td>
+                    <td>
+                      <Button 
+                        variant="outline-info" 
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Open the expanded items row for this order
+                          setExpandedRows(prev => prev.includes(so.id) ? prev.filter(id => id !== so.id) : [...prev, so.id]);
+                        }}
+                      >
+                        View Items
+                      </Button>
+                    </td>
+                  </tr>
+                  {isExpanded && (
+                    <tr>
+                      <td colSpan={8}>
+                        <div className="p-2">
+                          <table className="table mb-0">
+                            <thead>
+                              <tr>
+                                <th>Item Name</th>
+                                <th>Qty</th>
+                                <th>Unit Price</th>
+                                <th>Line Total</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {Array.isArray(so.items) && so.items.length > 0 ? so.items.map((it: SalesOrderItemResponse) => (
+                                <tr key={it.id}>
+                                  <td>{it.inventory_item?.name || 'Unknown Item'}</td>
+                                  <td>{it.quantity}</td>
+                                  <td>{it.price_per_unit?.toFixed ? it.price_per_unit.toFixed(2) : Number(it.price_per_unit).toFixed(2)}</td>
+                                  <td>{it.line_total?.toFixed ? it.line_total.toFixed(2) : Number(it.line_total || (it.quantity * it.price_per_unit)).toFixed(2)}</td>
+                                </tr>
+                              )) : (
+                                <tr>
+                                  <td colSpan={4} className="text-center">No items</td>
+                                </tr>
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
               );
             })}
           </tbody>
@@ -186,12 +212,7 @@ const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, custom
           </button>
         </div>
       )}
-      <ItemsModal
-        show={showItemsModal}
-        onHide={() => setShowItemsModal(false)}
-        items={selectedItems}
-        title={`Items for SO: ${selectedSOId}`}
-      />
+      
     </>
   );
 };

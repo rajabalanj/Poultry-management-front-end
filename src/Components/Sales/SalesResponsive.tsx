@@ -115,6 +115,7 @@ const SalesResponsive: React.FC = () => {
             loading={loading}
             error={error}
             customers={customers}
+            filters={filters}
             pagination={{
               currentPage,
               totalPages,
