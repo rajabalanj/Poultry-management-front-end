@@ -8,6 +8,8 @@ import { InventoryItemResponse } from "../../types/InventoryItem";
 import { InventoryItemAudit } from "../../types/InventoryItemAudit";
 import Loading from '../Common/Loading';
 import CustomDatePicker from '../Common/CustomDatePicker';
+import AdjustInventoryModal from './AdjustInventoryModal'; // Import the modal
+
 const InventoryItemDetails: React.FC = () => {
   const { item_id } = useParams<{ item_id: string }>();
   const navigate = useNavigate();
@@ -21,6 +23,7 @@ const InventoryItemDetails: React.FC = () => {
   const rowsPerPage = 10;
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
+  const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false); // State for modal
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -68,6 +71,11 @@ const fetchAuditLog = async () => {
   }
 };
 
+const handleAdjustmentSuccess = (updatedItem: InventoryItemResponse) => {
+  setItem(updatedItem);
+  toast.success('Inventory adjusted successfully!');
+  fetchAuditLog(); // Refresh audit log after adjustment
+};
 
   const totalPages = Math.ceil(auditLog.length / rowsPerPage);
   const paginatedAuditLog = auditLog.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
@@ -114,6 +122,14 @@ const fetchAuditLog = async () => {
         </div>
 
         <div className="mt-4 d-flex justify-content-center gap-3">
+        <button
+            type="button"
+            className="btn btn-warning"
+            onClick={() => setIsAdjustModalOpen(true)}
+          >
+            <i className="bi bi-gear me-1"></i>
+            Adjust Inventory
+          </button>
           <button
             type="button"
             className="btn btn-primary"
@@ -264,6 +280,13 @@ const fetchAuditLog = async () => {
           </div>
         )}
       </div>
+      {isAdjustModalOpen && item && (
+        <AdjustInventoryModal
+          item={item}
+          onClose={() => setIsAdjustModalOpen(false)}
+          onSuccess={handleAdjustmentSuccess}
+        />
+      )}
     </>
   );
 };

@@ -841,6 +841,25 @@ export const inventoryItemApi = {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch inventory value'));
     }
   },
+
+  adjustInventoryItem: async (
+    itemId: number, 
+    adjustment: {
+      change_amount: number;
+      change_type: "manual";
+      note: string;
+    }
+  ): Promise<InventoryItemResponse> => {
+    try {
+      const response = await api.post<InventoryItemResponse>(
+        `/inventory-items/${itemId}/adjust`, 
+        adjustment
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to adjust inventory item'));
+    }
+  },
 };
 
 // Helper function to handle backend returning decimal values as strings
