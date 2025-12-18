@@ -1,12 +1,13 @@
 // src/Components/Reports/PurchaseReportTable.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PurchaseOrderResponse } from '../../types/PurchaseOrder';
 import { PurchaseOrderItemResponse } from '../../types/PurchaseOrderItem';
 import { BusinessPartner } from '../../types/BusinessPartner';
 import { useNavigate } from 'react-router-dom';
 import { Button } from 'react-bootstrap';
 import { toast } from 'react-toastify';
-import { purchaseOrderApi } from '../../services/api';
+import { purchaseOrderApi, inventoryItemApi } from '../../services/api';
+import { InventoryItemResponse } from '../../types/InventoryItem';
 
 interface PurchaseReportTableProps {
   purchaseOrders: PurchaseOrderResponse[];
@@ -26,6 +27,25 @@ const PurchaseReportTable: React.FC<PurchaseReportTableProps> = ({ purchaseOrder
   const [isSharing, setIsSharing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [expandedRows, setExpandedRows] = useState<number[]>([]);
+  const [inventoryItems, setInventoryItems] = useState<InventoryItemResponse[]>([]);
+
+  useEffect(() => {
+    const fetchInventoryItems = async () => {
+      try {
+        const response = await inventoryItemApi.getInventoryItems();
+        setInventoryItems(response);
+      } catch (error) {
+        console.error('Failed to fetch inventory items', error);
+        toast.error('Failed to fetch inventory items');
+      }
+    };
+    fetchInventoryItems();
+  }, []);
+
+  const getItemName = (itemId: number) => {
+    const item = inventoryItems.find(i => i.id === itemId);
+    return item?.name || 'N/A';
+  };
 
   const handleViewDetails = (id: number) => {
     if (!id) {
@@ -166,7 +186,7 @@ const PurchaseReportTable: React.FC<PurchaseReportTableProps> = ({ purchaseOrder
                             <tbody>
                               {Array.isArray(po.items) && po.items.length > 0 ? po.items.map((it: PurchaseOrderItemResponse) => (
                                 <tr key={it.id}>
-                                  <td>{it.inventory_item?.name || 'Unknown Item'}</td>
+                                  <td>{getItemName(it.inventory_item_id)}</td>
                                   <td>{it.quantity}</td>
                                   <td>{it.price_per_unit?.toFixed ? it.price_per_unit.toFixed(2) : Number(it.price_per_unit).toFixed(2)}</td>
                                   <td>{it.line_total?.toFixed ? it.line_total.toFixed(2) : Number(it.line_total || (it.quantity * it.price_per_unit)).toFixed(2)}</td>

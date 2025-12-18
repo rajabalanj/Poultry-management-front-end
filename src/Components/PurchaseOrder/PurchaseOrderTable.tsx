@@ -5,12 +5,10 @@ import { PurchaseOrderResponse } from "../../types/PurchaseOrder";
 import { PurchaseOrderItemResponse } from "../../types/PurchaseOrderItem";
 import { BusinessPartner } from "../../types/BusinessPartner";
 import PurchaseOrderCard from "./PurchaseOrderCard";
-import { toPng } from 'html-to-image';
 import { Button } from 'react-bootstrap';
 import { toast } from 'react-toastify';
-import { exportTableToExcel } from '../../utility/export-utils';
 import ItemsModal from '../Common/ItemsModal';
-import { inventoryItemApi } from "../../services/api";
+import { inventoryItemApi, purchaseOrderApi } from "../../services/api";
 import { InventoryItemResponse } from "../../types/InventoryItem";
 
 interface PurchaseOrderTableProps {
@@ -20,6 +18,7 @@ interface PurchaseOrderTableProps {
   onDelete?: (id: number) => void;
   vendors: BusinessPartner[];
   onAddPayment?: (id: number) => void;
+  filters?: Record<string, any>;
   pagination?: {
     currentPage: number;
     totalPages: number;
@@ -27,10 +26,11 @@ interface PurchaseOrderTableProps {
   };
 }
 
-const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders, loading, error, onDelete, vendors, onAddPayment, pagination }) => {
+const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders, loading, error, onDelete, vendors, onAddPayment, pagination, filters = {} }) => {
   const navigate = useNavigate();
   const tableRef = useRef<HTMLDivElement>(null);
   const [isSharing, setIsSharing] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const [showItemsModal, setShowItemsModal] = useState(false);
   const [selectedItems, setSelectedItems] = useState<PurchaseOrderItemResponse[]>([]);
@@ -62,56 +62,46 @@ const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders,
   }, []);
 
   const handleShareAsImage = async () => {
-    if (!tableRef.current) {
-      toast.error("Table element not found.");
-      return;
-    }
-
     if (!navigator.share) {
       toast.error("Web Share API is not supported in your browser.");
       return;
     }
-
-    const tableNode = tableRef.current;
     setIsSharing(true);
-
-    const originalTableStyle = {
-      width: tableNode.style.width,
-      minWidth: tableNode.style.minWidth,
-      whiteSpace: tableNode.style.whiteSpace,
-    };
-
     try {
-      tableNode.style.width = 'auto';
-      tableNode.style.minWidth = '1200px';
-      tableNode.style.whiteSpace = 'nowrap';
-
-      const dataUrl = await toPng(tableNode, {
-        backgroundColor: '#ffffff',
-      });
-      const blob = await (await fetch(dataUrl)).blob();
-      const file = new File([blob], `purchase-report.png`, { type: 'image/png' });
+      const blob = await purchaseOrderApi.exportDetailedReport(filters, 'pdf');
+      const file = new File([blob], `purchase-report.pdf`, { type: 'application/pdf' });
 
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          title: 'Purchase Report',
-          text: `Purchase Report`,
-          files: [file],
-        });
-        toast.success("Report shared successfully!");
+        await navigator.share({ title: 'Purchase Report', text: 'Detailed Purchase Report', files: [file] });
+        toast.success('Report shared successfully!');
       } else {
-        toast.error("Sharing files is not supported on this device.");
+        toast.error('Sharing files is not supported on this device.');
       }
     } catch (error: any) {
-      if (error.name !== 'AbortError') {
-        console.error('Sharing failed', error);
-        toast.error(`Failed to share report: ${error.message}`);
-      }
+      console.error('Sharing failed', error);
+      toast.error(`Failed to share report: ${error.message || 'Unknown error'}`);
     } finally {
-      tableNode.style.width = originalTableStyle.width;
-      tableNode.style.minWidth = originalTableStyle.minWidth;
-      tableNode.style.whiteSpace = originalTableStyle.whiteSpace;
       setIsSharing(false);
+    }
+  };
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const blob = await purchaseOrderApi.exportDetailedReport(filters, 'excel');
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = 'purchase_report.xlsx';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(link.href);
+      toast.success('Purchase report exported successfully!');
+    } catch (error: any) {
+      console.error('Export failed', error);
+      toast.error(`Failed to export report: ${error.message || 'Unknown error'}`);
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -138,7 +128,42 @@ const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders,
   );
 
   const poCards = useMemo(() => {
-    return purchaseOrders.map((Purchase) => (
+    // Apply filters to purchase orders
+    let filteredOrders = [...purchaseOrders];
+
+    if (filters) {
+      // Filter by vendor
+      if (filters.vendor_id) {
+        filteredOrders = filteredOrders.filter(po => po.vendor_id === filters.vendor_id);
+      }
+
+      // Filter by status
+      if (filters.status) {
+        filteredOrders = filteredOrders.filter(po => po.status === filters.status);
+      }
+
+      // Filter by date range
+      if (filters.startDate) {
+        const startDate = new Date(filters.startDate);
+        filteredOrders = filteredOrders.filter(po => new Date(po.order_date) >= startDate);
+      }
+
+      if (filters.endDate) {
+        const endDate = new Date(filters.endDate);
+        filteredOrders = filteredOrders.filter(po => new Date(po.order_date) <= endDate);
+      }
+
+      // Filter by amount range
+      if (filters.minAmount) {
+        filteredOrders = filteredOrders.filter(po => po.total_amount >= parseFloat(filters.minAmount));
+      }
+
+      if (filters.maxAmount) {
+        filteredOrders = filteredOrders.filter(po => po.total_amount <= parseFloat(filters.maxAmount));
+      }
+    }
+
+    return filteredOrders.map((Purchase) => (
       <PurchaseOrderCard
         key={Purchase.id}
         Purchase={Purchase}
@@ -150,24 +175,20 @@ const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders,
         onViewItems={handleViewItems}
       />
     ));
-  }, [purchaseOrders, vendors, handleViewDetails, handleEdit, onDelete, onAddPayment, handleViewItems]);
+  }, [purchaseOrders, vendors, handleViewDetails, handleEdit, onDelete, onAddPayment, handleViewItems, filters]);
 
   if (loading) return <div className="text-center">Loading Purchase...</div>;
   if (error) return <div className="text-center text-danger">{error}</div>;
   if (purchaseOrders.length === 0) return <div className="text-center">No Purchase found</div>;
 
-  const handleExport = () => {
-    exportTableToExcel('purchase-order-table', 'purchase_orders', 'Purchase Orders');
-  };
-
   return (
     <>
       <div className="mb-3 d-flex justify-content-end gap-2">
-        <Button variant="success" onClick={handleExport} disabled={purchaseOrders.length === 0}>
-          Export to Excel
+        <Button variant="success" onClick={handleExport} disabled={isExporting || purchaseOrders.length === 0}>
+          {isExporting ? 'Exporting...' : 'Export to Excel'}
         </Button>
         <Button variant="secondary" onClick={handleShareAsImage} disabled={isSharing}>
-          {isSharing ? 'Generating...' : 'Share as Image'}
+          {isSharing ? 'Generating...' : 'Share as PDF'}
         </Button>
       </div>
       <div className="px-2">{poCards}</div>
@@ -237,6 +258,7 @@ const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders,
         onHide={() => setShowItemsModal(false)}
         items={selectedItems}
         title={`Items for PO: ${selectedPOId}`}
+        getItemName={getItemName}
       />
     </>
   );

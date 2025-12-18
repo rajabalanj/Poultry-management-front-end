@@ -13,31 +13,41 @@ interface ItemsModalProps {
   onHide: () => void;
   items: OrderItem[];
   title: string;
+  getItemName?: (itemId: number) => string;
 }
 
-const ItemsModal: React.FC<ItemsModalProps> = ({ show, onHide, items, title }) => {
+const ItemsModal: React.FC<ItemsModalProps> = ({ show, onHide, items, title, getItemName: propGetItemName }) => {
   const [inventoryItems, setInventoryItems] = useState<InventoryItemResponse[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchInventoryItems = async () => {
-      try {
-        setLoading(true);
-        const inventoryItemsData = await inventoryItemApi.getInventoryItems();
-        setInventoryItems(inventoryItemsData);
-      } catch (error) {
-        console.error("Failed to fetch inventory items:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    // Only fetch inventory items if we don't have a getItemName prop
+    if (!propGetItemName && show) {
+      const fetchInventoryItems = async () => {
+        try {
+          setLoading(true);
+          const inventoryItemsData = await inventoryItemApi.getInventoryItems();
+          setInventoryItems(inventoryItemsData);
+        } catch (error) {
+          console.error("Failed to fetch inventory items:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
 
-    if (show) {
       fetchInventoryItems();
+    } else if (show) {
+      setLoading(false);
     }
-  }, [show]);
+  }, [show, propGetItemName]);
 
   const getItemName = (itemId: number) => {
+    // Use the provided getItemName function if available
+    if (propGetItemName) {
+      return propGetItemName(itemId);
+    }
+
+    // Otherwise, use the internal implementation
     const item = inventoryItems.find(i => i.id === itemId);
     return item?.name || 'N/A';
   };

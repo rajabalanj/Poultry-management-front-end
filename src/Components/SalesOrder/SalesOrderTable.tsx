@@ -5,12 +5,10 @@ import { SalesOrderResponse } from "../../types/SalesOrder";
 import { SalesOrderItemResponse } from "../../types/SalesOrderItem";
 import { BusinessPartner } from "../../types/BusinessPartner";
 import SalesOrderCard from "../SalesOrder/SalesOrderCard";
-import { toPng } from 'html-to-image';
 import { Button } from 'react-bootstrap';
 import { toast } from 'react-toastify';
-import { exportTableToExcel } from '../../utility/export-utils';
 import ItemsModal from '../Common/ItemsModal';
-import { inventoryItemApi } from "../../services/api";
+import { inventoryItemApi, salesOrderApi } from "../../services/api";
 import { InventoryItemResponse } from "../../types/InventoryItem";
 
 interface SalesOrderTableProps {
@@ -20,6 +18,7 @@ interface SalesOrderTableProps {
   onDelete?: (id: number) => void;
   customers: BusinessPartner[];
   onAddPayment?: (id: number) => void;
+  filters?: Record<string, any>;
   pagination?: {
     currentPage: number;
     totalPages: number;
@@ -27,10 +26,11 @@ interface SalesOrderTableProps {
   };
 }
 
-const SalesOrderTable: React.FC<SalesOrderTableProps> = ({ salesOrders, loading, error, onDelete, customers, onAddPayment, pagination }) => {
+const SalesOrderTable: React.FC<SalesOrderTableProps> = ({ salesOrders, loading, error, onDelete, customers, onAddPayment, pagination, filters = {} }) => {
   const navigate = useNavigate();
   const tableRef = useRef<HTMLDivElement>(null);
   const [isSharing, setIsSharing] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const [showItemsModal, setShowItemsModal] = useState(false);
   const [selectedItems, setSelectedItems] = useState<SalesOrderItemResponse[]>([]);
@@ -63,56 +63,46 @@ const SalesOrderTable: React.FC<SalesOrderTableProps> = ({ salesOrders, loading,
 
 
   const handleShareAsImage = async () => {
-    if (!tableRef.current) {
-      toast.error("Table element not found.");
-      return;
-    }
-
     if (!navigator.share) {
       toast.error("Web Share API is not supported in your browser.");
       return;
     }
-
-    const tableNode = tableRef.current;
     setIsSharing(true);
-
-    const originalTableStyle = {
-      width: tableNode.style.width,
-      minWidth: tableNode.style.minWidth,
-      whiteSpace: tableNode.style.whiteSpace,
-    };
-
     try {
-      tableNode.style.width = 'auto';
-      tableNode.style.minWidth = '1200px'; 
-      tableNode.style.whiteSpace = 'nowrap';
-
-      const dataUrl = await toPng(tableNode, {
-        backgroundColor: '#ffffff',
-      });
-      const blob = await (await fetch(dataUrl)).blob();
-      const file = new File([blob], `sales-report.png`, { type: 'image/png' });
+      const blob = await salesOrderApi.exportDetailedReport(filters, 'pdf');
+      const file = new File([blob], `sales-report.pdf`, { type: 'application/pdf' });
 
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          title: 'Sales Report',
-          text: `Sales Report`,
-          files: [file],
-        });
-        toast.success("Report shared successfully!");
+        await navigator.share({ title: 'Sales Report', text: 'Detailed Sales Report', files: [file] });
+        toast.success('Report shared successfully!');
       } else {
-        toast.error("Sharing files is not supported on this device.");
+        toast.error('Sharing files is not supported on this device.');
       }
     } catch (error: any) {
-      if (error.name !== 'AbortError') {
-        console.error('Sharing failed', error);
-        toast.error(`Failed to share report: ${error.message}`);
-      }
+      console.error('Sharing failed', error);
+      toast.error(`Failed to share report: ${error.message || 'Unknown error'}`);
     } finally {
-      tableNode.style.width = originalTableStyle.width;
-      tableNode.style.minWidth = originalTableStyle.minWidth;
-      tableNode.style.whiteSpace = originalTableStyle.whiteSpace;
       setIsSharing(false);
+    }
+  };
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const blob = await salesOrderApi.exportDetailedReport(filters, 'excel');
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = 'sales_report.xlsx';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(link.href);
+      toast.success('Sales report exported successfully!');
+    } catch (error: any) {
+      console.error('Export failed', error);
+      toast.error(`Failed to export report: ${error.message || 'Unknown error'}`);
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -140,7 +130,42 @@ const SalesOrderTable: React.FC<SalesOrderTableProps> = ({ salesOrders, loading,
   );
 
   const soCards = useMemo(() => {
-    return salesOrders.map((so) => (
+    // Apply filters to sales orders
+    let filteredOrders = [...salesOrders];
+
+    if (filters) {
+      // Filter by customer
+      if (filters.customer_id) {
+        filteredOrders = filteredOrders.filter(so => so.customer_id === filters.customer_id);
+      }
+
+      // Filter by status
+      if (filters.status) {
+        filteredOrders = filteredOrders.filter(so => so.status === filters.status);
+      }
+
+      // Filter by date range
+      if (filters.startDate) {
+        const startDate = new Date(filters.startDate);
+        filteredOrders = filteredOrders.filter(so => new Date(so.order_date) >= startDate);
+      }
+
+      if (filters.endDate) {
+        const endDate = new Date(filters.endDate);
+        filteredOrders = filteredOrders.filter(so => new Date(so.order_date) <= endDate);
+      }
+
+      // Filter by amount range
+      if (filters.minAmount) {
+        filteredOrders = filteredOrders.filter(so => so.total_amount >= parseFloat(filters.minAmount));
+      }
+
+      if (filters.maxAmount) {
+        filteredOrders = filteredOrders.filter(so => so.total_amount <= parseFloat(filters.maxAmount));
+      }
+    }
+
+    return filteredOrders.map((so) => (
       <SalesOrderCard
         key={so.id}
         so={so}
@@ -152,24 +177,20 @@ const SalesOrderTable: React.FC<SalesOrderTableProps> = ({ salesOrders, loading,
         onViewItems={handleViewItems}
       />
     ));
-  }, [salesOrders, customers, handleViewDetails, handleEdit, onDelete, onAddPayment, handleViewItems]);
+  }, [salesOrders, customers, handleViewDetails, handleEdit, onDelete, onAddPayment, handleViewItems, filters]);
 
   if (loading) return <div className="text-center">Loading sales...</div>;
   if (error) return <div className="text-center text-danger">{error}</div>;
   if (salesOrders.length === 0) return <div className="text-center">No sales found</div>;
 
-  const handleExport = () => {
-    exportTableToExcel('sales-order-table', 'sales_orders', 'Sales Orders');
-  };
-
   return (
     <>
       <div className="mb-3 d-flex justify-content-end gap-2">
-        <Button variant="success" onClick={handleExport} disabled={salesOrders.length === 0}>
-          Export to Excel
+        <Button variant="success" onClick={handleExport} disabled={isExporting || salesOrders.length === 0}>
+          {isExporting ? 'Exporting...' : 'Export to Excel'}
         </Button>
         <Button variant="secondary" onClick={handleShareAsImage} disabled={isSharing}>
-          {isSharing ? 'Generating...' : 'Share as Image'}
+          {isSharing ? 'Generating...' : 'Share as PDF'}
         </Button>
       </div>
       <div className="px-2">{soCards}</div>
@@ -241,6 +262,7 @@ const SalesOrderTable: React.FC<SalesOrderTableProps> = ({ salesOrders, loading,
         onHide={() => setShowItemsModal(false)}
         items={selectedItems}
         title={`Items for SO: ${selectedSOId}`}
+        getItemName={getItemName}
       />
     </>
   );
