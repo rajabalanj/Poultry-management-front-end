@@ -16,6 +16,18 @@ export interface CumulativeReport {
       standard: number;
       diff: number;
     };
+    cum_egg: {
+      cum: number;
+      actual: number;
+      standard: number;
+      diff: number;
+    };
+    weekly_egg: {
+      cum: number;
+      actual: number;
+      standard: number;
+      diff: number;
+    };
   };
   section2: {
     livability: {

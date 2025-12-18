@@ -573,14 +573,14 @@ export const batchApi = {
   },
 
   closeBatch: async (batch_id: number, closingDate?: string): Promise<{ message: string }> => {
-    try {
-      const payload = closingDate ? { closing_date: closingDate } : {};
-      const response = await api.put<{ message: string }>(`/batches/${batch_id}/close`, payload);
-      return response.data;
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Failed to close batch'));
-    }
-  },
+  try {
+    const payload = closingDate ? { closing_date: closingDate } : {};
+    const response = await api.post<{ message: string }>(`/batches/${batch_id}/close`, payload);
+    return response.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Failed to close batch'));
+  }
+},
   moveShed: async (batch_id: number, new_shed_id: number, move_date: string): Promise<string> => {
     try {
       const response = await api.post<string>(`/batches/${batch_id}/move-shed`, {

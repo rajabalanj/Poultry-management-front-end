@@ -617,6 +617,22 @@ const PreviousDayReport = () => {
                         <td>{cumulativeReportData.section1.weekly_feed.standard}</td>
                         <td>{cumulativeReportData.section1.weekly_feed.diff}</td>
                       </tr>
+                      <tr>
+                        <td>Cum Egg</td>
+                        <td>{cumulativeReportData.section1.cum_egg.cum}</td>
+                        <td>{cumulativeReportData.section1.cum_egg.actual}</td>
+                        <td>{cumulativeReportData.section1.cum_egg.standard}</td>
+                        <td>{cumulativeReportData.section1.cum_egg.diff}</td>
+                      </tr>
+                      <tr>
+                        <td>Weekly Egg</td>
+                        <td>{cumulativeReportData.section1.weekly_egg.cum}</td>
+                        <td>{cumulativeReportData.section1.weekly_egg.actual}</td>
+                        <td>
+                          {cumulativeReportData.section1.weekly_egg.standard}
+                        </td>
+                        <td>{cumulativeReportData.section1.weekly_egg.diff}</td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>

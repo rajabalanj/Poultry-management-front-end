@@ -17,7 +17,7 @@ import EditBatchSimple from './Components/Forms/Update/EditBatchSimple';
 import Configurations from './Components/Configurations';
 import ViewBatchSimple from './Components/Forms/Read/ViewBatchSimple';
 import EggRoomStock from './Components/EggRoomStock'
-import InventoryItemIndexPage from './Components/InventoryItem/InventoryItemIndex';
+import InventoryItemResponsive from './Components/InventoryItem/InventoryItemResponsive';
 import CreateInventoryItemForm from './Components/InventoryItem/CreateInventoryItemForm';
 import InventoryItemDetails from './Components/InventoryItem/InventoryItemDetails';
 import EditInventoryItem from './Components/InventoryItem/EditInventoryItem';
@@ -123,7 +123,7 @@ const App: React.FC = () => {
                 element={<CompositionUsageHistory />}
               />
               <Route path="/egg-room-stock" element={<EggRoomStock />} />
-              <Route path="/inventory-items" element={<InventoryItemIndexPage />} />
+              <Route path="/inventory-items" element={<InventoryItemResponsive />} />
               <Route path="/inventory-items/create" element={<CreateInventoryItemForm />} />
               <Route path="/inventory-items/:item_id/details" element={<InventoryItemDetails />} />
               <Route path="/inventory-items/:item_id/edit" element={<EditInventoryItem />} />
