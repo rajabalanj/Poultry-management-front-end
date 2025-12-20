@@ -37,7 +37,11 @@ const GraphsSection: React.FC<GraphsSectionProps> = ({ henDayValue }) => { // De
   let barColor = "";
   if (hd >= 80 && hd <= 100) {
     barColor = "bg-success"; // green
-  } else {
+  } 
+  else if (hd < 80 && hd >= 50) {
+    barColor = "bg-warning"; // yellow
+  }
+  else {
     barColor = "bg-danger"; // red
   }
 
