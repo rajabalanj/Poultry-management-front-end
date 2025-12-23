@@ -342,7 +342,7 @@ export const dailyBatchApi = {
 // Composition API for create, read, update, delete
 
 export const compositionApi = {
-  createComposition: async (composition: { name: string, inventory_items: { inventory_item_id: number, weight: number, tenant_id: string }[], tenant_id: string }): Promise<CompositionResponse> => {
+  createComposition: async (composition: { name: string, inventory_items: { inventory_item_id: number, weight: number, wastage_percentage: number, tenant_id: string }[], tenant_id: string }): Promise<CompositionResponse> => {
     try {
       const response = await api.post<CompositionResponse>('/compositions/', composition);
       return response.data;
@@ -366,7 +366,7 @@ export const compositionApi = {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch composition'));
     }
   },
-  updateComposition: async (id: number, composition: { name: string, inventory_items: { inventory_item_id: number, weight: number, tenant_id: string }[], tenant_id: string }): Promise<CompositionResponse> => {
+  updateComposition: async (id: number, composition: { name: string, inventory_items: { inventory_item_id: number, weight: number, wastage_percentage: number, tenant_id: string }[], tenant_id: string }): Promise<CompositionResponse> => {
     try {
       const response = await api.patch<CompositionResponse>(`/compositions/${id}`, composition);
       return response.data;
@@ -729,11 +729,19 @@ export const businessPartnerApi = {
   },
 };
 
+const parseInventoryItemResponse = (item: any): InventoryItemResponse => {
+  const parsed = { ...item };
+  if (parsed.default_wastage_percentage != null) {
+    parsed.default_wastage_percentage = parseFloat(parsed.default_wastage_percentage);
+  }
+  return parsed;
+};
+
 export const inventoryItemApi = {
   createInventoryItem: async (itemData: InventoryItemCreate): Promise<InventoryItemResponse> => {
     try {
       const response = await api.post<InventoryItemResponse>("/inventory-items/", itemData);
-      return response.data;
+      return parseInventoryItemResponse(response.data);
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to create inventory item'));
     }
@@ -750,7 +758,7 @@ export const inventoryItemApi = {
         params.category = category;
       }
       const response = await api.get<InventoryItemResponse[]>(`/inventory-items/`, { params });
-      return response.data;
+      return response.data.map(parseInventoryItemResponse);
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch inventory items'));
     }
@@ -759,7 +767,7 @@ export const inventoryItemApi = {
   getInventoryItem: async (id: number): Promise<InventoryItemResponse> => {
     try {
       const response = await api.get<InventoryItemResponse>(`/inventory-items/${id}`);
-      return response.data;
+      return parseInventoryItemResponse(response.data);
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch inventory item'));
     }
@@ -768,7 +776,7 @@ export const inventoryItemApi = {
   updateInventoryItem: async (id: number, itemData: InventoryItemUpdate): Promise<InventoryItemResponse> => {
     try {
       const response = await api.patch<InventoryItemResponse>(`/inventory-items/${id}`, itemData);
-      return response.data;
+      return parseInventoryItemResponse(response.data);
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to update inventory item'));
     }

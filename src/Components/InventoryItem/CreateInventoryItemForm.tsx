@@ -17,6 +17,7 @@ const CreateInventoryItemForm: React.FC<CreateInventoryItemFormProps> = ({ onCre
     const [name, setName] = useState('');
     const [unit, setUnit] = useState<InventoryItemUnit>(InventoryItemUnit.KG);
     const [category, setCategory] = useState<InventoryItemCategory>(InventoryItemCategory.FEED);
+    const [defaultWastagePercentage, setDefaultWastagePercentage] = useState<number | undefined>();
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
@@ -35,6 +36,7 @@ const CreateInventoryItemForm: React.FC<CreateInventoryItemFormProps> = ({ onCre
             name,
             unit,
             category,
+            default_wastage_percentage: defaultWastagePercentage
         };
 
         try {
@@ -100,6 +102,18 @@ const CreateInventoryItemForm: React.FC<CreateInventoryItemFormProps> = ({ onCre
                                         }))}
                                         placeholder="Select a Category"
                                         required
+                                    />
+                                </div>
+                                <div className="col-md-6">
+                                    <label htmlFor="defaultWastagePercentage" className="form-label">Default Wastage %</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        className="form-control"
+                                        id="defaultWastagePercentage"
+                                        value={defaultWastagePercentage ?? ''}
+                                        onChange={(e) => setDefaultWastagePercentage(e.target.value ? parseFloat(e.target.value) : undefined)}
+                                        placeholder="e.g., 1.5"
                                     />
                                 </div>
 

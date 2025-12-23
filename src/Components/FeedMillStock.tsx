@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { compositionApi, batchApi, inventoryItemApi, getTenantId } from "../services/api";
+import { format } from 'date-fns';
 import { InventoryItemResponse, InventoryItemCategory } from "../types/InventoryItem";
 import { BatchResponse } from "../types/batch";
 import CompositionForm from "./CompositionForm";
@@ -7,6 +8,7 @@ import { StylesConfig, SingleValue } from 'react-select';
 import StyledSelect from './Common/StyledSelect';
 import { toast } from "react-toastify";
 import { useNavigate } from 'react-router-dom';
+import CustomDatePicker from "./Common/CustomDatePicker";
 
 function FeedMillStock() {
   type ViewState = "view" | "edit" | "add" | "use-composition";
@@ -83,13 +85,21 @@ function FeedMillStock() {
     );
   };
 
+  const handleItemWastageChange = (item_id: number, wastage: number) => {
+    setEditItems(
+      editItems.map((i: any) =>
+        i.inventory_item_id === item_id ? { ...i, wastage_percentage: wastage } : i
+      )
+    );
+  };
+
   const handleItemSearch = (e: React.ChangeEvent<HTMLInputElement>) =>
     setSearch(e.target.value);
 
   const handleAddItem = (item: { id?: number; name?: string }) => {
     if (!item.id) return;
     if (!editItems.some((i: any) => i.inventory_item_id === item.id)) {
-      setEditItems([...editItems, { inventory_item_id: item.id, weight: 0 }]);
+      setEditItems([...editItems, { inventory_item_id: item.id, weight: 0, wastage_percentage: 0 }]);
     }
   };
 
@@ -108,7 +118,11 @@ function FeedMillStock() {
       selectedComposition.id,
       {
         name: editCompName,
-        inventory_items: editItems.map(item => ({ ...item, tenant_id: tenantId })),
+        inventory_items: editItems.map(item => ({
+          ...item,
+          wastage_percentage: item.wastage_percentage || 0,
+          tenant_id: tenantId,
+        })),
         tenant_id: tenantId,
       }
     );
@@ -139,7 +153,11 @@ function FeedMillStock() {
     }
     await compositionApi.createComposition({
       name: newCompName,
-      inventory_items: editItems.map(item => ({ ...item, tenant_id: tenantId })),
+      inventory_items: editItems.map(item => ({
+        ...item,
+        wastage_percentage: item.wastage_percentage || 0,
+        tenant_id: tenantId,
+      })),
       tenant_id: tenantId,
     });
     const updated = await compositionApi.getCompositions();
@@ -248,9 +266,14 @@ function FeedMillStock() {
                   className="list-group-item d-flex justify-content-between align-items-center"
                 >
                   <span>{item.name}</span>
-                  <span className="badge bg-secondary rounded-pill">
-                    {i.weight} kg
-                  </span>
+                  <div>
+                    <span className="badge bg-secondary rounded-pill me-2">
+                      {i.weight} kg
+                    </span>
+                    <span className="badge bg-warning rounded-pill">
+                      {i.wastage_percentage || 0}% wastage
+                    </span>
+                  </div>
                 </li>
               );
             })}
@@ -319,12 +342,12 @@ function FeedMillStock() {
           </div>
           <div className="mb-3">
             <label htmlFor="batchDate" className="form-label">Batch Date:</label>
-            <input
+            <CustomDatePicker
               id="batchDate"
-              type="date"
-              className="form-control form-control-sm"
-              value={batchDate}
-              onChange={(e) => setBatchDate(e.target.value)}
+              selected={batchDate ? new Date(batchDate) : null}
+              onChange={(date) => setBatchDate(date ? format(date, 'yyyy-MM-dd') : '')}
+              className="form-control-sm"
+              placeholderText="Select Batch Date"
             />
           </div>
 
@@ -377,6 +400,7 @@ function FeedMillStock() {
           handleAddItem={handleAddItem}
           handleRemoveItem={handleRemoveItem}
           handleItemWeightChange={handleItemWeightChange}
+          handleItemWastageChange={handleItemWastageChange}
           onSave={handleConfirmAddComposition}
           saveButtonLabel="Save Composition"
           onCancel={() => setViewState("view")}
@@ -397,6 +421,7 @@ function FeedMillStock() {
           handleAddItem={handleAddItem}
           handleRemoveItem={handleRemoveItem}
           handleItemWeightChange={handleItemWeightChange}
+          handleItemWastageChange={handleItemWastageChange}
           onSave={handleSave}
           saveButtonLabel="Save Changes"
           onCancel={() => setViewState("view")}

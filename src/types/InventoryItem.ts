@@ -22,6 +22,7 @@ export interface InventoryItemBase {
   unit: InventoryItemUnit;
   category: InventoryItemCategory;
   reorder_level?: number;
+  default_wastage_percentage?: number;
 }
 
 export interface InventoryItemCreate extends InventoryItemBase {}
@@ -32,6 +33,7 @@ export interface InventoryItemUpdate {
   unit?: InventoryItemUnit;
   category?: InventoryItemCategory;
   reorder_level?: number;
+  default_wastage_percentage?: number;
 }
 
 // Response from backend will include ID and timestamps

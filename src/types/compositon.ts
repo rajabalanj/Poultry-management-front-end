@@ -1,12 +1,25 @@
 export interface InventoryItemInComposition {
   inventory_item_id: number;
   weight: number;
+  wastage_percentage?: number;
+}
+
+export interface CompositionInventoryItem {
+  inventory_item_id: number;
+  weight: number;
+  wastage_percentage: number;
+  tenant_id: string;
+  id: number;
+  composition_id: number;
 }
 
 export interface CompositionResponse {
   id: number;
   name: string;
-  inventory_items: InventoryItemInComposition[];
+  tenant_id: string;
+  inventory_items: CompositionInventoryItem[];
+  created_by: string;
+  updated_by: string;
 }
 
 export interface CompositionUsage {
@@ -21,6 +34,7 @@ export interface CompositionUsage {
     inventory_item_name?: string;
     weight: number;
     unit?: string;
+    wastage_percentage?: number;
   }[];
 }
 

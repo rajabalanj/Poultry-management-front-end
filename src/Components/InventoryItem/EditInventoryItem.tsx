@@ -19,6 +19,7 @@ const EditInventoryItem: React.FC = () => {
   const [unit, setUnit] = useState<InventoryItemUnit>(InventoryItemUnit.KG);
   const [category, setCategory] = useState<InventoryItemCategory>(InventoryItemCategory.FEED);
   const [reorderLevel, setReorderLevel] = useState<number | undefined>(undefined);
+  const [defaultWastagePercentage, setDefaultWastagePercentage] = useState<number | undefined>();
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -35,6 +36,7 @@ const EditInventoryItem: React.FC = () => {
         setUnit(data.unit);
         setCategory(data.category);
         setReorderLevel(data.reorder_level);
+        setDefaultWastagePercentage(data.default_wastage_percentage);
       } catch (err: any) {
         console.error("Error fetching inventory item:", err);
         setError(err?.message || "Failed to load inventory item for editing.");
@@ -69,6 +71,7 @@ const EditInventoryItem: React.FC = () => {
         unit,
         category,
         reorder_level: reorderLevel,
+        default_wastage_percentage: defaultWastagePercentage
     };
 
     try {
@@ -142,6 +145,18 @@ const EditInventoryItem: React.FC = () => {
                     value={reorderLevel || ''}
                     onChange={(e) => setReorderLevel(Number(e.target.value))}
                   />
+                </div>
+                <div className="col-md-6">
+                    <label htmlFor="defaultWastagePercentage" className="form-label">Default Wastage %</label>
+                    <input
+                        type="number"
+                        step="0.01"
+                        className="form-control"
+                        id="defaultWastagePercentage"
+                        value={defaultWastagePercentage ?? ''}
+                        onChange={(e) => setDefaultWastagePercentage(e.target.value ? parseFloat(e.target.value) : undefined)}
+                        placeholder="e.g., 1.5"
+                    />
                 </div>
 
                 <div className="col-12 mt-4">

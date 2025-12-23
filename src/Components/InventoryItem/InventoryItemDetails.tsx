@@ -109,6 +109,11 @@ const handleAdjustmentSuccess = (updatedItem: InventoryItemResponse) => {
               <div className="col-md-6 mb-3">
                 <strong>Average Cost:</strong> {item.average_cost}
               </div>
+              {item.default_wastage_percentage != null && (
+                <div className="col-md-6 mb-3">
+                  <strong>Default Wastage %:</strong> {item.default_wastage_percentage}
+                </div>
+              )}
               <div className="col-md-6 mb-3">
                 <strong>Created At:</strong> {new Date(item.created_at).toLocaleString()}
               </div>
