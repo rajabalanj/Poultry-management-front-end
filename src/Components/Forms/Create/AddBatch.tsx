@@ -1,19 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { batchApi } from '../../../services/api';
+import { batchApi, shedApi} from '../../../services/api';
 import { toast } from 'react-toastify';
 import PageHeader from '../../Layout/PageHeader';
 import { useLocation } from 'react-router-dom';
 import CustomDatePicker from '../../Common/CustomDatePicker';
+import { ShedResponse } from '../../../types/shed';
 
 const AddBatch: React.FC = () => {
   const [batch_no, setBatchNo] = useState('');
   const [batch_date, setBatchDate] = useState(new Date().toISOString().slice(0, 10)); // Default to today's date
-  const [shed_no, setShedNo] = useState('1'); // This is for the shed number
+  const [shed_no, setShedNo] = useState(''); // This is for the shed number
   const [opening_count, setOpeningCount] = useState('0');
   const [week, setWeek] = useState('0'); // Age starts from 0 weeks
   const [day, setDay] = useState('1');
   const [isLoading, setIsLoading] = useState(false);
+  const [sheds, setSheds] = useState<ShedResponse[]>([]);
+  const [isLoadingSheds, setIsLoadingSheds] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -43,6 +46,27 @@ const AddBatch: React.FC = () => {
     };
     fetchMaxBatchNo();
   }, []);
+
+  useEffect(() => {
+    const fetchSheds = async () => {
+      try {
+        setIsLoadingSheds(true);
+        const shedsData = await shedApi.getSheds();
+        setSheds(shedsData);
+        if (shedsData.length > 0) {
+          setShedNo(String(shedsData[0].id)); // Default to the first shed
+        }
+      } catch (error) {
+        console.error('Failed to fetch sheds:', error);
+        toast.error('Failed to fetch sheds.');
+      } finally {
+        setIsLoadingSheds(false);
+      }
+    };
+
+    fetchSheds();
+  }, []);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -133,13 +157,22 @@ const AddBatch: React.FC = () => {
               </div>
               <div className="col-md-6">
                 <label className="form-label">Shed Number</label>
-                <input
-                  type="text"
+                {isLoadingSheds ? (
+                  <p>Loading sheds...</p>
+                ) : (
+                <select
                   className="form-control"
                   value={shed_no}
                   onChange={(e) => setShedNo(e.target.value)}
                   required
-                />
+                >
+                  {sheds.map((shed) => (
+                    <option key={shed.id} value={shed.id}>
+                      {shed.shed_no}
+                    </option>
+                  ))}
+                </select>
+                )}
               </div>
 
               <div className="col-md-6">

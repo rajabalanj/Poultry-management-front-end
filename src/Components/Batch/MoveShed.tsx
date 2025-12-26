@@ -1,40 +1,72 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { batchApi, shedApi } from '../../services/api';
+import { batchApi, shedApi, dailyBatchApi } from '../../services/api';
 import { ShedResponse } from '../../types/shed';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
 import Loading from '../Common/Loading';
 import CustomDatePicker from '../Common/CustomDatePicker';
 import StyledSelect from '../Common/StyledSelect';
+import { DailyBatch } from '../../types/daily_batch';
 
 const MoveShed: React.FC = () => {
   const { batch_id } = useParams<{ batch_id: string }>();
   const navigate = useNavigate();
+  
   const [sheds, setSheds] = useState<ShedResponse[]>([]);
   const [newShedId, setNewShedId] = useState<number | ''>('');
   const [moveDate, setMoveDate] = useState<Date | null>(new Date());
+  
+  const [currentShedId, setCurrentShedId] = useState<number | null>(null);
+  const [currentShedNo, setCurrentShedNo] = useState<string | null>(null);
+  
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    const fetchSheds = async () => {
+    const fetchShedData = async () => {
+      setIsLoading(true);
       try {
+        // Fetch all available sheds for the dropdown
         const availableSheds = await shedApi.getSheds();
         setSheds(availableSheds);
+
+        // Fetch current shed info for the batch
+        if (batch_id) {
+          const today = new Date().toISOString().split('T')[0];
+          const dailyBatches: DailyBatch[] = await dailyBatchApi.getDailyBatches(today);
+          const currentBatch = dailyBatches.find(db => db.batch_id === Number(batch_id));
+
+          if (currentBatch && currentBatch.shed_id) {
+            // Found the shed ID, now get the shed details
+            const shedDetails = await shedApi.getShed(currentBatch.shed_id);
+            setCurrentShedId(shedDetails.id);
+            setCurrentShedNo(shedDetails.shed_no);
+          } else {
+            setCurrentShedNo('Not assigned');
+            toast.info("Could not determine the current shed for this batch based on today's data.");
+          }
+        }
       } catch (error) {
-        toast.error('Failed to fetch sheds.');
+        toast.error('Failed to fetch shed data.');
+        console.error(error);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchSheds();
-  }, []);
+
+    fetchShedData();
+  }, [batch_id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!batch_id || newShedId === '' || !moveDate) {
       toast.error('Please select a new shed and a move date.');
+      return;
+    }
+
+    if (newShedId === currentShedId) {
+      toast.error('New shed cannot be the same as the current shed.');
       return;
     }
 
@@ -52,8 +84,15 @@ const MoveShed: React.FC = () => {
   };
 
   if (isLoading) {
-    return <Loading message="Loading sheds..." />;
+    return <Loading message="Loading shed data..." />;
   }
+
+  const availableShedsOptions = sheds
+    .filter(shed => shed.id !== currentShedId)
+    .map((shed) => ({
+      value: shed.id,
+      label: shed.shed_no,
+    }));
 
   return (
     <>
@@ -68,20 +107,29 @@ const MoveShed: React.FC = () => {
           <div className="card-body">
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
+                <label htmlFor="currentShed" className="form-label">Current Shed</label>
+                <input
+                  type="text"
+                  id="currentShed"
+                  className="form-control"
+                  value={currentShedNo || 'Loading...'}
+                  readOnly
+                />
+              </div>
+
+              <div className="mb-3">
                 <label htmlFor="shed" className="form-label">New Shed</label>
                 <StyledSelect
                   id="shed"
-                  value={newShedId ? sheds.find(shed => shed.id === newShedId) ? { value: newShedId, label: sheds.find(shed => shed.id === newShedId)?.shed_no || "" } : null : null}
+                  value={newShedId ? availableShedsOptions.find(o => o.value === newShedId) : null}
                   onChange={(option) => setNewShedId(option ? Number(option.value) : '')}
-                  options={sheds.map((shed) => ({
-                    value: shed.id,
-                    label: shed.shed_no
-                  }))}
-                  placeholder="Select a shed"
+                  options={availableShedsOptions}
+                  placeholder="Select a new shed"
                   isClearable
                   required
                 />
               </div>
+
               <div className="mb-3">
                 <label htmlFor="moveDate" className="form-label">Move Date</label>
                 <CustomDatePicker

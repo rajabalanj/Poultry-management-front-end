@@ -179,7 +179,7 @@ const PurchaseOrderDetails: React.FC = () => {
 
   return (
     <>
-      <PageHeader title={`Purchase Details: ${purchaseOrder.po_number}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/purchase-orders" buttonIcon="bi-arrow-left"/>
+      <PageHeader title={`Purchase Details: ${purchaseOrder.po_number}`} buttonVariant="secondary" buttonLabel="Back" buttonIcon="bi-arrow-left"/>
       <div className="container mt-4">
         <div className="card shadow-sm mb-4">
           <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
@@ -392,9 +392,9 @@ const PurchaseOrderDetails: React.FC = () => {
           <button
             type="button"
             className="btn btn-secondary"
-            onClick={() => navigate('/purchase-orders')}
+            onClick={() => navigate(-1)}
           >
-            Back to List
+            Back
           </button>
         </div>
       </div>

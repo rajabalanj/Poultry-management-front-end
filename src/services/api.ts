@@ -133,8 +133,8 @@ export const validateBatchData = {
     if (day < 1 || day > 7) {
       return 'Day must be between 1 and 7';
     }
-    if (week < 1) {
-      return 'Week must be greater than 0';
+    if (week < 0) {
+      return 'Week must be 0 or greater';
     }
     return null;
   },

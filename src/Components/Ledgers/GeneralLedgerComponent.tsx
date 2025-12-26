@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ledgerApi } from '../../services/api';
 import { GeneralLedger } from '../../types/ledgers';
 import Loading from '../Common/Loading';
@@ -13,7 +13,15 @@ const GeneralLedgerComponent: React.FC = () => {
     const [endDate, setEndDate] = useState(today);
     const [ledgerData, setLedgerData] = useState<GeneralLedger | null>(null);
     const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
+    const handleRowClick = (entry: GeneralLedger['entries'][0]) => {
+        if (entry.transaction_type.toLowerCase().includes('purchase')) {
+            navigate(`/purchase-orders/${entry.reference_id}/details`);
+        } else if (entry.transaction_type.toLowerCase().includes('sales')) {
+            navigate(`/sales-orders/${entry.reference_id}/details`);
+        }
+    };
     const handleFetchLedger = async () => {
         if (new Date(startDate) > new Date(endDate)) {
             toast.error('Start date cannot be after end date.');
@@ -75,7 +83,7 @@ const GeneralLedgerComponent: React.FC = () => {
                     <h5 className="mb-3">{ledgerData.title}</h5>
                     <p className="text-muted">Opening Balance: {ledgerData.opening_balance.toFixed(2)}</p>
                     <div className="table-responsive">
-                        <table className="table table-striped">
+                        <table className="table table-striped table-hover">
                             <thead>
                                 <tr>
                                     <th>Date</th>
@@ -90,22 +98,12 @@ const GeneralLedgerComponent: React.FC = () => {
                             </thead>
                             <tbody>
                                 {ledgerData.entries.map((entry, index) => (
-                                    <tr key={index}>
+                                    <tr key={index} onClick={() => handleRowClick(entry)} style={{ cursor: 'pointer' }}>
                                         <td>{entry.date}</td>
                                         <td>{entry.transaction_type}</td>
                                         <td>{entry.party}</td>
                                         <td>
-                                            {entry.transaction_type.toLowerCase().includes('purchase') ? (
-                                                <Link to={`/purchase-orders/${entry.reference_id}/details`} className="text-decoration-none">
-                                                    {entry.reference_document}
-                                                </Link>
-                                            ) : entry.transaction_type.toLowerCase().includes('sales') ? (
-                                                <Link to={`/sales-orders/${entry.reference_id}/details`} className="text-decoration-none">
-                                                    {entry.reference_document}
-                                                </Link>
-                                            ) : (
-                                                entry.reference_document
-                                            )}
+                                            {entry.reference_document}
                                         </td>
                                         <td>{entry.details}</td>
                                         <td>{entry.debit.toFixed(2)}</td>

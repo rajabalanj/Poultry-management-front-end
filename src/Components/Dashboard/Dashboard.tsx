@@ -111,10 +111,23 @@ const Dashboard: React.FC = () => {
           };
           const allMonths = getMonthsInRange(start, end);
           const dataMap = new Map(apiData.map(item => [item.month, item.total_eggs]));
-          const processedData = allMonths.map(month => ({
+          let processedData = allMonths.map(month => ({
             month,
             total_eggs: dataMap.get(month) || 0,
           }));
+
+          // If there's API data, ensure we don't show leading empty months
+          // that are outside the range of the actual data.
+          if (apiData.length > 0) {
+            // Assuming apiData is sorted by month, which it should be for a trend report.
+            const firstApiMonth = apiData[0].month;
+            const firstDataIndex = processedData.findIndex(item => item.month === firstApiMonth);
+            
+            if (firstDataIndex > 0) {
+              processedData = processedData.slice(firstDataIndex);
+            }
+          }
+
           setEggTrendData(processedData);
         } catch (err) {
           setEggTrendError('Failed to load egg production data.');
