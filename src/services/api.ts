@@ -1415,4 +1415,42 @@ export const shedApi = {
   },
 };
 
+export const inventoryItemVariantApi = {
+  createInventoryItemVariant: async (variantData: { name: string, item_id: number }): Promise<{ name: string, item_id: number, id: number, tenant_id: string }> => {
+    try {
+      const response = await api.post<{ name: string, item_id: number, id: number, tenant_id: string }>("/inventory-item-variants/", variantData);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, "Failed to create inventory item variant"));
+    }
+  },
+
+  getInventoryItemVariants: async (item_id: number): Promise<Array<{ name: string, item_id: number, id: number, tenant_id: string }>> => {
+    try {
+      const response = await api.get<Array<{ name: string, item_id: number, id: number, tenant_id: string }>>(`/inventory-item-variants/${item_id}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, "Failed to fetch inventory item variants"));
+    }
+  },
+
+  updateInventoryItemVariant: async (variant_id: number, variantData: { name: string }): Promise<{ name: string, item_id: number, id: number, tenant_id: string }> => {
+    try {
+      const response = await api.patch<{ name: string, item_id: number, id: number, tenant_id: string }>(`/inventory-item-variants/${variant_id}`, variantData);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, "Failed to update inventory item variant"));
+    }
+  },
+
+  deleteInventoryItemVariant: async (variant_id: number): Promise<{ name: string, item_id: number, id: number, tenant_id: string }> => {
+    try {
+      const response = await api.delete<{ name: string, item_id: number, id: number, tenant_id: string }>(`/inventory-item-variants/${variant_id}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, "Failed to delete inventory item variant"));
+    }
+  },
+};
+
 export default api;

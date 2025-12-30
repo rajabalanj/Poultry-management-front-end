@@ -438,6 +438,7 @@ const PreviousDayReport = () => {
 
       {validGridData.length > 0 && (
         <div ref={reportContentRef}>
+          <div className='table-responsive'>
           <table id="report-table" className="table table-bordered">
             <thead>
               <tr>
@@ -536,9 +537,11 @@ const PreviousDayReport = () => {
                 })}
             </tbody>
           </table>
+          </div>
           {summaryData && weekData && (
             <div className="mt-4 p-3 border bg-light">
               <h5 className="mb-3">Report Summary</h5>
+              <div className='table-responsive'>
               <table className="table table-bordered">
                 <thead>
                   <tr>
@@ -568,6 +571,7 @@ const PreviousDayReport = () => {
                   </tr>
                 </tbody>
               </table>
+              </div>
             </div>
           )}
           {summaryData && !weekData && (
@@ -592,6 +596,7 @@ const PreviousDayReport = () => {
               <h5 className="mb-3">Cumulative Report</h5>
               <div className="row g-3">
                 <div className="col-md-6">
+                  <div className='table-responsive'>
                   <table className="table table-bordered">
                     <thead>
                       <tr>
@@ -635,6 +640,7 @@ const PreviousDayReport = () => {
                       </tr>
                     </tbody>
                   </table>
+                  </div>
                 </div>
                 <div className="col-md-6">
                   <table className="table table-bordered">

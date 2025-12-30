@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
-import { salesOrderApi, inventoryItemApi, businessPartnerApi } from '../../services/api';
+import { salesOrderApi, inventoryItemApi, businessPartnerApi, inventoryItemVariantApi } from '../../services/api';
 import CustomDatePicker from '../Common/CustomDatePicker';
 import CreateBusinessPartnerForm from '../BusinessPartner/CreateBusinessPartnerForm';
 import CreateInventoryItemForm from '../InventoryItem/CreateInventoryItemForm';
@@ -15,6 +15,7 @@ import type {
 import { SalesOrderItemCreate } from '../../types/SalesOrderItem';
 import { BusinessPartner } from '../../types/BusinessPartner';
 import { InventoryItemResponse, InventoryItemCategory } from '../../types/InventoryItem';
+import { InventoryItemVariant } from '../../types/inventoryItemVariant';
 import { format } from 'date-fns'; // Import format for date formatting
 import StyledSelect from '../Common/StyledSelect';
 
@@ -35,6 +36,7 @@ const CreateSalesOrderForm: React.FC = () => {
   const [inventoryItems, setInventoryItems] = useState<InventoryItemResponse[]>([]);
   const [showCreateCustomerModal, setShowCreateCustomerModal] = useState(false);
   const [showCreateItemModal, setShowCreateItemModal] = useState(false);
+  const [variantsByItem, setVariantsByItem] = useState<{ [key: number]: InventoryItemVariant[] }>({});
 
   // Sales Order states
   const [customerId, setCustomerId] = useState<number | ''>('');
@@ -103,6 +105,8 @@ const CreateSalesOrderForm: React.FC = () => {
       inventory_item_id: 0,
       quantity: 1,
       price_per_unit: 0,
+      variant_id: null,
+      variant_name: '',
     };
     setItems((prevItems) => [...prevItems, newItem]);
   }, []);
@@ -128,19 +132,37 @@ const CreateSalesOrderForm: React.FC = () => {
 
   const handleRemoveItem = useCallback((tempId: number) => {
     setItems((prevItems) => prevItems.filter((item) => item.tempId !== tempId));
+    setVariantsByItem(prev => {
+      const newVariantsByItem = { ...prev };
+      delete newVariantsByItem[tempId];
+      return newVariantsByItem;
+    });
   }, []);
 
-  const handleItemChange = useCallback((tempId: number, field: keyof FormSalesOrderItem, value: string | number) => {
+  const handleItemChange = useCallback(async (tempId: number, field: keyof FormSalesOrderItem, value: string | number) => {
     setItems((prevItems) =>
       prevItems.map((item) => {
         if (item.tempId === tempId) {
           if (field === 'inventory_item_id') {
             const selectedItem = inventoryItems.find(inv => inv.id === Number(value));
+            // Reset variant when item changes
             return {
               ...item,
               [field]: Number(value),
               inventory_item_name: selectedItem?.name,
               inventory_item_unit: selectedItem?.unit,
+              variant_id: null, 
+              variant_name: '',
+            };
+          }
+          if (field === 'variant_id') {
+            const variantId = value ? Number(value) : null;
+            const variants = variantsByItem[tempId] || [];
+            const selectedVariant = variants.find(v => v.id === variantId);
+            return {
+              ...item,
+              variant_id: variantId,
+              variant_name: selectedVariant ? selectedVariant.name : '',
             };
           }
           return { ...item, [field]: value };
@@ -148,7 +170,17 @@ const CreateSalesOrderForm: React.FC = () => {
         return item;
       })
     );
-  }, [inventoryItems]);
+
+    if (field === 'inventory_item_id' && value) {
+      try {
+        const variants = await inventoryItemVariantApi.getInventoryItemVariants(Number(value));
+        setVariantsByItem(prev => ({ ...prev, [tempId]: variants }));
+      } catch (error) {
+        toast.error('Failed to fetch item variants.');
+        setVariantsByItem(prev => ({ ...prev, [tempId]: [] }));
+      }
+    }
+  }, [inventoryItems, variantsByItem]);
 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -169,6 +201,7 @@ const CreateSalesOrderForm: React.FC = () => {
         setIsLoading(false);
         return;
       }
+      
     }
 
     const newSalesOrderData: SalesOrderCreate = {
@@ -180,13 +213,13 @@ const CreateSalesOrderForm: React.FC = () => {
         inventory_item_id: item.inventory_item_id,
         quantity: item.quantity,
         price_per_unit: item.price_per_unit || 0,
+        variant_id: item.variant_id,
+        variant_name: item.variant_name,
       })),
     };
 
     try {
       const soResponse = await salesOrderApi.createSalesOrder(newSalesOrderData);
-      
-
       
       toast.success('Sales Order created successfully! Proceeding to payment.');
       setNewSalesOrder(soResponse); // Set the new sales order
@@ -371,128 +404,148 @@ const CreateSalesOrderForm: React.FC = () => {
                       No items added yet. Click "Add Item" to start.
                     </p>
                   )}
-                  {items.map((item, index) => (
-                    <div
-                      key={item.tempId}
-                      className="col-12 border p-3 mb-3 bg-light"
-                    >
-                      <div className="d-flex justify-content-between align-items-center mb-2">
-                        <h6>Item {index + 1}</h6>
-                        <button
-                          type="button"
-                          className="btn btn-outline-danger btn-sm"
-                          onClick={() => handleRemoveItem(item.tempId)}
-                          disabled={isLoading}
-                        >
-                          <i className="bi bi-x-lg"></i> Remove
-                        </button>
-                      </div>
-                      <div className="row g-2">
-                        <div className="col-md-6">
-                          <label
-                            htmlFor={`itemId-${item.tempId}`}
-                            className="form-label"
+                  {items.map((item, index) => {
+                    const itemVariants = variantsByItem[item.tempId] || [];
+                    const variantOptions: OptionType[] = itemVariants.map(v => ({ value: v.id, label: v.name }));
+                    const selectedVariantOption = variantOptions.find(o => o.value === item.variant_id);
+
+                    return (
+                      <div
+                        key={item.tempId}
+                        className="col-12 border p-3 mb-3 bg-light"
+                      >
+                        <div className="d-flex justify-content-between align-items-center mb-2">
+                          <h6>Item {index + 1}</h6>
+                          <button
+                            type="button"
+                            className="btn btn-outline-danger btn-sm"
+                            onClick={() => handleRemoveItem(item.tempId)}
+                            disabled={isLoading}
                           >
-                            Inventory Item{" "}
-                            <span className="form-field-required">*</span>
-                          </label>
-                          <div className="d-flex gap-2 align-items-center">
+                            <i className="bi bi-x-lg"></i> Remove
+                          </button>
+                        </div>
+                        <div className="row g-2">
+                          <div className="col-md-5">
+                            <label
+                              htmlFor={`itemId-${item.tempId}`}
+                              className="form-label"
+                            >
+                              Inventory Item{" "}
+                              <span className="form-field-required">*</span>
+                            </label>
+                            <div className="d-flex gap-2 align-items-center">
+                              <StyledSelect
+                                id={`itemId-${item.tempId}`}
+                                value={inventoryItemOptions.find(
+                                  (option) =>
+                                    option.value === item.inventory_item_id
+                                )}
+                                onChange={(option, _action) =>
+                                  handleItemChange(
+                                    item.tempId,
+                                    "inventory_item_id",
+                                    option ? option.value : ""
+                                  )
+                                }
+                                options={inventoryItemOptions}
+                                placeholder="Select an Item"
+                                isClearable
+                                isLoading={
+                                  isLoading || inventoryItems.length === 0
+                                }
+                              />
+                              <button
+                                type="button"
+                                className="btn btn-sm btn-outline-primary"
+                                onClick={() => setShowCreateItemModal(true)}
+                                title="Add Item"
+                              >
+                                <i className="bi bi-plus-lg"></i>
+                              </button>
+                            </div>
+                            {inventoryItems.length === 0 && !isLoading && (
+                              <div className="text-danger mt-1">
+                                No inventory items found. Please add items first.
+                              </div>
+                            )}
+                          </div>
+                          <div className="col-md-3">
+                            <label htmlFor={`variantId-${item.tempId}`} className="form-label">
+                              Variant
+                            </label>
                             <StyledSelect
-                              id={`itemId-${item.tempId}`}
-                              value={inventoryItemOptions.find(
-                                (option) =>
-                                  option.value === item.inventory_item_id
-                              )}
-                              onChange={(option, _action) =>
+                              id={`variantId-${item.tempId}`}
+                              value={selectedVariantOption}
+                              onChange={(option, _action) => handleItemChange(item.tempId, 'variant_id', option ? option.value : '')}
+                              options={variantOptions}
+                              placeholder="Select Variant"
+                              isClearable
+                              isDisabled={!item.inventory_item_id || itemVariants.length === 0}
+                            />
+                          </div>
+                          <div className="col-md-2">
+                            <label
+                              htmlFor={`quantity-${item.tempId}`}
+                              className="form-label"
+                            >
+                              Quantity{" "}
+                              <span className="form-field-required">*</span>
+                            </label>
+                            <input
+                              type="number"
+                              className="form-control"
+                              id={`quantity-${item.tempId}`}
+                              value={item.quantity}
+                              onChange={(e) =>
                                 handleItemChange(
                                   item.tempId,
-                                  "inventory_item_id",
-                                  option ? option.value : ""
+                                  "quantity",
+                                  Number(e.target.value)
                                 )
                               }
-                              options={inventoryItemOptions}
-                              placeholder="Select an Item"
-                              isClearable
-                              isLoading={
-                                isLoading || inventoryItems.length === 0
-                              }
+                              min="1"
+                              required
+                              disabled={isLoading}
                             />
-                            <button
-                              type="button"
-                              className="btn btn-sm btn-outline-primary"
-                              onClick={() => setShowCreateItemModal(true)}
-                              title="Add Item"
-                            >
-                              <i className="bi bi-plus-lg"></i>
-                            </button>
                           </div>
-                          {inventoryItems.length === 0 && !isLoading && (
-                            <div className="text-danger mt-1">
-                              No inventory items found. Please add items first.
-                            </div>
-                          )}
-                        </div>
-                        <div className="col-md-3">
-                          <label
-                            htmlFor={`quantity-${item.tempId}`}
-                            className="form-label"
-                          >
-                            Quantity{" "}
-                            <span className="form-field-required">*</span>
-                          </label>
-                          <input
-                            type="number"
-                            className="form-control"
-                            id={`quantity-${item.tempId}`}
-                            value={item.quantity}
-                            onChange={(e) =>
-                              handleItemChange(
-                                item.tempId,
-                                "quantity",
-                                Number(e.target.value)
-                              )
-                            }
-                            min="1"
-                            required
-                            disabled={isLoading}
-                          />
-                        </div>
-                        <div className="col-md-3">
-                          <label
-                            htmlFor={`pricePerUnit-${item.tempId}`}
-                            className="form-label"
-                          >
-                            Price per Unit
-                          </label>
-                          <input
-                            type="number"
-                            className="form-control"
-                            id={`pricePerUnit-${item.tempId}`}
-                            value={item.price_per_unit}
-                            onChange={(e) =>
-                              handleItemChange(
-                                item.tempId,
-                                "price_per_unit",
-                                Number(e.target.value)
-                              )
-                            }
-                            step="0.01"
-                            disabled={isLoading}
-                          />
-                        </div>
+                          <div className="col-md-2">
+                            <label
+                              htmlFor={`pricePerUnit-${item.tempId}`}
+                              className="form-label"
+                            >
+                              Price per Unit
+                            </label>
+                            <input
+                              type="number"
+                              className="form-control"
+                              id={`pricePerUnit-${item.tempId}`}
+                              value={item.price_per_unit}
+                              onChange={(e) =>
+                                handleItemChange(
+                                  item.tempId,
+                                  "price_per_unit",
+                                  Number(e.target.value)
+                                )
+                              }
+                              step="0.01"
+                              disabled={isLoading}
+                            />
+                          </div>
 
-                        <div className="col-md-12">
-                          <p className="text-end mb-0">
-                            Line Total:{" "}
-                            <strong>
-                              Rs.{" "}
-                              {(item.quantity * item.price_per_unit).toFixed(2)}
-                            </strong>
-                          </p>
+                          <div className="col-md-12">
+                            <p className="text-end mb-0">
+                              Line Total:{" "}
+                              <strong>
+                                Rs.{" "}
+                                {(item.quantity * item.price_per_unit).toFixed(2)}
+                              </strong>
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
 
                   {items.length > 0 && (
                     <div className="col-12 text-end">

@@ -5,6 +5,8 @@ export interface SalesOrderItemBase {
   inventory_item_id: number;
   quantity: number;
   price_per_unit: number;
+  variant_id?: number | null;
+  variant_name?: string;
 }
 
 export interface SalesOrderItemCreate extends SalesOrderItemBase {}
@@ -13,6 +15,8 @@ export interface SalesOrderItemUpdate {
   inventory_item_id?: number;
   quantity?: number;
   price_per_unit?: number;
+  variant_id?: number | null;
+  variant_name?: string;
 }
 
 export interface SalesOrderItemResponse extends SalesOrderItemBase {

@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
 import CustomDatePicker from '../Common/CustomDatePicker';
-import { salesOrderApi, inventoryItemApi, businessPartnerApi } from '../../services/api';
+import { salesOrderApi, inventoryItemApi, businessPartnerApi, inventoryItemVariantApi } from '../../services/api';
 import CreateBusinessPartnerForm from '../BusinessPartner/CreateBusinessPartnerForm';
 import CreateInventoryItemForm from '../InventoryItem/CreateInventoryItemForm';
 import {
@@ -17,6 +17,7 @@ import {
 } from '../../types/SalesOrderItem';
 import { BusinessPartner } from '../../types/BusinessPartner';
 import { InventoryItemResponse, InventoryItemCategory } from '../../types/InventoryItem';
+import { InventoryItemVariant } from '../../types/inventoryItemVariant';
 import { format } from 'date-fns';
 import StyledSelect from '../Common/StyledSelect';
 
@@ -43,6 +44,7 @@ const EditSalesOrder: React.FC = () => {
   const [inventoryItems, setInventoryItems] = useState<InventoryItemResponse[]>([]);
   const [showCreateCustomerModal, setShowCreateCustomerModal] = useState(false);
   const [showCreateItemModal, setShowCreateItemModal] = useState(false);
+  const [variantsByItem, setVariantsByItem] = useState<{ [key: number]: InventoryItemVariant[] }>({});
 
   // Sales Order states, initialized from fetched data
   const [customerId, setCustomerId] = useState<number | ''>('');
@@ -95,6 +97,22 @@ const EditSalesOrder: React.FC = () => {
         })) || [];
         setItems(formItems);
         setOriginalItems(formItems);
+
+        // Fetch variants for all items
+        const variantPromises = formItems.map(item =>
+          item.inventory_item_id
+            ? inventoryItemVariantApi.getInventoryItemVariants(item.inventory_item_id)
+            : Promise.resolve([])
+        );
+        
+        const variantsByItemArray = await Promise.all(variantPromises);
+        
+        const variantsMap = formItems.reduce((acc, item, index) => {
+          acc[item.tempId] = variantsByItemArray[index];
+          return acc;
+        }, {} as { [key: number]: InventoryItemVariant[] });
+
+        setVariantsByItem(variantsMap);
 
         setCustomers(customersData);
         setInventoryItems(inventoryItemsData);
@@ -152,7 +170,9 @@ const EditSalesOrder: React.FC = () => {
       isNew: true,
       isDeleted: false,
       line_total: 0,
-      inventory_item: undefined
+      inventory_item: undefined,
+      variant_id: null,
+      variant_name: '',
     };
     setItems((prevItems) => [...prevItems, newItem]);
   }, [so_id]);
@@ -173,17 +193,30 @@ const EditSalesOrder: React.FC = () => {
     );
   }, []);
 
-  const handleItemChange = useCallback((tempId: number, field: keyof FormSalesOrderItem, value: any) => {
+  const handleItemChange = useCallback(async (tempId: number, field: keyof FormSalesOrderItem, value: string | number) => {
     setItems((prevItems) =>
       prevItems.map((item) => {
         if (item.tempId === tempId) {
           if (field === 'inventory_item_id') {
             const selectedItem = inventoryItems.find(inv => inv.id === Number(value));
+            // Reset variant when item changes
             return {
               ...item,
               [field]: Number(value),
               inventory_item_name: selectedItem?.name,
               inventory_item_unit: selectedItem?.unit,
+              variant_id: null, 
+              variant_name: '',
+            };
+          }
+          if (field === 'variant_id') {
+            const variantId = value ? Number(value) : null;
+            const variants = variantsByItem[tempId] || [];
+            const selectedVariant = variants.find(v => v.id === variantId);
+            return {
+              ...item,
+              variant_id: variantId,
+              variant_name: selectedVariant ? selectedVariant.name : '',
             };
           }
           return { ...item, [field]: value };
@@ -191,7 +224,17 @@ const EditSalesOrder: React.FC = () => {
         return item;
       })
     );
-  }, [inventoryItems]);
+
+    if (field === 'inventory_item_id' && value) {
+      try {
+        const variants = await inventoryItemVariantApi.getInventoryItemVariants(Number(value));
+        setVariantsByItem(prev => ({ ...prev, [tempId]: variants }));
+      } catch (error) {
+        toast.error('Failed to fetch item variants.');
+        setVariantsByItem(prev => ({ ...prev, [tempId]: [] }));
+      }
+    }
+  }, [inventoryItems, variantsByItem]);
 
   // --- Form Submission ---
   const handleSubmit = async (e: React.FormEvent) => {
@@ -242,6 +285,8 @@ const EditSalesOrder: React.FC = () => {
             inventory_item_id: item.inventory_item_id,
             quantity: item.quantity,
             price_per_unit: item.price_per_unit || 0,
+            variant_id: item.variant_id,
+            variant_name: item.variant_name,
           };
           await salesOrderApi.addSalesOrderItem(Number(so_id), newItemData);
         } else if (!item.isNew && !item.isDeleted) { // Existing item, potentially updated
@@ -250,13 +295,16 @@ const EditSalesOrder: React.FC = () => {
           const hasChanged = !originalItem ||
                                originalItem.inventory_item_id !== item.inventory_item_id ||
                                originalItem.quantity !== item.quantity ||
-                               originalItem.price_per_unit !== item.price_per_unit;
+                               originalItem.price_per_unit !== item.price_per_unit ||
+                               originalItem.variant_id !== item.variant_id;
 
           if (hasChanged) {
             const updateItemData: SalesOrderItemUpdate = {
               inventory_item_id: item.inventory_item_id,
               quantity: item.quantity,
               price_per_unit: item.price_per_unit || 0,
+              variant_id: item.variant_id,
+              variant_name: item.variant_name,
             };
             await salesOrderApi.updateSalesOrderItem(Number(so_id), item.id, updateItemData);
           }
@@ -372,7 +420,12 @@ const EditSalesOrder: React.FC = () => {
                 <h5 className="mt-4 mb-3">Items <span className="form-field-required">*</span></h5>
                 {items.filter(item => !item.isDeleted).length === 0 && <p className="col-12 text-muted">No active items. Click "Add Item" to add new ones.</p>}
 
-                {items.map((item, index) => (
+                {items.map((item, index) => {
+                  const itemVariants = variantsByItem[item.tempId] || [];
+                  const variantOptions: OptionType[] = itemVariants.map(v => ({ value: v.id, label: v.name }));
+                  const selectedVariantOption = variantOptions.find(o => o.value === item.variant_id);
+
+                  return (
                   <div key={item.tempId} className={`col-12 border p-3 mb-3 ${item.isDeleted ? 'bg-danger-subtle border-danger' : 'bg-light'}`}>
                     <div className="d-flex justify-content-between align-items-center mb-2">
                       <h6>Item {index + 1} {item.isDeleted && <span className="badge bg-danger ms-2">Marked for Deletion</span>}</h6>
@@ -398,7 +451,7 @@ const EditSalesOrder: React.FC = () => {
                     </div>
                     {!item.isDeleted && (
                       <div className="row g-2">
-                        <div className="col-md-6">
+                        <div className="col-md-5">
                           <label htmlFor={`itemId-${item.tempId}`} className="form-label">Inventory Item <span className="form-field-required">*</span></label>
                           <div className="d-flex">
                           <StyledSelect
@@ -419,6 +472,20 @@ const EditSalesOrder: React.FC = () => {
                           {/* Inventory item can now be changed for existing rows */}
                         </div>
                         <div className="col-md-3">
+                            <label htmlFor={`variantId-${item.tempId}`} className="form-label">
+                              Variant
+                            </label>
+                            <StyledSelect
+                              id={`variantId-${item.tempId}`}
+                              value={selectedVariantOption}
+                              onChange={(option, _action) => handleItemChange(item.tempId, 'variant_id', option ? option.value : '')}
+                              options={variantOptions}
+                              placeholder="Select Variant"
+                              isClearable
+                              isDisabled={!item.inventory_item_id || itemVariants.length === 0}
+                            />
+                          </div>
+                        <div className="col-md-2">
                           <label htmlFor={`quantity-${item.tempId}`} className="form-label">Quantity <span className="form-field-required">*</span></label>
                           <input
                             type="number"
@@ -431,7 +498,7 @@ const EditSalesOrder: React.FC = () => {
                             disabled={isLoading}
                           />
                         </div>
-                        <div className="col-md-3">
+                        <div className="col-md-2">
                           <label htmlFor={`pricePerUnit-${item.tempId}`} className="form-label">Price per Unit</label>
                           <input
                             type="number"
@@ -452,7 +519,7 @@ const EditSalesOrder: React.FC = () => {
                       </div>
                     )}
                   </div>
-                ))}
+                )})}
 
                 {items.filter(item => !item.isDeleted).length > 0 && (
                   <div className="col-12 text-end">

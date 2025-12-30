@@ -246,6 +246,7 @@ const SalesOrderDetails: React.FC = () => {
                     <tr>
                       <th>#</th>
                       <th>Item Name</th>
+                      <th>Variant</th>
                       <th>Quantity</th>
                       <th>Unit</th>
                       <th>Price/Unit (Rs.)</th>
@@ -257,6 +258,7 @@ const SalesOrderDetails: React.FC = () => {
                       <tr key={item.id || index}>
                         <td>{index + 1}</td>
                         <td>{getItemName(item.inventory_item_id)}</td>
+                        <td>{item.variant_name || 'N/A'}</td>
                         <td>{item.quantity}</td>
                         <td>{getItemUnit(item.inventory_item_id)}</td>
                         <td>{(Number(item.price_per_unit) || 0).toFixed(2)}</td>
@@ -266,7 +268,7 @@ const SalesOrderDetails: React.FC = () => {
                   </tbody>
                   <tfoot>
                     <tr>
-                      <td colSpan={5} className="text-end fw-bold">Total Sales Value:</td>
+                      <td colSpan={6} className="text-end fw-bold">Total Sales Value:</td>
                       <td className="fw-bold">Rs. {(Number(salesOrder.total_amount) || 0).toFixed(2)}</td>
                     </tr>
                   </tfoot>

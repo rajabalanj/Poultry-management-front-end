@@ -24,6 +24,8 @@ export interface SalesOrderBase {
   order_date: string; // ADD THIS FIELD - Date string (YYYY-MM-DD)
   notes?: string;
   bill_no?: string; // Optional bill number
+  status?: SalesOrderStatus;
+  payment_receipt?: string;
 }
 
 export interface SalesOrderCreate extends SalesOrderBase {

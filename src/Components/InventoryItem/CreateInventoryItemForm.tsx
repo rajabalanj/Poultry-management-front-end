@@ -3,9 +3,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
-import { inventoryItemApi } from '../../services/api';
+import { inventoryItemApi, inventoryItemVariantApi } from '../../services/api';
 import { InventoryItemCreate, InventoryItemUnit, InventoryItemCategory, InventoryItemResponse } from '../../types/InventoryItem';
 import StyledSelect from '../Common/StyledSelect';
+import VariantManager from './VariantManager';
+import { InventoryItemVariant } from '../../types/inventoryItemVariant';
 
 interface CreateInventoryItemFormProps {
     onCreated?: (item: InventoryItemResponse) => void;
@@ -18,6 +20,7 @@ const CreateInventoryItemForm: React.FC<CreateInventoryItemFormProps> = ({ onCre
     const [unit, setUnit] = useState<InventoryItemUnit>(InventoryItemUnit.KG);
     const [category, setCategory] = useState<InventoryItemCategory>(InventoryItemCategory.FEED);
     const [defaultWastagePercentage, setDefaultWastagePercentage] = useState<number | undefined>();
+    const [variants, setVariants] = useState<InventoryItemVariant[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
@@ -40,15 +43,28 @@ const CreateInventoryItemForm: React.FC<CreateInventoryItemFormProps> = ({ onCre
         };
 
         try {
-            const created = await inventoryItemApi.createInventoryItem(newItem);
-            toast.success('Inventory Item created successfully!');
+            const createdItem = await inventoryItemApi.createInventoryItem(newItem);
+            
+            if (variants.length > 0) {
+                const variantPromises = variants.map(variant => 
+                    inventoryItemVariantApi.createInventoryItemVariant({
+                        name: variant.name,
+                        item_id: createdItem.id,
+                    })
+                );
+                await Promise.all(variantPromises);
+                toast.success('Inventory Item and variants created successfully!');
+            } else {
+                toast.success('Inventory Item created successfully!');
+            }
+
             if (onCreated) {
-                onCreated(created);
+                onCreated(createdItem);
             } else {
                 navigate('/inventory-items'); // Navigate back to the list
             }
         } catch (error: any) {
-            toast.error(error?.message || 'Failed to create inventory item.');
+            toast.error(error?.message || 'Failed to create inventory item or its variants.');
         } finally {
             setIsLoading(false);
         }
@@ -115,6 +131,10 @@ const CreateInventoryItemForm: React.FC<CreateInventoryItemFormProps> = ({ onCre
                                         onChange={(e) => setDefaultWastagePercentage(e.target.value ? parseFloat(e.target.value) : undefined)}
                                         placeholder="e.g., 1.5"
                                     />
+                                </div>
+
+                                <div className="col-12 mt-4">
+                                    <VariantManager variants={variants} onVariantsChange={setVariants} />
                                 </div>
 
                                 <div className="col-12 mt-4">

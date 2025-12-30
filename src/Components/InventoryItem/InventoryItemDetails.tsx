@@ -3,9 +3,10 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import PageHeader from "../Layout/PageHeader";
-import { inventoryItemApi } from "../../services/api";
+import { inventoryItemApi, inventoryItemVariantApi } from "../../services/api";
 import { InventoryItemResponse } from "../../types/InventoryItem";
 import { InventoryItemAudit } from "../../types/InventoryItemAudit";
+import { InventoryItemVariant } from "../../types/inventoryItemVariant";
 import Loading from '../Common/Loading';
 import CustomDatePicker from '../Common/CustomDatePicker';
 import AdjustInventoryModal from './AdjustInventoryModal'; // Import the modal
@@ -24,19 +25,25 @@ const InventoryItemDetails: React.FC = () => {
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false); // State for modal
+  const [variants, setVariants] = useState<InventoryItemVariant[]>([]);
 
   useEffect(() => {
-    const fetchItem = async () => {
+    const fetchItemDetails = async () => {
       try {
         if (!item_id) {
             setError("Inventory Item ID is missing.");
             setLoading(false);
             return;
         }
-        const data = await inventoryItemApi.getInventoryItem(Number(item_id));
-        setItem(data);
+        const numericItemId = Number(item_id);
+        const itemData = await inventoryItemApi.getInventoryItem(numericItemId);
+        setItem(itemData);
+
+        const variantsData = await inventoryItemVariantApi.getInventoryItemVariants(numericItemId);
+        setVariants(variantsData);
+
       } catch (err: any) {
-        console.error("Error fetching inventory item:", err);
+        console.error("Error fetching inventory item details:", err);
         setError(err?.message || "Failed to load inventory item details.");
         toast.error(err?.message || "Failed to load inventory item details.");
       } finally {
@@ -44,7 +51,7 @@ const InventoryItemDetails: React.FC = () => {
       }
     };
 
-    fetchItem();
+    fetchItemDetails();
   }, [item_id]);
 
   // Helper function to format date as YYYY-MM-DD without timezone conversion
@@ -125,6 +132,23 @@ const handleAdjustmentSuccess = (updatedItem: InventoryItemResponse) => {
             </div>
           </div>
         </div>
+
+        {variants.length > 0 && (
+            <div className="card shadow-sm mt-4">
+                <div className="card-header bg-secondary text-white">
+                    <h5 className="mb-0">Variants</h5>
+                </div>
+                <div className="card-body">
+                    <ul className="list-group">
+                        {variants.map(variant => (
+                            <li key={variant.id} className="list-group-item">
+                                {variant.name}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            </div>
+        )}
 
         <div className="mt-4 d-flex justify-content-center gap-3">
         <button

@@ -3,9 +3,11 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import PageHeader from "../Layout/PageHeader";
-import { inventoryItemApi } from "../../services/api";
+import { inventoryItemApi, inventoryItemVariantApi } from "../../services/api";
 import { InventoryItemResponse, InventoryItemUpdate, InventoryItemUnit, InventoryItemCategory } from "../../types/InventoryItem";
+import { InventoryItemVariant } from "../../types/inventoryItemVariant";
 import StyledSelect from "../Common/StyledSelect";
+import VariantManager from "./VariantManager";
 
 const EditInventoryItem: React.FC = () => {
   const { item_id } = useParams<{ item_id: string }>();
@@ -20,34 +22,77 @@ const EditInventoryItem: React.FC = () => {
   const [category, setCategory] = useState<InventoryItemCategory>(InventoryItemCategory.FEED);
   const [reorderLevel, setReorderLevel] = useState<number | undefined>(undefined);
   const [defaultWastagePercentage, setDefaultWastagePercentage] = useState<number | undefined>();
+  const [variants, setVariants] = useState<InventoryItemVariant[]>([]);
 
   useEffect(() => {
-    const fetchItem = async () => {
+    const fetchItemAndVariants = async () => {
       try {
         if (!item_id) {
             setError("Inventory Item ID is missing.");
             setLoading(false);
             return;
         }
-        const data = await inventoryItemApi.getInventoryItem(Number(item_id));
-        setItem(data);
-        // Initialize form states with fetched data
-        setName(data.name);
-        setUnit(data.unit);
-        setCategory(data.category);
-        setReorderLevel(data.reorder_level);
-        setDefaultWastagePercentage(data.default_wastage_percentage);
+        const numericItemId = Number(item_id);
+        const itemData = await inventoryItemApi.getInventoryItem(numericItemId);
+        setItem(itemData);
+        
+        // Initialize form states
+        setName(itemData.name);
+        setUnit(itemData.unit);
+        setCategory(itemData.category);
+        setReorderLevel(itemData.reorder_level);
+        setDefaultWastagePercentage(itemData.default_wastage_percentage);
+
+        // Fetch variants
+        const variantsData = await inventoryItemVariantApi.getInventoryItemVariants(numericItemId);
+        setVariants(variantsData);
+
       } catch (err: any) {
-        console.error("Error fetching inventory item:", err);
-        setError(err?.message || "Failed to load inventory item for editing.");
-        toast.error(err?.message || "Failed to load inventory item for editing.");
+        console.error("Error fetching inventory item or variants:", err);
+        const errorMessage = err?.message || "Failed to load item data.";
+        setError(errorMessage);
+        toast.error(errorMessage);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchItem();
+    fetchItemAndVariants();
   }, [item_id]);
+
+  const handleAddVariant = async (variantName: string) => {
+    if (!item_id) return;
+    try {
+        const newVariant = await inventoryItemVariantApi.createInventoryItemVariant({ name: variantName, item_id: Number(item_id) });
+        setVariants(prev => [...prev, newVariant]);
+        toast.success("Variant added successfully!");
+    } catch (error: any) {
+        toast.error(error?.message || "Failed to add variant.");
+    }
+  };
+
+  const handleUpdateVariant = async (id: number, variantName: string) => {
+    try {
+        const updatedVariant = await inventoryItemVariantApi.updateInventoryItemVariant(id, { name: variantName });
+        setVariants(prev => prev.map(v => v.id === id ? updatedVariant : v));
+        toast.success("Variant updated successfully!");
+    } catch (error: any) {
+        toast.error(error?.message || "Failed to update variant.");
+    }
+  };
+
+  const handleDeleteVariant = async (id: number) => {
+    if (window.confirm("Are you sure you want to delete this variant?")) {
+        try {
+            await inventoryItemVariantApi.deleteInventoryItemVariant(id);
+            setVariants(prev => prev.filter(v => v.id !== id));
+            toast.success("Variant deleted successfully!");
+        } catch (error: any) {
+            toast.error(error?.message || "Failed to delete variant.");
+        }
+    }
+  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,7 +138,7 @@ const EditInventoryItem: React.FC = () => {
     <>
       <PageHeader title={`Edit Item: ${item.name}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/inventory-items" buttonIcon="bi-arrow-left"/>
       <div className="container mt-4">
-        <div className="card shadow-sm">
+        <div className="card shadow-sm mb-4">
           <div className="card-body">
             <form onSubmit={handleSubmit}>
               <div className="row g-3">
@@ -178,6 +223,18 @@ const EditInventoryItem: React.FC = () => {
               </div>
             </form>
           </div>
+        </div>
+        <div className="card shadow-sm">
+            <div className="card-body">
+                <VariantManager
+                    variants={variants}
+                    onVariantsChange={setVariants}
+                    onAdd={handleAddVariant}
+                    onEdit={handleUpdateVariant}
+                    onDelete={handleDeleteVariant}
+                    isEditing={true}
+                />
+            </div>
         </div>
       </div>
     </>
