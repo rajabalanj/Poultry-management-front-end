@@ -22,6 +22,16 @@ const GeneralLedgerComponent: React.FC = () => {
             navigate(`/sales-orders/${entry.reference_id}/details`);
         }
     };
+
+    const handlePaymentClick = (e: React.MouseEvent, entry: GeneralLedger['entries'][0]) => {
+        e.stopPropagation();
+        if (entry.transaction_type.toLowerCase().includes('purchase')) {
+            navigate(`/purchase-orders/${entry.reference_id}/add-payment`);
+        } else if (entry.transaction_type.toLowerCase().includes('sales')) {
+            navigate(`/sales-orders/${entry.reference_id}/add-payment`);
+        }
+    };
+
     const handleFetchLedger = async () => {
         if (new Date(startDate) > new Date(endDate)) {
             toast.error('Start date cannot be after end date.');
@@ -94,6 +104,7 @@ const GeneralLedgerComponent: React.FC = () => {
                                     <th>Debit</th>
                                     <th>Credit</th>
                                     <th>Balance</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -109,6 +120,17 @@ const GeneralLedgerComponent: React.FC = () => {
                                         <td>{entry.debit.toFixed(2)}</td>
                                         <td>{entry.credit.toFixed(2)}</td>
                                         <td>{entry.balance.toFixed(2)}</td>
+                                        <td>
+                                            {(entry.transaction_type.toLowerCase().includes('purchase') || entry.transaction_type.toLowerCase().includes('sales')) && (
+                                                <button
+                                                    className="btn btn-sm btn-warning"
+                                                    onClick={(e) => handlePaymentClick(e, entry)}
+                                                >
+                                                    <i className="bi bi-credit-card me-1"></i>
+                                                    Payment
+                                                </button>
+                                            )}
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>

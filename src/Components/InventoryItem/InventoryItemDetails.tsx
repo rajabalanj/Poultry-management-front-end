@@ -71,6 +71,7 @@ const fetchAuditLog = async () => {
     const endDateStr = endDate ? formatDate(endDate) : undefined;
     const data = await inventoryItemApi.getInventoryItemAudit(Number(item_id), startDateStr, endDateStr);
     setAuditLog(data);
+    setCurrentPage(1);
   } catch (err) {
     toast.error('Failed to load audit log.');
   } finally {

@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, memo } from 'react';
 import * as htmlToImage from 'html-to-image';
 import { flushSync } from 'react-dom';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
@@ -15,6 +15,103 @@ import { useEscapeKey } from '../hooks/useEscapeKey';
 import { configApi, batchApi, shedApi } from '../services/api';
 import StyledSelect from './Common/StyledSelect';
 
+// Memoized table row component to prevent unnecessary re-renders
+const TableRow = memo(({ 
+  row, 
+  index, 
+  batchIdFromUrl, 
+  henDayDeviation, 
+  reportType, 
+  handleEdit 
+}: { 
+  row: any; 
+  index: number; 
+  batchIdFromUrl?: string; 
+  henDayDeviation: number; 
+  reportType: 'daily' | 'weekly'; 
+  handleEdit: (batchId: number, batchDate: string) => void; 
+}) => {
+  // Create a stable key for each row
+  const rowKey = !batchIdFromUrl 
+    ? `${row.batch_id}-${index}` 
+    : `${row.batch_id}-${row.batch_date || index}`;
+
+  // Pre-calculate values to improve performance
+  const isLayerBatch = row.batch_type === 'Layer';
+  let hdCellClassName = '';
+  let feedCellClassName = '';
+
+  // Only apply styling for Layer batches
+  if (isLayerBatch) {
+    // Apply conditional styling for HD cell
+    if (row.hd !== undefined && row.standard_hen_day_percentage !== undefined) {
+      const actualHDPercentage = Number(row.hd) * 100;
+      const standardHDPercentage = Number(row.standard_hen_day_percentage);
+      const difference = standardHDPercentage - actualHDPercentage;
+
+      if (henDayDeviation >= difference) { // Difference is within deviation
+        hdCellClassName = 'bg-success-subtle fw-bolder';
+      } else { // Difference is outside deviation
+        hdCellClassName = 'bg-danger-subtle fw-bolder';
+      }
+    }
+
+    // Apply conditional styling for Feed cell
+    if (reportType !== 'daily' && row.actual_feed_consumed !== undefined && row.standard_feed_consumption !== undefined) {
+      const actualFeed = Number(row.actual_feed_consumed);
+      const standardFeed = Number(row.standard_feed_consumption);
+
+      if (actualFeed <= standardFeed) { // Good performance
+        feedCellClassName = 'bg-success-subtle fw-bolder';
+      } else { // Needs attention
+        feedCellClassName = 'bg-danger-subtle fw-bolder';
+      }
+    }
+  }
+
+  // Pre-format values to avoid repeated calculations
+  const hdValue = row.hd != null ? (Number(row.hd) * 100).toFixed(2) : '';
+  const standardHDValue = row.standard_hen_day_percentage != null ? row.standard_hen_day_percentage.toFixed(2) : '';
+  const actualFeedValue = row.actual_feed_consumed != null ? Number(row.actual_feed_consumed).toFixed(2) : '';
+  const standardFeedValue = row.standard_feed_consumption != null ? Number(row.standard_feed_consumption).toFixed(2) : '';
+
+  return (
+    <tr key={rowKey}>
+      {batchIdFromUrl && <td>{row.batch_date}</td>}
+      <td>{row.shed_no}</td>
+      <td>{!batchIdFromUrl ? row.highest_age : row.age}</td>
+      <td>{row.opening_count}</td>
+      <td>{row.mortality}</td>
+      <td>{row.culls}</td>
+      <td>{row.closing_count}</td>
+      <td>{row.table_eggs}</td>
+      <td>{row.jumbo}</td>
+      <td>{row.cr}</td>
+      <td>{row.total_eggs}</td>
+      <td className={hdCellClassName}>
+        {hdValue}
+      </td>
+      <td>{standardHDValue}</td>
+      {reportType !== 'daily' && <>
+        <td className={feedCellClassName}>
+          {actualFeedValue}
+        </td>
+        <td>
+          {standardFeedValue}
+        </td>
+      </>}
+      {batchIdFromUrl && (
+        <td>
+          <button
+            className="btn btn-sm btn-warning"
+            onClick={() => handleEdit(row.batch_id, row.batch_date!)}
+          >Edit</button>
+        </td>
+      )}
+    </tr>
+  );
+});
+
 const PreviousDayReport = () => {
   const formatDateForDisplay = (dateString: string) => {
     if (!dateString) return '';
@@ -25,6 +122,9 @@ const PreviousDayReport = () => {
   const { batchId: batchIdFromUrl } = useParams<{ batchId?: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+
+  const effectiveBatchId = batchIdFromUrl || searchParams.get('batch_id') || undefined;
+
   useEscapeKey();
 
   // Component state for data display
@@ -80,8 +180,8 @@ const PreviousDayReport = () => {
     batchApi.getBatches(0, 1000).then(batchData => {
         const validBatches = Array.isArray(batchData) ? batchData : [];
         setBatches(validBatches);
-        if (batchIdFromUrl) {
-            const foundBatch = validBatches.find(b => String(b.id) === batchIdFromUrl);
+        if (effectiveBatchId) {
+            const foundBatch = validBatches.find(b => String(b.id) === effectiveBatchId);
             if (foundBatch) {
                 setBatchNo(foundBatch.batch_no);
             }
@@ -89,7 +189,7 @@ const PreviousDayReport = () => {
     }).catch(err => {
         toast.error(err.message || "Failed to load batches.");
     });
-  }, [batchIdFromUrl]);
+  }, [effectiveBatchId]);
 
   const fetchData = async (batchIdToFetch?: string, start?: string, end?: string, weekToFetch?: string) => {
     setIsLoading(true);
@@ -154,9 +254,9 @@ const PreviousDayReport = () => {
   // Initial data fetch based on URL parameters
   useEffect(() => {
     if (sheds.length > 0) {
-      fetchData(batchIdFromUrl, searchParams.get('start') || '', searchParams.get('end') || '', searchParams.get('week') || '');
+      fetchData(effectiveBatchId, searchParams.get('start') || '', searchParams.get('end') || '', searchParams.get('week') || '');
     }
-  }, [batchIdFromUrl, searchParams, sheds]);
+  }, [effectiveBatchId, searchParams, sheds]);
 
   const handleViewReport = () => {
     let batchIdToFetch: string | undefined;
@@ -442,9 +542,9 @@ const PreviousDayReport = () => {
           <table id="report-table" className="table table-bordered">
             <thead>
               <tr>
-                {batchIdFromUrl && <th>Batch Date</th>}
+                {effectiveBatchId && <th>Batch Date</th>}
                 <th>Shed No</th>
-                <th>{!batchIdFromUrl ? "Highest Age" : "Age"}</th>
+                <th>{!effectiveBatchId ? "Highest Age" : "Age"}</th>
                 <th>Opening</th>
                 <th>Mortality</th>
                 <th>Culls</th>
@@ -459,82 +559,23 @@ const PreviousDayReport = () => {
                   <th>Actual Feed</th>
                   <th>Standard Feed</th>
                 </>}
-                {batchIdFromUrl && <th>Edit</th>}
+                {effectiveBatchId && <th>Edit</th>}
               </tr>
             </thead>
             <tbody>
               {validGridData
                 .slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
-                .map((row) => {
-                  let hdCellClassName = '';
-                  let hdCellStyle = {};
-                  let feedCellClassName = '';
-
-                  // Only apply styling for Layer batches
-                  if (row.batch_type === 'Layer') {
-                    // Apply conditional styling for HD cell
-                    if (row.hd !== undefined && row.standard_hen_day_percentage !== undefined) {
-                      const actualHDPercentage = Number(row.hd) * 100;
-                      const standardHDPercentage = Number(row.standard_hen_day_percentage);
-                      const difference = standardHDPercentage - actualHDPercentage;
-  
-                      if (henDayDeviation >= difference) { // Difference is within deviation (e.g., -10 or more)
-                        hdCellClassName = 'bg-success-subtle fw-bolder';
-                      } else { // Difference is outside deviation
-                        hdCellClassName = 'bg-danger-subtle fw-bolder';
-                      }
-                    }
-  
-                    // Apply conditional styling for Feed cell
-                    if (reportType !== 'daily' && row.actual_feed_consumed !== undefined && row.standard_feed_consumption !== undefined) {
-                      const actualFeed = Number(row.actual_feed_consumed);
-                      const standardFeed = Number(row.standard_feed_consumption);
-  
-                      if (actualFeed <= standardFeed) { // Good performance: actual is less than or equal to standard
-                        feedCellClassName = 'bg-success-subtle fw-bolder';
-                      } else { // Needs attention: actual is greater than standard
-                        feedCellClassName = 'bg-danger-subtle fw-bolder';
-                      }
-                    }
-                  }
-
-
-                  return (
-                    <tr key={!batchIdFromUrl ? row.batch_id : `${row.batch_id}-${row.batch_date}`}>
-                      {batchIdFromUrl && <td>{row.batch_date}</td>}
-                      <td>{row.shed_no}</td>
-                      <td>{!batchIdFromUrl ? row.highest_age : row.age}</td>
-                      <td>{row.opening_count}</td>
-                      <td>{row.mortality}</td>
-                      <td>{row.culls}</td>
-                      <td>{row.closing_count}</td>
-                      <td>{row.table_eggs}</td>
-                      <td>{row.jumbo}</td>
-                      <td>{row.cr}</td>
-                      <td>{row.total_eggs}</td>
-                      <td className={hdCellClassName} style={hdCellStyle}>
-                        {row.hd != null ? (Number(row.hd) * 100).toFixed(2) : ''}
-                      </td>
-                      <td>{row.standard_hen_day_percentage != null ? row.standard_hen_day_percentage.toFixed(2) : ''}</td>
-                      {reportType !== 'daily' && <>
-                        <td className={feedCellClassName}>
-                          {row.actual_feed_consumed != null ? Number(row.actual_feed_consumed).toFixed(2) : ''}
-                        </td>
-                        <td>
-                          {row.standard_feed_consumption != null ? Number(row.standard_feed_consumption).toFixed(2) : ''}
-                        </td>
-                      </>}
-                      {batchIdFromUrl && (
-                        <td>
-                          <button
-                            className="btn btn-sm btn-warning"
-                            onClick={() => handleEdit(row.batch_id, row.batch_date!)}
-                          >Edit</button>
-                        </td>
-                      )}
-                    </tr>
-                  );
-                })}
+                .map((row, index) => (
+                  <TableRow
+                    key={!effectiveBatchId ? `${row.batch_id}-${index}` : `${row.batch_id}-${row.batch_date || index}`}
+                    row={row}
+                    index={index}
+                    batchIdFromUrl={effectiveBatchId}
+                    henDayDeviation={henDayDeviation}
+                    reportType={reportType}
+                    handleEdit={handleEdit}
+                  />
+                ))}
             </tbody>
           </table>
           </div>
