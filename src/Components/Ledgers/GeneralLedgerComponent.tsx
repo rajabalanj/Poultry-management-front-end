@@ -6,11 +6,13 @@ import { ledgerApi } from '../../services/api';
 import { GeneralLedger } from '../../types/ledgers';
 import Loading from '../Common/Loading';
 import CustomDatePicker from '../Common/CustomDatePicker';
+import StyledSelect from '../Common/StyledSelect';
 
 const GeneralLedgerComponent: React.FC = () => {
     const today = new Date().toISOString().slice(0, 10);
     const [startDate, setStartDate] = useState(today);
     const [endDate, setEndDate] = useState(today);
+    const [transactionType, setTransactionType] = useState('');
     const [ledgerData, setLedgerData] = useState<GeneralLedger | null>(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
@@ -40,7 +42,7 @@ const GeneralLedgerComponent: React.FC = () => {
         setLoading(true);
         setLedgerData(null);
         try {
-            const data = await ledgerApi.getGeneralLedger(startDate, endDate);
+            const data = await ledgerApi.getGeneralLedger(startDate, endDate, transactionType);
             setLedgerData(data);
         } catch (error: any) {
             toast.error(error.message || 'Failed to fetch General Ledger.');
@@ -52,7 +54,7 @@ const GeneralLedgerComponent: React.FC = () => {
     return (
         <div>
             <div className="row g-3 align-items-end p-3 border-bottom">
-                <div className="col-md-4">
+                <div className="col-md-3">
                     <label htmlFor="glStartDate" className="form-label me-3 mb-0">Start Date</label>
                     <CustomDatePicker
                         id="glStartDate"
@@ -66,7 +68,7 @@ const GeneralLedgerComponent: React.FC = () => {
                         dateFormat="dd-MM-yyyy"
                     />
                 </div>
-                <div className="col-md-4">
+                <div className="col-md-3">
                     <label htmlFor="glEndDate" className="form-label me-3 mb-0">End Date</label>
                     <CustomDatePicker
                         id="glEndDate"
@@ -81,7 +83,21 @@ const GeneralLedgerComponent: React.FC = () => {
                         dateFormat="dd-MM-yyyy"
                     />
                 </div>
-                <div className="col-md-4 d-flex justify-content-center justify-content-md-end">
+                <div className="col-md-3">
+                    <label htmlFor="transactionType" className="form-label me-3 mb-0">Transaction Type</label>
+                    <StyledSelect
+                        inputId="transactionType"
+                        value={transactionType ? { value: transactionType, label: transactionType === 'purchase' ? 'Purchase' : 'Sales' } : { value: "", label: "All Types" }}
+                        onChange={(option) => setTransactionType(option ? String(option.value) : "")}
+                        options={[
+                            { value: "", label: "All Types" },
+                            { value: "purchase", label: "Purchase" },
+                            { value: "sales", label: "Sales" }
+                        ]}
+                        placeholder="Select Transaction Type"
+                    />
+                </div>
+                <div className="col-md-3 d-flex justify-content-center justify-content-md-end">
                     <button className="btn btn-primary mb-2" onClick={handleFetchLedger} disabled={loading}>
                         {loading ? 'Generating...' : 'Get General Ledger'}
                     </button>

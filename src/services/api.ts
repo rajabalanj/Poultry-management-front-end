@@ -1331,10 +1331,14 @@ export const operationalExpenseApi = {
 };
 
 export const ledgerApi = {
-  getGeneralLedger: async (startDate: string, endDate: string): Promise<GeneralLedger> => {
+  getGeneralLedger: async (startDate: string, endDate: string, transactionType?: string): Promise<GeneralLedger> => {
     try {
+      const params: any = { start_date: startDate, end_date: endDate };
+      if (transactionType) {
+        params.transaction_type = transactionType;
+      }
       const response = await api.get<GeneralLedger>('/financial-reports/general-ledger', {
-        params: { start_date: startDate, end_date: endDate },
+        params,
       });
       return response.data;
     } catch (error) {
