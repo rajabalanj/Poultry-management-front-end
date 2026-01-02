@@ -487,9 +487,11 @@ export interface AppConfigKV {
 
 export const configApi = {
   // Get all configurations (GET)
-  getAllConfigs: async (): Promise<AppConfigKV[]> => {
+  getAllConfigs: async (name?: string): Promise<AppConfigKV[]> => {
     try {
-      const response = await api.get<AppConfigKV[]>('/configurations/');
+      const response = await api.get<AppConfigKV[]>('/configurations/', {
+        params: name ? { name } : undefined,
+      });
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch configurations'));

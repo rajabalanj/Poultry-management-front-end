@@ -1,21 +1,30 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Circle, Birdhouse } from "lucide-react";
 import { DailyBatch } from "../types/daily_batch";
 import ListModal from './Common/ListModal';
 import Loading from './Common/Loading';
-
+import { configApi } from "../services/api";
 
 const getPerformanceIndicator = (
   actual: number | undefined,
   standard: number | undefined,
-  lowerIsBetter = false
+  lowerIsBetter = false,
+  deviation = 0
 ) => {
   if (actual === undefined || standard === undefined || actual === null || standard === null) {
     return <div className="text-muted">-</div>;
   }
 
-  const isGood = lowerIsBetter ? actual <= standard : actual >= standard;
+  let isGood;
+  if (lowerIsBetter) {
+    isGood = actual <= standard;
+  } else {
+    // This is for Hen-Day %
+    const adjustedStandard = standard * (1 - deviation / 100);
+    isGood = actual >= adjustedStandard;
+  }
+
   const icon = isGood
     ? <Circle className="bg-success text-white rounded-circle" size={20} />
     : <Circle className="bg-danger text-white rounded-circle" size={20} />;
@@ -26,7 +35,8 @@ const getPerformanceIndicator = (
 const BatchCard: React.FC<{
   batch: DailyBatch;
   onView: (batch_id: number, batchDate: string) => void;
-}> = React.memo(({ batch, onView }) => {
+  henDayDeviation: number;
+}> = React.memo(({ batch, onView, henDayDeviation }) => {
   const handleCardClick = () => {
     onView(batch.batch_id, batch.batch_date);
   };
@@ -57,7 +67,7 @@ const BatchCard: React.FC<{
             </div>
             <div className="text-center">
               <p className="mb-1 text-muted">Hen-Day %</p>
-              {getPerformanceIndicator(batch.hd, batch.standard_hen_day_percentage)}
+              {getPerformanceIndicator(batch.hd * 100, batch.standard_hen_day_percentage, false, henDayDeviation)}
             </div>
           </div>
         </div>
@@ -75,6 +85,21 @@ interface BatchTableProps {
 
 const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
   const navigate = useNavigate();
+  const [henDayDeviation, setHenDayDeviation] = useState(0);
+
+  useEffect(() => {
+    const fetchHenDayDeviation = async () => {
+      try {
+        const config = await configApi.getAllConfigs('henDayDeviation');
+        if (config && config.length > 0) {
+          setHenDayDeviation(parseFloat(config[0].value) || 0);
+        }
+      } catch (error) {
+        console.error("Failed to fetch hen day deviation config", error);
+      }
+    };
+    fetchHenDayDeviation();
+  }, []);
 
   const handleViewDetails = useCallback(
     (batch_id: number, batchDate: string) => {
@@ -164,6 +189,7 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
               key={`Layer-${batch.batch_id}-${batch.batch_date}`}
               batch={batch}
               onView={handleViewDetails}
+              henDayDeviation={henDayDeviation}
             />
           ))}
         </div>
@@ -176,6 +202,7 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
               key={`Grower-${batch.batch_id}-${batch.batch_date}`}
               batch={batch}
               onView={handleViewDetails}
+              henDayDeviation={henDayDeviation}
             />
           ))}
         </div>
@@ -188,6 +215,7 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
               key={`Chick-${batch.batch_id}-${batch.batch_date}`}
               batch={batch}
               onView={handleViewDetails}
+              henDayDeviation={henDayDeviation}
             />
           ))}
         </div>

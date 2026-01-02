@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { dailyBatchApi, shedApi } from '../../../services/api';
+import { dailyBatchApi, shedApi, configApi } from '../../../services/api';
 import { compositionApi } from '../../../services/api';
 import { DailyBatch } from '../../../types/daily_batch';
 import { ShedResponse } from '../../../types/shed';
@@ -32,6 +32,7 @@ const BatchDetails: React.FC = () => {
   const [reportType, setReportType] = useState('daily'); // 'daily' or 'weekly'
   const [week, setWeek] = useState('');
   const [usageHistory, setUsageHistory] = useState<UsageHistoryItem[]>([]);
+  const [henDayDeviation, setHenDayDeviation] = useState(0);
   
 
   // Feed usage state
@@ -42,6 +43,20 @@ const BatchDetails: React.FC = () => {
   const [showFeedModal, setShowFeedModal] = useState(false);
   const [feedModalTitle, setFeedModalTitle] = useState('');
   const [feedModalItems, setFeedModalItems] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchHenDayDeviation = async () => {
+      try {
+        const config = await configApi.getAllConfigs('henDayDeviation');
+        if (config && config.length > 0) {
+          setHenDayDeviation(parseFloat(config[0].value) || 0);
+        }
+      } catch (error) {
+        console.error("Failed to fetch hen day deviation config", error);
+      }
+    };
+    fetchHenDayDeviation();
+  }, []);
 
   const handleViewFeedDetails = (title: string, items: string[]) => {
     setFeedModalTitle(title);
@@ -244,7 +259,13 @@ const BatchDetails: React.FC = () => {
             />
             </div>
             <div className="mb-4">
-              <GraphsSection henDayValue={Number((batch.hd *100).toFixed(2))} loading={false} error={null} />
+              <GraphsSection 
+                henDayValue={Number((batch.hd * 100).toFixed(2))} 
+                standardHenDayPercentage={batch.standard_hen_day_percentage}
+                henDayDeviation={henDayDeviation}
+                loading={false} 
+                error={null} 
+              />
             </div>
             <div>
           <div className="row">

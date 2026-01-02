@@ -26,25 +26,37 @@ const ChartContainer: React.FC<ChartContainerProps> = ({ title, children, icon }
 // Define the props interface for GraphsSection
 interface GraphsSectionProps {
   henDayValue: number; // Expecting a number for HD
+  standardHenDayPercentage?: number;
+  henDayDeviation?: number;
   loading: boolean;
   error: string | null;
 }
 
-const GraphsSection: React.FC<GraphsSectionProps> = ({ henDayValue }) => { // Destructure henDayValue from props
+const GraphsSection: React.FC<GraphsSectionProps> = ({ henDayValue, standardHenDayPercentage, henDayDeviation }) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const hd = henDayValue; // Use the prop instead of hardcoding
+  const hd = henDayValue;
 
   let barColor = "";
-  if (hd >= 80 && hd <= 100) {
-    barColor = "bg-success"; // green
-  } 
-  else if (hd < 80 && hd >= 50) {
-    barColor = "bg-warning"; // yellow
-  }
-  else {
-    barColor = "bg-danger"; // red
-  }
 
+  if (standardHenDayPercentage !== undefined && standardHenDayPercentage !== null) {
+    const standard = standardHenDayPercentage;
+    const deviation = henDayDeviation || 0;
+    const adjustedStandard = standard * (1 - deviation / 100);
+
+    if (hd >= adjustedStandard) {
+      barColor = "bg-success"; // green
+    } else {
+      barColor = "bg-danger"; // red
+    }
+  } else {
+    // Fallback to original hardcoded logic if standard is not provided
+    if (hd >= 80) {
+      barColor = "bg-success"; // green
+    } else {
+      barColor = "bg-danger"; // red
+    }
+  }
+  
   const getTextColor = (bgColor: string): string => {
   switch (bgColor) {
     case "bg-warning":

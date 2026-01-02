@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import HeaderCardGroup from './HeaderCardGroup';
 import GraphsSection from './GraphsSection';
 import BatchTable from '../BatchTable';
-import { dailyBatchApi, compositionApi, shedApi } from '../../services/api';
+import { dailyBatchApi, compositionApi, shedApi, configApi } from '../../services/api';
 import { DailyBatch } from '../../types/daily_batch';
 import { ShedResponse } from '../../types/shed';
 import CustomDatePicker from '../Common/CustomDatePicker';
@@ -29,11 +29,27 @@ const DashboardIndex = () => {
   const [feedUsage, setFeedUsage] = useState<{ total_feed: number, feed_breakdown: { feed_type: string, amount: number, composition_name?: string, composition_items?: { inventory_item_id: number, inventory_item_name?: string, weight: number, unit?: string }[] }[] } | null>(null);
   const [feedLoading, setFeedLoading] = useState(false);
   // Removed unused feedError
+  const [henDayDeviation, setHenDayDeviation] = useState(0);
+
 
   // Modal state for feed details
   const [showFeedModal, setShowFeedModal] = useState(false);
   const [feedModalTitle, setFeedModalTitle] = useState('');
   const [feedModalItems, setFeedModalItems] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchHenDayDeviation = async () => {
+      try {
+        const config = await configApi.getAllConfigs('henDayDeviation');
+        if (config && config.length > 0) {
+          setHenDayDeviation(parseFloat(config[0].value) || 0);
+        }
+      } catch (error) {
+        console.error("Failed to fetch hen day deviation config", error);
+      }
+    };
+    fetchHenDayDeviation();
+  }, []);
 
   const handleViewFeedDetails = (title: string, items: string[]) => {
     setFeedModalTitle(title);
@@ -152,6 +168,10 @@ const DashboardIndex = () => {
   const culls = filteredBatches.reduce((sum, b) => sum + (b.culls || 0), 0);
   const layerBatches = filteredBatches.filter(b => b.batch_type === 'Layer');
   const avgHD = layerBatches.length > 0 ? Number(((layerBatches.reduce((sum, b) => sum + (b.hd || 0), 0) / layerBatches.length) * 100).toFixed(2)) : 0;
+  const avgStandardHD = layerBatches.length > 0 
+    ? layerBatches.reduce((sum, b) => sum + (b.standard_hen_day_percentage || 0), 0) / layerBatches.length
+    : 0;
+
   const cards = [
     {
       title: "Total Birds",
@@ -234,7 +254,13 @@ const DashboardIndex = () => {
             <HeaderCardGroup cards={cards} loading={loading} error={error} onViewDetails={handleViewFeedDetails} />
           </div>
           <div className="mb-4">
-            <GraphsSection henDayValue={avgHD} loading={loading} error={error} />
+            <GraphsSection 
+              henDayValue={avgHD} 
+              standardHenDayPercentage={avgStandardHD}
+              henDayDeviation={henDayDeviation}
+              loading={loading} 
+              error={error} 
+            />
           </div>
           <div>
             {loading ? (
