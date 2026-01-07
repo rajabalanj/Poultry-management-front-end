@@ -42,6 +42,10 @@ const GraphsSection: React.FC<GraphsSectionProps> = ({ henDayValue, standardHenD
     const standard = standardHenDayPercentage;
     const deviation = henDayDeviation || 0;
     const adjustedStandard = standard * (1 - deviation / 100);
+    console.log("Hen Day Value: ", hd);
+    console.log("Standard Hen Day Percentage: ", standard);
+    console.log("Deviation: ", deviation);
+    console.log("Adjusted Standard: adjustedStandard", adjustedStandard);
 
     if (hd >= adjustedStandard) {
       barColor = "bg-success"; // green

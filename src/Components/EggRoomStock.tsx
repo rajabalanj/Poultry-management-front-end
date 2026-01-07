@@ -160,6 +160,7 @@ const EggRoomStock: React.FC = () => {
       setReports(reportsData);
       setSummary(summaryData);
     } catch (err: any) {
+      console.error("Error fetching reports:", err);
       const isAxiosError = typeof err === 'object' && err !== null && 'response' in err;
       const detail = isAxiosError ? err.response?.data?.detail : undefined;
       if (typeof detail === 'string') {
@@ -168,7 +169,7 @@ const EggRoomStock: React.FC = () => {
           setSuggestedStartDate(dateMatches[1]);
           setShowDateModal(true);
         } else {
-          setReportError("The selected date is before the Egg Room Start Date. Please select a valid date.");
+          setReportError(detail);
         }
       } else {
         setReportError(err?.message || 'Failed to fetch reports');
