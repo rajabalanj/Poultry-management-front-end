@@ -278,7 +278,7 @@ const EditBatch: React.FC = () => {
                     <div className="card-body">
                       <textarea
                         className="form-control"
-                        value={batch.notes}
+                        value={batch.notes || ""}
                         placeholder="Optional daily notes, details, or observations..."
                         onChange={(e) => setBatch((prev) => (prev ? { ...prev, notes: e.target.value } : null))}
                         rows={3}

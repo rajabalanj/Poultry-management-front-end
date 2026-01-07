@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { batchApi, shedApi, dailyBatchApi } from '../../services/api';
+import { batchApi, shedApi, dailyBatchApi, getApiErrorMessage } from '../../services/api';
 import { ShedResponse } from '../../types/shed';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
@@ -77,7 +77,7 @@ const MoveShed: React.FC = () => {
       toast.success('Batch moved successfully!');
       navigate(`/batch/${batch_id}/${moveDate.toISOString()}/details`);
     } catch (error) {
-      toast.error('Failed to move batch.');
+      toast.error(getApiErrorMessage(error, 'Failed to move batch.'));
     } finally {
       setIsSubmitting(false);
     }
