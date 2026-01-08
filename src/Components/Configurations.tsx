@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import PageHeader from "./Layout/PageHeader";
 import { configApi, batchApi, bovansApi, eggRoomReportApi } from "../services/api";
 import { toast } from "react-toastify";
@@ -22,6 +22,11 @@ const Configurations: React.FC = () => {
   const [initialJumboOpening, setInitialJumboOpening] = useState<number>(0);
   const [initialGradeCOpening, setInitialGradeCOpening] = useState<number>(0);
   const [eggRoomSaving, setEggRoomSaving] = useState(false); // To manage loading state for egg room setup
+
+  const originalEggRoomStartDate = useRef<string>('');
+  const originalTableOpening = useRef<number>(0);
+  const originalJumboOpening = useRef<number>(0);
+  const originalGradeCOpening = useRef<number>(0);
 
   // Batch config state
   const [batches, setBatches] = useState<
@@ -64,6 +69,7 @@ const Configurations: React.FC = () => {
         setMedicineKg(medicineKgConfig ? Number(medicineKgConfig.value) : 3000);
         setMedicineGram(medicineGramConfig ? Number(medicineGramConfig.value) : 3000);
         setEggRoomStartDate(eggRoomStartDateConfig ? eggRoomStartDateConfig.value : '');
+        originalEggRoomStartDate.current = eggRoomStartDateConfig ? eggRoomStartDateConfig.value : '';
 
         const financialConfig = await configApi.getFinancialConfig();
         if (financialConfig) {
@@ -105,11 +111,17 @@ const Configurations: React.FC = () => {
       setInitialTableOpening(report.table_opening || 0);
       setInitialJumboOpening(report.jumbo_opening || 0);
       setInitialGradeCOpening(report.grade_c_opening || 0);
+      originalTableOpening.current = report.table_opening || 0;
+      originalJumboOpening.current = report.jumbo_opening || 0;
+      originalGradeCOpening.current = report.grade_c_opening || 0;
     } catch (error) {
       console.warn("No previous report found for Egg Room start date:", error);
       setInitialTableOpening(0);
       setInitialJumboOpening(0);
       setInitialGradeCOpening(0);
+      originalTableOpening.current = 0;
+      originalJumboOpening.current = 0;
+      originalGradeCOpening.current = 0;
     }
   };
 
@@ -121,78 +133,34 @@ const Configurations: React.FC = () => {
   const handleEggRoomInitialSetup = async () => {
     setEggRoomSaving(true);
     try {
-      await configApi.saveConfig('system_start_date', eggRoomStartDate);
-      toast.success(`Egg Room setup completed for ${eggRoomStartDate}.`);
       if (!eggRoomStartDate) {
         toast.error("Please select an Egg Room Start Date.");
         return;
       }
-      const startDate = new Date(eggRoomStartDate);
-      if (isNaN(startDate.getTime())) {
-        toast.error("Invalid Egg Room Start Date format.");
-        return;
-      }
-      const reportDate = format(startDate, 'yyyy-MM-dd');
-      
-      // Try to get existing report or create new one with opening values
-      try {
-        // await eggRoomReportApi.getReport(reportDate);
-        // Update existing report with opening values
-        await eggRoomReportApi.updateReport(reportDate, {
-          report_date: reportDate,
-          table_opening: initialTableOpening,
-          table_received: 0,
-          table_transfer: 0,
-          table_damage: 0,
-          table_out: 0,
-          table_in: 0,
-          table_closing: initialTableOpening,
-          grade_c_opening: initialGradeCOpening,
-          grade_c_shed_received: 0,
-          grade_c_room_received: 0,
-          grade_c_transfer: 0,
-          grade_c_labour: 0,
-          grade_c_waste: 0,
-          grade_c_closing: initialGradeCOpening,
-          jumbo_opening: initialJumboOpening,
-          jumbo_received: 0,
-          jumbo_transfer: 0,
-          jumbo_waste: 0,
-          jumbo_in: 0,
-          jumbo_out: 0,
-          jumbo_closing: initialJumboOpening,
-        });
-      } catch {
-        // Create new report if it doesn't exist
-        await eggRoomReportApi.createReport({
-          report_date: reportDate,
-          table_opening: initialTableOpening,
-          table_received: 0,
-          table_transfer: 0,
-          table_damage: 0,
-          table_out: 0,
-          table_in: 0,
-          table_closing: initialTableOpening,
-          grade_c_opening: initialGradeCOpening,
-          grade_c_shed_received: 0,
-          grade_c_room_received: 0,
-          grade_c_transfer: 0,
-          grade_c_labour: 0,
-          grade_c_waste: 0,
-          grade_c_closing: initialGradeCOpening,
-          jumbo_opening: initialJumboOpening,
-          jumbo_received: 0,
-          jumbo_transfer: 0,
-          jumbo_waste: 0,
-          jumbo_in: 0,
-          jumbo_out: 0,
-          jumbo_closing: initialJumboOpening,
-        });
+
+      let dateChanged = false;
+      if (eggRoomStartDate !== originalEggRoomStartDate.current) {
+        await configApi.saveConfig('system_start_date', eggRoomStartDate);
+        originalEggRoomStartDate.current = eggRoomStartDate;
+        dateChanged = true;
       }
       
-      
-    } catch (error) {
-      toast.error("Failed to set Egg Room initial configuration.");
+      if (dateChanged || initialTableOpening !== originalTableOpening.current) {
+        await configApi.saveConfig('table_opening', String(initialTableOpening));
+        originalTableOpening.current = initialTableOpening;
+      }
+      if (dateChanged || initialJumboOpening !== originalJumboOpening.current) {
+        await configApi.saveConfig('jumbo_opening', String(initialJumboOpening));
+        originalJumboOpening.current = initialJumboOpening;
+      }
+      if (dateChanged || initialGradeCOpening !== originalGradeCOpening.current) {
+        await configApi.saveConfig('grade_c_opening', String(initialGradeCOpening));
+        originalGradeCOpening.current = initialGradeCOpening;
+      }
+
+      toast.success(`Egg Room setup completed for ${eggRoomStartDate}.`);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to set Egg Room initial configuration.");
       console.error("Egg Room Setup Error:", error);
     } finally {
       setEggRoomSaving(false);

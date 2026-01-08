@@ -195,21 +195,26 @@ export const useEggRoomStock = () => {
 
     setLoading(true);
   try {
-    const apiEntry = calculateClosings(form);
-
-    // As per requirement, these fields are calculated in backend
-    delete (apiEntry as Partial<EggRoomStockEntry>).table_received;
-    delete (apiEntry as Partial<EggRoomStockEntry>).jumbo_received;
-    delete (apiEntry as Partial<EggRoomStockEntry>).grade_c_shed_received;
+    const payload = {
+      table_damage: form.table_damage,
+      table_out: form.table_out,
+      table_in: form.table_in,
+      jumbo_waste: form.jumbo_waste,
+      jumbo_out: form.jumbo_out,
+      jumbo_in: form.jumbo_in,
+      grade_c_labour: form.grade_c_labour,
+      grade_c_waste: form.grade_c_waste,
+      grade_c_room_received: form.grade_c_room_received,
+    };
 
     // Debug log to verify the date
-    console.log('Sending report for report_date:', apiEntry.report_date); // Use report_date
+    console.log('Sending report for report_date:', form.report_date); // Use report_date
 
-    await eggRoomReportApi.updateReport(apiEntry.report_date, apiEntry); // Use report_date
+    await eggRoomReportApi.updateReport(form.report_date, payload as any); // Use report_date
     toast.success('Report saved');
       
       // Refresh data
-      const updatedEntry = await eggRoomReportApi.getReport(apiEntry.report_date); // Use report_date
+      const updatedEntry = await eggRoomReportApi.getReport(form.report_date); // Use report_date
       if (updatedEntry) {
       setForm(fromApiEntry(updatedEntry));
       }

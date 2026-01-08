@@ -621,7 +621,7 @@ export const eggRoomReportApi = {
     }
     
     try {
-      const response = await api.put<EggRoomReportResponse>(
+      const response = await api.patch<EggRoomReportResponse>(
         `/egg-room-report/${encodeURIComponent(report_date)}`,
         reportData
       );

@@ -220,12 +220,10 @@ const DashboardIndex = () => {
                   <label className="form-label me-3 mb-0">Batch Date</label>
                   <CustomDatePicker
                     selected={batchDate ? new Date(batchDate) : null}
-                    maxDate={new Date()}
                     onChange={(date: Date | null) => date && setBatchDate(date.toISOString().split('T')[0])}
                     dateFormat="dd-MM-yyyy"
                     className="form-control"
                     placeholderText="Select a date"
-                    dropdownMode="select"
                     showMonthDropdown
                     showYearDropdown
                   />
