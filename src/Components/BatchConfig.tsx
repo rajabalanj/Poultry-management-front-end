@@ -30,34 +30,43 @@ const BatchConfig: React.FC<BatchConfigProps> = ({ batches, loading, error }) =>
       {batchSections.Layer.length > 0 && (
         <div className="mb-4">
           <h5 className="mb-3">Layer Batches</h5>
-          {batchSections.Layer.map(batch => (
-            <BatchCard
-              key={`Layer-${batch.id}`}
-              batch={batch}
-            />
-          ))}
+          <div className="row">
+            {batchSections.Layer.map(batch => (
+              <div className="col-md-4" key={`Layer-${batch.id}`}>
+                <BatchCard
+                  batch={batch}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       )}
       {batchSections.Grower.length > 0 && (
         <div className="mb-4">
           <h5 className="mb-3 text-primary">Grower Batches</h5>
-          {batchSections.Grower.map(batch => (
-            <BatchCard
-              key={`Grower-${batch.id}`}
-              batch={batch}
-            />
-          ))}
+          <div className="row">
+            {batchSections.Grower.map(batch => (
+              <div className="col-md-4" key={`Grower-${batch.id}`}>
+                <BatchCard
+                  batch={batch}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       )}
       {batchSections.Chick.length > 0 && (
         <div className="mb-4">
           <h5 className="mb-3 text-primary">Chick Batches</h5>
-          {batchSections.Chick.map(batch => (
-            <BatchCard
-              key={`Chick-${batch.id}`}
-              batch={batch}
-            />
-          ))}
+          <div className="row">
+            {batchSections.Chick.map(batch => (
+              <div className="col-md-4" key={`Chick-${batch.id}`}>
+                <BatchCard
+                  batch={batch}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

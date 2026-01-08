@@ -105,6 +105,7 @@ const TableRow = memo(({
           <button
             className="btn btn-sm btn-warning"
             onClick={() => handleEdit(row.batch_id, row.batch_date!)}
+            disabled={row.is_active === false}
           >Edit</button>
         </td>
       )}

@@ -53,6 +53,7 @@ export const fetchWeeklyLayerReport = async (batchId: string, week: string): Pro
     const { details, summary, week: responseWeek, age_range, hen_housing, cumulative_report } = response;
 
     const mapBatchToGridRow = (batch: any): GridRow => ({
+      is_active: batch.is_active,
       batch_id: batch.batch_id,
       shed_id: batch.shed_id,
       shed_no: batch.shed_no,
@@ -105,6 +106,7 @@ export const fetchBatchData = async (start_date: string, end_date: string, batch
   );
 
   const mapBatchToGridRow = (batch: any): GridRow => ({
+    is_active: batch.is_active,
     batch_id: batch.batch_id,
     shed_id: batch.shed_id,
     shed_no: batch.shed_no || '', // Fallback, will be populated in component

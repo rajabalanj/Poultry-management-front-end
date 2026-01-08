@@ -13,10 +13,16 @@ const BatchCard: React.FC<BatchCardProps> = React.memo(({ batch }) => {
     navigate(`/batch/${batch.id}/view-simple`);
   };
 
+  const cardStyle: React.CSSProperties = {
+    cursor: 'pointer',
+    borderRadius: '8px',
+    transition: 'transform 0.2s',
+  };
+
   return (
     <div
       className="card mb-3 shadow-sm"
-      style={{ cursor: 'pointer', borderRadius: '8px', transition: 'transform 0.2s' }}
+      style={cardStyle}
       onClick={handleCardClick}
       onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-3px)'}
       onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0px)'}
@@ -26,6 +32,7 @@ const BatchCard: React.FC<BatchCardProps> = React.memo(({ batch }) => {
           <div>
             <h6 className="mb-1">
               {batch.batch_no}
+              {batch.is_active === false && <span className="ms-2 badge bg-danger">Closed</span>}
             </h6>
             <div className="text-sm">
               <p className="mb-0">Shed: {batch.current_shed?.shed_no || batch.shed_no || 'No Shed'}</p>

@@ -100,9 +100,10 @@ const EditBatch: React.FC = () => {
       toast.success("Batch updated successfully");
       navigate(-1);
     } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to update batch";
       console.error("Error updating daily batch:", err);
-      setError("Failed to update batch");
-      toast.error("Failed to update batch");
+      setError(message);
+      toast.error(message);
     }
   };
 

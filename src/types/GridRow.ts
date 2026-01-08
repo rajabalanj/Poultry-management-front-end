@@ -1,4 +1,5 @@
 export interface GridRow {
+    is_active?: boolean;
     batch_id: number;
     shed_no: string;
     shed_id?: number;

@@ -88,7 +88,8 @@ const EditBatchSimple: React.FC = () => {
       toast.success('Batch updated successfully!');
       navigate(-1);
     } catch (error) {
-      toast.error('Failed to update batch. Please try again.');
+      const message = error instanceof Error ? error.message : 'Failed to update batch. Please try again.';
+      toast.error(message);
     } finally {
       setLoading(false);
     }

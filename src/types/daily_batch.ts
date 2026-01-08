@@ -1,4 +1,5 @@
 export interface DailyBatch {
+  is_active?: boolean;
   batch_id: number; // Foreign key to Batch
   shed_no: string;
   batch_no: string;

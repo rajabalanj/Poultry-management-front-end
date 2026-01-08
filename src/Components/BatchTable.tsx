@@ -41,11 +41,17 @@ const BatchCard: React.FC<{
     onView(batch.batch_id, batch.batch_date);
   };
 
+  const cardStyle: React.CSSProperties = {
+    cursor: 'pointer',
+    borderRadius: '8px',
+    transition: 'transform 0.2s',
+  };
+
   return (
     <div
       className="card mb-3 shadow-sm"
       onClick={handleCardClick}
-      style={{ cursor: 'pointer', borderRadius: '8px', transition: 'transform 0.2s' }}
+      style={cardStyle}
       onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-3px)'}
       onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0px)'}
     >
@@ -56,7 +62,8 @@ const BatchCard: React.FC<{
             <Birdhouse className="text-primary" size={24} />
           </div>
             <div>
-              <h5 className="mb-1">{batch.batch_no}</h5>
+              <h5 className="mb-1">{batch.batch_no}{batch.is_active === false && <span className="ms-2 badge bg-danger">Closed</span>}</h5>
+              <p className="text-muted mb-0">Shed: {batch.shed_no}</p>
               <p className="text-muted mb-0">Age: {batch.age} weeks</p>
             </div>
           </div>
@@ -184,40 +191,49 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
       {filteredBatches.Layer.length > 0 && (
         <div className="mb-4">
           <h5 className="mb-3">Layer Batches</h5>
-          {filteredBatches.Layer.map(batch => (
-            <BatchCard
-              key={`Layer-${batch.batch_id}-${batch.batch_date}`}
-              batch={batch}
-              onView={handleViewDetails}
-              henDayDeviation={henDayDeviation}
-            />
-          ))}
+          <div className="row">
+            {filteredBatches.Layer.map(batch => (
+              <div className="col-md-6" key={`Layer-${batch.batch_id}-${batch.batch_date}`}>
+                <BatchCard
+                  batch={batch}
+                  onView={handleViewDetails}
+                  henDayDeviation={henDayDeviation}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       )}
       {filteredBatches.Grower.length > 0 && (
         <div className="mb-4">
           <h5 className="mb-3">Grower Batches</h5>
-          {filteredBatches.Grower.map(batch => (
-            <BatchCard
-              key={`Grower-${batch.batch_id}-${batch.batch_date}`}
-              batch={batch}
-              onView={handleViewDetails}
-              henDayDeviation={henDayDeviation}
-            />
-          ))}
+          <div className="row">
+            {filteredBatches.Grower.map(batch => (
+              <div className="col-md-6" key={`Grower-${batch.batch_id}-${batch.batch_date}`}>
+                <BatchCard
+                  batch={batch}
+                  onView={handleViewDetails}
+                  henDayDeviation={henDayDeviation}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       )}
       {filteredBatches.Chick.length > 0 && (
         <div className="mb-4">
           <h5 className="mb-3">Chick Batches</h5>
-          {filteredBatches.Chick.map(batch => (
-            <BatchCard
-              key={`Chick-${batch.batch_id}-${batch.batch_date}`}
-              batch={batch}
-              onView={handleViewDetails}
-              henDayDeviation={henDayDeviation}
-            />
-          ))}
+          <div className="row">
+            {filteredBatches.Chick.map(batch => (
+              <div className="col-md-6" key={`Chick-${batch.batch_id}-${batch.batch_date}`}>
+                <BatchCard
+                  batch={batch}
+                  onView={handleViewDetails}
+                  henDayDeviation={henDayDeviation}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

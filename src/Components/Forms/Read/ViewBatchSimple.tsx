@@ -111,6 +111,7 @@ const ViewBatchSimple: React.FC = () => {
               type="button"
               className="btn btn-primary me-2"
               onClick={() => navigate(`/batch/${batchId}/edit-simple`)}
+              disabled={batch?.is_active === false}
             >
               Edit
             </button>
@@ -118,6 +119,7 @@ const ViewBatchSimple: React.FC = () => {
               type="button"
               className="btn btn-danger me-2"
               onClick={() => setShowCloseModal(true)}
+              disabled={batch?.is_active === false}
             >
               Close
             </button>

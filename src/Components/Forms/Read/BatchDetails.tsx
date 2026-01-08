@@ -337,7 +337,7 @@ const BatchDetails: React.FC = () => {
                       </div>
                     </div>
                     <div className="mt-4 d-flex justify-content-start">
-                      <button type="button" className="btn btn-primary me-2" onClick={() => navigate(`/batch/${batch_id}/${batch_date}/edit`)}>
+                      <button type="button" className="btn btn-primary me-2" onClick={() => navigate(`/batch/${batch_id}/${batch_date}/edit`)} disabled={batch.is_active === false}>
                         Update
                       </button>
                       <button type="button" className="btn btn-info me-2" onClick={() => navigate(`/batch/${batch_id}/move-shed`)}>
