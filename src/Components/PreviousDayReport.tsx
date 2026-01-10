@@ -77,6 +77,7 @@ const TableRow = memo(({
 
   return (
     <tr key={rowKey}>
+      {!batchIdFromUrl && <td>{row.batch_no}</td>}
       {batchIdFromUrl && <td>{row.batch_date}</td>}
       <td>{row.shed_no}</td>
       <td>{!batchIdFromUrl ? row.highest_age : row.age}</td>
@@ -519,19 +520,39 @@ const PreviousDayReport = () => {
               Export to Excel
             </button>
           </div>
-          <div>
+          <div className="d-flex flex-wrap gap-3 mt-2">
             {weekData ? (
               <>
-                <span className="me-3">Week: {weekData}</span>
-                <span className="me-3">Age Range: {ageRange}</span>
-                <span className="me-3">Hen Housing: {henHousing}</span>
-                <span>Batch No: {batchNo}</span>
+                <div className="px-3 py-2 bg-white border rounded shadow-sm border-start border-4 border-primary">
+                  <span className="text-muted small text-uppercase d-block">Week</span>
+                  <span className="fw-bold fs-5 text-dark">{weekData}</span>
+                </div>
+                <div className="px-3 py-2 bg-white border rounded shadow-sm border-start border-4 border-success">
+                  <span className="text-muted small text-uppercase d-block">Age Range</span>
+                  <span className="fw-bold fs-5 text-dark">{ageRange}</span>
+                </div>
+                <div className="px-3 py-2 bg-white border rounded shadow-sm border-start border-4 border-info">
+                  <span className="text-muted small text-uppercase d-block">Hen Housing</span>
+                  <span className="fw-bold fs-5 text-dark">{henHousing}</span>
+                </div>
+                <div className="px-3 py-2 bg-white border rounded shadow-sm border-start border-4 border-secondary">
+                  <span className="text-muted small text-uppercase d-block">Batch No</span>
+                  <span className="fw-bold fs-5 text-dark">{batchNo}</span>
+                </div>
               </>
             ) : (
-              <div>
-                <span className="d-block d-sm-inline-block me-3">Date Range: {formatDateForDisplay(startDate)} to {formatDateForDisplay(endDate)}</span>
-                {batchNo && <span className="d-block d-sm-inline-block">Batch No: {batchNo}</span>}
-              </div>
+              <>
+                <div className="px-3 py-2 bg-white border rounded shadow-sm border-start border-4 border-primary">
+                  <span className="text-muted small text-uppercase d-block">Date Range</span>
+                  <span className="fw-bold fs-6 text-dark">{formatDateForDisplay(startDate)} <span className="text-muted mx-1">to</span> {formatDateForDisplay(endDate)}</span>
+                </div>
+                {batchNo && (
+                  <div className="px-3 py-2 bg-white border rounded shadow-sm border-start border-4 border-secondary">
+                    <span className="text-muted small text-uppercase d-block">Batch No</span>
+                    <span className="fw-bold fs-5 text-dark">{batchNo}</span>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -543,6 +564,7 @@ const PreviousDayReport = () => {
           <table id="report-table" className="table table-bordered">
             <thead>
               <tr>
+                {!effectiveBatchId && <th>Batch No</th>}
                 {effectiveBatchId && <th>Batch Date</th>}
                 <th>Shed No</th>
                 <th>{!effectiveBatchId ? "Highest Age" : "Age"}</th>

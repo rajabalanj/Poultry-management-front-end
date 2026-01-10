@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 import { ledgerApi, businessPartnerApi } from '../../services/api';
 import { PurchaseLedger } from '../../types/ledgers';
 import Loading from '../Common/Loading';
@@ -14,6 +15,7 @@ const PurchaseLedgerComponent: React.FC = () => {
     const [ledgerData, setLedgerData] = useState<PurchaseLedger | null>(null);
     const [loading, setLoading] = useState(false);
     const [vendors, setVendors] = useState<BusinessPartner[]>([]);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchVendors = async () => {
@@ -42,6 +44,10 @@ const PurchaseLedgerComponent: React.FC = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleRowClick = (entry: PurchaseLedger['entries'][0]) => {
+        navigate(`/purchase-orders/${(entry as any).po_id}/details`);
     };
 
     const vendorOptions: OptionType[] = vendors.map((vendor) => ({
@@ -75,7 +81,7 @@ const PurchaseLedgerComponent: React.FC = () => {
                     <h5 className="mb-3">{ledgerData.title}</h5>
                     <p className="text-muted">Vendor ID: {ledgerData.vendor_id}</p>
                     <div className="table-responsive">
-                        <table className="table table-striped">
+                        <table className="table table-striped table-hover">
                             <thead>
                                 <tr>
                                     <th>Date</th>
@@ -90,7 +96,7 @@ const PurchaseLedgerComponent: React.FC = () => {
                             </thead>
                             <tbody>
                                 {ledgerData.entries.map((entry, index) => (
-                                    <tr key={index}>
+                                    <tr key={index} onClick={() => handleRowClick(entry)} style={{ cursor: 'pointer' }}>
                                         <td>{entry.date}</td>
                                         <td>{entry.vendor_name}</td>
                                         <td>{entry.invoice_number}</td>

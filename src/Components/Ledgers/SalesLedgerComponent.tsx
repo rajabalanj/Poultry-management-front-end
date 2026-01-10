@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 import { ledgerApi, businessPartnerApi } from '../../services/api';
 import { SalesLedger } from '../../types/ledgers';
 import Loading from '../Common/Loading';
@@ -14,6 +15,7 @@ const SalesLedgerComponent: React.FC = () => {
     const [ledgerData, setLedgerData] = useState<SalesLedger | null>(null);
     const [loading, setLoading] = useState(false);
     const [customers, setCustomers] = useState<BusinessPartner[]>([]);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchCustomers = async () => {
@@ -42,6 +44,10 @@ const SalesLedgerComponent: React.FC = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleRowClick = (entry: SalesLedger['entries'][0]) => {
+        navigate(`/sales-orders/${(entry as any).so_id}/details`);
     };
 
     const customerOptions: OptionType[] = customers.map((customer) => ({
@@ -75,7 +81,7 @@ const SalesLedgerComponent: React.FC = () => {
                     <h5 className="mb-3">{ledgerData.title}</h5>
                     <p className="text-muted">Customer ID: {ledgerData.customer_id}</p>
                     <div className="table-responsive">
-                        <table className="table table-striped">
+                        <table className="table table-striped table-hover">
                             <thead>
                                 <tr>
                                     <th>Date</th>
@@ -90,7 +96,7 @@ const SalesLedgerComponent: React.FC = () => {
                             </thead>
                             <tbody>
                                 {ledgerData.entries.map((entry, index) => (
-                                    <tr key={index}>
+                                    <tr key={index} onClick={() => handleRowClick(entry)} style={{ cursor: 'pointer' }}>
                                         <td>{entry.date}</td>
                                         <td>{entry.customer_name}</td>
                                         <td>{entry.invoice_number}</td>
