@@ -59,8 +59,8 @@ const SalesOrderCard: React.FC<SalesOrderCardProps> = React.memo(
                   <h6 className="mb-1">Sales: {so.so_number}</h6>
                   <div className="text-sm">
                     <p className="mb-0">Customer: {customerName}</p>
-                    <p className="mb-0">Total Amount: Rs. {(so.total_amount || 0).toFixed(2)}</p>
-                    <p className="mb-0">Amount Received: Rs. {(so.total_amount_paid || 0).toFixed(2)}</p>
+                    <p className="mb-0">Total Amount: {so.total_amount_str}</p>
+                    <p className="mb-0">Amount Received: {so.total_amount_paid_str}</p>
                     <p className="mb-0">Status: <span className={`badge ${getStatusBadgeClass(so.status)}`}>{so.status}</span></p>
                   </div>
                 </div>

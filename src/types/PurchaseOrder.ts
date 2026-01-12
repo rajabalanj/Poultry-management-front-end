@@ -14,18 +14,6 @@ export enum PaymentStatus {
     FULLY_PAID = "Fully Paid",
 }
 
-export interface PaymentResponse {
-    id: number;
-    purchase_order_id: number;
-    amount_paid: number;
-    payment_date: string; // ISO string
-    payment_mode: string; // e.g., "Cash", "Bank Transfer"
-    reference_number?: string;
-    created_at: string;
-    updated_at?: string;
-}
-
-
 export interface PurchaseOrderBase {
   vendor_id: number;
   order_date: string; // ADD THIS FIELD - Date string (YYYY-MM-DD)
@@ -60,6 +48,10 @@ export interface PurchaseOrderResponse extends PurchaseOrderBase {
   vendor?: VendorResponse;
   items?: PurchaseOrderItemResponse[];
   payments?: PaymentResponse[];
+  total_amount_str?: string;
+  total_amount_words?: string;
+  total_amount_paid_str?: string;
+  total_amount_paid_words?: string;
 }
 
 export interface PaymentBase {
@@ -87,4 +79,7 @@ export interface PaymentResponse extends PaymentBase {
     payment_receipt?: string; // File path
     created_at: string;
     updated_at?: string;
+    tenant_id?: string;
+    amount_paid_str?: string;
+    amount_paid_words?: string;
 }

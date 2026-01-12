@@ -212,10 +212,12 @@ const SalesOrderDetails: React.FC = () => {
                 <strong>Status:</strong> <span className={`badge ${getStatusBadgeClass(salesOrder.status)}`}>{salesOrder.status}</span>
               </div>
               <div className="col-md-6">
-                <strong>Total Amount:</strong> Rs. {(Number(salesOrder.total_amount) || 0).toFixed(2)}
+                <strong>Total Amount:</strong> {salesOrder.total_amount_str}
+                <div className="text-muted" style={{fontSize: '0.8rem'}}>{salesOrder.total_amount_words}</div>
               </div>
               <div className="col-md-6">
-                <strong>Amount Received:</strong> Rs. {(Number(salesOrder.total_amount_paid) || 0).toFixed(2)}
+                <strong>Amount Received:</strong> {salesOrder.total_amount_paid_str}
+                <div className="text-muted" style={{fontSize: '0.8rem'}}>{salesOrder.total_amount_paid_words}</div>
               </div>
               <div className="col-12">
                 <strong>Notes:</strong> {salesOrder.notes || 'N/A'}
@@ -261,15 +263,15 @@ const SalesOrderDetails: React.FC = () => {
                         <td>{item.variant_name || 'N/A'}</td>
                         <td>{item.quantity}</td>
                         <td>{getItemUnit(item.inventory_item_id)}</td>
-                        <td>{(Number(item.price_per_unit) || 0).toFixed(2)}</td>
-                        <td>{(Number(item.line_total) || 0).toFixed(2)}</td>
+                        <td>{item.price_per_unit_str}</td>
+                        <td>{item.line_total_str}</td>
                       </tr>
                     ))}
                   </tbody>
                   <tfoot>
                     <tr>
                       <td colSpan={6} className="text-end fw-bold">Total Sales Value:</td>
-                      <td className="fw-bold">Rs. {(Number(salesOrder.total_amount) || 0).toFixed(2)}</td>
+                      <td className="fw-bold">{salesOrder.total_amount_str}</td>
                     </tr>
                   </tfoot>
                 </table>
@@ -304,7 +306,7 @@ const SalesOrderDetails: React.FC = () => {
                     {salesOrder.payments.map((payment, index) => (
                       <tr key={payment.id || index}>
                         <td>{index + 1}</td>
-                        <td>{(Number(payment.amount_paid) || 0).toFixed(2)}</td>
+                        <td>{payment.amount_paid_str}</td>
                         <td>{format(new Date(payment.payment_date), 'MMM dd, yyyy')}</td>
                         <td>{payment.payment_mode || 'N/A'}</td>
                         <td>{payment.reference_number || 'N/A'}</td>
@@ -337,7 +339,7 @@ const SalesOrderDetails: React.FC = () => {
                   <tfoot>
                     <tr>
                       <td colSpan={1} className="text-end fw-bold">Total Received:</td>
-                      <td className="fw-bold">Rs. {(Number(salesOrder.total_amount_paid) || 0).toFixed(2)}</td>
+                      <td className="fw-bold">{salesOrder.total_amount_paid_str}</td>
                       <td colSpan={5}></td>
                     </tr>
                   </tfoot>

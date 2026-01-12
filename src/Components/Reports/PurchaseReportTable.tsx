@@ -149,8 +149,8 @@ const PurchaseReportTable: React.FC<PurchaseReportTableProps> = ({ purchaseOrder
                     <td>{po.po_number}</td>
                     <td>{vendorName}</td>
                     <td>{new Date(po.order_date).toLocaleDateString()}</td>
-                    <td>{po.total_amount.toFixed(2)}</td>
-                    <td>{po.total_amount_paid.toFixed(2)}</td>
+                    <td>{po.total_amount_str}</td>
+                    <td>{po.total_amount_paid_str}</td>
                     <td><span className={`badge ${
                   po.status === 'Draft' ? 'bg-warning' :
                   po.status === 'Partially Paid' ? 'bg-info' :
@@ -188,8 +188,8 @@ const PurchaseReportTable: React.FC<PurchaseReportTableProps> = ({ purchaseOrder
                                 <tr key={it.id}>
                                   <td>{getItemName(it.inventory_item_id)}</td>
                                   <td>{it.quantity}</td>
-                                  <td>{it.price_per_unit?.toFixed ? it.price_per_unit.toFixed(2) : Number(it.price_per_unit).toFixed(2)}</td>
-                                  <td>{it.line_total?.toFixed ? it.line_total.toFixed(2) : Number(it.line_total || (it.quantity * it.price_per_unit)).toFixed(2)}</td>
+                                  <td>{it.price_per_unit_str}</td>
+                                  <td>{it.line_total_str}</td>
                                 </tr>
                               )) : (
                                 <tr>

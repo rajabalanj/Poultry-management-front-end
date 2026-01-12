@@ -55,6 +55,10 @@ export interface SalesOrderResponse extends SalesOrderBase {
   customer?: CustomerResponse;
   items?: SalesOrderItemResponse[];
   payments?: PaymentResponse[];
+  total_amount_str?: string;
+  total_amount_words?: string;
+  total_amount_paid_str?: string;
+  total_amount_paid_words?: string;
 }
 
 export interface PaymentBase {
@@ -82,4 +86,7 @@ export interface PaymentResponse extends PaymentBase {
     payment_receipt?: string; // File path
     created_at: string;
     updated_at?: string;
+    tenant_id?: string;
+    amount_paid_str?: string;
+    amount_paid_words?: string;
 }

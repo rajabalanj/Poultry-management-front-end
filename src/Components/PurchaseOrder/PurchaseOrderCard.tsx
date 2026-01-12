@@ -59,8 +59,8 @@ const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = React.memo(
               <h6 className="mb-1">Purchase: {Purchase.po_number}</h6>
               <div className="text-sm">
                 <p className="mb-0">Vendor: {vendorName}</p>
-                <p className="mb-0">Total Amount: Rs. {(Purchase.total_amount || 0).toFixed(2)}</p>
-                <p className="mb-0">Amount Paid: Rs. {(Purchase.total_amount_paid || 0).toFixed(2)}</p>
+                <p className="mb-0">Total Amount: {Purchase.total_amount_str}</p>
+                <p className="mb-0">Amount Paid: {Purchase.total_amount_paid_str}</p>
                 <p className="mb-0">Status: <span className={`badge ${getStatusBadgeClass(Purchase.status)}`}>{Purchase.status}</span></p>
               </div>
             </div>

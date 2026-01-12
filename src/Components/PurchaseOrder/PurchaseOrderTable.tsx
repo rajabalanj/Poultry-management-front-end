@@ -214,8 +214,8 @@ const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders,
                     <td>{po.po_number}</td>
                     <td>{vendorName}</td>
                     <td>{new Date(po.order_date).toLocaleDateString()}</td>
-                    <td>{po.total_amount.toFixed(2)}</td>
-                    <td>{po.total_amount_paid.toFixed(2)}</td>
+                    <td>{po.total_amount_str}</td>
+                    <td>{po.total_amount_paid_str}</td>
                     <td><span className={`badge ${
                   po.status === 'Draft' ? 'bg-warning' :
                   po.status === 'Partially Paid' ? 'bg-info' :

@@ -23,6 +23,12 @@ export interface SalesOrderItemResponse extends SalesOrderItemBase {
   id: number;
   sales_order_id: number;
   line_total: number;
+  price_per_unit_str?: string;
+  price_per_unit_words?: string;
+  line_total_str?: string;
+  line_total_words?: string;
+  total_amount_str?: string;
+  total_amount_words?: string;
   // Optionally include the full item details if the backend relationship is loaded
   inventory_item?: InventoryItemResponse; // The nested inventory item object
 }

@@ -149,8 +149,8 @@ const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, custom
                     <td>{so.so_number}</td>
                     <td>{customerName}</td>
                     <td>{new Date(so.order_date).toLocaleDateString()}</td>
-                    <td>{so.total_amount.toFixed(2)}</td>
-                    <td>{so.total_amount_paid.toFixed(2)}</td>
+                    <td>{so.total_amount_str}</td>
+                    <td>{so.total_amount_paid_str}</td>
                     <td><span className={`badge ${
                   so.status === 'Draft' ? 'bg-warning' :
                   so.status === 'Approved' ? 'bg-primary' :
@@ -191,8 +191,8 @@ const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, custom
                                 <tr key={it.id}>
                                   <td>{getItemName(it.inventory_item_id)}</td>
                                   <td>{it.quantity}</td>
-                                  <td>{it.price_per_unit?.toFixed ? it.price_per_unit.toFixed(2) : Number(it.price_per_unit).toFixed(2)}</td>
-                                  <td>{it.line_total?.toFixed ? it.line_total.toFixed(2) : Number(it.line_total || (it.quantity * it.price_per_unit)).toFixed(2)}</td>
+                                  <td>{it.price_per_unit_str}</td>
+                                  <td>{it.line_total_str}</td>
                                 </tr>
                               )) : (
                                 <tr>
