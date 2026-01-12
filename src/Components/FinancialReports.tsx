@@ -1,4 +1,4 @@
- import React, { useState } from 'react';
+ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { Modal, Button } from 'react-bootstrap';
 import PageHeader from './Layout/PageHeader';
@@ -29,16 +29,30 @@ const getReportLabel = (value: ReportType): string => {
 
 const FinancialReports: React.FC = () => {
   const today = new Date().toISOString().slice(0, 10);
-  const [activeTab, setActiveTab] = useState<ReportType>('pnl');
+  const [activeTab, setActiveTab] = useState<ReportType>(() => {
+    return (sessionStorage.getItem('financial_active_tab') as ReportType) || 'pnl';
+  });
+
+  useEffect(() => {
+    sessionStorage.setItem('financial_active_tab', activeTab);
+  }, [activeTab]);
 
   // P&L State
-  const [pnlStartDate, setPnlStartDate] = useState(today);
-  const [pnlEndDate, setPnlEndDate] = useState(today);
+  const [pnlStartDate, setPnlStartDate] = useState(() => sessionStorage.getItem('financial_pnl_start') || today);
+  const [pnlEndDate, setPnlEndDate] = useState(() => sessionStorage.getItem('financial_pnl_end') || today);
   const [pnlData, setPnlData] = useState<ProfitAndLoss | null>(null);
   const [pnlLoading, setPnlLoading] = useState(false);
 
+  useEffect(() => {
+    sessionStorage.setItem('financial_pnl_start', pnlStartDate);
+    sessionStorage.setItem('financial_pnl_end', pnlEndDate);
+  }, [pnlStartDate, pnlEndDate]);
+
   // Balance Sheet State
-  const [bsAsOfDate, setBsAsOfDate] = useState(today);
+  const [bsAsOfDate, setBsAsOfDate] = useState(() => sessionStorage.getItem('financial_bs_date') || today);
+  useEffect(() => {
+    sessionStorage.setItem('financial_bs_date', bsAsOfDate);
+  }, [bsAsOfDate]);
   const [bsData, setBsData] = useState<BalanceSheet | null>(null);
   const [bsLoading, setBsLoading] = useState(false);
 
@@ -58,6 +72,7 @@ const FinancialReports: React.FC = () => {
     try {
       const data = await financialReportsApi.getProfitAndLoss(pnlStartDate, pnlEndDate);
       setPnlData(data);
+      sessionStorage.setItem('financial_pnl_loaded', 'true');
     } catch (error: any) {
       toast.error(error.message || 'Failed to fetch Profit & Loss report.');
     } finally {
@@ -71,12 +86,22 @@ const FinancialReports: React.FC = () => {
     try {
       const data = await financialReportsApi.getBalanceSheet(bsAsOfDate);
       setBsData(data);
+      sessionStorage.setItem('financial_bs_loaded', 'true');
     } catch (error: any) {
       toast.error(error.message || 'Failed to fetch Balance Sheet report.');
     } finally {
       setBsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (activeTab === 'pnl' && sessionStorage.getItem('financial_pnl_loaded') === 'true' && !pnlData) {
+      handleFetchPnl();
+    } else if (activeTab === 'balance-sheet' && sessionStorage.getItem('financial_bs_loaded') === 'true' && !bsData) {
+      handleFetchBs();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
 
   const handleShowOpExDetails = async () => {
     setShowOpExModal(true);

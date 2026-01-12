@@ -12,9 +12,9 @@ type OptionType = { value: string; label: string };
 
 const InventoryLedgerComponent: React.FC = () => {
     const today = new Date().toISOString().slice(0, 10);
-    const [itemId, setItemId] = useState('');
-    const [startDate, setStartDate] = useState(today);
-    const [endDate, setEndDate] = useState(today);
+    const [itemId, setItemId] = useState(() => sessionStorage.getItem('il_item_id') || '');
+    const [startDate, setStartDate] = useState(() => sessionStorage.getItem('il_start_date') || today);
+    const [endDate, setEndDate] = useState(() => sessionStorage.getItem('il_end_date') || today);
     const [ledgerData, setLedgerData] = useState<InventoryLedger | null>(null);
     const [loading, setLoading] = useState(false);
     const [inventoryItems, setInventoryItems] = useState<InventoryItemResponse[]>([]);
@@ -31,6 +31,19 @@ const InventoryLedgerComponent: React.FC = () => {
         fetchItems();
     }, []);
 
+    useEffect(() => {
+        sessionStorage.setItem('il_item_id', itemId);
+        sessionStorage.setItem('il_start_date', startDate);
+        sessionStorage.setItem('il_end_date', endDate);
+    }, [itemId, startDate, endDate]);
+
+    useEffect(() => {
+        if (sessionStorage.getItem('il_loaded') === 'true' && itemId) {
+            handleFetchLedger();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const handleFetchLedger = async () => {
         if (!itemId) {
             toast.error('Please enter an Item ID.');
@@ -45,6 +58,7 @@ const InventoryLedgerComponent: React.FC = () => {
         try {
             const data = await ledgerApi.getInventoryLedger(parseInt(itemId, 10), startDate, endDate);
             setLedgerData(data);
+            sessionStorage.setItem('il_loaded', 'true');
         } catch (error: any) {
             toast.error(error.message || 'Failed to fetch Inventory Ledger.');
         } finally {

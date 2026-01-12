@@ -92,9 +92,9 @@ export const fetchWeeklyLayerReport = async (batchId: string, week: string): Pro
     }
 
     return { details: mappedDetails, summary: summary as DailyBatch | null, week: responseWeek, age_range, hen_housing, cumulative_report: normalizedCumulative };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching data:', error);
-    throw new Error('Failed to fetch data');
+    throw new Error(error.message || 'Failed to fetch data');
   }
 };
 

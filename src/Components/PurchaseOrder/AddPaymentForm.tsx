@@ -133,7 +133,6 @@ const AddPaymentForm: React.FC = () => {
         title={`Add Payment for Purchase: ${purchaseOrder.po_number}`}
         buttonVariant="secondary"
         buttonLabel="Back to Purchase Details"
-        buttonLink={`/purchase-orders/${po_id}/details`}
         buttonIcon="bi-arrow-left"
       />
       <div className="container mt-4">

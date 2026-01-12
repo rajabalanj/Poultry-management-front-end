@@ -159,6 +159,9 @@ const PreviousDayReport = () => {
   const [batches, setBatches] = useState<BatchResponse[]>([]);
   const [sheds, setSheds] = useState<ShedResponse[]>([]);
   
+  const selectedBatch = batchNo ? batches.find(b => b.batch_no.toLowerCase() === batchNo.toLowerCase().trim()) : null;
+  const isBatchClosed = selectedBatch ? selectedBatch.is_active === false : false;
+  
   const rowsPerPage = 10;
   const validGridData = gridData.filter(row => row && Object.keys(row).length > 0);
   const totalPages = validGridData.length > 0 ? Math.ceil(validGridData.length / rowsPerPage) : 0;
@@ -537,7 +540,10 @@ const PreviousDayReport = () => {
                 </div>
                 <div className="px-3 py-2 bg-white border rounded shadow-sm border-start border-4 border-secondary">
                   <span className="text-muted small text-uppercase d-block">Batch No</span>
-                  <span className="fw-bold fs-5 text-dark">{batchNo}</span>
+                  <span className="fw-bold fs-5 text-dark">
+                    {batchNo}
+                    {isBatchClosed && <span className="ms-2 badge bg-danger">Closed</span>}
+                  </span>
                 </div>
               </>
             ) : (
@@ -549,7 +555,10 @@ const PreviousDayReport = () => {
                 {batchNo && (
                   <div className="px-3 py-2 bg-white border rounded shadow-sm border-start border-4 border-secondary">
                     <span className="text-muted small text-uppercase d-block">Batch No</span>
-                    <span className="fw-bold fs-5 text-dark">{batchNo}</span>
+                    <span className="fw-bold fs-5 text-dark">
+                      {batchNo}
+                      {isBatchClosed && <span className="ms-2 badge bg-danger">Closed</span>}
+                    </span>
                   </div>
                 )}
               </>

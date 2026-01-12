@@ -11,7 +11,7 @@ import StyledSelect from '../Common/StyledSelect';
 type OptionType = { value: string; label: string };
 
 const SalesLedgerComponent: React.FC = () => {
-    const [customerId, setCustomerId] = useState('');
+    const [customerId, setCustomerId] = useState(() => sessionStorage.getItem('sl_customer_id') || '');
     const [ledgerData, setLedgerData] = useState<SalesLedger | null>(null);
     const [loading, setLoading] = useState(false);
     const [customers, setCustomers] = useState<BusinessPartner[]>([]);
@@ -29,6 +29,17 @@ const SalesLedgerComponent: React.FC = () => {
         fetchCustomers();
     }, []);
 
+    useEffect(() => {
+        sessionStorage.setItem('sl_customer_id', customerId);
+    }, [customerId]);
+
+    useEffect(() => {
+        if (sessionStorage.getItem('sl_loaded') === 'true' && customerId) {
+            handleFetchLedger();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const handleFetchLedger = async () => {
         if (!customerId) {
             toast.error('Please enter a Customer ID.');
@@ -39,6 +50,7 @@ const SalesLedgerComponent: React.FC = () => {
         try {
             const data = await ledgerApi.getSalesLedger(parseInt(customerId, 10));
             setLedgerData(data);
+            sessionStorage.setItem('sl_loaded', 'true');
         } catch (error: any) {
             toast.error(error.message || 'Failed to fetch Sales Ledger.');
         } finally {

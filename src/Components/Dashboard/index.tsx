@@ -154,12 +154,14 @@ const DashboardIndex = () => {
     sessionStorage.setItem(BATCH_DATE_KEY, batchDate);
   }, [batchDate]);
 
+  const processedBatches = batches.map(batch => ({
+    ...batch,
+    shed_no: sheds.find(s => s.id === batch.shed_id)?.shed_no || batch.shed_no
+  }));
+
   const filteredBatches = selectedShedNo
-    ? batches.filter(b => {
-        const selectedShed = sheds.find(s => s.shed_no === selectedShedNo);
-        return selectedShed && b.shed_id === selectedShed.id;
-      })
-    : batches;
+    ? processedBatches.filter(b => b.shed_no === selectedShedNo)
+    : processedBatches;
 
   const totalBirds = filteredBatches.reduce((sum, b) => sum + (b.closing_count || 0), 0);
   const totalEggs = filteredBatches.reduce((sum, b) => sum + ((b.table_eggs || 0) + (b.jumbo || 0) + (b.cr || 0)), 0);

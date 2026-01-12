@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { ledgerApi } from '../../services/api';
@@ -10,9 +10,9 @@ import StyledSelect from '../Common/StyledSelect';
 
 const GeneralLedgerComponent: React.FC = () => {
     const today = new Date().toISOString().slice(0, 10);
-    const [startDate, setStartDate] = useState(today);
-    const [endDate, setEndDate] = useState(today);
-    const [transactionType, setTransactionType] = useState('');
+    const [startDate, setStartDate] = useState(() => sessionStorage.getItem('gl_start_date') || today);
+    const [endDate, setEndDate] = useState(() => sessionStorage.getItem('gl_end_date') || today);
+    const [transactionType, setTransactionType] = useState(() => sessionStorage.getItem('gl_transaction_type') || '');
     const [ledgerData, setLedgerData] = useState<GeneralLedger | null>(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
@@ -34,6 +34,19 @@ const GeneralLedgerComponent: React.FC = () => {
         }
     };
 
+    useEffect(() => {
+        sessionStorage.setItem('gl_start_date', startDate);
+        sessionStorage.setItem('gl_end_date', endDate);
+        sessionStorage.setItem('gl_transaction_type', transactionType);
+    }, [startDate, endDate, transactionType]);
+
+    useEffect(() => {
+        if (sessionStorage.getItem('gl_loaded') === 'true') {
+            handleFetchLedger();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const handleFetchLedger = async () => {
         if (new Date(startDate) > new Date(endDate)) {
             toast.error('Start date cannot be after end date.');
@@ -44,6 +57,7 @@ const GeneralLedgerComponent: React.FC = () => {
         try {
             const data = await ledgerApi.getGeneralLedger(startDate, endDate, transactionType);
             setLedgerData(data);
+            sessionStorage.setItem('gl_loaded', 'true');
         } catch (error: any) {
             toast.error(error.message || 'Failed to fetch General Ledger.');
         } finally {

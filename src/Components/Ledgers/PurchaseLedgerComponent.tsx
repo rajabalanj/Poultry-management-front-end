@@ -11,7 +11,7 @@ import StyledSelect from '../Common/StyledSelect';
 type OptionType = { value: string; label: string };
 
 const PurchaseLedgerComponent: React.FC = () => {
-    const [vendorId, setVendorId] = useState('');
+    const [vendorId, setVendorId] = useState(() => sessionStorage.getItem('pl_vendor_id') || '');
     const [ledgerData, setLedgerData] = useState<PurchaseLedger | null>(null);
     const [loading, setLoading] = useState(false);
     const [vendors, setVendors] = useState<BusinessPartner[]>([]);
@@ -29,6 +29,17 @@ const PurchaseLedgerComponent: React.FC = () => {
         fetchVendors();
     }, []);
 
+    useEffect(() => {
+        sessionStorage.setItem('pl_vendor_id', vendorId);
+    }, [vendorId]);
+
+    useEffect(() => {
+        if (sessionStorage.getItem('pl_loaded') === 'true' && vendorId) {
+            handleFetchLedger();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const handleFetchLedger = async () => {
         if (!vendorId) {
             toast.error('Please enter a Vendor ID.');
@@ -39,6 +50,7 @@ const PurchaseLedgerComponent: React.FC = () => {
         try {
             const data = await ledgerApi.getPurchaseLedger(parseInt(vendorId, 10));
             setLedgerData(data);
+            sessionStorage.setItem('pl_loaded', 'true');
         } catch (error: any) {
             toast.error(error.message || 'Failed to fetch Purchase Ledger.');
         } finally {

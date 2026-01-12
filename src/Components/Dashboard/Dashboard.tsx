@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import PageHeader from '../Layout/PageHeader';
 import { dailyBatchApi, compositionApi, reportsApi } from '../../services/api';
 import { DailyBatch } from '../../types/daily_batch';
@@ -102,10 +102,10 @@ const Dashboard: React.FC = () => {
           const apiData = await reportsApi.getMonthlyEggProduction(startDate, endDate);
           const getMonthsInRange = (start: Date, end: Date) => {
             const months = [];
-            let current = new Date(start.getFullYear(), start.getMonth(), 1);
+            let current = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 1));
             while (current <= end) {
               months.push(current.toISOString().slice(0, 7)); // "YYYY-MM"
-              current.setMonth(current.getMonth() + 1);
+              current.setUTCMonth(current.getUTCMonth() + 1);
             }
             return months;
           };
@@ -160,10 +160,13 @@ const Dashboard: React.FC = () => {
     }, [startDate, endDate]);
 
 
-  const totalBirds = batches.reduce((sum, b) => sum + (b.closing_count || 0), 0);
-  const totalEggs = batches.reduce((sum, b) => sum + ((b.table_eggs || 0) + (b.jumbo || 0) + (b.cr || 0)), 0);
-  const layerBatches = batches.filter(b => b.batch_type === 'Layer');
-  const avgHD = layerBatches.length > 0 ? Number(((layerBatches.reduce((sum, b) => sum + (b.hd || 0), 0) / layerBatches.length) * 100).toFixed(2)) : 0;
+  const { totalBirds, totalEggs, avgHD } = useMemo(() => {
+    const totalBirds = batches.reduce((sum, b) => sum + (b.closing_count || 0), 0);
+    const totalEggs = batches.reduce((sum, b) => sum + ((b.table_eggs || 0) + (b.jumbo || 0) + (b.cr || 0)), 0);
+    const layerBatches = batches.filter(b => b.batch_type === 'Layer');
+    const avgHD = layerBatches.length > 0 ? Number(((layerBatches.reduce((sum, b) => sum + (b.hd || 0), 0) / layerBatches.length) * 100).toFixed(2)) : 0;
+    return { totalBirds, totalEggs, avgHD };
+  }, [batches]);
 
   const dashboardStats = [
     { title: "Total Birds", value: totalBirds, unit: '', icon: 'Bird' },
