@@ -1,4 +1,3 @@
-
 export interface GeneralLedgerEntry {
     date: string;
     transaction_type: string;
@@ -10,6 +9,12 @@ export interface GeneralLedgerEntry {
     debit: number;
     credit: number;
     balance: number;
+    debit_str?: string;
+    debit_words?: string;
+    credit_str?: string;
+    credit_words?: string;
+    balance_str?: string;
+    balance_words?: string;
 }
 
 export interface GeneralLedger {
@@ -17,17 +22,28 @@ export interface GeneralLedger {
     opening_balance: number;
     entries: GeneralLedgerEntry[];
     closing_balance: number;
+    opening_balance_str?: string;
+    opening_balance_words?: string;
+    closing_balance_str?: string;
+    closing_balance_words?: string;
 }
 
 export interface PurchaseLedgerEntry {
     date: string;
     vendor_name: string;
+    po_id: number;
     invoice_number: string;
     description?: string;
     amount: number;
     amount_paid: number;
     balance_amount: number;
     payment_status: string;
+    amount_str?: string;
+    amount_words?: string;
+    amount_paid_str?: string;
+    amount_paid_words?: string;
+    balance_amount_str?: string;
+    balance_amount_words?: string;
 }
 
 export interface PurchaseLedger {
@@ -39,12 +55,19 @@ export interface PurchaseLedger {
 export interface SalesLedgerEntry {
     date: string;
     customer_name: string;
+    so_id: number;
     invoice_number: string;
     description?: string;
     amount: number;
     amount_paid: number;
     balance_amount: number;
     payment_status: string;
+    amount_str?: string;
+    amount_words?: string;
+    amount_paid_str?: string;
+    amount_paid_words?: string;
+    balance_amount_str?: string;
+    balance_amount_words?: string;
 }
 
 export interface SalesLedger {
@@ -61,6 +84,10 @@ export interface InventoryLedgerEntry {
     total_cost?: number;
     quantity_sold?: number;
     quantity_on_hand: number;
+    unit_cost_str?: string;
+    unit_cost_words?: string;
+    total_cost_str?: string;
+    total_cost_words?: string;
 }
 
 export interface InventoryLedger {

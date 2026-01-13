@@ -128,17 +128,17 @@ const FinancialReports: React.FC = () => {
         <h5 className="mb-3">Profit & Loss Statement</h5>
         <p className="text-muted">For the period from {pnlStartDate} to {pnlEndDate}</p>
         <div className="list-group">
-          <div className="list-group-item d-flex justify-content-between"><span>Revenue</span> <strong>Rs. {Number(pnlData.revenue || 0).toFixed(2)}</strong></div>
-          <div className="list-group-item d-flex justify-content-between"><span>Cost of Goods Sold (COGS)</span> <strong>- Rs. {Number(pnlData.cogs || 0).toFixed(2)}</strong></div>
-          <div className="list-group-item d-flex justify-content-between list-group-item-primary"><span>Gross Profit</span> <strong>Rs. {Number(pnlData.gross_profit || 0).toFixed(2)}</strong></div>
+          <div className="list-group-item d-flex justify-content-between"><span>Revenue</span> <strong>{pnlData.revenue_str || Number(pnlData.revenue || 0).toFixed(2)}</strong></div>
+          <div className="list-group-item d-flex justify-content-between"><span>Cost of Goods Sold (COGS)</span> <strong>- {pnlData.cogs_str || Number(pnlData.cogs || 0).toFixed(2)}</strong></div>
+          <div className="list-group-item d-flex justify-content-between list-group-item-primary"><span>Gross Profit</span> <strong>{pnlData.gross_profit_str || Number(pnlData.gross_profit || 0).toFixed(2)}</strong></div>
           <div className="list-group-item d-flex justify-content-between align-items-center">
             <div>
               <span>Operating Expenses</span>
               <a href="#" onClick={handleShowOpExDetails} className="ms-2 small">(View Details)</a>
             </div>
-            <strong>- Rs. {Number(pnlData.operating_expenses || 0).toFixed(2)}</strong>
+            <strong>- {pnlData.operating_expenses_str || Number(pnlData.operating_expenses || 0).toFixed(2)}</strong>
           </div>
-          <div className="list-group-item d-flex justify-content-between list-group-item-success"><span>Net Income</span> <strong>Rs. {Number(pnlData.net_income || 0).toFixed(2)}</strong></div>
+          <div className="list-group-item d-flex justify-content-between list-group-item-success"><span>Net Income</span> <strong>{pnlData.net_income_str || Number(pnlData.net_income || 0).toFixed(2)}</strong></div>
         </div>
       </div>
     );
@@ -160,9 +160,9 @@ const FinancialReports: React.FC = () => {
           <div className="col-md-6">
             <h5>Assets</h5>
             <ul className="list-group">
-              <li className="list-group-item d-flex justify-content-between"><span>Cash</span> <span>{Number(bsData.assets?.current_assets?.cash ?? 0).toFixed(2)}</span></li>
-              <li className="list-group-item d-flex justify-content-between"><span>Accounts Receivable</span> <span>{Number(bsData.assets?.current_assets?.accounts_receivable ?? 0).toFixed(2)}</span></li>
-              <li className="list-group-item d-flex justify-content-between"><span>Inventory</span> <span>{Number(bsData.assets?.current_assets?.inventory ?? 0).toFixed(2)}</span></li>
+              <li className="list-group-item d-flex justify-content-between"><span>Cash</span> <span>{bsData.assets?.current_assets?.cash_str || Number(bsData.assets?.current_assets?.cash ?? 0).toFixed(2)}</span></li>
+              <li className="list-group-item d-flex justify-content-between"><span>Accounts Receivable</span> <span>{bsData.assets?.current_assets?.accounts_receivable_str || Number(bsData.assets?.current_assets?.accounts_receivable ?? 0).toFixed(2)}</span></li>
+              <li className="list-group-item d-flex justify-content-between"><span>Inventory</span> <span>{bsData.assets?.current_assets?.inventory_str || Number(bsData.assets?.current_assets?.inventory ?? 0).toFixed(2)}</span></li>
               <li className="list-group-item d-flex justify-content-between"><strong>Total Current Assets</strong> <strong>{totalCurrentAssets.toFixed(2)}</strong></li>
               <li className="list-group-item d-flex justify-content-between active"><strong>Total Assets</strong> <strong>Rs. {totalAssets.toFixed(2)}</strong></li>
             </ul>
@@ -170,12 +170,12 @@ const FinancialReports: React.FC = () => {
           <div className="col-md-6 mt-4 mt-md-0">
             <h5>Liabilities & Equity</h5>
             <ul className="list-group mb-3">
-              <li className="list-group-item d-flex justify-content-between"><span>Accounts Payable</span> <span>{Number(bsData.liabilities?.current_liabilities?.accounts_payable ?? 0).toFixed(2)}</span></li>
+              <li className="list-group-item d-flex justify-content-between"><span>Accounts Payable</span> <span>{bsData.liabilities?.current_liabilities?.accounts_payable_str || Number(bsData.liabilities?.current_liabilities?.accounts_payable ?? 0).toFixed(2)}</span></li>
               <li className="list-group-item d-flex justify-content-between"><strong>Total Current Liabilities</strong> <strong>{totalLiabilities.toFixed(2)}</strong></li>
               <li className="list-group-item d-flex justify-content-between active"><strong>Total Liabilities</strong> <strong>Rs. {totalLiabilities.toFixed(2)}</strong></li>
             </ul>
             <ul className="list-group">
-              <li className="list-group-item d-flex justify-content-between active"><strong>Total Equity</strong> <strong>Rs. {Number(bsData.equity ?? 0).toFixed(2)}</strong></li>
+              <li className="list-group-item d-flex justify-content-between active"><strong>Total Equity</strong> <strong>{bsData.equity_str || Number(bsData.equity ?? 0).toFixed(2)}</strong></li>
             </ul>
           </div>
         </div>

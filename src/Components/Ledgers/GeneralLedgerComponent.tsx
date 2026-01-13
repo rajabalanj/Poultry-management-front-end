@@ -121,7 +121,7 @@ const GeneralLedgerComponent: React.FC = () => {
             {ledgerData && (
                 <div className="p-3">
                     <h5 className="mb-3">{ledgerData.title}</h5>
-                    <p className="text-muted">Opening Balance: {ledgerData.opening_balance.toFixed(2)}</p>
+                    <p className="text-muted">Opening Balance: {ledgerData.opening_balance_str || ledgerData.opening_balance.toFixed(2)}</p>
                     <div className="table-responsive">
                         <table className="table table-striped table-hover">
                             <thead>
@@ -147,9 +147,9 @@ const GeneralLedgerComponent: React.FC = () => {
                                             {entry.reference_document}
                                         </td>
                                         <td>{entry.details}</td>
-                                        <td>{entry.debit.toFixed(2)}</td>
-                                        <td>{entry.credit.toFixed(2)}</td>
-                                        <td>{entry.balance.toFixed(2)}</td>
+                                        <td>{entry.debit_str || entry.debit.toFixed(2)}</td>
+                                        <td>{entry.credit_str || entry.credit.toFixed(2)}</td>
+                                        <td>{entry.balance_str || entry.balance.toFixed(2)}</td>
                                         <td>
                                             {(entry.transaction_type.toLowerCase().includes('purchase') || entry.transaction_type.toLowerCase().includes('sales')) && (
                                                 <button
@@ -166,7 +166,7 @@ const GeneralLedgerComponent: React.FC = () => {
                             </tbody>
                         </table>
                     </div>
-                    <p className="text-muted">Closing Balance: {ledgerData.closing_balance.toFixed(2)}</p>
+                    <p className="text-muted">Closing Balance: {ledgerData.closing_balance_str || ledgerData.closing_balance.toFixed(2)}</p>
                 </div>
             )}
         </div>

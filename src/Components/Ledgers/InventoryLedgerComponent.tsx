@@ -145,8 +145,8 @@ const InventoryLedgerComponent: React.FC = () => {
                                         <td>{entry.date}</td>
                                         <td>{entry.reference}</td>
                                         <td>{entry.quantity_received?.toFixed(2)}</td>
-                                        <td>{entry.unit_cost?.toFixed(2)}</td>
-                                        <td>{entry.total_cost?.toFixed(2)}</td>
+                                        <td>{entry.unit_cost_str || entry.unit_cost?.toFixed(2)}</td>
+                                        <td>{entry.total_cost_str || entry.total_cost?.toFixed(2)}</td>
                                         <td>{entry.quantity_sold?.toFixed(2)}</td>
                                         <td>{entry.quantity_on_hand.toFixed(2)}</td>
                                     </tr>

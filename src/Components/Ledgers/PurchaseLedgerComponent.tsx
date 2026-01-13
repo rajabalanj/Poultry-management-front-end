@@ -59,7 +59,7 @@ const PurchaseLedgerComponent: React.FC = () => {
     };
 
     const handleRowClick = (entry: PurchaseLedger['entries'][0]) => {
-        navigate(`/purchase-orders/${(entry as any).po_id}/details`);
+        navigate(`/purchase-orders/${entry.po_id}/details`);
     };
 
     const vendorOptions: OptionType[] = vendors.map((vendor) => ({
@@ -113,9 +113,9 @@ const PurchaseLedgerComponent: React.FC = () => {
                                         <td>{entry.vendor_name}</td>
                                         <td>{entry.invoice_number}</td>
                                         <td>{entry.description}</td>
-                                        <td>{entry.amount.toFixed(2)}</td>
-                                        <td>{entry.amount_paid.toFixed(2)}</td>
-                                        <td>{entry.balance_amount.toFixed(2)}</td>
+                                        <td>{entry.amount_str || entry.amount.toFixed(2)}</td>
+                                        <td>{entry.amount_paid_str || entry.amount_paid.toFixed(2)}</td>
+                                        <td>{entry.balance_amount_str || entry.balance_amount.toFixed(2)}</td>
                                         <td>{entry.payment_status}</td>
                                     </tr>
                                 ))}
