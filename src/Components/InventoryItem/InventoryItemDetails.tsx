@@ -115,7 +115,7 @@ const handleAdjustmentSuccess = (updatedItem: InventoryItemResponse) => {
                 <strong>Current Stock:</strong> {item.current_stock}
               </div>
               <div className="col-md-6 mb-3">
-                <strong>Average Cost:</strong> {item.average_cost}
+                <strong>Average Cost:</strong> {item.average_cost_str || item.average_cost.toFixed(2)}
               </div>
               {item.default_wastage_percentage != null && (
                 <div className="col-md-6 mb-3">

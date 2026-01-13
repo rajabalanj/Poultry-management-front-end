@@ -180,7 +180,7 @@ const InventoryStockLevelReport = () => {
                       <td>{item.category}</td>
                       <td>{item.current_stock}</td>
                       <td>{item.unit}</td>
-                      <td>{item.average_cost}</td>
+                      <td>{item.average_cost_str || item.average_cost}</td>
                       <td>{item.reorder_level}</td>
                     </tr>
                   ))}

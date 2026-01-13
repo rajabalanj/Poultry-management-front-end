@@ -11,4 +11,6 @@ export interface InventoryStockLevel {
   average_cost: string;
   created_at: string;
   updated_at: string;
+  average_cost_str?: string;
+  average_cost_words?: string;
 }

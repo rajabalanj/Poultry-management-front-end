@@ -336,7 +336,7 @@ const FinancialReports: React.FC = () => {
                       <tr key={expense.id}>
                         <td>{new Date(expense.date).toLocaleDateString()}</td>
                         <td>{expense.expense_type}</td>
-                        <td>{Number(expense.amount).toFixed(2)}</td>
+                        <td>{expense.amount_str || Number(expense.amount).toFixed(2)}</td>
                       </tr>
                     ))}
                   </tbody>

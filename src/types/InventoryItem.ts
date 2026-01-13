@@ -41,6 +41,8 @@ export interface InventoryItemResponse extends InventoryItemBase {
   id: number;
   current_stock: number;
   average_cost: number;
+  average_cost_str?: string;
+  average_cost_words?: string;
   created_at: string; // ISO format string
   updated_at?: string; // ISO format string, optional
 }

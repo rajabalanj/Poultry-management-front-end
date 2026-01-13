@@ -38,7 +38,7 @@ const OperationalExpensesTable: React.FC<OperationalExpensesTableProps> = ({ exp
             <tr key={expense.id}>
               <td>{new Date(expense.date).toLocaleDateString()}</td>
               <td>{expense.expense_type}</td>
-              <td>{typeof expense.amount === 'number' ? expense.amount.toFixed(2) : parseFloat(expense.amount || '0').toFixed(2)}</td>
+              <td>{expense.amount_str || (typeof expense.amount === 'number' ? expense.amount.toFixed(2) : parseFloat(expense.amount || '0').toFixed(2))}</td>
               <td>
                 <Button variant="outline-primary" size="sm" className="ms-2" onClick={() => handleEdit(expense.id)}>
                   <i className="bi bi-pencil-fill"></i>
