@@ -234,8 +234,6 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     </li>
                   </ul>
                 </li>
-                <li>
-                </li>
                 <li className="nav-menu-item">
                   <Link
                     to="/egg-room-stock"
