@@ -177,7 +177,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                 {/* Batch Management - Expandable Item */}
                 <li className="nav-menu-item">
                   <div
-                    className={`nav-menu-link expandable${
+                    className={`nav-menu-link expandable ${
                       openMenu === "batch" ? "active" : ""
                     }`}
                     onClick={() => toggleMenu("batch")}
@@ -185,7 +185,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     <i className="bi bi-file-earmark-text me-2 sidebar-icon"></i>
                     <span className="sidebar-text">Batch Management</span>
                     <i
-                      className={`bi bi-chevron-right chevron-icon sidebar-icon${
+                      className={`bi bi-chevron-right chevron-icon sidebar-icon ${
                         openMenu === "batch" ? "rotated" : ""
                       }`}
                     ></i>

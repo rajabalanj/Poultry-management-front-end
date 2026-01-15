@@ -64,6 +64,19 @@
   color: var(--bs-white);
 }
 
+.nav-menu-link.expandable.active {
+  background-color: var(--bs-primary);
+  color: var(--bs-white);
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.nav-menu-link.expandable.active:hover {
+  background-color: var(--bs-primary);
+  background-image: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1));
+  color: var(--bs-white);
+}
+
 .nav-menu-link.expandable {
   justify-content: space-between;
 }
