@@ -37,6 +37,7 @@ import {
 } from '../types/SalesOrderItem';
 import { OperationalExpense } from '../types/operationalExpense';
 import { ProfitAndLoss, BalanceSheet } from '../types/financialReports'; // NEW IMPORT
+import { FinancialSummary } from '../types/financialSummary';
 import { FinancialConfig } from '../types/financialConfig';
 import { GeneralLedger, PurchaseLedger, SalesLedger, InventoryLedger } from '../types/ledgers';
 import { Shed, ShedResponse } from '../types/shed';
@@ -1260,6 +1261,17 @@ export const salesOrderApi = {
 };
 
 export const financialReportsApi = {
+  getFinancialSummary: async (startDate: string, endDate: string): Promise<FinancialSummary> => {
+    try {
+      const response = await api.get<FinancialSummary>('/financial-reports/financial-summary', {
+        params: { start_date: startDate, end_date: endDate },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch Financial Summary report'));
+    }
+  },
+
   getProfitAndLoss: async (startDate: string, endDate: string): Promise<ProfitAndLoss> => {
     try {
       const response = await api.get<ProfitAndLoss>('/financial-reports/profit-and-loss', {

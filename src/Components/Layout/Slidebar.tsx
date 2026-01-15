@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import "bootstrap-icons/font/bootstrap-icons.min.css";
-import "./Slidebar.css"; // Import custom sidebar styles
+import "./Sidebar.css"; // Import custom sidebar styles
 import { useAuth } from "../../hooks/useAuth";
 import { useSidebar } from "../../hooks/useSidebar";
 import annamalaiyarlogo from "../../styles/annamalaiyarlogo.png"; // Import the image

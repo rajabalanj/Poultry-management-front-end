@@ -5,6 +5,7 @@ import PageHeader from './Layout/PageHeader';
 import { financialReportsApi, operationalExpenseApi } from '../services/api';
 import CustomDatePicker from './Common/CustomDatePicker';
 import { BalanceSheet, ProfitAndLoss } from '../types/financialReports';
+import { FinancialSummary } from '../types/financialSummary';
 import { OperationalExpense } from '../types/operationalExpense';
 import Loading from './Common/Loading';
 import GeneralLedgerComponent from './Ledgers/GeneralLedgerComponent';
@@ -13,7 +14,7 @@ import SalesLedgerComponent from './Ledgers/SalesLedgerComponent';
 import InventoryLedgerComponent from './Ledgers/InventoryLedgerComponent';
 import StyledSelect from './Common/StyledSelect';
 
-type ReportType = 'pnl' | 'balance-sheet' | 'general-ledger' | 'purchase-ledger' | 'sales-ledger' | 'inventory-ledger';
+type ReportType = 'pnl' | 'balance-sheet' | 'general-ledger' | 'purchase-ledger' | 'sales-ledger' | 'inventory-ledger' | 'financial-summary';
 
 const getReportLabel = (value: ReportType): string => {
   switch (value) {
@@ -23,6 +24,7 @@ const getReportLabel = (value: ReportType): string => {
     case 'purchase-ledger': return 'Purchase Ledger';
     case 'sales-ledger': return 'Sales Ledger';
     case 'inventory-ledger': return 'Inventory Ledger';
+    case 'financial-summary': return 'Financial Summary';
     default: return '';
   }
 };
@@ -43,10 +45,21 @@ const FinancialReports: React.FC = () => {
   const [pnlData, setPnlData] = useState<ProfitAndLoss | null>(null);
   const [pnlLoading, setPnlLoading] = useState(false);
 
+  // Financial Summary State
+  const [fsStartDate, setFsStartDate] = useState(() => sessionStorage.getItem('financial_fs_start') || today);
+  const [fsEndDate, setFsEndDate] = useState(() => sessionStorage.getItem('financial_fs_end') || today);
+  const [fsData, setFsData] = useState<FinancialSummary | null>(null);
+  const [fsLoading, setFsLoading] = useState(false);
+
   useEffect(() => {
     sessionStorage.setItem('financial_pnl_start', pnlStartDate);
     sessionStorage.setItem('financial_pnl_end', pnlEndDate);
   }, [pnlStartDate, pnlEndDate]);
+
+  useEffect(() => {
+    sessionStorage.setItem('financial_fs_start', fsStartDate);
+    sessionStorage.setItem('financial_fs_end', fsEndDate);
+    }, [fsStartDate, fsEndDate]);
 
   // Balance Sheet State
   const [bsAsOfDate, setBsAsOfDate] = useState(() => sessionStorage.getItem('financial_bs_date') || today);
@@ -80,6 +93,24 @@ const FinancialReports: React.FC = () => {
     }
   };
 
+  const handleFetchFs = async () => {
+    if (new Date(fsStartDate) > new Date(fsEndDate)) {
+        toast.error('Start date cannot be after end date.');
+        return;
+    }
+    setFsLoading(true);
+    setFsData(null);
+    try {
+        const data = await financialReportsApi.getFinancialSummary(fsStartDate, fsEndDate);
+        setFsData(data);
+        sessionStorage.setItem('financial_fs_loaded', 'true');
+    } catch (error: any) {
+        toast.error(error.message || 'Failed to fetch Financial Summary.');
+    } finally {
+        setFsLoading(false);
+    }
+  };
+
   const handleFetchBs = async () => {
     setBsLoading(true);
     setBsData(null);
@@ -99,6 +130,8 @@ const FinancialReports: React.FC = () => {
       handleFetchPnl();
     } else if (activeTab === 'balance-sheet' && sessionStorage.getItem('financial_bs_loaded') === 'true' && !bsData) {
       handleFetchBs();
+    } else if (activeTab === 'financial-summary' && sessionStorage.getItem('financial_fs_loaded') === 'true' && !fsData) {
+      handleFetchFs();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
@@ -144,6 +177,86 @@ const FinancialReports: React.FC = () => {
     );
   };
 
+  const renderFsReport = () => {
+    if (fsLoading) return <Loading message="Loading data..." />;
+    if (!fsData) return <p className="text-center text-muted p-4">Select a date range and click "Get Report" to view the Financial Summary.</p>;
+
+    return (
+        <div className="p-3">
+            <h5 className="mb-3">Financial Summary</h5>
+            <p className="text-muted">For the period from {fsStartDate} to {fsEndDate}</p>
+            <div className="row">
+                <div className="col-md-6 col-lg-4 mb-3">
+                    <div className="card h-100">
+                        <div className="card-body">
+                            <h6 className="card-title">Egg Production</h6>
+                            <p className="card-text fs-4">{fsData.eggs_produced}</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="col-md-6 col-lg-4 mb-3">
+                    <div className="card h-100">
+                        <div className="card-body">
+                            <h6 className="card-title">Eggs Sold</h6>
+                            <p className="card-text fs-4">{fsData.eggs_sold}</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="col-md-6 col-lg-4 mb-3">
+                    <div className="card h-100">
+                        <div className="card-body">
+                            <h6 className="card-title">Cost Per Egg</h6>
+                            <p className="card-text fs-4">{fsData.cost_per_egg_str}</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="col-md-6 col-lg-4 mb-3">
+                    <div className="card h-100">
+                        <div className="card-body">
+                            <h6 className="card-title">Selling Price Per Egg</h6>
+                            <p className="card-text fs-4">{fsData.selling_price_per_egg_str}</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="col-md-6 col-lg-4 mb-3">
+                    <div className="card h-100">
+                        <div className="card-body">
+                            <h6 className="card-title">Net Margin Per Egg</h6>
+                            <p className="card-text fs-4">{fsData.net_margin_per_egg_str}</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="col-md-6 col-lg-4 mb-3">
+                    <div className="card h-100">
+                        <div className="card-body">
+                            <h6 className="card-title">Cash Balance</h6>
+                            <p className="card-text fs-4">{fsData.cash_balance_str}</p>
+                            <small className="text-muted">{fsData.cash_balance_words}</small>
+                        </div>
+                    </div>
+                </div>
+                <div className="col-md-6 col-lg-4 mb-3">
+                    <div className="card h-100">
+                        <div className="card-body">
+                            <h6 className="card-title">Receivables</h6>
+                            <p className="card-text fs-4">{fsData.receivables_str}</p>
+                             <small className="text-muted">{fsData.receivables_words}</small>
+                        </div>
+                    </div>
+                </div>
+                <div className="col-md-6 col-lg-4 mb-3">
+                    <div className="card h-100">
+                        <div className="card-body">
+                            <h6 className="card-title">Payables</h6>
+                            <p className="card-text fs-4">{fsData.payables_str}</p>
+                            <small className="text-muted">{fsData.payables_words}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+  };
   const renderBsReport = () => {
     if (bsLoading) return <Loading message="Loading data..." />;
     if (!bsData) return <p className="text-center text-muted p-4">Select a date and click "Get Report" to view the Balance Sheet.</p>;
@@ -193,6 +306,7 @@ const FinancialReports: React.FC = () => {
               value={{ value: activeTab, label: getReportLabel(activeTab) }}
               onChange={(option) => setActiveTab(option?.value as ReportType || 'pnl')}
               options={[
+                { value: 'financial-summary', label: 'Financial Summary' },
                 { value: 'pnl', label: 'Profit & Loss' },
                 { value: 'balance-sheet', label: 'Balance Sheet' },
                 { value: 'general-ledger', label: 'General Ledger' },
@@ -205,6 +319,11 @@ const FinancialReports: React.FC = () => {
           </div>
           <div className="card-header d-none d-md-block p-0">
             <ul className="nav nav-tabs card-header-tabs">
+            <li className="nav-item">
+                <button className={`nav-link ${activeTab === 'financial-summary' ? 'active' : ''}`} onClick={() => setActiveTab('financial-summary')}>
+                  Financial Summary
+                </button>
+              </li>
               <li className="nav-item">
                 <button className={`nav-link ${activeTab === 'pnl' ? 'active' : ''}`} onClick={() => setActiveTab('pnl')}>
                   Profit & Loss
@@ -238,6 +357,47 @@ const FinancialReports: React.FC = () => {
             </ul>
           </div>
           <div className="card-body">
+            {activeTab === 'financial-summary' && (
+              <div>
+                <div className="row g-3 align-items-end p-3 border-bottom">
+                  <div className="col-md-4">
+                    <label htmlFor="fsStartDate" className="form-label me-3 mb-0">Start Date</label>
+                    <CustomDatePicker
+                      id="fsStartDate"
+                      selected={fsStartDate ? new Date(fsStartDate) : null}
+                      onChange={(date: Date | null) => date && setFsStartDate(date.toISOString().slice(0, 10))}
+                      maxDate={fsEndDate ? new Date(fsEndDate) : undefined}
+                      className="form-control"
+                      showMonthDropdown
+                      showYearDropdown
+                      dropdownMode="select"
+                      dateFormat="dd-MM-yyyy"
+                    />
+                  </div>
+                  <div className="col-md-4">
+                    <label htmlFor="fsEndDate" className="form-label me-3 mb-0">End Date</label>
+                    <CustomDatePicker
+                      id="fsEndDate"
+                      selected={fsEndDate ? new Date(fsEndDate) : null}
+                      onChange={(date: Date | null) => date && setFsEndDate(date.toISOString().slice(0, 10))}
+                      minDate={fsStartDate ? new Date(fsStartDate) : undefined}
+                      maxDate={new Date(today)}
+                      className="form-control"
+                      showMonthDropdown
+                      showYearDropdown
+                      dropdownMode="select"
+                      dateFormat="dd-MM-yyyy"
+                    />
+                  </div>
+                  <div className="col-md-4 d-flex justify-content-center justify-content-md-end">
+                    <button className="btn btn-primary mb-2" onClick={handleFetchFs} disabled={fsLoading}>
+                      {fsLoading ? 'Generating...' : 'Get Financial Summary'}
+                    </button>
+                  </div>
+                </div>
+                {renderFsReport()}
+              </div>
+            )}
             {activeTab === 'pnl' && (
               <div>
                 <div className="row g-3 align-items-end p-3 border-bottom">

@@ -1,0 +1,188 @@
+:root {
+  --sidebar-bg: #ffffff; /* Pure white background */
+  --sidebar-text: #333333; /* Dark gray for text */
+  --sidebar-hover: #f0f0f0; /* Light gray for hover */
+  --sidebar-active: #dff5ff; /* Light blue for active items */
+  --sidebar-border: #e0e0e0; /* Subtle border color */
+  --sidebar-icon: var(--bs-primary); /* Professional blue for icons */
+  --sidebar-submenu-indicator: #90caf9; /* Lighter blue for submenu indicator */
+}
+
+.sidebar {
+  background-color: var(--bs-light) !important;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100vh;
+}
+
+.sidebar-content {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
+
+.nav-menu-item {
+  list-style: none;
+  margin: 0.5rem 0;
+  padding: 0;
+}
+
+.nav-menu-link {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  color: var(--bs-dark);
+  text-decoration: none;
+  cursor: pointer;
+  border-radius: 0.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-menu-link:hover {
+  background-color: var(--bs-primary-bg-subtle);
+  color: var(--bs-primary);
+}
+
+.nav-menu-link.active-link {
+  background-color: var(--bs-primary);
+  color: var(--bs-white);
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.nav-menu-link.active-link:hover {
+  background-color: var(--bs-primary);
+  background-image: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1));
+  color: var(--bs-white);
+}
+
+.nav-menu-link.expandable {
+  justify-content: space-between;
+}
+
+.nav-menu-link.expandable .chevron-icon {
+  transition: transform 0.3s ease;
+  font-size: 0.8rem;
+  margin-left: auto;
+}
+
+.nav-menu-link.expandable.active .chevron-icon.rotated {
+  transform: rotate(90deg);
+}
+
+.sub-menu {
+  list-style: none;
+  margin: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+  opacity: 0;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 0.5rem;
+  margin: 0.25rem 0.5rem;
+}
+
+.sub-menu.open {
+  max-height: 500px;
+  opacity: 1;
+}
+
+.sub-menu-item {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sub-menu-item .nav-menu-link {
+  padding: 0.625rem 1.5rem;
+  font-size: 0.9rem;
+  color: var(--bs-dark);
+}
+
+.sub-menu-item .nav-menu-link:hover {
+  background-color: var(--bs-primary-bg-subtle);
+}
+
+.sub-menu-item .nav-menu-link.active-link {
+  background-color: var(--bs-primary);
+  color: var(--bs-white);
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+}
+
+.sidebar-icon {
+  color: var(--bs-primary);
+  font-size: 1.1rem;
+  transition: all 0.2s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.nav-menu-link.active-link .sidebar-icon {
+  color: var(--bs-white);
+  transform: scale(1.1);
+}
+
+/* Change parent icon color when submenu item is active */
+.nav-menu-link.expandable.active .sidebar-icon {
+  color: var(--bs-white);
+}
+
+.sidebar-text {
+  color: inherit;
+  flex: 1;
+}
+
+.nav-menu + p,
+.px-3 .text-uppercase {
+  color: var(--bs-secondary-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+
+/* Custom class for sidebar icons to make them white */
+.sidebar-icon-white {
+  color: var(--bs-white) !important;
+}
+
+/* Custom class for sidebar menu text to make it white */
+.sidebar-text-white {
+  color: var(--bs-white) !important;
+}
+
+.nav-menu-divider {
+  height: 1px;
+  background-color: var(--sidebar-border);
+  margin: 1rem 0.5rem;
+}
+
+@media (max-width: 991px) {
+  .sidebar {
+    padding-top: 10px; /* More space for mobile header */
+  }
+  
+  .hamburger-button {
+    border-radius: 6px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--sidebar-bg);
+    border: 1px solid var(--sidebar-border);
+    color: var(--sidebar-icon);
+  }
+  
+  .hamburger-button i {
+    font-size: 1.3rem;
+  }
+}
