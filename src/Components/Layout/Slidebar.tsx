@@ -46,9 +46,9 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
     setOpenMenu("feed");
   } else if (
     location.pathname.startsWith("/inventory-items") ||
-    location.pathname.startsWith("/inventory-stock-level-report") ||
-    location.pathname.startsWith("/low-stock-report") ||
-    location.pathname.startsWith("/top-selling-items-report")
+    location.pathname.startsWith("/inventory-items/stock-level-report") ||
+    location.pathname.startsWith("/inventory-items/low-stock-report") ||
+    location.pathname.startsWith("/inventory-items/top-selling-items-report")
   ) {
     setOpenMenu("inventory");
   } else if (
@@ -299,9 +299,9 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     </li>
                     <li className="sub-menu-item">
                       <Link
-                        to="/inventory-stock-level-report"
+                        to="/inventory-items/stock-level-report"
                         className={`nav-menu-link ${
-                          location.pathname === "/inventory-stock-level-report"
+                          location.pathname === "/inventory-items/stock-level-report"
                             ? "active-link"
                             : ""
                         }`}
@@ -312,9 +312,9 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     </li>
                     <li className="sub-menu-item">
                       <Link
-                        to="/low-stock-report"
+                        to="/inventory-items/low-stock-report"
                         className={`nav-menu-link ${
-                          location.pathname === "/low-stock-report"
+                          location.pathname === "/inventory-items/low-stock-report"
                             ? "active-link"
                             : ""
                         }`}
@@ -325,9 +325,9 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     </li>
                     <li className="sub-menu-item">
                       <Link
-                        to="/top-selling-items-report"
+                        to="/inventory-items/top-selling-items-report"
                         className={`nav-menu-link ${
-                          location.pathname === "/top-selling-items-report"
+                          location.pathname === "/inventory-items/top-selling-items-report"
                             ? "active-link"
                             : ""
                         }`}
