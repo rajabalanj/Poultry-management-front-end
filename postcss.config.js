@@ -10,12 +10,12 @@ const purgecss = purgecssModule.default || purgecssModule;
 
 const purgecssConfig = purgecss({
   content: [
-    '`./index.html`',
-    '`./src`/**/*.html',
-    '`./src`/**/*.tsx',
-    '`./src`/**/*.ts',
-    '`./src`/**/*.js',
-    '`./src`/**/*.jsx',
+    './index.html',
+    './src/**/*.html',
+    './src/**/*.tsx',
+    './src/**/*.ts',
+    './src/**/*.js',
+    './src/**/*.jsx',
   ],
   defaultExtractor: content => content.match(/[\w-/:]+(?<!:)/g) || [],
 });
