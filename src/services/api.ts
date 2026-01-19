@@ -233,6 +233,20 @@ export const reportsApi = {
     }
   },
 
+  getMonthlyEggProductionCost: async (startDate: string, endDate: string): Promise<{ month: string, total_eggs: number, total_cost: string, cost_per_egg: string, total_cost_str: string, cost_per_egg_str: string }[]> => {
+    try {
+      const response = await api.get<{ month: string, total_eggs: number, total_cost: string, cost_per_egg: string, total_cost_str: string, cost_per_egg_str: string }[]>('/monthly-egg-production-cost', {
+        params: {
+          start_date: startDate,
+          end_date: endDate,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch monthly egg production cost report'));
+    }
+  },
+
   getTopSellingItems: async (startDate?: string, endDate?: string, limit?: number): Promise<TopSellingItem[]> => {
     try {
       const params: { [key: string]: any } = {};

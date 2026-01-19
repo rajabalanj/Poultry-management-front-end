@@ -6,6 +6,7 @@ import CustomDatePicker from '../Common/CustomDatePicker';
 import Loading from '../Common/Loading';
 import * as Icons from 'lucide-react';
 import EggProductionGraph from './EggProductionGraph';
+import EggProductionCostGraph from './EggProductionCostGraph';
 import CompositionUsagePieChart from './CompositionUsagePieChart';
 
 const BATCH_DATE_KEY = 'dashboard_batch_date';
@@ -39,6 +40,11 @@ const Dashboard: React.FC = () => {
   const [compositionUsageData, setCompositionUsageData] = useState<{ composition_name: string; total_usage: number; unit: string }[]>([]);
   const [compositionUsageLoading, setCompositionUsageLoading] = useState(true);
   const [compositionUsageError, setCompositionUsageError] = useState<string | null>(null);
+  
+  // State for Egg Production Cost Graph
+  const [eggCostData, setEggCostData] = useState<{ month: string, total_eggs: number, total_cost: string, cost_per_egg: string, total_cost_str: string, cost_per_egg_str: string }[]>([]);
+  const [eggCostLoading, setEggCostLoading] = useState(true);
+  const [eggCostError, setEggCostError] = useState<string | null>(null);
 
 
   // Effect for daily stats
@@ -153,9 +159,25 @@ const Dashboard: React.FC = () => {
               setCompositionUsageLoading(false);
           }
       };
+      
+      // Fetch egg production cost data
+      const fetchEggCostData = async () => {
+          setEggCostLoading(true);
+          setEggCostError(null);
+          try {
+              const apiData = await reportsApi.getMonthlyEggProductionCost(startDate, endDate);
+              setEggCostData(apiData);
+          } catch (err) {
+              setEggCostError('Failed to load egg production cost data.');
+              console.error(err);
+          } finally {
+              setEggCostLoading(false);
+          }
+      };
   
       fetchEggTrendData();
       fetchCompositionUsageData();
+      fetchEggCostData();
   
     }, [startDate, endDate]);
 
@@ -245,6 +267,12 @@ const Dashboard: React.FC = () => {
             </div>
             <div className="col-12 col-xl-4">
                 <CompositionUsagePieChart data={compositionUsageData} loading={compositionUsageLoading} error={compositionUsageError} />
+            </div>
+        </div>
+        
+        <div className="row g-4 mt-2">
+            <div className="col-12">
+                <EggProductionCostGraph data={eggCostData} loading={eggCostLoading} error={eggCostError} />
             </div>
         </div>
 
