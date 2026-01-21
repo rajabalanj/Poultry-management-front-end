@@ -78,6 +78,7 @@ export const fetchWeeklyLayerReport = async (batchId: string, week: string): Pro
       culls_percent: batch.culls_percent,
       closing_percent: batch.closing_percent,
       feed_per_bird_per_day_grams: batch.feed_per_bird_per_day_grams,
+      birds_added: batch.birds_added || 0,
     });
 
     const mappedDetails = (details || []).map(mapBatchToGridRow);

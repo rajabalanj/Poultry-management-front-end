@@ -27,4 +27,5 @@ export interface GridRow {
     culls_percent?: number;
     closing_percent?: number;
     feed_per_bird_per_day_grams?: number;
+    birds_added?: number;
   }

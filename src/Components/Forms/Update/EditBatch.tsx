@@ -87,7 +87,7 @@ const EditBatch: React.FC = () => {
     e.preventDefault();
     if (!batch || !batchId || !batch_date) return;
     try {
-      const payload = {
+      const payload: Partial<DailyBatch> = {
         mortality: batch.mortality,
         culls: batch.culls,
         table_eggs: batch.table_eggs,
@@ -95,6 +95,7 @@ const EditBatch: React.FC = () => {
         cr: batch.cr,
         notes: batch.notes || "",
         standard_hen_day_percentage: batch.standard_hen_day_percentage ?? 0,
+        birds_added: batch.birds_added,
       };
       await dailyBatchApi.updateDailyBatch(Number(batchId), batch_date, payload);
       toast.success("Batch updated successfully");
@@ -173,19 +174,19 @@ const EditBatch: React.FC = () => {
         <div className="card shadow-sm mb-4">
           <div className="card-body">
             <div className="mb-4">
-        <div className="d-flex align-items-center">
-          <label className="form-label me-3 mb-0">Batch Date</label>
-          <div style={{ maxWidth: "200px" }}>
-            <CustomDatePicker
-              selected={batch_date ? new Date(batch_date) : null}
-              onChange={(date: Date | null) => handleDateChange(date)}
-              maxDate={new Date()}
-              placeholderText="Select a date"
-              className="w-100"
-            />
-          </div>
-        </div>
-      </div>
+              <div className="d-flex align-items-center">
+                <label className="form-label me-3 mb-0">Batch Date</label>
+                <div style={{ maxWidth: "200px" }}>
+                  <CustomDatePicker
+                    selected={batch_date ? new Date(batch_date) : null}
+                    onChange={(date: Date | null) => handleDateChange(date)}
+                    maxDate={new Date()}
+                    placeholderText="Select a date"
+                    className="w-100"
+                  />
+                </div>
+              </div>
+            </div>
             <form onSubmit={handleSubmit}>
               <div className="row">
                 {/* Birds Section */}
@@ -202,7 +203,9 @@ const EditBatch: React.FC = () => {
                           className="form-control"
                           value={batch.mortality}
                           min="0"
-                          onChange={(e) => handleNumberInput(e.target.value, "mortality")}
+                          onChange={(e) =>
+                            handleNumberInput(e.target.value, "mortality")
+                          }
                         />
                       </div>
                       <div className="mb-3">
@@ -212,7 +215,21 @@ const EditBatch: React.FC = () => {
                           className="form-control"
                           value={batch.culls}
                           min="0"
-                          onChange={(e) => handleNumberInput(e.target.value, "culls")}
+                          onChange={(e) =>
+                            handleNumberInput(e.target.value, "culls")
+                          }
+                        />
+                      </div>
+                      <div className="mb-3">
+                        <label className="form-label">Birds Added</label>
+                        <input
+                          type="number"
+                          className="form-control"
+                          value={batch.birds_added || ""}
+                          min="0"
+                          onChange={(e) =>
+                            handleNumberInput(e.target.value, "birds_added")
+                          }
                         />
                       </div>
                     </div>
@@ -220,7 +237,7 @@ const EditBatch: React.FC = () => {
                 </div>
 
                 {/* Eggs Section */}
-                {batch_type === 'Layer' && (
+                {batch_type === "Layer" && (
                   <div className="col-lg-6">
                     <div className="card shadow-sm mb-4">
                       <div className="card-header bg-primary text-white">
@@ -235,7 +252,9 @@ const EditBatch: React.FC = () => {
                               className="form-control"
                               value={batch.table_eggs}
                               min="0"
-                              onChange={(e) => handleNumberInput(e.target.value, "table_eggs")}
+                              onChange={(e) =>
+                                handleNumberInput(e.target.value, "table_eggs")
+                              }
                             />
                           </div>
                           <div className="col-md-4">
@@ -245,7 +264,9 @@ const EditBatch: React.FC = () => {
                               className="form-control"
                               value={batch.jumbo}
                               min="0"
-                              onChange={(e) => handleNumberInput(e.target.value, "jumbo")}
+                              onChange={(e) =>
+                                handleNumberInput(e.target.value, "jumbo")
+                              }
                             />
                           </div>
                           <div className="col-md-4">
@@ -255,7 +276,9 @@ const EditBatch: React.FC = () => {
                               className="form-control"
                               value={batch.cr}
                               min="0"
-                              onChange={(e) => handleNumberInput(e.target.value, "cr")}
+                              onChange={(e) =>
+                                handleNumberInput(e.target.value, "cr")
+                              }
                             />
                           </div>
                         </div>
@@ -281,7 +304,11 @@ const EditBatch: React.FC = () => {
                         className="form-control"
                         value={batch.notes || ""}
                         placeholder="Optional daily notes, details, or observations..."
-                        onChange={(e) => setBatch((prev) => (prev ? { ...prev, notes: e.target.value } : null))}
+                        onChange={(e) =>
+                          setBatch((prev) =>
+                            prev ? { ...prev, notes: e.target.value } : null,
+                          )
+                        }
                         rows={3}
                       />
                     </div>
@@ -314,14 +341,34 @@ const EditBatch: React.FC = () => {
             <div className="row">
               <div className="col-md-6">
                 <div className="mb-3">
-                  <label htmlFor="compositionSelect" className="form-label">Select Composition:</label>
+                  <label htmlFor="compositionSelect" className="form-label">
+                    Select Composition:
+                  </label>
                   <StyledSelect
                     id="compositionSelect"
-                    value={selectedCompositionId ? compositions.find(c => c.id === selectedCompositionId) ? { value: selectedCompositionId, label: compositions.find(c => c.id === selectedCompositionId)?.name || "" } : null : null}
-                    onChange={(option) => setSelectedCompositionId(option ? Number(option.value) : null)}
+                    value={
+                      selectedCompositionId
+                        ? compositions.find(
+                            (c) => c.id === selectedCompositionId,
+                          )
+                          ? {
+                              value: selectedCompositionId,
+                              label:
+                                compositions.find(
+                                  (c) => c.id === selectedCompositionId,
+                                )?.name || "",
+                            }
+                          : null
+                        : null
+                    }
+                    onChange={(option) =>
+                      setSelectedCompositionId(
+                        option ? Number(option.value) : null,
+                      )
+                    }
                     options={compositions.map((c) => ({
                       value: c.id,
-                      label: c.name
+                      label: c.name,
                     }))}
                     placeholder="Select a Composition"
                     isClearable
@@ -331,7 +378,9 @@ const EditBatch: React.FC = () => {
                   <span>Times:</span>
                   <button
                     className="btn btn-danger btn-sm"
-                    onClick={() => setTimesToUse((prev) => Math.max(1, prev - 1))}
+                    onClick={() =>
+                      setTimesToUse((prev) => Math.max(1, prev - 1))
+                    }
                   >
                     -
                   </button>
@@ -396,23 +445,33 @@ const EditBatch: React.FC = () => {
           <Modal.Title>Confirm Revert</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          Are you sure you want to revert this composition usage? This action will restore the used feed quantities.
+          Are you sure you want to revert this composition usage? This action
+          will restore the used feed quantities.
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowRevertModal(false)}>Cancel</Button>
-          <Button variant="danger" onClick={async () => {
-            if (!usageToRevert) return;
-            try {
-              await compositionApi.revertCompositionUsage(usageToRevert);
-              setUsageHistory(prev => prev.filter(h => h.id !== usageToRevert));
-              toast.success("Reverted successfully");
-            } catch (err: any) {
-              toast.error(err.message || "Failed to revert");
-            } finally {
-              setShowRevertModal(false);
-              setUsageToRevert(null);
-            }
-          }}>Revert</Button>
+          <Button variant="secondary" onClick={() => setShowRevertModal(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            onClick={async () => {
+              if (!usageToRevert) return;
+              try {
+                await compositionApi.revertCompositionUsage(usageToRevert);
+                setUsageHistory((prev) =>
+                  prev.filter((h) => h.id !== usageToRevert),
+                );
+                toast.success("Reverted successfully");
+              } catch (err: any) {
+                toast.error(err.message || "Failed to revert");
+              } finally {
+                setShowRevertModal(false);
+                setUsageToRevert(null);
+              }
+            }}
+          >
+            Revert
+          </Button>
         </Modal.Footer>
       </Modal>
     </>

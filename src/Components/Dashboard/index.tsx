@@ -182,7 +182,8 @@ const DashboardIndex = () => {
       subValues: [
         { label: "Opening", value: openingCount },
         { label: "Mortality", value: mortality },
-        { label: "Culls", value: culls }
+        { label: "Culls", value: culls },
+        { label: "Birds Added", value: filteredBatches.reduce((sum, b) => sum + (b.birds_added || 0), 0) }
       ]
     },
     {

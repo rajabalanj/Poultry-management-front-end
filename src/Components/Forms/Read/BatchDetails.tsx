@@ -222,6 +222,7 @@ const BatchDetails: React.FC = () => {
                 { label: 'Opening', value: batch.opening_count },
                 { label: 'Mortality', value: batch.mortality },
                 { label: 'Culls', value: batch.culls },
+                { label: "Birds Added", value: batch.birds_added }
               ],
               icon: 'Bird',
             },

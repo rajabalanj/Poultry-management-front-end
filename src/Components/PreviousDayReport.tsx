@@ -6,13 +6,13 @@ import { toast } from 'react-toastify';
 import PageHeader from './Layout/PageHeader';
 import Loading from './Common/Loading';
 import { GridRow } from '../types/GridRow';
-import { fetchBatchData, fetchWeeklyLayerReport, CumulativeReport } from '../utility/api-utils';
+import { CumulativeReport } from '../utility/api-utils';
 import { exportTableToExcel } from '../utility/export-utils';
 import { BatchResponse } from '../types/batch';
 import { ShedResponse } from '../types/shed';
 import CustomDatePicker from './Common/CustomDatePicker';
 import { useEscapeKey } from '../hooks/useEscapeKey';
-import { configApi, batchApi, shedApi } from '../services/api';
+import { configApi, batchApi, shedApi, dailyBatchApi, reportsApi } from '../services/api';
 import StyledSelect from './Common/StyledSelect';
 
 // Memoized table row component to prevent unnecessary re-renders
@@ -82,6 +82,7 @@ const TableRow = memo(({
       <td>{row.shed_no}</td>
       <td>{!batchIdFromUrl ? row.highest_age : row.age}</td>
       <td>{row.opening_count}</td>
+      <td>{row.birds_added}</td>
       <td>{row.mortality}</td>
       <td>{row.culls}</td>
       <td>{row.closing_count}</td>
@@ -219,21 +220,21 @@ const PreviousDayReport = () => {
             return;
         }
         
-        const weeklyReport = await fetchWeeklyLayerReport(
-          batchIdToFetch,
-          weekToFetch
+        const weeklyReport = await reportsApi.getWeeklyLayerReport(
+          Number(batchIdToFetch),
+          Number(weekToFetch)
         );
         reportDetails = weeklyReport.details;
         reportSummary = weeklyReport.summary;
         setWeekData(weeklyReport.week ?? null);
         setAgeRange(weeklyReport.age_range ?? null);
         setHenHousing(weeklyReport.hen_housing ?? null);
-        setCumulativeReportData(weeklyReport.cumulative_report ?? null);
+        setCumulativeReportData((weeklyReport.cumulative_report as CumulativeReport) ?? null);
       } else {
-        const dailyReport = await fetchBatchData(
+        const dailyReport = await dailyBatchApi.getSnapshot(
           start || '',
           end || '',
-          batchIdToFetch
+          batchIdToFetch ? Number(batchIdToFetch) : undefined
         );
         reportDetails = dailyReport.details;
         reportSummary = dailyReport.summary;
@@ -578,6 +579,7 @@ const PreviousDayReport = () => {
                 <th>Shed No</th>
                 <th>{!effectiveBatchId ? "Highest Age" : "Age"}</th>
                 <th>Opening</th>
+                <th>Birds Added</th>
                 <th>Mortality</th>
                 <th>Culls</th>
                 <th>Closing Count</th>
@@ -620,6 +622,7 @@ const PreviousDayReport = () => {
                   <tr>
                     <th></th>
                     <th>Opening</th>
+                    <th>Birds Added</th>
                     <th>Mortality</th>
                     <th>Culls</th>
                     <th>Closing</th>
@@ -630,6 +633,7 @@ const PreviousDayReport = () => {
                   <tr>
                     <td>Count</td>
                     <td>{summaryData.opening_count}</td>
+                    <td>{summaryData.birds_added}</td>
                     <td>{summaryData.mortality}</td>
                     <td>{summaryData.culls}</td>
                     <td>{summaryData.closing_count}</td>
@@ -638,6 +642,7 @@ const PreviousDayReport = () => {
                   <tr>
                     <td>%</td>
                     <td>{summaryData.opening_percent}</td>
+                    <td>-</td>
                     <td>{summaryData.mort_percent}</td>
                     <td>{summaryData.culls_percent}</td>
                     <td>{summaryData.closing_percent}</td>
@@ -652,6 +657,7 @@ const PreviousDayReport = () => {
               <h5 className="mb-3">Report Summary</h5>
               <div className="row g-3">
                 <div className="col-md-3"><span className="fw-bold">Opening:</span> {summaryData.opening_count}</div>
+                <div className="col-md-3"><span className="fw-bold">Birds Added:</span> {summaryData.birds_added}</div>
                 <div className="col-md-3"><span className="fw-bold">Total Mortality:</span> {summaryData.mortality}</div>
                 <div className="col-md-3"><span className="fw-bold">Total Culls:</span> {summaryData.culls}</div>
                 <div className="col-md-3"><span className="fw-bold">Closing:</span> {summaryData.closing_count}</div>
