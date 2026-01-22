@@ -247,6 +247,20 @@ export const reportsApi = {
     }
   },
 
+  getFeedConsumptionPerEgg: async (startDate: string, endDate: string): Promise<{ month: string, total_eggs: number, total_feed_grams: number, total_feed_kg: number, feed_per_egg_grams: number, feed_per_egg_kg: number }[]> => {
+    try {
+      const response = await api.get<{ month: string, total_eggs: number, total_feed_grams: number, total_feed_kg: number, feed_per_egg_grams: number, feed_per_egg_kg: number }[]>('/feed-consumption-per-egg', {
+        params: {
+          start_date: startDate,
+          end_date: endDate,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch feed consumption per egg report'));
+    }
+  },
+
   getTopSellingItems: async (startDate?: string, endDate?: string, limit?: number): Promise<TopSellingItem[]> => {
     try {
       const params: { [key: string]: any } = {};

@@ -8,6 +8,7 @@ import * as Icons from 'lucide-react';
 import EggProductionGraph from './EggProductionGraph';
 import EggProductionCostGraph from './EggProductionCostGraph';
 import CompositionUsagePieChart from './CompositionUsagePieChart';
+import FeedConsumptionPerEggGraph from './FeedConsumptionPerEggGraph';
 
 const BATCH_DATE_KEY = 'dashboard_batch_date';
 
@@ -35,16 +36,21 @@ const Dashboard: React.FC = () => {
   const [eggTrendData, setEggTrendData] = useState<{ month: string; total_eggs: number }[]>([]);
   const [eggTrendLoading, setEggTrendLoading] = useState(true);
   const [eggTrendError, setEggTrendError] = useState<string | null>(null);
-  
+
   // State for Composition Usage Pie Chart
   const [compositionUsageData, setCompositionUsageData] = useState<{ composition_name: string; total_usage: number; unit: string }[]>([]);
   const [compositionUsageLoading, setCompositionUsageLoading] = useState(true);
   const [compositionUsageError, setCompositionUsageError] = useState<string | null>(null);
-  
+
   // State for Egg Production Cost Graph
   const [eggCostData, setEggCostData] = useState<{ month: string, total_eggs: number, total_cost: string, cost_per_egg: string, total_cost_str: string, cost_per_egg_str: string }[]>([]);
   const [eggCostLoading, setEggCostLoading] = useState(true);
   const [eggCostError, setEggCostError] = useState<string | null>(null);
+
+  // State for Feed Consumption Per Egg Graph
+  const [feedConsumptionData, setFeedConsumptionData] = useState<{ month: string, total_eggs: number, total_feed_grams: number, total_feed_kg: number, feed_per_egg_grams: number, feed_per_egg_kg: number }[]>([]);
+  const [feedConsumptionLoading, setFeedConsumptionLoading] = useState(true);
+  const [feedConsumptionError, setFeedConsumptionError] = useState<string | null>(null);
 
 
   // Effect for daily stats
@@ -91,7 +97,7 @@ const Dashboard: React.FC = () => {
     useEffect(() => {
       const start = new Date(startDate);
       const end = new Date(endDate);
-  
+
       if (start > end) {
         setDateRangeError('End Date cannot be before Start Date.');
         setEggTrendData([]);
@@ -99,7 +105,7 @@ const Dashboard: React.FC = () => {
         return;
       }
       setDateRangeError(null);
-  
+
       // Fetch egg trend data
       const fetchEggTrendData = async () => {
         setEggTrendLoading(true);
@@ -128,7 +134,7 @@ const Dashboard: React.FC = () => {
             // Assuming apiData is sorted by month, which it should be for a trend report.
             const firstApiMonth = apiData[0].month;
             const firstDataIndex = processedData.findIndex(item => item.month === firstApiMonth);
-            
+
             if (firstDataIndex > 0) {
               processedData = processedData.slice(firstDataIndex);
             }
@@ -142,7 +148,7 @@ const Dashboard: React.FC = () => {
           setEggTrendLoading(false);
         }
       };
-      
+
       // Fetch composition usage data
       const fetchCompositionUsageData = async () => {
           setCompositionUsageLoading(true);
@@ -159,14 +165,15 @@ const Dashboard: React.FC = () => {
               setCompositionUsageLoading(false);
           }
       };
-      
+
       // Fetch egg production cost data
       const fetchEggCostData = async () => {
           setEggCostLoading(true);
           setEggCostError(null);
           try {
               const apiData = await reportsApi.getMonthlyEggProductionCost(startDate, endDate);
-              setEggCostData(apiData);
+              const sortedData = [...apiData].sort((a, b) => a.month.localeCompare(b.month));
+              setEggCostData(sortedData);
           } catch (err) {
               setEggCostError('Failed to load egg production cost data.');
               console.error(err);
@@ -174,11 +181,28 @@ const Dashboard: React.FC = () => {
               setEggCostLoading(false);
           }
       };
-  
+
+      // Fetch feed consumption per egg data
+      const fetchFeedConsumptionData = async () => {
+          setFeedConsumptionLoading(true);
+          setFeedConsumptionError(null);
+          try {
+              const apiData = await reportsApi.getFeedConsumptionPerEgg(startDate, endDate);
+              const sortedData = [...apiData].sort((a, b) => a.month.localeCompare(b.month));
+              setFeedConsumptionData(sortedData);
+          } catch (err) {
+              setFeedConsumptionError('Failed to load feed consumption per egg data.');
+              console.error(err);
+          } finally {
+              setFeedConsumptionLoading(false);
+          }
+      };
+
       fetchEggTrendData();
       fetchCompositionUsageData();
       fetchEggCostData();
-  
+      fetchFeedConsumptionData();
+
     }, [startDate, endDate]);
 
 
@@ -215,7 +239,7 @@ const Dashboard: React.FC = () => {
             />
           </div>
       </div>
-      
+
       <div className="container-fluid mt-4">
         <div className="row g-4">
           {(loading || feedLoading) && <div className="col-12"><Loading message="Loading dashboard data..." /></div>}
@@ -243,7 +267,7 @@ const Dashboard: React.FC = () => {
           })}
         </div>
 
-        
+
         <div className="card shadow-sm my-4">
             <div className="card-body">
                 <h5 className="card-title">Graphical Reports</h5>
@@ -269,10 +293,16 @@ const Dashboard: React.FC = () => {
                 <CompositionUsagePieChart data={compositionUsageData} loading={compositionUsageLoading} error={compositionUsageError} />
             </div>
         </div>
-        
+
         <div className="row g-4 mt-2">
             <div className="col-12">
                 <EggProductionCostGraph data={eggCostData} loading={eggCostLoading} error={eggCostError} />
+            </div>
+        </div>
+
+        <div className="row g-4 mt-2">
+            <div className="col-12">
+                <FeedConsumptionPerEggGraph data={feedConsumptionData} loading={feedConsumptionLoading} error={feedConsumptionError} />
             </div>
         </div>
 
