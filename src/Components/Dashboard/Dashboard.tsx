@@ -69,10 +69,7 @@ const Dashboard: React.FC = () => {
         setLoading(false);
       }
     };
-    fetchBatches();
-  }, [batchDate]);
 
-  useEffect(() => {
     const fetchFeedUsage = async () => {
       setFeedLoading(true);
       try {
@@ -84,10 +81,10 @@ const Dashboard: React.FC = () => {
         setFeedLoading(false);
       }
     };
-    if (!loading) {
-      fetchFeedUsage();
-    }
-  }, [batchDate, loading]);
+
+    fetchBatches();
+    fetchFeedUsage();
+  }, [batchDate]);
 
   useEffect(() => {
     sessionStorage.setItem(BATCH_DATE_KEY, batchDate);
