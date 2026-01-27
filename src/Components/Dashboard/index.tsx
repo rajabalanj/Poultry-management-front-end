@@ -124,31 +124,37 @@ const DashboardIndex = () => {
     fetchBatches();
   }, [batchDate]);
 
-  // Fetch feed usage for the selected batchDate and shed
-  useEffect(() => {
-    const fetchFeedUsage = async () => {
-      setFeedLoading(true);
-      try {
-        // If shed is selected, try to get batch_id for that shed
-        let batchId: number | undefined = undefined;
-        if (selectedShedNo) {
-          const selectedShed = sheds.find(s => s.shed_no === selectedShedNo);
-          const batch = selectedShed ? batches.find(b => b.shed_id === selectedShed.id) : undefined;
-          if (batch) batchId = batch.batch_id;
-        }
-        const usage = await compositionApi.getFeedUsageByDate(batchDate, batchId);
-        setFeedUsage(usage);
-      } catch (err: any) {
-        setFeedUsage(null);
-      } finally {
-        setFeedLoading(false);
-      }
-    };
-    // Only fetch if batches are loaded
-    if (!loading) {
-      fetchFeedUsage();
+  const fetchFeedUsageData = async (date: string, bId?: number) => {
+    setFeedLoading(true);
+    try {
+      const usage = await compositionApi.getFeedUsageByDate(date, bId);
+      setFeedUsage(usage);
+    } catch (err: any) {
+      setFeedUsage(null);
+    } finally {
+      setFeedLoading(false);
     }
-  }, [batchDate, selectedShedNo, batches, loading, sheds]);
+  };
+
+  // Optimized: Fetch feed usage in parallel if no shed selected
+  useEffect(() => {
+    if (!selectedShedNo) {
+      fetchFeedUsageData(batchDate, undefined);
+    }
+  }, [batchDate, selectedShedNo]);
+
+  // Optimized: Fetch feed usage dependent on batches if shed IS selected
+  useEffect(() => {
+    if (selectedShedNo && !loading) {
+      const selectedShed = sheds.find(s => s.shed_no === selectedShedNo);
+      const batch = selectedShed ? batches.find(b => b.shed_id === selectedShed.id) : undefined;
+      if (batch) {
+        fetchFeedUsageData(batchDate, batch.batch_id);
+      } else {
+        setFeedUsage(null);
+      }
+    }
+  }, [batchDate, selectedShedNo, loading, batches, sheds]);
 
   useEffect(() => {
     sessionStorage.setItem(BATCH_DATE_KEY, batchDate);
