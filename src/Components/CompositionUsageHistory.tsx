@@ -36,33 +36,21 @@ const CompositionUsageHistory = () => {
         const offset = (currentPage - 1) * ITEMS_PER_PAGE;
         const limit = ITEMS_PER_PAGE;
 
-        // Format dates as YYYY-MM-DD for the API (avoid timezone issues)
-        const formatDate = (date: Date) => {
-          const year = date.getFullYear();
-          const month = String(date.getMonth() + 1).padStart(2, '0');
-          const day = String(date.getDate()).padStart(2, '0');
-          return `${year}-${month}-${day}`;
-        };
+        const formatDate = (date: Date) => date.toISOString().split('T')[0];
 
         const startDateStr = startDate ? formatDate(startDate) : undefined;
         const endDateStr = endDate ? formatDate(endDate) : undefined;
 
-        let response;
-
-        if (compositionId) {
-          const [usageData, compositionData] = await Promise.all([
-            compositionApi.getCompositionUsageHistoryById(Number(compositionId), offset, limit, startDateStr, endDateStr),
-            compositionApi.getComposition(Number(compositionId)),
-          ]);
-          response = usageData;
-          setComposition(compositionData);
-        } else {
-          response = await compositionApi.getCompositionUsageHistory(offset, limit, startDateStr, endDateStr);
-        }
+        const response = compositionId
+          ? await compositionApi.getCompositionUsageHistoryById(Number(compositionId), offset, limit, startDateStr, endDateStr)
+          : await compositionApi.getCompositionUsageHistory(offset, limit, startDateStr, endDateStr);
+        
         setHistory(response.data);
         setTotalItems(response.total);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load usage history");
+        const errorMessage = err instanceof Error ? err.message : "Failed to load usage history";
+        setError(errorMessage);
+        toast.error(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -70,17 +58,21 @@ const CompositionUsageHistory = () => {
     fetchHistory();
   }, [compositionId, currentPage, startDate, endDate]);
 
-  useEffect(() => { // This useEffect should probably not be here if batches are many.
-    const fetchBatches = async () => {
+  useEffect(() => {
+    const fetchStaticData = async () => {
       try {
-        const availableBatches = await batchApi.getBatches();
+        const batchPromise = batchApi.getBatches();
+        const compositionPromise = compositionId ? compositionApi.getComposition(Number(compositionId)) : Promise.resolve(null);
+        const [availableBatches, compositionData] = await Promise.all([batchPromise, compositionPromise]);
         setBatches(availableBatches);
+        setComposition(compositionData);
       } catch (error) {
-        console.error('Failed to fetch batches:', error);
+        console.error('Failed to fetch static data:', error);
+        toast.error('Failed to load static data.');
       }
     };
-    fetchBatches();
-  }, []);
+    fetchStaticData();
+  }, [compositionId]);
 
   // Helper function to get batch number by batch ID
   const getBatchNumber = (batchId: number | undefined) => {

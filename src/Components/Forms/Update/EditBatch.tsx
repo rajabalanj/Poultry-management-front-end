@@ -33,10 +33,15 @@ const EditBatch: React.FC = () => {
   const [usageToRevert, setUsageToRevert] = useState<number | null>(null);
 
   useEffect(() => {
-    const fetchBatch = async () => {
+    const fetchData = async () => {
+      if (!batchId || !batch_date) return;
+      setLoading(true);
       try {
-        if (!batchId || !batch_date) return;
-        const batches = await dailyBatchApi.getDailyBatches(batch_date);
+        const [batches, history] = await Promise.all([
+          dailyBatchApi.getDailyBatches(batch_date),
+          compositionApi.getFilteredCompositionUsageHistory(batch_date, Number(batchId))
+        ]);
+
         const found = batches.find(b => b.batch_id === Number(batchId));
         if (found) {
           setBatch(found);
@@ -44,15 +49,16 @@ const EditBatch: React.FC = () => {
         } else {
           setBatch(null);
         }
+        setUsageHistory(history);
       } catch (err) {
-        console.error("Error fetching daily batch:", err);
-        setError("Failed to load batch");
+        console.error("Error fetching batch data:", err);
+        setError("Failed to load batch data");
         toast.error("Failed to load batch details");
       } finally {
         setLoading(false);
       }
     };
-    fetchBatch();
+    fetchData();
   }, [batchId, batch_date]);
 
   const fetchUsageHistory = async () => {
@@ -67,8 +73,6 @@ const EditBatch: React.FC = () => {
       toast.error("Failed to fetch feed usage history.");
     }
   };
-
-  useEffect(() => { fetchUsageHistory(); }, [batchId, batch_date]);
 
   useEffect(() => {
     compositionApi.getCompositions().then((comps) => {

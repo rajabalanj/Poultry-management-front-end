@@ -31,31 +31,39 @@ function FeedMillStock() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    inventoryItemApi.getInventoryItems(0, 1000, InventoryItemCategory.FEED).then((items) => {
-      setInventoryItems(items);
-    });
-    compositionApi.getCompositions().then((comps) => {
-      if (Array.isArray(comps)) {
-        const mappedComps = comps.map((comp) => ({
-          ...comp,
-          inventory_items: (comp.inventory_items || []).map((f: any) => ({
-            ...f,
-            inventory_item_id: f.inventory_item_id ?? f.inventory_item_id,
-          })),
-        }));
-        setCompositions(mappedComps);
-      } else {
-        setCompositions([]);
-      }
-    });
+    const fetchData = async () => {
+      try {
+        const [items, comps, fetchedBatches] = await Promise.all([
+          inventoryItemApi.getInventoryItems(0, 1000, InventoryItemCategory.FEED),
+          compositionApi.getCompositions(),
+          batchApi.getBatches()
+        ]);
 
-    batchApi.getBatches().then((fetchedBatches: BatchResponse[]) => {
-      setBatches(fetchedBatches);
-      if (fetchedBatches.length > 0) {
-        setSelectedBatchNo(fetchedBatches[0].batch_no);
-      }
-    });
+        setInventoryItems(items);
 
+        if (Array.isArray(comps)) {
+          const mappedComps = comps.map((comp) => ({
+            ...comp,
+            inventory_items: (comp.inventory_items || []).map((f: any) => ({
+              ...f,
+              inventory_item_id: f.inventory_item_id ?? f.inventory_item_id,
+            })),
+          }));
+          setCompositions(mappedComps);
+        } else {
+          setCompositions([]);
+        }
+
+        setBatches(fetchedBatches);
+        if (fetchedBatches.length > 0) {
+          setSelectedBatchNo(fetchedBatches[0].batch_no);
+        }
+      } catch (error) {
+        console.error("Error loading feed mill data:", error);
+        toast.error("Failed to load data.");
+      }
+    };
+    fetchData();
   }, []);
 
   useEffect(() => {

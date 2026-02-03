@@ -171,30 +171,33 @@ const PreviousDayReport = () => {
   batchOptions.unshift({ value: '', label: 'All Batches (Daily Report Only)' });
 
   useEffect(() => {
-    shedApi.getSheds().then(shedData => {
-      const validSheds = Array.isArray(shedData) ? shedData : [];
-      setSheds(validSheds);
-    }).catch(err => {
-      toast.error(err.message || "Failed to load sheds.");
-    });
+    const fetchInitialData = async () => {
+      try {
+        const [shedData, configs, batchData] = await Promise.all([
+          shedApi.getSheds(),
+          configApi.getAllConfigs(),
+          batchApi.getBatches(0, 1000)
+        ]);
 
-    configApi.getAllConfigs().then(configs => {
-      const hdConfig = configs.find(c => c.name === 'henDayDeviation');
-      setHenDayDeviation(hdConfig ? Number(hdConfig.value) : 10);
-    });
+        const validSheds = Array.isArray(shedData) ? shedData : [];
+        setSheds(validSheds);
 
-    batchApi.getBatches(0, 1000).then(batchData => {
+        const hdConfig = configs.find(c => c.name === 'henDayDeviation');
+        setHenDayDeviation(hdConfig ? Number(hdConfig.value) : 10);
+
         const validBatches = Array.isArray(batchData) ? batchData : [];
         setBatches(validBatches);
         if (effectiveBatchId) {
-            const foundBatch = validBatches.find(b => String(b.id) === effectiveBatchId);
-            if (foundBatch) {
-                setBatchNo(foundBatch.batch_no);
-            }
+          const foundBatch = validBatches.find(b => String(b.id) === effectiveBatchId);
+          if (foundBatch) {
+            setBatchNo(foundBatch.batch_no);
+          }
         }
-    }).catch(err => {
-        toast.error(err.message || "Failed to load batches.");
-    });
+      } catch (err: any) {
+        toast.error(err.message || "Failed to load initial data.");
+      }
+    };
+    fetchInitialData();
   }, [effectiveBatchId]);
 
   const fetchData = async (batchIdToFetch?: string, start?: string, end?: string, weekToFetch?: string) => {

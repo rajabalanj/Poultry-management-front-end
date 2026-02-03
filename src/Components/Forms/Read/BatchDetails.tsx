@@ -55,7 +55,16 @@ const BatchDetails: React.FC = () => {
         console.error("Failed to fetch hen day deviation config", error);
       }
     };
+    const fetchSheds = async () => {
+      try {
+        const availableSheds = await shedApi.getSheds();
+        setSheds(availableSheds);
+      } catch (error) {
+        console.error('Failed to fetch sheds:', error);
+      }
+    };
     fetchHenDayDeviation();
+    fetchSheds();
   }, []);
 
   const handleViewFeedDetails = (title: string, items: string[]) => {
@@ -78,39 +87,51 @@ const BatchDetails: React.FC = () => {
   };
 
   useEffect(() => {
-    const fetchBatch = async () => {
+    const fetchData = async () => {
+      if (!batch_id || !batch_date) {
+        setBatch(null);
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+      setFeedLoading(true);
+
       try {
-        if (batch_id && batch_date) {
-          const formattedDate = new Date(batch_date).toISOString().split('T')[0];
-          const batches = await dailyBatchApi.getDailyBatches(formattedDate);
-          const found = batches.find(b => b.batch_id === Number(batch_id));
-          if (found) {
-            setBatch(found);
-          } else {
-            setBatch(null);
-          }
+        const formattedDate = new Date(batch_date).toISOString().split('T')[0];
+
+        // These can run in parallel
+        const [batches, history, feedUsageData] = await Promise.all([
+          dailyBatchApi.getDailyBatches(formattedDate),
+          compositionApi.getFilteredCompositionUsageHistory(
+            formattedDate,
+            Number(batch_id)
+          ),
+          compositionApi.getFeedUsageByDate(formattedDate, Number(batch_id))
+        ]);
+
+        setUsageHistory(history);
+        setFeedUsage(feedUsageData);
+
+        const foundBatch = batches.find(b => b.batch_id === Number(batch_id));
+        if (foundBatch) {
+          setBatch(foundBatch);
+        } else {
+          setBatch(null);
         }
       } catch (error) {
-        console.error('Error fetching daily batch:', error);
+        console.error('Error fetching batch details:', error);
         toast.error('Failed to load batch details');
+        setBatch(null);
+        setUsageHistory([]);
+        setFeedUsage(null);
       } finally {
         setIsLoading(false);
+        setFeedLoading(false);
       }
     };
-    fetchBatch();
+    fetchData();
   }, [batch_id, batch_date]);
-
-  useEffect(() => {
-    const fetchSheds = async () => {
-      try {
-        const availableSheds = await shedApi.getSheds();
-        setSheds(availableSheds);
-      } catch (error) {
-        console.error('Failed to fetch sheds:', error);
-      }
-    };
-    fetchSheds();
-  }, []);
 
   // Helper function to get shed number by shed ID
   const getShedNumber = (shedId: number | undefined) => {
@@ -118,45 +139,6 @@ const BatchDetails: React.FC = () => {
     const shed = sheds.find(s => s.id === shedId);
     return shed ? shed.shed_no : 'Unknown Shed';
   };
-
-  useEffect(() => {
-    const fetchUsageHistory = async () => {
-        if (!batch_id || !batch_date) return;
-        try {
-            const formattedDate = new Date(batch_date).toISOString().split('T')[0];
-            const history = await compositionApi.getFilteredCompositionUsageHistory(
-                formattedDate,
-                Number(batch_id)
-            );
-            setUsageHistory(history);
-        } catch (error) {
-            toast.error("Failed to fetch feed usage history.");
-        }
-    };
-    fetchUsageHistory();
-  }, [batch_id, batch_date]);
-
-  // Fetch feed usage for the batch and date
-  useEffect(() => {
-    const fetchFeedUsage = async () => {
-      setFeedLoading(true);
-      try {
-        if (batch && batch.batch_id && batch.batch_date) {
-          const feedUsageData = await compositionApi.getFeedUsageByDate(batch.batch_date, batch.batch_id);
-          setFeedUsage(feedUsageData);
-        } else {
-          setFeedUsage(null);
-        }
-      } catch (err) {
-        setFeedUsage(null);
-      } finally {
-        setFeedLoading(false);
-      }
-    };
-    if (batch && batch.batch_id && batch.batch_date) {
-      fetchFeedUsage();
-    }
-  }, [batch]);
 
   const handleDownloadReport = () => {
     if (reportType === 'weekly') {

@@ -32,7 +32,6 @@ const AddBatch: React.FC = () => {
   }, [location.search]);
 
   useEffect(() => {
-    // Fetch all batches and set batch_no to max + 1
     const fetchMaxBatchNo = async () => {
       try {
         const batches = await batchApi.getBatches(0, 1000); // adjust limit as needed
@@ -44,10 +43,7 @@ const AddBatch: React.FC = () => {
         setBatchNo('1'); // fallback
       }
     };
-    fetchMaxBatchNo();
-  }, []);
 
-  useEffect(() => {
     const fetchSheds = async () => {
       try {
         setIsLoadingSheds(true);
@@ -64,6 +60,7 @@ const AddBatch: React.FC = () => {
       }
     };
 
+    fetchMaxBatchNo();
     fetchSheds();
   }, []);
 
