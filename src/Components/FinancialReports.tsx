@@ -1,4 +1,4 @@
- import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { Modal, Button } from 'react-bootstrap';
 import PageHeader from './Layout/PageHeader';
@@ -75,7 +75,7 @@ const FinancialReports: React.FC = () => {
   const [opExLoading, setOpExLoading] = useState(false);
   const [opExError, setOpExError] = useState<string | null>(null);
 
-  const handleFetchPnl = async () => {
+  const handleFetchPnl = useCallback(async () => {
     if (new Date(pnlStartDate) > new Date(pnlEndDate)) {
       toast.error('Start date cannot be after end date.');
       return;
@@ -91,9 +91,9 @@ const FinancialReports: React.FC = () => {
     } finally {
       setPnlLoading(false);
     }
-  };
+  }, [pnlStartDate, pnlEndDate]);
 
-  const handleFetchFs = async () => {
+  const handleFetchFs = useCallback(async () => {
     if (new Date(fsStartDate) > new Date(fsEndDate)) {
         toast.error('Start date cannot be after end date.');
         return;
@@ -109,9 +109,9 @@ const FinancialReports: React.FC = () => {
     } finally {
         setFsLoading(false);
     }
-  };
+  }, [fsStartDate, fsEndDate]);
 
-  const handleFetchBs = async () => {
+  const handleFetchBs = useCallback(async () => {
     setBsLoading(true);
     setBsData(null);
     try {
@@ -123,18 +123,18 @@ const FinancialReports: React.FC = () => {
     } finally {
       setBsLoading(false);
     }
-  };
+  }, [bsAsOfDate]);
 
   useEffect(() => {
-    if (activeTab === 'pnl' && sessionStorage.getItem('financial_pnl_loaded') === 'true' && !pnlData) {
+    if (activeTab === 'pnl' && sessionStorage.getItem('financial_pnl_loaded') === 'true' && !pnlData && !pnlLoading) {
       handleFetchPnl();
-    } else if (activeTab === 'balance-sheet' && sessionStorage.getItem('financial_bs_loaded') === 'true' && !bsData) {
+    } else if (activeTab === 'balance-sheet' && sessionStorage.getItem('financial_bs_loaded') === 'true' && !bsData && !bsLoading) {
       handleFetchBs();
-    } else if (activeTab === 'financial-summary' && sessionStorage.getItem('financial_fs_loaded') === 'true' && !fsData) {
+    } else if (activeTab === 'financial-summary' && sessionStorage.getItem('financial_fs_loaded') === 'true' && !fsData && !fsLoading) {
       handleFetchFs();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab]);
+  }, [activeTab, handleFetchPnl, handleFetchBs, handleFetchFs, pnlData, bsData, fsData, pnlLoading, bsLoading, fsLoading]);
 
   const handleShowOpExDetails = async () => {
     setShowOpExModal(true);
