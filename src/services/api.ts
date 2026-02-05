@@ -126,16 +126,14 @@ api.interceptors.response.use(
 
 // Validation utilities
 export const validateBatchData = {
-  age: (value: string): string | null => {
-    if (!value.match(/^\d+\.\d+$/)) {
-      return 'Age must be in the format week.day (e.g., "1.1")';
+  age: (value: number): string | null => {
+    if (isNaN(value) || value < 0) {
+      return 'Age must be a positive number';
     }
-    const [week, day] = value.split('.').map(Number);
+    const week = Math.floor(value);
+    const day = Math.round((value - week) * 10);
     if (day < 1 || day > 7) {
       return 'Day must be between 1 and 7';
-    }
-    if (week < 0) {
-      return 'Week must be 0 or greater';
     }
     return null;
   },
@@ -562,7 +560,7 @@ export const configApi = {
 export const batchApi = {
   createBatch: async (batchData: CreateBatchPayload): Promise<CreateBatchResponse> => {
     // Basic validation before sending to backend
-    const ageError = validateBatchData.age(String(batchData.age));
+    const ageError = validateBatchData.age(Number(batchData.age));
     if (ageError) {
       throw new Error(`Invalid age: ${ageError}`);
     }

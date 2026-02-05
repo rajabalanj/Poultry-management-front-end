@@ -1,7 +1,7 @@
 export interface Batch {
   shed_no: string;
   batch_no: string;
-  age: string;   // Format: "week.day" (e.g., "1.1" for 8 days)
+  age: number;   // Format: week.day (e.g., 1.1 for 8 days)
   opening_count: number;
   date: string;
   closing_date?: string; // Optional field for closing date
@@ -13,7 +13,7 @@ export interface BatchResponse {
   id: number;
   shed_no: string;
   batch_no: string;
-  age: string;   // Format: "week.day" (e.g., "1.1" for 8 days)
+  age: number;   // Format: week.day (e.g., 1.1 for 8 days)
   opening_count: number;
   date: string;
   closing_date?: string;
@@ -26,7 +26,7 @@ export interface BatchResponse {
 }
 
 export interface BatchUpdate {
-  age: string;
+  age: number;
   opening_count: number;
   batch_no: string;
   shed_no: string;
@@ -37,7 +37,7 @@ export interface BatchUpdate {
 }
 
 export interface CreateBatchPayload {
-  age: string;
+  age: number;
   opening_count: number;
   batch_no: string;
   shed_id: number;
@@ -46,7 +46,7 @@ export interface CreateBatchPayload {
 
 export interface CreateBatchResponse {
   id: number;
-  age: string;
+  age: number;
   opening_count: number;
   batch_no: string;
   date: string;

@@ -99,10 +99,11 @@ const ViewBatchSimple: React.FC = () => {
             <div className="col-md-6">
               <label className="form-label">Age (week.day)</label>
               <input
-                type="text"
+                type="number"
                 className="form-control"
                 value={batch.age}
                 readOnly
+                step="0.1"
               />
             </div>
           </div>

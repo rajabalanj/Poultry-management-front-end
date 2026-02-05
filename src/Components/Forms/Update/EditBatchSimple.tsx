@@ -11,7 +11,7 @@ const EditBatchSimple: React.FC = () => {
   const { batchId } = useParams<{ batchId: string }>();
   const navigate = useNavigate();
   const [batchNo, setBatchNo] = useState('');
-  const [age, setAge] = useState('');
+  const [age, setAge] = useState<number>(0);
   const [openingCount, setOpeningCount] = useState('');
   const [date, setDate] = useState('');
   const [shedChangeDate, setShedChangeDate] = useState('');
@@ -26,7 +26,7 @@ const EditBatchSimple: React.FC = () => {
         if (!batchId) return;
         const data: BatchResponse = await batchApi.getBatch(Number(batchId));
         setBatchNo(data.batch_no || '');
-        setAge(data.age || '');
+        setAge(data.age || 0);
         setOpeningCount(data.opening_count?.toString() || '');
         setDate(data.date || '');
         setShedChangeDate(data.shed_change_date || '');
@@ -160,12 +160,13 @@ const EditBatchSimple: React.FC = () => {
             <div className="col-md-6">
               <label className="form-label">Age (week.day)</label>
               <input
-                type="text"
+                type="number"
                 className="form-control"
                 value={age}
-                onChange={e => setAge(e.target.value)}
+                onChange={e => setAge(parseFloat(e.target.value) || 0)}
                 required
                 placeholder="e.g. 0.1 or 1.1"
+                step="0.1"
               />
             </div>
             <div className="col-md-6">

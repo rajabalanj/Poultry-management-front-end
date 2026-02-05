@@ -75,7 +75,7 @@ const AddBatch: React.FC = () => {
       const batchData = {
         batch_no: formattedBatchNo,
         shed_id: parseInt(shed_no, 10),
-        age: `${week}.${day}`,
+        age: parseFloat(`${week}.${day}`),
         opening_count: parseInt(opening_count),
         date: batch_date, // already in YYYY-MM-DD from input[type="date"]
         // standard_hen_day_percentage: standardHenDay,

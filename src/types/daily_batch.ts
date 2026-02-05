@@ -5,7 +5,7 @@ export interface DailyBatch {
   batch_no: string;
   uploaded_date: string; // ISO date string
   batch_date: string; // ISO date string
-  age: string; // Format: "week.day" (e.g., "1.1")
+  age: number; // Format: week.day (e.g., 1.1)
   opening_count: number;
   mortality: number;
   culls: number;

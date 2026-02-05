@@ -6,7 +6,7 @@ export interface GridRow {
     batch_no: string;
     batch_type?: string;
     batch_date?: string;
-    age?: string;
+    age?: number;
     highest_age?: number;
     opening_count: number;
     mortality: number;

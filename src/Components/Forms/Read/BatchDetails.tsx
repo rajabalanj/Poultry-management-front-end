@@ -264,10 +264,11 @@ const BatchDetails: React.FC = () => {
             <div className="col-12 col-md-6 mb-4 mt-4">
               <label className="form-label">Age</label>
               <input
-                type="text"
+                type="number"
                 className="form-control is-readonly"
                 value={batch.age}
                 readOnly
+                step="0.1"
               />
             </div>
             <div className="col-12 col-md-6 mb-4 mt-4">
