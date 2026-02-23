@@ -53,7 +53,9 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
     setOpenMenu("inventory");
   } else if (
     location.pathname.startsWith("/financial-reports") ||
-    location.pathname.startsWith("/operational-expenses")
+    location.pathname.startsWith("/operational-expenses") ||
+    location.pathname.startsWith("/chart-of-accounts") ||
+    location.pathname.startsWith("/journal-entries")
   ) {
     setOpenMenu("finance");
   } else if (
@@ -475,6 +477,32 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                         onClick={closeSidebarMobile}
                       >
                         <span className="sidebar-text">Operational Expenses</span>
+                      </Link>
+                    </li>
+                    <li className="sub-menu-item">
+                      <Link
+                        to="/chart-of-accounts"
+                        className={`nav-menu-link ${
+                          location.pathname === "/chart-of-accounts"
+                            ? "active-link"
+                            : ""
+                        }`}
+                        onClick={closeSidebarMobile}
+                      >
+                        <span className="sidebar-text">Chart of Accounts</span>
+                      </Link>
+                    </li>
+                    <li className="sub-menu-item">
+                      <Link
+                        to="/journal-entries"
+                        className={`nav-menu-link ${
+                          location.pathname.startsWith("/journal-entries")
+                            ? "active-link"
+                            : ""
+                        }`}
+                        onClick={closeSidebarMobile}
+                      >
+                        <span className="sidebar-text">Journal Entries</span>
                       </Link>
                     </li>
                   </ul>

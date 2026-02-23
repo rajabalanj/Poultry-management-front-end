@@ -26,12 +26,19 @@ export interface Liabilities {
   current_liabilities: CurrentLiabilities;
 }
 
+export interface OperatingExpenseByAccount {
+  account_code: string;
+  account_name: string;
+  amount: number;
+}
+
 export interface ProfitAndLoss {
   revenue: number;
   cogs: number;
   gross_profit: number;
   operating_expenses: number;
   net_income: number;
+  operating_expenses_by_account: OperatingExpenseByAccount[];
   revenue_str?: string;
   revenue_words?: string;
   cogs_str?: string;

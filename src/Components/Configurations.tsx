@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import PageHeader from "./Layout/PageHeader";
-import { configApi, batchApi, bovansApi, eggRoomReportApi } from "../services/api";
+import { configApi, batchApi, bovansApi, eggRoomReportApi, financialSettingsApi, chartOfAccountsApi } from "../services/api";
 import { toast } from "react-toastify";
 import BatchConfig from "./BatchConfig";
 import { BovansPerformance } from "../types/bovans"; // Import BovansPerformance type
 import { format } from 'date-fns'; // For date formatting
+import type { FinancialSettings as IFinancialSettings, UpdateFinancialSettings } from "../types/financialSettings";
+import type { ChartOfAccountsResponse } from "../types/chartOfAccounts";
 
 
 const KG_PER_TON = 1000;
@@ -46,6 +48,20 @@ const Configurations: React.FC = () => {
   // Financial Config state
   const [generalLedgerOpeningBalance, setGeneralLedgerOpeningBalance] = useState<number>(0);
   const [financialConfigSaving, setFinancialConfigSaving] = useState(false);
+  
+  // Financial Settings state
+  const [financialSettings, setFinancialSettings] = useState<IFinancialSettings | null>(null);
+  const [chartOfAccounts, setChartOfAccounts] = useState<ChartOfAccountsResponse[]>([]);
+  const [financialSettingsFormData, setFinancialSettingsFormData] = useState<UpdateFinancialSettings>({
+    default_cash_account_id: 0,
+    default_sales_account_id: 0,
+    default_inventory_account_id: 0,
+    default_cogs_account_id: 0,
+    default_operational_expense_account_id: 0,
+    default_accounts_payable_account_id: 0,
+    default_accounts_receivable_account_id: 0,
+  });
+  const [financialSettingsSaving, setFinancialSettingsSaving] = useState(false);
 
   // Function to fetch Bovans performance data with pagination
 
@@ -74,6 +90,28 @@ const Configurations: React.FC = () => {
         const financialConfig = await configApi.getFinancialConfig();
         if (financialConfig) {
             setGeneralLedgerOpeningBalance(financialConfig.general_ledger_opening_balance || 0);
+        }
+        
+        // Fetch financial settings
+        try {
+          const [settingsData, accountsData] = await Promise.all([
+            financialSettingsApi.getFinancialSettings(),
+            chartOfAccountsApi.getChartOfAccounts()
+          ]);
+          
+          setFinancialSettings(settingsData);
+          setChartOfAccounts(accountsData);
+          setFinancialSettingsFormData({
+            default_cash_account_id: settingsData.default_cash_account_id,
+            default_sales_account_id: settingsData.default_sales_account_id,
+            default_inventory_account_id: settingsData.default_inventory_account_id,
+            default_cogs_account_id: settingsData.default_cogs_account_id,
+            default_operational_expense_account_id: settingsData.default_operational_expense_account_id,
+            default_accounts_payable_account_id: settingsData.default_accounts_payable_account_id,
+            default_accounts_receivable_account_id: settingsData.default_accounts_receivable_account_id,
+          });
+        } catch (error) {
+          console.error("Failed to fetch financial settings:", error);
         }
 
         const batchData = await batchApi.getBatches(0, 1000);
@@ -260,6 +298,45 @@ const handleMedicineGramChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFinancialConfigSaving(false);
     }
   };
+  
+  // Financial Settings handlers
+  const handleFinancialSettingsInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFinancialSettingsFormData(prev => ({
+      ...prev,
+      [name]: parseInt(value) || 0
+    }));
+  };
+  
+  // Helper function to filter accounts by type
+  const getAccountsByType = (accountType: string): ChartOfAccountsResponse[] => {
+    return chartOfAccounts.filter(acc => acc.account_type === accountType);
+  };
+  
+  // Expected account types for each field
+  const expectedTypes = {
+    'default_cash_account_id': 'Asset',
+    'default_sales_account_id': 'Revenue',
+    'default_inventory_account_id': 'Asset',
+    'default_cogs_account_id': 'Expense',
+    'default_operational_expense_account_id': 'Expense',
+    'default_accounts_payable_account_id': 'Liability',
+    'default_accounts_receivable_account_id': 'Asset'
+  };
+  
+  const handleSaveFinancialSettings = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setFinancialSettingsSaving(true);
+    try {
+      const updatedSettings: IFinancialSettings = await financialSettingsApi.updateFinancialSettings(financialSettingsFormData);
+      setFinancialSettings(updatedSettings);
+      toast.success("Financial settings updated successfully");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update financial settings");
+    } finally {
+      setFinancialSettingsSaving(false);
+    }
+  };
 
 
 return (
@@ -406,6 +483,183 @@ return (
                             {financialConfigSaving ? "Saving..." : "Save Financial Configuration"}
                         </button>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        {/* Financial Settings Accordion Item */}
+        <div className="accordion-item mb-3">
+            <h2 className="accordion-header text-light bg-primary" id="financial-settings-heading">
+                <button
+                    className="accordion-button collapsed fw-semibold text-light bg-primary accordion-button-white-arrow"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#financial-settings-collapse"
+                    aria-expanded="false"
+                    aria-controls="financial-settings-collapse"
+                >
+                    Financial Settings
+                </button>
+            </h2>
+            <div
+                id="financial-settings-collapse"
+                className="accordion-collapse collapse"
+                aria-labelledby="financial-settings-heading"
+                data-bs-parent="#configurationsAccordion"
+            >
+                <div className="accordion-body">
+                    {financialSettings ? (
+                        <form onSubmit={handleSaveFinancialSettings}>
+                            <div className="mb-3">
+                                <label htmlFor="default_cash_account_id" className="form-label">Default Cash Account</label>
+                                <select
+                                    className="form-select form-select-sm"
+                                    id="default_cash_account_id"
+                                    name="default_cash_account_id"
+                                    value={financialSettingsFormData.default_cash_account_id}
+                                    onChange={handleFinancialSettingsInputChange}
+                                    required
+                                >
+                                    <option value="">Select an account</option>
+                                    {getAccountsByType(expectedTypes.default_cash_account_id).map(account => (
+                                        <option key={account.id} value={account.id}>
+                                            {account.account_name} ({account.account_code})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="mb-3">
+                                <label htmlFor="default_sales_account_id" className="form-label">Default Sales Account</label>
+                                <select
+                                    className="form-select form-select-sm"
+                                    id="default_sales_account_id"
+                                    name="default_sales_account_id"
+                                    value={financialSettingsFormData.default_sales_account_id}
+                                    onChange={handleFinancialSettingsInputChange}
+                                    required
+                                >
+                                    <option value="">Select an account</option>
+                                    {getAccountsByType(expectedTypes.default_sales_account_id).map(account => (
+                                        <option key={account.id} value={account.id}>
+                                            {account.account_name} ({account.account_code})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="mb-3">
+                                <label htmlFor="default_inventory_account_id" className="form-label">Default Inventory Account</label>
+                                <select
+                                    className="form-select form-select-sm"
+                                    id="default_inventory_account_id"
+                                    name="default_inventory_account_id"
+                                    value={financialSettingsFormData.default_inventory_account_id}
+                                    onChange={handleFinancialSettingsInputChange}
+                                    required
+                                >
+                                    <option value="">Select an account</option>
+                                    {getAccountsByType(expectedTypes.default_inventory_account_id).map(account => (
+                                        <option key={account.id} value={account.id}>
+                                            {account.account_name} ({account.account_code})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="mb-3">
+                                <label htmlFor="default_cogs_account_id" className="form-label">Default COGS Account</label>
+                                <select
+                                    className="form-select form-select-sm"
+                                    id="default_cogs_account_id"
+                                    name="default_cogs_account_id"
+                                    value={financialSettingsFormData.default_cogs_account_id}
+                                    onChange={handleFinancialSettingsInputChange}
+                                    required
+                                >
+                                    <option value="">Select an account</option>
+                                    {getAccountsByType(expectedTypes.default_cogs_account_id).map(account => (
+                                        <option key={account.id} value={account.id}>
+                                            {account.account_name} ({account.account_code})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="mb-3">
+                                <label htmlFor="default_operational_expense_account_id" className="form-label">Default Operational Expense Account</label>
+                                <select
+                                    className="form-select form-select-sm"
+                                    id="default_operational_expense_account_id"
+                                    name="default_operational_expense_account_id"
+                                    value={financialSettingsFormData.default_operational_expense_account_id}
+                                    onChange={handleFinancialSettingsInputChange}
+                                    required
+                                >
+                                    <option value="">Select an account</option>
+                                    {getAccountsByType(expectedTypes.default_operational_expense_account_id).map(account => (
+                                        <option key={account.id} value={account.id}>
+                                            {account.account_name} ({account.account_code})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="mb-3">
+                                <label htmlFor="default_accounts_payable_account_id" className="form-label">Default Accounts Payable Account</label>
+                                <select
+                                    className="form-select form-select-sm"
+                                    id="default_accounts_payable_account_id"
+                                    name="default_accounts_payable_account_id"
+                                    value={financialSettingsFormData.default_accounts_payable_account_id}
+                                    onChange={handleFinancialSettingsInputChange}
+                                    required
+                                >
+                                    <option value="">Select an account</option>
+                                    {getAccountsByType(expectedTypes.default_accounts_payable_account_id).map(account => (
+                                        <option key={account.id} value={account.id}>
+                                            {account.account_name} ({account.account_code})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="mb-3">
+                                <label htmlFor="default_accounts_receivable_account_id" className="form-label">Default Accounts Receivable Account</label>
+                                <select
+                                    className="form-select form-select-sm"
+                                    id="default_accounts_receivable_account_id"
+                                    name="default_accounts_receivable_account_id"
+                                    value={financialSettingsFormData.default_accounts_receivable_account_id}
+                                    onChange={handleFinancialSettingsInputChange}
+                                    required
+                                >
+                                    <option value="">Select an account</option>
+                                    {getAccountsByType(expectedTypes.default_accounts_receivable_account_id).map(account => (
+                                        <option key={account.id} value={account.id}>
+                                            {account.account_name} ({account.account_code})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="mt-3 text-end">
+                                <button
+                                    className="btn btn-primary"
+                                    type="submit"
+                                    disabled={financialSettingsSaving}
+                                >
+                                    {financialSettingsSaving ? "Saving..." : "Update Settings"}
+                                </button>
+                            </div>
+                        </form>
+                    ) : (
+                        <div className="d-flex justify-content-center p-4">
+                            <div className="spinner-border" role="status">
+                                <span className="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

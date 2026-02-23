@@ -41,6 +41,9 @@ import { FinancialSummary } from '../types/financialSummary';
 import { FinancialConfig } from '../types/financialConfig';
 import { GeneralLedger, PurchaseLedger, SalesLedger, InventoryLedger } from '../types/ledgers';
 import { Shed, ShedResponse } from '../types/shed';
+import { ChartOfAccountsRequest, ChartOfAccountsResponse } from '../types/chartOfAccounts';
+import { FinancialSettings, UpdateFinancialSettings } from '../types/financialSettings';
+import { JournalEntryCreate, JournalEntryResponse } from '../types/journalEntry';
 // Define types for our data
 // Define types for our data
 
@@ -1493,6 +1496,110 @@ export const inventoryItemVariantApi = {
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, "Failed to delete inventory item variant"));
+    }
+  },
+};
+
+export const chartOfAccountsApi = {
+  createChartOfAccount: async (accountData: ChartOfAccountsRequest): Promise<ChartOfAccountsResponse> => {
+    try {
+      const response = await api.post<ChartOfAccountsResponse>("/chart-of-accounts/", accountData);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, "Failed to create chart of account"));
+    }
+  },
+
+  getChartOfAccounts: async (): Promise<ChartOfAccountsResponse[]> => {
+    try {
+      const response = await api.get<ChartOfAccountsResponse[]>("/chart-of-accounts/");
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, "Failed to fetch chart of accounts"));
+    }
+  },
+
+  getChartOfAccount: async (id: number): Promise<ChartOfAccountsResponse> => {
+    try {
+      const response = await api.get<ChartOfAccountsResponse>(`/chart-of-accounts/${id}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, "Failed to fetch chart of account"));
+    }
+  },
+
+  updateChartOfAccount: async (id: number, accountData: Partial<ChartOfAccountsRequest>): Promise<ChartOfAccountsResponse> => {
+    try {
+      const response = await api.patch<ChartOfAccountsResponse>(`/chart-of-accounts/${id}`, accountData);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, "Failed to update chart of account"));
+    }
+  },
+
+  deleteChartOfAccount: async (id: number): Promise<void> => {
+    try {
+      await api.delete(`/chart-of-accounts/${id}`);
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, "Failed to delete chart of account"));
+    }
+  },
+};
+
+export const financialSettingsApi = {
+  getFinancialSettings: async (): Promise<FinancialSettings> => {
+    try {
+      const response = await api.get<FinancialSettings>("/financial-settings/");
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, "Failed to fetch financial settings"));
+    }
+  },
+
+  updateFinancialSettings: async (settings: UpdateFinancialSettings): Promise<FinancialSettings> => {
+    try {
+      const response = await api.patch<FinancialSettings>("/financial-settings/", settings);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, "Failed to update financial settings"));
+    }
+  },
+};
+
+export const journalEntryApi = {
+  createJournalEntry: async (entryData: JournalEntryCreate): Promise<JournalEntryResponse> => {
+    try {
+      const response = await api.post<JournalEntryResponse>("/journal-entries/", entryData);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, "Failed to create journal entry"));
+    }
+  },
+
+  getJournalEntries: async (
+    startDate?: string,
+    endDate?: string,
+    skip: number = 0,
+    limit: number = 100
+  ): Promise<JournalEntryResponse[]> => {
+    try {
+      const params: { [key: string]: any } = { skip, limit };
+      if (startDate) params.start_date = startDate;
+      if (endDate) params.end_date = endDate;
+      
+      const response = await api.get<JournalEntryResponse[]>("/journal-entries/", { params });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, "Failed to fetch journal entries"));
+    }
+  },
+
+  getJournalEntry: async (id: number): Promise<JournalEntryResponse> => {
+    try {
+      const response = await api.get<JournalEntryResponse>(`/journal-entries/${id}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, "Failed to fetch journal entry"));
     }
   },
 };

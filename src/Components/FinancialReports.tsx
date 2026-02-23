@@ -2,11 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { Modal, Button } from 'react-bootstrap';
 import PageHeader from './Layout/PageHeader';
-import { financialReportsApi, operationalExpenseApi } from '../services/api';
+import { financialReportsApi } from '../services/api';
 import CustomDatePicker from './Common/CustomDatePicker';
-import { BalanceSheet, ProfitAndLoss } from '../types/financialReports';
+import { BalanceSheet, ProfitAndLoss, OperatingExpenseByAccount } from '../types/financialReports';
 import { FinancialSummary } from '../types/financialSummary';
-import { OperationalExpense } from '../types/operationalExpense';
 import Loading from './Common/Loading';
 import GeneralLedgerComponent from './Ledgers/GeneralLedgerComponent';
 import PurchaseLedgerComponent from './Ledgers/PurchaseLedgerComponent';
@@ -71,9 +70,7 @@ const FinancialReports: React.FC = () => {
 
   // Operational Expenses Modal State
   const [showOpExModal, setShowOpExModal] = useState(false);
-  const [opExDetails, setOpExDetails] = useState<OperationalExpense[]>([]);
-  const [opExLoading, setOpExLoading] = useState(false);
-  const [opExError, setOpExError] = useState<string | null>(null);
+  const [opExDetails, setOpExDetails] = useState<OperatingExpenseByAccount[]>([]);
 
   const handleFetchPnl = useCallback(async () => {
     if (new Date(pnlStartDate) > new Date(pnlEndDate)) {
@@ -136,19 +133,12 @@ const FinancialReports: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, handleFetchPnl, handleFetchBs, handleFetchFs, pnlData, bsData, fsData, pnlLoading, bsLoading, fsLoading]);
 
-  const handleShowOpExDetails = async () => {
+  const handleShowOpExDetails = () => {
     setShowOpExModal(true);
-    setOpExLoading(true);
-    setOpExError(null);
-    try {
-      const data = await operationalExpenseApi.getOperationalExpenses(pnlStartDate, pnlEndDate);
-      setOpExDetails(data);
-    } catch (error: any) {
-      const message = error.message || 'Failed to fetch operational expense details.';
-      setOpExError(message);
-      toast.error(message);
-    } finally {
-      setOpExLoading(false);
+    if (pnlData?.operating_expenses_by_account) {
+      setOpExDetails(pnlData.operating_expenses_by_account);
+    } else {
+      setOpExDetails([]);
     }
   };
 
@@ -477,26 +467,22 @@ const FinancialReports: React.FC = () => {
             <Modal.Title>Operational Expense Details</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            {opExLoading ? (
-              <Loading message="Loading data..." />
-            ) : opExError ? (
-              <div className="alert alert-danger">{opExError}</div>
-            ) : opExDetails.length > 0 ? (
+            {opExDetails.length > 0 ? (
               <div className="table-responsive">
                 <table className="table table-striped">
                   <thead>
                     <tr>
-                      <th>Date</th>
-                      <th>Expense Type</th>
+                      <th>Account Code</th>
+                      <th>Account Name</th>
                       <th>Amount</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {opExDetails.map(expense => (
-                      <tr key={expense.id}>
-                        <td>{new Date(expense.date).toLocaleDateString()}</td>
-                        <td>{expense.expense_type}</td>
-                        <td>{expense.amount_str || Number(expense.amount).toFixed(2)}</td>
+                    {opExDetails.map((expense, index) => (
+                      <tr key={index}>
+                        <td>{expense.account_code}</td>
+                        <td>{expense.account_name}</td>
+                        <td>{expense.amount}</td>
                       </tr>
                     ))}
                   </tbody>

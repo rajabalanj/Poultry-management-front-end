@@ -83,7 +83,7 @@ const CompositionUsageHistory = () => {
 
   const getCompositionWeight = (item: CompositionUsage) => {
     if (item.items) {
-      return item.items.reduce((sum: number, compItem: { weight: number }) => sum + compItem.weight, 0);
+      return item.items.reduce((sum: number, compItem: { weight: string | number }) => sum + Number(compItem.weight || 0), 0);
     }
     return 0;
   };

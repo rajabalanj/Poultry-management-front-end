@@ -1,0 +1,7 @@
+.journal-entry-table input[type="number"] {
+  text-align: right;
+}
+
+.journal-entry-table tfoot td {
+  border-top: 2px solid #dee2e6;
+}

@@ -55,6 +55,12 @@ const ShedDetails = lazy(() => import('./Components/Shed/ShedDetails'));
 const EditShed = lazy(() => import('./Components/Shed/EditShed'));
 const MoveShed = lazy(() => import('./Components/Batch/MoveShed'));
 const SwapSheds = lazy(() => import('./Components/Batch/SwapSheds'));
+const ChartOfAccountsList = lazy(() => import('./Components/ChartOfAccounts/ChartOfAccountsList'));
+const ChartOfAccountsForm = lazy(() => import('./Components/ChartOfAccounts/ChartOfAccountsForm'));
+const ChartOfAccountView = lazy(() => import('./Components/ChartOfAccounts/ChartOfAccountView'));
+const JournalEntries = lazy(() => import('./Components/JournalEntries/JournalEntries'));
+const JournalEntryCreate = lazy(() => import('./Components/JournalEntries/JournalEntryCreate'));
+const JournalEntryView = lazy(() => import('./Components/JournalEntries/JournalEntryView'));
 
 
 const ProtectedRoutes = () => (
@@ -155,6 +161,13 @@ const App: React.FC = () => {
                 <Route path="/sheds/:shed_id/edit" element={<EditShed />} />
                 <Route path="/reports/purchases" element={<PurchaseResponsive />} />
                 <Route path="/reports/sales" element={<SalesResponsive />} />
+                <Route path="/chart-of-accounts" element={<ChartOfAccountsList />} />
+                <Route path="/chart-of-accounts/new" element={<ChartOfAccountsForm />} />
+                <Route path="/chart-of-accounts/edit/:id" element={<ChartOfAccountsForm />} />
+                <Route path="/chart-of-accounts/view/:id" element={<ChartOfAccountView />} />
+                <Route path="/journal-entries" element={<JournalEntries />} />
+                <Route path="/journal-entries/create" element={<JournalEntryCreate />} />
+                <Route path="/journal-entries/:id" element={<JournalEntryView />} />
               </Route>
               <Route
                 path="/configurations"

@@ -18,6 +18,15 @@ const OperationalExpensesTable: React.FC<OperationalExpensesTableProps> = ({ exp
     navigate(`/operational-expenses/${id}/edit`);
   };
 
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
   if (loading) return <div className="text-center">Loading expenses...</div>;
   if (error) return <div className="text-center text-danger">{error}</div>;
   if (expenses.length === 0) return <div className="text-center">No operational expenses found.</div>;
@@ -36,7 +45,7 @@ const OperationalExpensesTable: React.FC<OperationalExpensesTableProps> = ({ exp
         <tbody>
           {expenses.map((expense) => (
             <tr key={expense.id}>
-              <td>{new Date(expense.date).toLocaleDateString()}</td>
+              <td>{formatDate(expense.expense_date)}</td>
               <td>{expense.expense_type}</td>
               <td>{expense.amount_str || (typeof expense.amount === 'number' ? expense.amount.toFixed(2) : parseFloat(expense.amount || '0').toFixed(2))}</td>
               <td>
