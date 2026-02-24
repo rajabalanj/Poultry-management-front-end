@@ -29,7 +29,11 @@ const EditOperationalExpense: React.FC = () => {
 
                 if (expenseToEdit) {
                     setExpense(expenseToEdit);
-                    setDate(new Date(expenseToEdit.date).toISOString().split('T')[0]);
+                    const dateObj = new Date(expenseToEdit.expense_date);
+                    const day = dateObj.getDate().toString().padStart(2, '0');
+                    const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+                    const year = dateObj.getFullYear();
+                    setDate(`${day}-${month}-${year}`);
                     setExpenseType(expenseToEdit.expense_type);
                     setAmount(expenseToEdit.amount);
                 } else {
@@ -65,7 +69,7 @@ const EditOperationalExpense: React.FC = () => {
         }
 
         const updatedExpense: Partial<Omit<OperationalExpense, 'id' | 'tenant_id'>> = {
-            date,
+            expense_date: date,
             expense_type,
             amount: Number(amount),
         };

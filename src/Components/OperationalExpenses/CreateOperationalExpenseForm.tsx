@@ -24,7 +24,7 @@ const CreateOperationalExpenseForm: React.FC = () => {
         }
 
         const newExpense: Omit<OperationalExpense, 'id' | 'tenant_id'> = {
-            date,
+            expense_date: date,
             expense_type,
             amount: Number(amount),
         };
