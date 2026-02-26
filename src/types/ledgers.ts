@@ -9,6 +9,8 @@ export interface GeneralLedgerEntry {
     debit: number;
     credit: number;
     balance: number;
+    account_name: string;
+    account_code: string;
     debit_str?: string;
     debit_words?: string;
     credit_str?: string;

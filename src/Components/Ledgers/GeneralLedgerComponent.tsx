@@ -18,18 +18,22 @@ const GeneralLedgerComponent: React.FC = () => {
     const navigate = useNavigate();
 
     const handleRowClick = (entry: GeneralLedger['entries'][0]) => {
-        if (entry.transaction_type.toLowerCase().includes('purchase')) {
+        const details = entry.details.toLowerCase();
+        if (details.includes('purchase order')) {
             navigate(`/purchase-orders/${entry.reference_id}/details`);
-        } else if (entry.transaction_type.toLowerCase().includes('sales')) {
+        } else if (details.includes('sales order')) {
             navigate(`/sales-orders/${entry.reference_id}/details`);
+        } else if (entry.transaction_type.toLowerCase() === 'expense' || details.includes('operational expense')) {
+            navigate(`/operational-expenses/${entry.reference_id}/details`);
         }
     };
 
     const handlePaymentClick = (e: React.MouseEvent, entry: GeneralLedger['entries'][0]) => {
         e.stopPropagation();
-        if (entry.transaction_type.toLowerCase().includes('purchase')) {
+        const details = entry.details.toLowerCase();
+        if (details.includes('purchase order')) {
             navigate(`/purchase-orders/${entry.reference_id}/add-payment`);
-        } else if (entry.transaction_type.toLowerCase().includes('sales')) {
+        } else if (details.includes('sales order')) {
             navigate(`/sales-orders/${entry.reference_id}/add-payment`);
         }
     };
@@ -128,9 +132,8 @@ const GeneralLedgerComponent: React.FC = () => {
                                 <tr>
                                     <th>Date</th>
                                     <th>Transaction Type</th>
-                                    <th>Party</th>
-                                    <th>Reference Document</th>
                                     <th>Details</th>
+                                    <th>Account</th>
                                     <th>Debit</th>
                                     <th>Credit</th>
                                     <th>Balance</th>
@@ -142,16 +145,13 @@ const GeneralLedgerComponent: React.FC = () => {
                                     <tr key={index} onClick={() => handleRowClick(entry)} style={{ cursor: 'pointer' }}>
                                         <td>{entry.date}</td>
                                         <td>{entry.transaction_type}</td>
-                                        <td>{entry.party}</td>
-                                        <td>
-                                            {entry.reference_document}
-                                        </td>
                                         <td>{entry.details}</td>
+                                        <td>{entry.account_name}</td>
                                         <td>{entry.debit_str || entry.debit.toFixed(2)}</td>
                                         <td>{entry.credit_str || entry.credit.toFixed(2)}</td>
                                         <td>{entry.balance_str || entry.balance.toFixed(2)}</td>
                                         <td>
-                                            {(entry.transaction_type.toLowerCase().includes('purchase') || entry.transaction_type.toLowerCase().includes('sales')) && (
+                                            {(entry.details.toLowerCase().includes('purchase order') || entry.details.toLowerCase().includes('sales order')) && (
                                                 <button
                                                     className="btn btn-sm btn-warning"
                                                     onClick={(e) => handlePaymentClick(e, entry)}

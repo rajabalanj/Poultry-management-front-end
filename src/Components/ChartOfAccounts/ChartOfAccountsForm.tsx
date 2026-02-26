@@ -97,7 +97,7 @@ const ChartOfAccountsForm: React.FC = () => {
   };
 
   const handleBack = () => {
-    navigate('/chart-of-accounts');
+    navigate(-1);
   };
 
   return (

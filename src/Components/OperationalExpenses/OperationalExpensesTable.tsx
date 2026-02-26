@@ -18,6 +18,10 @@ const OperationalExpensesTable: React.FC<OperationalExpensesTableProps> = ({ exp
     navigate(`/operational-expenses/${id}/edit`);
   };
 
+  const handleView = (id: number) => {
+    navigate(`/operational-expenses/${id}/details`);
+  };
+
   const formatDate = (dateString: string) => {
     if (!dateString) return "";
     const date = new Date(dateString);
@@ -44,15 +48,15 @@ const OperationalExpensesTable: React.FC<OperationalExpensesTableProps> = ({ exp
         </thead>
         <tbody>
           {expenses.map((expense) => (
-            <tr key={expense.id}>
+            <tr key={expense.id} onClick={() => handleView(expense.id)} style={{ cursor: 'pointer' }}>
               <td>{formatDate(expense.expense_date)}</td>
               <td>{expense.expense_type}</td>
               <td>{expense.amount_str || (typeof expense.amount === 'number' ? expense.amount.toFixed(2) : parseFloat(expense.amount || '0').toFixed(2))}</td>
               <td>
-                <Button variant="outline-primary" size="sm" className="ms-2" onClick={() => handleEdit(expense.id)}>
+                <Button variant="outline-primary" size="sm" className="ms-2" onClick={(e) => { e.stopPropagation(); handleEdit(expense.id); }}>
                   <i className="bi bi-pencil-fill"></i>
                 </Button>
-                <Button variant="outline-danger" size="sm" className="ms-2" onClick={() => onDelete(expense.id)}>
+                <Button variant="outline-danger" size="sm" className="ms-2" onClick={(e) => { e.stopPropagation(); onDelete(expense.id); }}>
                   <i className="bi bi-trash-fill"></i>
                 </Button>
               </td>

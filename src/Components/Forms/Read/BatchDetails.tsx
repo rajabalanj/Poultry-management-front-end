@@ -327,8 +327,8 @@ const BatchDetails: React.FC = () => {
                       <button type="button" className="btn btn-info me-2" onClick={() => navigate(`/batch/${batch_id}/move-shed`)}>
                         Move Shed
                       </button>
-                      <button type="button" className="btn btn-secondary me-2" onClick={() => navigate('/production')}>
-                        Back to Production
+                      <button type="button" className="btn btn-secondary me-2" onClick={() => navigate(-1)}>
+                        Back
                       </button>
                     </div>
                   </div>

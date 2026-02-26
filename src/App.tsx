@@ -49,6 +49,7 @@ const FinancialReports = lazy(() => import('./Components/FinancialReports'));
 const OperationalExpensesIndexPage = lazy(() => import('./Components/OperationalExpenses/OperationalExpensesIndex'));
 const CreateOperationalExpenseForm = lazy(() => import('./Components/OperationalExpenses/CreateOperationalExpenseForm'));
 const EditOperationalExpense = lazy(() => import('./Components/OperationalExpenses/EditOperationalExpense'));
+const ViewOperationalExpense = lazy(() => import('./Components/OperationalExpenses/ViewOperationalExpense'));
 const ShedIndexPage = lazy(() => import('./Components/Shed/ShedIndex'));
 const CreateShedForm = lazy(() => import('./Components/Shed/CreateShedForm'));
 const ShedDetails = lazy(() => import('./Components/Shed/ShedDetails'));
@@ -155,6 +156,7 @@ const App: React.FC = () => {
                 <Route path="/operational-expenses" element={<OperationalExpensesIndexPage />} />
                 <Route path="/operational-expenses/create" element={<CreateOperationalExpenseForm />} />
                 <Route path="/operational-expenses/:expense_id/edit" element={<EditOperationalExpense />} />
+                <Route path="/operational-expenses/:expense_id/details" element={<ViewOperationalExpense />} />
                 <Route path="/sheds" element={<ShedIndexPage />} />
                 <Route path="/sheds/create" element={<CreateShedForm />} />
                 <Route path="/sheds/:shed_id/details" element={<ShedDetails />} />

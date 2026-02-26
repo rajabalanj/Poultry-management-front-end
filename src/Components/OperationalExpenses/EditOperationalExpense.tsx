@@ -29,11 +29,7 @@ const EditOperationalExpense: React.FC = () => {
 
                 if (expenseToEdit) {
                     setExpense(expenseToEdit);
-                    const dateObj = new Date(expenseToEdit.expense_date);
-                    const day = dateObj.getDate().toString().padStart(2, '0');
-                    const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
-                    const year = dateObj.getFullYear();
-                    setDate(`${day}-${month}-${year}`);
+                    setDate(expenseToEdit.expense_date);
                     setExpenseType(expenseToEdit.expense_type);
                     setAmount(expenseToEdit.amount);
                 } else {
