@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { Pagination } from 'react-bootstrap';
 import { journalEntryApi } from '../../services/api';
@@ -8,6 +8,7 @@ import PageHeader from '../Layout/PageHeader';
 import { format } from 'date-fns';
 
 const JournalEntries: React.FC = () => {
+  const navigate = useNavigate();
   const [entries, setEntries] = useState<JournalEntryResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [startDate, setStartDate] = useState('');
@@ -158,21 +159,15 @@ const JournalEntries: React.FC = () => {
                   <th>Date</th>
                   <th>Description</th>
                   <th>Reference</th>
-                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {currentItems.map(entry => (
-                  <tr key={entry.id}>
+                  <tr key={entry.id} onClick={() => navigate(`/journal-entries/${entry.id}`)} style={{ cursor: 'pointer' }}>
                     <td>{entry.id}</td>
                     <td>{format(new Date(entry.date), 'dd-MM-yyyy')}</td>
                     <td>{entry.description}</td>
                     <td>{entry.reference_document || 'N/A'}</td>
-                    <td>
-                      <Link to={`/journal-entries/${entry.id}`} className="btn btn-sm btn-info">
-                        View
-                      </Link>
-                    </td>
                   </tr>
                 ))}
               </tbody>
