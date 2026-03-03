@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { Button, Pagination } from 'react-bootstrap';
+import { Pagination } from 'react-bootstrap';
 import { journalEntryApi } from '../../services/api';
 import { JournalEntryResponse } from '../../types/journalEntry';
 import PageHeader from '../Layout/PageHeader';
 import { format } from 'date-fns';
-import CustomDatePicker from '../Common/CustomDatePicker';
 
 const JournalEntries: React.FC = () => {
   const navigate = useNavigate();
@@ -121,37 +120,33 @@ const JournalEntries: React.FC = () => {
         buttonIcon='bi-plus-lg'
       />
       <div className="container">
-        <div className="card shadow-sm mb-4">
-          <div className="card-body">
-            <div className="row g-3 align-items-end">
-              <div className="col-md-4">
-                <label htmlFor="startDate" className="form-label">Start Date</label>
-                <CustomDatePicker
-                  id="startDate"
-                  selected={startDate ? new Date(startDate) : null}
-                  onChange={(date: Date | null) => date && setStartDate(date.toISOString().slice(0, 10))}
-                  className="form-control"
-                  dateFormat="dd-MM-yyyy"
-                />
-              </div>
-              <div className="col-md-4">
-                <label htmlFor="endDate" className="form-label">End Date</label>
-                <CustomDatePicker
-                  id="endDate"
-                  selected={endDate ? new Date(endDate) : null}
-                  onChange={(date: Date | null) => date && setEndDate(date.toISOString().slice(0, 10))}
+        <div className="p-3 border shadow-sm mb-4">
+          <div className="row g-3 align-items-center">
+            <div className="col-md-3">
+              <label htmlFor="startDate" className="form-label">Start Date</label>
+              <input
+                type="date"
+                id="startDate"
                 className="form-control"
-                dateFormat="dd-MM-yyyy"
-                />
-              </div>
-              <div className="col-md-2 d-flex align-items-end">
-                <Button variant="info" onClick={handleFilter}>
-                  Filter
-                </Button>
-              </div>
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
             </div>
+            <div className="col-md-3">
+              <label htmlFor="endDate" className="form-label">End Date</label>
+              <input
+                type="date"
+                id="endDate"
+                className="form-control"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </div>
+            <div className="col-md-2 d-flex align-items-end">
+              <button className="btn btn-info" onClick={handleFilter}>Filter</button>
             </div>
           </div>
+        </div>
 
         {loading ? (
           <p>Loading...</p>

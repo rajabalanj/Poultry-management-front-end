@@ -616,6 +616,27 @@ const PreviousDayReport = () => {
             </tbody>
           </table>
           </div>
+          {totalPages > 1 && (
+            <div className="d-flex justify-content-between align-items-center mt-3">
+              <button
+                className="btn btn-secondary"
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </button>
+              <span>
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                className="btn btn-secondary"
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </button>
+            </div>
+          )}
           {summaryData && weekData && (
             <div className="mt-4 p-3 border bg-light">
               <h5 className="mb-3">Report Summary</h5>
@@ -753,27 +774,6 @@ const PreviousDayReport = () => {
               </div>
             </div>
           )}
-        </div>
-      )}
-      {totalPages > 1 && (
-        <div className="d-flex justify-content-between align-items-center mt-3">
-          <button
-            className="btn btn-secondary"
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-          >
-            Previous
-          </button>
-          <span>
-            Page {currentPage} of {totalPages}
-          </span>
-          <button
-            className="btn btn-secondary"
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
-          >
-            Next
-          </button>
         </div>
       )}
     </div>
