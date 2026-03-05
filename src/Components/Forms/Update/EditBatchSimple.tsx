@@ -171,12 +171,15 @@ const EditBatchSimple: React.FC = () => {
             </div>
             <div className="col-md-6">
               <label className="form-label">Shed Change Date</label>
-              <input
-                type="date"
+              <CustomDatePicker
                 className="form-control"
-                value={shedChangeDate}
-                onChange={e => setShedChangeDate(e.target.value)}
-                max={new Date().toISOString().split('T')[0]}
+                selected={shedChangeDate ? new Date(shedChangeDate) : null}
+                onChange={(d: Date | null) => setShedChangeDate(d ? d.toISOString().split('T')[0] : '')}
+                maxDate={new Date()}
+                dateFormat="dd-MM-yyyy"
+                showMonthDropdown
+                showYearDropdown
+                dropdownMode="select"
               />
             </div>
             

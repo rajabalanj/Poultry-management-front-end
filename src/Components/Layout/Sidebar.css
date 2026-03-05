@@ -178,7 +178,7 @@
   margin: 1rem 0.5rem;
 }
 
-@media (max-width: 991px) {
+@media (max-width: 1199px) {
   .sidebar {
     padding-top: 10px; /* More space for mobile header */
   }

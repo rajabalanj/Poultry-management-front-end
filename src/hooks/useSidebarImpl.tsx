@@ -10,7 +10,7 @@ type SidebarContextType = {
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
 export const SidebarProvider: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
-  const isDesktop = useMediaQuery({ minWidth: 992 });
+  const isDesktop = useMediaQuery({ minWidth: 1200 });
   const [isOpen, setIsOpen] = useState(isDesktop);
 
   useEffect(() => {
@@ -30,7 +30,7 @@ export const useSidebar = (): SidebarContextType => {
   const ctx = useContext(SidebarContext);
   
   // Fallback to local state if provider is not present
-  const isDesktop = useMediaQuery({ minWidth: 992 });
+  const isDesktop = useMediaQuery({ minWidth: 1200 });
   const [isOpen, setIsOpen] = useState(isDesktop);
 
   useEffect(() => {

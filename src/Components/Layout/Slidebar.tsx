@@ -16,6 +16,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
   const { user } = useAuth();
   const groups = user?.profile?.['cognito:groups'];
   const userGroups: string[] = Array.isArray(groups) ? groups : [];
+  const organization = user?.profile?.['custom:organization'];
   const { isOpen, toggle, isDesktop } = useSidebar();
   const location = useLocation();
 
@@ -148,12 +149,16 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
           )}
           <div className="d-flex align-items-center justify-between px-4 border-bottom border-primary-subtle" style={{ borderBottomWidth: "1px" }}>
             <div className="text-center">
-              <img
-                src={annamalaiyarlogo}
-                alt="Annamalaiyar Logo"
-                style={{ width: "50%", height: "auto" }}
-                className="my-3"
-              />
+              {organization === 'AnnamalaiyarAgro' ? (
+                <img
+                  src={annamalaiyarlogo}
+                  alt="Annamalaiyar Logo"
+                  style={{ width: "50%", height: "auto" }}
+                  className="my-3"
+                />
+              ) : (
+                <h3 className="my-3 text-primary">Poultrix</h3>
+              )}
             </div>
           </div>
           <div className="px-2 pt-2">

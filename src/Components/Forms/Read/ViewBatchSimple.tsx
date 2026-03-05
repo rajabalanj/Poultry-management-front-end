@@ -6,6 +6,7 @@ import PageHeader from '../../Layout/PageHeader';
 import Loading from '../../Common/Loading';
 import { Modal, Button } from 'react-bootstrap';
 import { toast } from 'react-toastify';
+import CustomDatePicker from '../../Common/CustomDatePicker';
 
 const ViewBatchSimple: React.FC = () => {
   const { batchId } = useParams<{ batchId: string }>();
@@ -14,7 +15,7 @@ const ViewBatchSimple: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCloseModal, setShowCloseModal] = useState(false);
-  const [closingDate, setClosingDate] = useState(new Date().toISOString().split('T')[0]);
+  const [closingDate, _setClosingDate] = useState(new Date().toISOString().split('T')[0]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -62,11 +63,13 @@ const ViewBatchSimple: React.FC = () => {
           <div className="row g-3">
             <div className="col-md-6">
               <label className="form-label">Batch Start Date</label>
-              <input
-                type="date"
+              <CustomDatePicker
+                selected={batch.date ? new Date(batch.date) : null}
+                onChange={() => {}}
                 className="form-control"
-                value={batch.date || ''}
-                readOnly
+                disabled
+                showMonthDropdown
+                showYearDropdown
               />
             </div>
             <div className="col-md-6">
@@ -144,12 +147,11 @@ const ViewBatchSimple: React.FC = () => {
           <p>Are you sure you want to close batch <strong>{batch?.batch_no}</strong>?</p>
           <div className="mb-3">
             <label htmlFor="closingDate" className="form-label">Closing Date</label>
-            <input
-              type="date"
+            <CustomDatePicker
               id="closingDate"
               className="form-control"
-              value={closingDate}
-              onChange={(e) => setClosingDate(e.target.value)}
+              selected={closingDate ? new Date(closingDate) : null}
+              onChange={() => {}}
             />
           </div>
         </Modal.Body>

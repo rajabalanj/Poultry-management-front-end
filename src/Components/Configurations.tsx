@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import PageHeader from "./Layout/PageHeader";
 import { configApi, batchApi, bovansApi, eggRoomReportApi, financialSettingsApi, chartOfAccountsApi } from "../services/api";
 import { toast } from "react-toastify";
+import CustomDatePicker from "./Common/CustomDatePicker";
 import BatchConfig from "./BatchConfig";
 import { BovansPerformance } from "../types/bovans"; // Import BovansPerformance type
 import { format } from 'date-fns'; // For date formatting
@@ -690,13 +691,14 @@ return (
                   Egg Room Start Date
                 </label>
                 <div className="col-sm-8">
-                  <input
-                    type="date"
+                  <CustomDatePicker
                     className="form-control"
                     id="eggRoomStartDate"
-                    value={eggRoomStartDate}
-                    onChange={(e) => setEggRoomStartDate(e.target.value)}
+                    selected={eggRoomStartDate ? new Date(eggRoomStartDate) : null}
+                    onChange={(date: Date | null) => date && setEggRoomStartDate(date.toISOString().slice(0, 10))}
                     disabled={eggRoomSaving}
+                    showMonthDropdown
+                    showYearDropdown
                   />
                 </div>
               </div>

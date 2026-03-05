@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
 import { operationalExpenseApi } from '../../services/api';
 import { OperationalExpense } from '../../types/operationalExpense';
+import CustomDatePicker from '../Common/CustomDatePicker';
 
 const CreateOperationalExpenseForm: React.FC = () => {
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -50,13 +51,14 @@ const CreateOperationalExpenseForm: React.FC = () => {
                             <div className="row g-3">
                                 <div className="col-md-6">
                                     <label htmlFor="expenseDate" className="form-label">Date <span className="form-field-required">*</span></label>
-                                    <input
-                                        type="date"
+                                    <CustomDatePicker
                                         className="form-control"
                                         id="expenseDate"
-                                        value={date}
-                                        onChange={(e) => setDate(e.target.value)}
+                                        selected={date ? new Date(date) : null}
+                                        onChange={(d: Date | null) => d && setDate(d.toISOString().slice(0, 10))}
                                         required
+                                        showMonthDropdown
+                                        showYearDropdown
                                     />
                                 </div>
                                 <div className="col-md-6">

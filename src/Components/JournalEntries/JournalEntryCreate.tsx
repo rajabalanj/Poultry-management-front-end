@@ -5,6 +5,7 @@ import { journalEntryApi, chartOfAccountsApi } from '../../services/api';
 import { JournalEntryCreate as IJournalEntryCreate, JournalEntryItem } from '../../types/journalEntry';
 import { ChartOfAccountsResponse } from '../../types/chartOfAccounts';
 import PageHeader from '../Layout/PageHeader';
+import CustomDatePicker from '../Common/CustomDatePicker';
 import './JournalEntry.css';
 
 const JournalEntryCreate: React.FC = () => {
@@ -110,13 +111,14 @@ const JournalEntryCreate: React.FC = () => {
           <div className="row mb-3">
             <div className="col-md-4">
               <label htmlFor="date" className="form-label">Date</label>
-              <input
-                type="date"
+              <CustomDatePicker
                 id="date"
                 className="form-control"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
+                selected={date ? new Date(date) : null}
+                onChange={(d: Date | null) => d && setDate(d.toISOString().slice(0, 10))}
                 required
+                showMonthDropdown
+                showYearDropdown
               />
             </div>
             <div className="col-md-8">

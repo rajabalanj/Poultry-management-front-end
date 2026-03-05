@@ -27,7 +27,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   const navigate = useNavigate();
   const auth = useAuth();
   const [showLogout, setShowLogout] = useState(false);
-  const isDesktop = useMediaQuery({ minWidth: 992 });
+  const isDesktop = useMediaQuery({ minWidth: 1200 });
   const sidebar = useSidebar();
 
   // Prefer prop `onToggleSidebar` when provided, otherwise use sidebar hook

@@ -25,7 +25,7 @@ const LayoutInner: React.FC<LayoutProps> = ({ children }) => {
   return (
     <div style={{ minHeight: '100vh' }} className="d-flex flex-column position-relative">
       <Row className="flex-grow-1 w-100">
-        <Col className='sidebar d-none d-lg-block position-fixed' lg={2} style={{
+        <Col className='sidebar d-none d-xl-block position-fixed' xl={2} style={{
           paddingRight: 0,
           paddingLeft: 0,
           height: '100vh',
@@ -35,10 +35,10 @@ const LayoutInner: React.FC<LayoutProps> = ({ children }) => {
           <Slidebar onToggle={toggle} />
         </Col>
         {/* Mobile sidebar - conditionally rendered to prevent layout issues */}
-        <div className="d-lg-none" style={{ position: 'absolute', top: 0, left: 0, zIndex: 1030 }}>
+        <div className="d-xl-none" style={{ position: 'absolute', top: 0, left: 0, zIndex: 1030 }}>
           <Slidebar onToggle={toggle} />
         </div>
-        <Col xs={12} lg={10} className="d-flex flex-column ms-lg-auto" style={{ position: 'relative', zIndex: 1020 }}>
+        <Col xs={12} xl={10} className="d-flex flex-column ms-xl-auto" style={{ position: 'relative', zIndex: 1020 }}>
           <main className="flex-grow-1">
             {enhancedChildren}
           </main>

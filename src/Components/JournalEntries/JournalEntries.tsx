@@ -6,6 +6,7 @@ import { journalEntryApi } from '../../services/api';
 import { JournalEntryResponse } from '../../types/journalEntry';
 import PageHeader from '../Layout/PageHeader';
 import { format } from 'date-fns';
+import CustomDatePicker from '../Common/CustomDatePicker';
 
 const JournalEntries: React.FC = () => {
   const navigate = useNavigate();
@@ -124,22 +125,26 @@ const JournalEntries: React.FC = () => {
           <div className="row g-3 align-items-center">
             <div className="col-md-3">
               <label htmlFor="startDate" className="form-label">Start Date</label>
-              <input
-                type="date"
+              <CustomDatePicker
                 id="startDate"
                 className="form-control"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                selected={startDate ? new Date(startDate) : null}
+                onChange={(date: Date | null) => setStartDate(date ? date.toISOString().slice(0, 10) : '')}
+                maxDate={endDate ? new Date(endDate) : undefined}
+                showMonthDropdown
+                showYearDropdown
               />
             </div>
             <div className="col-md-3">
               <label htmlFor="endDate" className="form-label">End Date</label>
-              <input
-                type="date"
+              <CustomDatePicker
                 id="endDate"
                 className="form-control"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
+                selected={endDate ? new Date(endDate) : null}
+                onChange={(date: Date | null) => setEndDate(date ? date.toISOString().slice(0, 10) : '')}
+                minDate={startDate ? new Date(startDate) : undefined}
+                showMonthDropdown
+                showYearDropdown
               />
             </div>
             <div className="col-md-2 d-flex align-items-end">
