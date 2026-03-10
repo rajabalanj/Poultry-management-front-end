@@ -13,8 +13,8 @@ interface CompositionFormProps {
   items: InventoryItemResponse[];
   handleAddItem: (item: InventoryItemResponse) => void;
   handleRemoveItem: (item_id: number) => void;
-  handleItemWeightChange: (item_id: number, weight: number) => void;
-  handleItemWastageChange: (item_id: number, wastage: number) => void;
+  handleItemWeightChange: (item_id: number, weight: number | string) => void;
+  handleItemWastageChange: (item_id: number, wastage: number | string) => void;
   onSave: () => void;
   saveButtonLabel: string;
   onCancel: () => void;
@@ -71,10 +71,10 @@ function CompositionForm({
                     <input
                       type="number"
                       className="form-control form-control-sm text-center"
-                      value={i.weight}
+                      value={i.weight ?? ''}
                       min={0}
                       onChange={(e) =>
-                        handleItemWeightChange(i.inventory_item_id, Number(e.target.value))
+                        handleItemWeightChange(i.inventory_item_id, e.target.value)
                       }
                       style={{ width: '60px' }}
                     />
@@ -82,10 +82,10 @@ function CompositionForm({
                     <input
                       type="number"
                       className="form-control form-control-sm text-center"
-                      value={i.wastage_percentage || 0}
+                      value={i.wastage_percentage ?? ''}
                       min={0}
                       onChange={(e) =>
-                        handleItemWastageChange(i.inventory_item_id, Number(e.target.value))
+                        handleItemWastageChange(i.inventory_item_id, e.target.value)
                       }
                       style={{ width: '70px' }}
                     />

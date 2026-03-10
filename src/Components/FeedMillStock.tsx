@@ -87,16 +87,18 @@ function FeedMillStock() {
     setViewState("edit");
   };
 
-  const handleItemWeightChange = (item_id: number, weight: number) => {
+  const handleItemWeightChange = (item_id: number, weight: number | string) => {
+    const processedValue = weight === '' ? null : Number(weight);
     setEditItems(
-      editItems.map((i: any) => (i.inventory_item_id === item_id ? { ...i, weight } : i))
+      editItems.map((i: any) => (i.inventory_item_id === item_id ? { ...i, weight: processedValue } : i))
     );
   };
 
-  const handleItemWastageChange = (item_id: number, wastage: number) => {
+  const handleItemWastageChange = (item_id: number, wastage: number | string) => {
+    const processedValue = wastage === '' ? null : Number(wastage);
     setEditItems(
       editItems.map((i: any) =>
-        i.inventory_item_id === item_id ? { ...i, wastage_percentage: wastage } : i
+        i.inventory_item_id === item_id ? { ...i, wastage_percentage: processedValue } : i
       )
     );
   };

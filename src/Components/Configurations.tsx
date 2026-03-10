@@ -13,17 +13,17 @@ import type { ChartOfAccountsResponse } from "../types/chartOfAccounts";
 const KG_PER_TON = 1000;
 
 const Configurations: React.FC = () => {
-  const [kg, setKg] = useState(3000);
-  const [ton, setTon] = useState(3);
-  const [henDayDeviation, setHenDayDeviation] = useState(0);
+  const [kg, setKg] = useState<number | ''>(3000);
+  const [ton, setTon] = useState<number | ''>(3);
+  const [henDayDeviation, setHenDayDeviation] = useState<number | ''>(0);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [medicineKg, setMedicineKg] = useState(3000);
-  const [medicineGram, setMedicineGram] = useState(3000);
+  const [medicineKg, setMedicineKg] = useState<number | ''>(3000);
+  const [medicineGram, setMedicineGram] = useState<number | ''>(3000);
   const [eggRoomStartDate, setEggRoomStartDate] = useState<string>(''); // YYYY-MM-DD
-  const [initialTableOpening, setInitialTableOpening] = useState<number>(0);
-  const [initialJumboOpening, setInitialJumboOpening] = useState<number>(0);
-  const [initialGradeCOpening, setInitialGradeCOpening] = useState<number>(0);
+  const [initialTableOpening, setInitialTableOpening] = useState<number | ''>(0);
+  const [initialJumboOpening, setInitialJumboOpening] = useState<number | ''>(0);
+  const [initialGradeCOpening, setInitialGradeCOpening] = useState<number | ''>(0);
   const [eggRoomSaving, setEggRoomSaving] = useState(false); // To manage loading state for egg room setup
 
   const originalEggRoomStartDate = useRef<string>('');
@@ -47,7 +47,7 @@ const Configurations: React.FC = () => {
   const bovansItemsPerPage = 10;
 
   // Financial Config state
-  const [generalLedgerOpeningBalance, setGeneralLedgerOpeningBalance] = useState<number>(0);
+  const [generalLedgerOpeningBalance, setGeneralLedgerOpeningBalance] = useState<number | ''>(0);
   const [financialConfigSaving, setFinancialConfigSaving] = useState(false);
   
   // Financial Settings state
@@ -184,19 +184,21 @@ const Configurations: React.FC = () => {
         dateChanged = true;
       }
       
-      if (dateChanged || initialTableOpening !== originalTableOpening.current) {
-        await configApi.saveConfig('table_opening', String(initialTableOpening));
-        originalTableOpening.current = initialTableOpening;
+      const currentTableOpening = initialTableOpening === '' ? 0 : initialTableOpening;
+      if (dateChanged || currentTableOpening !== originalTableOpening.current) {
+        await configApi.saveConfig('table_opening', String(currentTableOpening));
+        originalTableOpening.current = currentTableOpening;
       }
-      if (dateChanged || initialJumboOpening !== originalJumboOpening.current) {
-        await configApi.saveConfig('jumbo_opening', String(initialJumboOpening));
-        originalJumboOpening.current = initialJumboOpening;
+      const currentJumboOpening = initialJumboOpening === '' ? 0 : initialJumboOpening;
+      if (dateChanged || currentJumboOpening !== originalJumboOpening.current) {
+        await configApi.saveConfig('jumbo_opening', String(currentJumboOpening));
+        originalJumboOpening.current = currentJumboOpening;
       }
-      if (dateChanged || initialGradeCOpening !== originalGradeCOpening.current) {
-        await configApi.saveConfig('grade_c_opening', String(initialGradeCOpening));
-        originalGradeCOpening.current = initialGradeCOpening;
+      const currentGradeCOpening = initialGradeCOpening === '' ? 0 : initialGradeCOpening;
+      if (dateChanged || currentGradeCOpening !== originalGradeCOpening.current) {
+        await configApi.saveConfig('grade_c_opening', String(currentGradeCOpening));
+        originalGradeCOpening.current = currentGradeCOpening;
       }
-
       toast.success(`Egg Room setup completed for ${eggRoomStartDate}.`);
     } catch (error: any) {
       toast.error(error.message || "Failed to set Egg Room initial configuration.");
@@ -229,7 +231,10 @@ const Configurations: React.FC = () => {
   // Sync ton when kg changes
   const handleKgChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Number(e.target.value);
-    if (!isNaN(value)) {
+    if (e.target.value === '') {
+      setKg('');
+      setTon('');
+    } else {
       setKg(value);
       setTon(value / KG_PER_TON);
     }
@@ -238,37 +243,38 @@ const Configurations: React.FC = () => {
   // Sync kg when ton changes
   const handleTonChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Number(e.target.value);
-    if (!isNaN(value)) {
+    if (e.target.value === '') {
+      setTon('');
+      setKg('');
+    } else {
       setTon(value);
       setKg(value * KG_PER_TON);
     }
   };
 
   const handleMedicineKgChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const value = Number(e.target.value);
-  if (!isNaN(value)) {
-    setMedicineKg(value);
-    setMedicineGram(value*1000);
-  }
-};
+    const value = e.target.value;
+    const newMedicineKg = value === '' ? '' : Number(value);
+    setMedicineKg(newMedicineKg);
+    setMedicineGram(newMedicineKg === '' ? '' : newMedicineKg * 1000);
+  };
 
-const handleMedicineGramChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const value = Number(e.target.value);
-  if (!isNaN(value)) {
-    setMedicineGram(value);
-    setMedicineKg(value/1000);
-  }
-};
+  const handleMedicineGramChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const newMedicineGram = value === '' ? '' : Number(value);
+    setMedicineGram(newMedicineGram);
+    setMedicineKg(newMedicineGram === '' ? '' : newMedicineGram / 1000);
+  };
 
   // Save to backend
   const handleSave = async () => {
     setSaving(true);
     try {
-      await configApi.saveConfig("lowKgThreshold", String(kg));
-      await configApi.saveConfig("lowTonThreshold", String(ton));
-      await configApi.saveConfig("henDayDeviation", String(henDayDeviation));
-      await configApi.saveConfig("medicineLowKgThreshold", String(medicineKg));
-    await configApi.saveConfig("medicineLowGramThreshold", String(medicineGram));
+      await configApi.saveConfig("lowKgThreshold", String(kg === '' ? 0 : kg));
+      await configApi.saveConfig("lowTonThreshold", String(ton === '' ? 0 : ton));
+      await configApi.saveConfig("henDayDeviation", String(henDayDeviation === '' ? 0 : henDayDeviation));
+      await configApi.saveConfig("medicineLowKgThreshold", String(medicineKg === '' ? 0 : medicineKg));
+      await configApi.saveConfig("medicineLowGramThreshold", String(medicineGram === '' ? 0 : medicineGram));
       toast.success("Configurations saved successfully!");
     } catch (err: any) {
       toast.error(err.message || "Failed to save configurations.");
@@ -291,7 +297,7 @@ const handleMedicineGramChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   const handleSaveFinancialConfig = async () => {
     setFinancialConfigSaving(true);
     try {
-        await configApi.updateFinancialConfig({ general_ledger_opening_balance: generalLedgerOpeningBalance });
+        await configApi.updateFinancialConfig({ general_ledger_opening_balance: generalLedgerOpeningBalance === '' ? 0 : generalLedgerOpeningBalance });
         toast.success("Financial configuration saved successfully!");
     } catch (err: any) {
         toast.error(err.message || "Failed to save financial configuration.");
@@ -358,7 +364,7 @@ return (
                 type="number"
                 className="form-control form-control-sm"
                 style={{ maxWidth: 100 }}
-                value={kg}
+                value={kg || ''}
                 min={0}
                 onChange={handleKgChange}
                 disabled={loading}
@@ -370,7 +376,7 @@ return (
                 type="number"
                 className="form-control form-control-sm"
                 style={{ maxWidth: 100 }}
-                value={ton}
+                value={ton || ''}
                 min={0}
                 step={0.001}
                 onChange={handleTonChange}
@@ -392,7 +398,7 @@ return (
                 type="number"
                 className="form-control form-control-sm"
                 style={{ maxWidth: 100 }}
-                value={medicineKg}
+                value={medicineKg || ''}
                 min={0}
                 onChange={handleMedicineKgChange}
                 disabled={loading}
@@ -404,7 +410,7 @@ return (
                 type="number"
                 className="form-control form-control-sm"
                 style={{ maxWidth: 100 }}
-                value={medicineGram}
+                value={medicineGram || ''}
                 min={0}
                 onChange={handleMedicineGramChange}
                 disabled={loading}
@@ -423,8 +429,8 @@ return (
               type="number"
               className="form-control form-control-sm"
               style={{ maxWidth: 100 }}
-              value={henDayDeviation}
-              onChange={(e) => setHenDayDeviation(Number(e.target.value))}
+            value={henDayDeviation || ''}
+            onChange={(e) => setHenDayDeviation(e.target.value === '' ? '' : Number(e.target.value))}
               disabled={loading}
             />
           </div>
@@ -470,8 +476,8 @@ return (
                             type="number"
                             className="form-control form-control-sm"
                             id="generalLedgerOpeningBalance"
-                            value={generalLedgerOpeningBalance}
-                            onChange={(e) => setGeneralLedgerOpeningBalance(Number(e.target.value))}
+                            value={generalLedgerOpeningBalance || ''}
+                            onChange={(e) => setGeneralLedgerOpeningBalance(e.target.value === '' ? '' : Number(e.target.value))}
                             disabled={loading}
                         />
                     </div>
@@ -711,8 +717,8 @@ return (
                     type="number"
                     className="form-control"
                     id="initialTableOpening"
-                    value={initialTableOpening}
-                    onChange={(e) => setInitialTableOpening(parseInt(e.target.value) || 0)}
+                    value={initialTableOpening || ''}
+                    onChange={(e) => setInitialTableOpening(e.target.value === '' ? '' : parseInt(e.target.value) || 0)}
                     disabled={eggRoomSaving}
                   />
                 </div>
@@ -726,8 +732,8 @@ return (
                     type="number"
                     className="form-control"
                     id="initialJumboOpening"
-                    value={initialJumboOpening}
-                    onChange={(e) => setInitialJumboOpening(parseInt(e.target.value) || 0)}
+                    value={initialJumboOpening || ''}
+                    onChange={(e) => setInitialJumboOpening(e.target.value === '' ? '' : parseInt(e.target.value) || 0)}
                     disabled={eggRoomSaving}
                   />
                 </div>
@@ -741,8 +747,8 @@ return (
                     type="number"
                     className="form-control"
                     id="initialGradeCOpening"
-                    value={initialGradeCOpening}
-                    onChange={(e) => setInitialGradeCOpening(parseInt(e.target.value) || 0)}
+                    value={initialGradeCOpening || ''}
+                    onChange={(e) => setInitialGradeCOpening(e.target.value === '' ? '' : parseInt(e.target.value) || 0)}
                     disabled={eggRoomSaving}
                   />
                 </div>

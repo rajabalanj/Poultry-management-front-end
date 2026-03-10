@@ -496,7 +496,7 @@ const CreateSalesOrderForm: React.FC = () => {
                               type="number"
                               className="form-control"
                               id={`quantity-${item.tempId}`}
-                              value={item.quantity}
+                              value={item.quantity || ''}
                               onChange={(e) =>
                                 handleItemChange(
                                   item.tempId,
@@ -520,7 +520,7 @@ const CreateSalesOrderForm: React.FC = () => {
                               type="number"
                               className="form-control"
                               id={`pricePerUnit-${item.tempId}`}
-                              value={item.price_per_unit}
+                              value={item.price_per_unit || ''}
                               onChange={(e) =>
                                 handleItemChange(
                                   item.tempId,

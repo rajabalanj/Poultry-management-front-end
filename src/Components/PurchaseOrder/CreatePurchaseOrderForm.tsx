@@ -409,7 +409,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
                             type="number"
                             className="form-control"
                             id={`quantity-${item.tempId}`}
-                            value={item.quantity}
+                            value={item.quantity || ''}
                             onChange={(e) => handleItemChange(item.tempId, 'quantity', Number(e.target.value))}
                             min="1"
                             required
@@ -422,7 +422,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
                             type="number"
                             className="form-control"
                             id={`pricePerUnit-${item.tempId}`}
-                            value={item.price_per_unit}
+                            value={item.price_per_unit || ''}
                             onChange={(e) => handleItemChange(item.tempId, 'price_per_unit', Number(e.target.value))}
                             step="0.01"
                             disabled={isLoading}

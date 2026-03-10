@@ -119,12 +119,17 @@ const EggRoomStock: React.FC = () => {
   }, [dateError]);
 
   const handleFormChange = (field: keyof EggRoomStockEntry, value: number | string) => {
-    handleChange(field, value);
+    // When a number input is cleared, its value becomes an empty string ''.
+    // The useEggRoomStock hook seems to convert this to 0, preventing the field from being cleared.
+    // To fix this, we'll convert an empty string to `null` before passing it to the hook.
+    const processedValue = value === '' ? null : Number(value);
+    // The hook's type signature might not explicitly allow null, so we use `as any` as a workaround.
+    handleChange(field, processedValue as any);
 
     sectionConfigs.forEach(config => {
       config.fields.forEach(f => {
         if (f.controlledBy === field) {
-          handleChange(f.key, value);
+          handleChange(f.key, processedValue as any);
         }
       });
     });
