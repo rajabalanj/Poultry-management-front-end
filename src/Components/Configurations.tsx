@@ -450,50 +450,6 @@ return (
 
       {/* Accordion for Batch and Bovans Performance */}
       <div className="accordion" id="configurationsAccordion">
-        <div className="accordion-item mb-3">
-            <h2 className="accordion-header text-light bg-primary" id="financial-config-heading">
-                <button
-                    className="accordion-button collapsed fw-semibold text-light bg-primary accordion-button-white-arrow"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#financial-config-collapse"
-                    aria-expanded="false"
-                    aria-controls="financial-config-collapse"
-                >
-                    Financial Configuration
-                </button>
-            </h2>
-            <div
-                id="financial-config-collapse"
-                className="accordion-collapse collapse"
-                aria-labelledby="financial-config-heading"
-                data-bs-parent="#configurationsAccordion"
-            >
-                <div className="accordion-body">
-                    <div className="mb-4">
-                        <label htmlFor="generalLedgerOpeningBalance" className="form-label">General Ledger Opening Balance</label>
-                        <input
-                            type="number"
-                            className="form-control form-control-sm"
-                            id="generalLedgerOpeningBalance"
-                            value={generalLedgerOpeningBalance || ''}
-                            onChange={(e) => setGeneralLedgerOpeningBalance(e.target.value === '' ? '' : Number(e.target.value))}
-                            disabled={loading}
-                        />
-                    </div>
-                    <div className="mt-3 text-end">
-                        <button
-                            className="btn btn-primary"
-                            onClick={handleSaveFinancialConfig}
-                            disabled={financialConfigSaving || loading}
-                        >
-                            {financialConfigSaving ? "Saving..." : "Save Financial Configuration"}
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         {/* Financial Settings Accordion Item */}
         <div className="accordion-item mb-3">
             <h2 className="accordion-header text-light bg-primary" id="financial-settings-heading">
@@ -515,158 +471,193 @@ return (
                 data-bs-parent="#configurationsAccordion"
             >
                 <div className="accordion-body">
-                    {financialSettings ? (
-                        <form onSubmit={handleSaveFinancialSettings}>
+                    <div className="card mb-4">
+                        <div className="card-header">
+                            <h5 className="mb-0">General Ledger Configuration</h5>
+                        </div>
+                        <div className="card-body">
                             <div className="mb-3">
-                                <label htmlFor="default_cash_account_id" className="form-label">Default Cash Account</label>
-                                <select
-                                    className="form-select form-select-sm"
-                                    id="default_cash_account_id"
-                                    name="default_cash_account_id"
-                                    value={financialSettingsFormData.default_cash_account_id}
-                                    onChange={handleFinancialSettingsInputChange}
-                                    required
-                                >
-                                    <option value="">Select an account</option>
-                                    {getAccountsByType(expectedTypes.default_cash_account_id).map(account => (
-                                        <option key={account.id} value={account.id}>
-                                            {account.account_name} ({account.account_code})
-                                        </option>
-                                    ))}
-                                </select>
+                                <label htmlFor="generalLedgerOpeningBalance" className="form-label">General Ledger Opening Balance</label>
+                                <input
+                                    type="number"
+                                    className="form-control form-control-sm"
+                                    id="generalLedgerOpeningBalance"
+                                    value={generalLedgerOpeningBalance || ''}
+                                    onChange={(e) => setGeneralLedgerOpeningBalance(e.target.value === '' ? '' : Number(e.target.value))}
+                                    disabled={loading}
+                                />
                             </div>
-
-                            <div className="mb-3">
-                                <label htmlFor="default_sales_account_id" className="form-label">Default Sales Account</label>
-                                <select
-                                    className="form-select form-select-sm"
-                                    id="default_sales_account_id"
-                                    name="default_sales_account_id"
-                                    value={financialSettingsFormData.default_sales_account_id}
-                                    onChange={handleFinancialSettingsInputChange}
-                                    required
-                                >
-                                    <option value="">Select an account</option>
-                                    {getAccountsByType(expectedTypes.default_sales_account_id).map(account => (
-                                        <option key={account.id} value={account.id}>
-                                            {account.account_name} ({account.account_code})
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="mb-3">
-                                <label htmlFor="default_inventory_account_id" className="form-label">Default Inventory Account</label>
-                                <select
-                                    className="form-select form-select-sm"
-                                    id="default_inventory_account_id"
-                                    name="default_inventory_account_id"
-                                    value={financialSettingsFormData.default_inventory_account_id}
-                                    onChange={handleFinancialSettingsInputChange}
-                                    required
-                                >
-                                    <option value="">Select an account</option>
-                                    {getAccountsByType(expectedTypes.default_inventory_account_id).map(account => (
-                                        <option key={account.id} value={account.id}>
-                                            {account.account_name} ({account.account_code})
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="mb-3">
-                                <label htmlFor="default_cogs_account_id" className="form-label">Default COGS Account</label>
-                                <select
-                                    className="form-select form-select-sm"
-                                    id="default_cogs_account_id"
-                                    name="default_cogs_account_id"
-                                    value={financialSettingsFormData.default_cogs_account_id}
-                                    onChange={handleFinancialSettingsInputChange}
-                                    required
-                                >
-                                    <option value="">Select an account</option>
-                                    {getAccountsByType(expectedTypes.default_cogs_account_id).map(account => (
-                                        <option key={account.id} value={account.id}>
-                                            {account.account_name} ({account.account_code})
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="mb-3">
-                                <label htmlFor="default_operational_expense_account_id" className="form-label">Default Operational Expense Account</label>
-                                <select
-                                    className="form-select form-select-sm"
-                                    id="default_operational_expense_account_id"
-                                    name="default_operational_expense_account_id"
-                                    value={financialSettingsFormData.default_operational_expense_account_id}
-                                    onChange={handleFinancialSettingsInputChange}
-                                    required
-                                >
-                                    <option value="">Select an account</option>
-                                    {getAccountsByType(expectedTypes.default_operational_expense_account_id).map(account => (
-                                        <option key={account.id} value={account.id}>
-                                            {account.account_name} ({account.account_code})
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="mb-3">
-                                <label htmlFor="default_accounts_payable_account_id" className="form-label">Default Accounts Payable Account</label>
-                                <select
-                                    className="form-select form-select-sm"
-                                    id="default_accounts_payable_account_id"
-                                    name="default_accounts_payable_account_id"
-                                    value={financialSettingsFormData.default_accounts_payable_account_id}
-                                    onChange={handleFinancialSettingsInputChange}
-                                    required
-                                >
-                                    <option value="">Select an account</option>
-                                    {getAccountsByType(expectedTypes.default_accounts_payable_account_id).map(account => (
-                                        <option key={account.id} value={account.id}>
-                                            {account.account_name} ({account.account_code})
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="mb-3">
-                                <label htmlFor="default_accounts_receivable_account_id" className="form-label">Default Accounts Receivable Account</label>
-                                <select
-                                    className="form-select form-select-sm"
-                                    id="default_accounts_receivable_account_id"
-                                    name="default_accounts_receivable_account_id"
-                                    value={financialSettingsFormData.default_accounts_receivable_account_id}
-                                    onChange={handleFinancialSettingsInputChange}
-                                    required
-                                >
-                                    <option value="">Select an account</option>
-                                    {getAccountsByType(expectedTypes.default_accounts_receivable_account_id).map(account => (
-                                        <option key={account.id} value={account.id}>
-                                            {account.account_name} ({account.account_code})
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="mt-3 text-end">
+                            <div className="text-end">
                                 <button
                                     className="btn btn-primary"
-                                    type="submit"
-                                    disabled={financialSettingsSaving}
+                                    onClick={handleSaveFinancialConfig}
+                                    disabled={financialConfigSaving || loading}
                                 >
-                                    {financialSettingsSaving ? "Saving..." : "Update Settings"}
+                                    {financialConfigSaving ? "Saving..." : "Save Configuration"}
                                 </button>
                             </div>
-                        </form>
-                    ) : (
-                        <div className="d-flex justify-content-center p-4">
-                            <div className="spinner-border" role="status">
-                                <span className="visually-hidden">Loading...</span>
-                            </div>
                         </div>
-                    )}
+                    </div>
+
+                    <div className="card">
+                        <div className="card-header">
+                            <h5 className="mb-0">Default Account Settings</h5>
+                        </div>
+                        <div className="card-body">
+                            {financialSettings ? (
+                                <form onSubmit={handleSaveFinancialSettings}>
+                                    <div className="mb-3">
+                                        <label htmlFor="default_cash_account_id" className="form-label">Default Cash Account</label>
+                                        <select
+                                            className="form-select form-select-sm"
+                                            id="default_cash_account_id"
+                                            name="default_cash_account_id"
+                                            value={financialSettingsFormData.default_cash_account_id}
+                                            onChange={handleFinancialSettingsInputChange}
+                                            required
+                                        >
+                                            <option value="">Select an account</option>
+                                            {getAccountsByType(expectedTypes.default_cash_account_id).map(account => (
+                                                <option key={account.id} value={account.id}>
+                                                    {account.account_name} ({account.account_code})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className="mb-3">
+                                        <label htmlFor="default_sales_account_id" className="form-label">Default Sales Account</label>
+                                        <select
+                                            className="form-select form-select-sm"
+                                            id="default_sales_account_id"
+                                            name="default_sales_account_id"
+                                            value={financialSettingsFormData.default_sales_account_id}
+                                            onChange={handleFinancialSettingsInputChange}
+                                            required
+                                        >
+                                            <option value="">Select an account</option>
+                                            {getAccountsByType(expectedTypes.default_sales_account_id).map(account => (
+                                                <option key={account.id} value={account.id}>
+                                                    {account.account_name} ({account.account_code})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className="mb-3">
+                                        <label htmlFor="default_inventory_account_id" className="form-label">Default Inventory Account</label>
+                                        <select
+                                            className="form-select form-select-sm"
+                                            id="default_inventory_account_id"
+                                            name="default_inventory_account_id"
+                                            value={financialSettingsFormData.default_inventory_account_id}
+                                            onChange={handleFinancialSettingsInputChange}
+                                            required
+                                        >
+                                            <option value="">Select an account</option>
+                                            {getAccountsByType(expectedTypes.default_inventory_account_id).map(account => (
+                                                <option key={account.id} value={account.id}>
+                                                    {account.account_name} ({account.account_code})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className="mb-3">
+                                        <label htmlFor="default_cogs_account_id" className="form-label">Default COGS Account</label>
+                                        <select
+                                            className="form-select form-select-sm"
+                                            id="default_cogs_account_id"
+                                            name="default_cogs_account_id"
+                                            value={financialSettingsFormData.default_cogs_account_id}
+                                            onChange={handleFinancialSettingsInputChange}
+                                            required
+                                        >
+                                            <option value="">Select an account</option>
+                                            {getAccountsByType(expectedTypes.default_cogs_account_id).map(account => (
+                                                <option key={account.id} value={account.id}>
+                                                    {account.account_name} ({account.account_code})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className="mb-3">
+                                        <label htmlFor="default_operational_expense_account_id" className="form-label">Default Operational Expense Account</label>
+                                        <select
+                                            className="form-select form-select-sm"
+                                            id="default_operational_expense_account_id"
+                                            name="default_operational_expense_account_id"
+                                            value={financialSettingsFormData.default_operational_expense_account_id}
+                                            onChange={handleFinancialSettingsInputChange}
+                                            required
+                                        >
+                                            <option value="">Select an account</option>
+                                            {getAccountsByType(expectedTypes.default_operational_expense_account_id).map(account => (
+                                                <option key={account.id} value={account.id}>
+                                                    {account.account_name} ({account.account_code})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className="mb-3">
+                                        <label htmlFor="default_accounts_payable_account_id" className="form-label">Default Accounts Payable Account</label>
+                                        <select
+                                            className="form-select form-select-sm"
+                                            id="default_accounts_payable_account_id"
+                                            name="default_accounts_payable_account_id"
+                                            value={financialSettingsFormData.default_accounts_payable_account_id}
+                                            onChange={handleFinancialSettingsInputChange}
+                                            required
+                                        >
+                                            <option value="">Select an account</option>
+                                            {getAccountsByType(expectedTypes.default_accounts_payable_account_id).map(account => (
+                                                <option key={account.id} value={account.id}>
+                                                    {account.account_name} ({account.account_code})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className="mb-3">
+                                        <label htmlFor="default_accounts_receivable_account_id" className="form-label">Default Accounts Receivable Account</label>
+                                        <select
+                                            className="form-select form-select-sm"
+                                            id="default_accounts_receivable_account_id"
+                                            name="default_accounts_receivable_account_id"
+                                            value={financialSettingsFormData.default_accounts_receivable_account_id}
+                                            onChange={handleFinancialSettingsInputChange}
+                                            required
+                                        >
+                                            <option value="">Select an account</option>
+                                            {getAccountsByType(expectedTypes.default_accounts_receivable_account_id).map(account => (
+                                                <option key={account.id} value={account.id}>
+                                                    {account.account_name} ({account.account_code})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className="mt-3 text-end">
+                                        <button
+                                            className="btn btn-primary"
+                                            type="submit"
+                                            disabled={financialSettingsSaving}
+                                        >
+                                            {financialSettingsSaving ? "Saving..." : "Update Settings"}
+                                        </button>
+                                    </div>
+                                </form>
+                            ) : (
+                                <div className="d-flex justify-content-center p-4">
+                                    <div className="spinner-border" role="status">
+                                        <span className="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

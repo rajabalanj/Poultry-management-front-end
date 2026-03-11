@@ -290,7 +290,7 @@ function FeedMillStock() {
             <li className="list-group-item d-flex justify-content-between align-items-center">
               <strong>Total Weight</strong>
               <span className="badge bg-primary rounded-pill">
-                {selectedComposition.inventory_items.reduce((sum: number, i: any) => sum + i.weight, 0)} kg
+                {selectedComposition.inventory_items.reduce((sum: number, i: any) => sum + Number(i.weight || 0), 0)} kg
               </span>
             </li>
           </ul>
