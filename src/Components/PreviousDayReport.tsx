@@ -588,7 +588,7 @@ const PreviousDayReport = () => {
                 <th>Closing Count</th>
                 <th>Table</th>
                 <th>Jumbo</th>
-                <th>CR</th>
+                <th>Crack</th>
                 <th>Total Eggs</th>
                 <th>HD</th>
                 <th>Standard</th>
@@ -687,7 +687,7 @@ const PreviousDayReport = () => {
                 <div className="col-md-3"><span className="fw-bold">Closing:</span> {summaryData.closing_count}</div>
                 <div className="col-md-3"><span className="fw-bold">Total Table Eggs:</span> {summaryData.table_eggs}</div>
                 <div className="col-md-3"><span className="fw-bold">Total Jumbo:</span> {summaryData.jumbo}</div>
-                <div className="col-md-3"><span className="fw-bold">Total CR:</span> {summaryData.cr}</div>
+                <div className="col-md-3"><span className="fw-bold">Total Crack:</span> {summaryData.cr}</div>
                 <div className="col-md-3"><span className="fw-bold">Total Eggs:</span> {summaryData.total_eggs}</div>
                 <div className="col-md-3"><span className="fw-bold">Avg HD:</span> {summaryData.hd != null ? (Number(summaryData.hd) * 100).toFixed(2) : 'N/A'}%</div>
                 <div className="col-md-3"><span className="fw-bold">Avg Std HD:</span> {summaryData.standard_hen_day_percentage != null ? Number(summaryData.standard_hen_day_percentage).toFixed(2) : 'N/A'}%</div>

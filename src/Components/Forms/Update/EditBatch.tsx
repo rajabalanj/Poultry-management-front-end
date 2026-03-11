@@ -274,7 +274,7 @@ const EditBatch: React.FC = () => {
                             />
                           </div>
                           <div className="col-md-4">
-                            <label className="form-label">CR</label>
+                            <label className="form-label">Crack</label>
                             <input
                               type="number"
                               className="form-control"
