@@ -52,6 +52,7 @@ const Configurations: React.FC = () => {
   
   // Financial Settings state
   const [financialSettings, setFinancialSettings] = useState<IFinancialSettings | null>(null);
+  const [standardPerformanceValue, setStandardPerformanceValue] = useState<string>('');
   const [chartOfAccounts, setChartOfAccounts] = useState<ChartOfAccountsResponse[]>([]);
   const [financialSettingsFormData, setFinancialSettingsFormData] = useState<UpdateFinancialSettings>({
     default_cash_account_id: 0,
@@ -93,6 +94,11 @@ const Configurations: React.FC = () => {
             setGeneralLedgerOpeningBalance(financialConfig.general_ledger_opening_balance || 0);
         }
         
+        // Fetch standard performance config
+        const standardPerformanceConfig = await configApi.getStandardPerformance();
+        if (standardPerformanceConfig) {
+          setStandardPerformanceValue(standardPerformanceConfig.value);
+        }
         // Fetch financial settings
         try {
           const [settingsData, accountsData] = await Promise.all([
@@ -283,6 +289,28 @@ const Configurations: React.FC = () => {
     }
   };
 
+  const handleSaveStandardPerformance = async () => {
+    setSaving(true);
+    try {
+      if (standardPerformanceValue !== "bovans" && standardPerformanceValue !== "bv300") {
+        toast.error("Invalid Standard Performance Value. Must be 'bovans' or 'bv300'.");
+        return;
+      }
+
+      await configApi.updateStandardPerformance(standardPerformanceValue);
+
+      toast.success("Standard performance configuration saved successfully!");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save standard performance configuration.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleStandardPerformanceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setStandardPerformanceValue(e.target.value);
+  };
+
   // Pagination handlers for Bovans Performance
   const handleBovansPageChange = (pageNumber: number) => {
     setBovansCurrentPage(pageNumber);
@@ -447,6 +475,31 @@ return (
           </button>
         </div>
       </div>
+
+      {/* Standard Performance Configuration */}
+      <div className="p-3 border shadow-sm mb-4 mt-2">
+        <label className="form-label fw-semibold">
+          Standard Performance Configuration:
+        </label>
+        <div className="mb-3">
+          <select
+            className="form-select form-select-sm"
+            value={standardPerformanceValue}
+            onChange={handleStandardPerformanceChange}
+            disabled={loading}
+          >
+            <option value="bovans">Bovans</option>
+            <option value="bv300">BV300</option>
+          </select>
+        </div>
+        <div className="mt-3 text-end">
+          <button className="btn btn-primary" onClick={handleSaveStandardPerformance} disabled={saving || loading}>
+            {saving ? "Saving..." : "Save Standard Performance"}
+          </button>
+        </div>
+      </div>
+
+
 
       {/* Accordion for Batch and Bovans Performance */}
       <div className="accordion" id="configurationsAccordion">
@@ -892,5 +945,8 @@ return (
     </>
   );
 };
+
+
+
 
 export default Configurations;

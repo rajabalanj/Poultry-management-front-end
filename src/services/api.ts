@@ -515,6 +515,15 @@ export interface AppConfigKV {
   value: string;
 }
 
+export interface StandardPerformanceConfig {
+  name: string;
+  value: string;
+  tenant_id: string;
+  id: number;
+  created_by: string;
+  updated_by: string;
+}
+
 export const configApi = {
   // Get all configurations (GET)
   getAllConfigs: async (name?: string): Promise<AppConfigKV[]> => {
@@ -555,6 +564,24 @@ export const configApi = {
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to update financial configuration'));
+    }
+  },
+
+  getStandardPerformance: async (): Promise<StandardPerformanceConfig> => {
+    try {
+      const response = await api.get<StandardPerformanceConfig>('/configurations/standard-performance');
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch standard performance configuration'));
+    }
+  },
+
+  updateStandardPerformance: async (value: string): Promise<StandardPerformanceConfig> => {
+    try {
+      const response = await api.patch<StandardPerformanceConfig>('/configurations/standard-performance', { value });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to update standard performance configuration'));
     }
   }
 };
