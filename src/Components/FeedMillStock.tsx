@@ -276,8 +276,8 @@ function FeedMillStock() {
                   className="list-group-item d-flex justify-content-between align-items-center"
                 >
                   <span>{item.name}</span>
-                  <div>
-                    <span className="badge bg-secondary rounded-pill me-2">
+                  <div className="d-flex flex-column flex-sm-row align-items-end align-items-sm-center">
+                    <span className="badge bg-secondary rounded-pill mb-1 mb-sm-0 me-sm-2">
                       {i.weight} kg
                     </span>
                     <span className="badge bg-warning rounded-pill">

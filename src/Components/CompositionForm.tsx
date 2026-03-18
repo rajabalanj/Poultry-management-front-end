@@ -64,9 +64,9 @@ function CompositionForm({
               return (
                 <li
                   key={i.inventory_item_id}
-                  className="list-group-item d-flex justify-content-between align-items-center"
+                  className="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center"
                 >
-                  <span>{item.name}</span>
+                  <span className="mb-2 mb-sm-0">{item.name}</span>
                   <div className="d-flex align-items-center gap-2 flex-nowrap">
                     <input
                       type="number"
