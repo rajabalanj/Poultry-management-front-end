@@ -2,9 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { EggRoomStockEntry, EggRoomSingleReportResponse, EggRoomSummary } from '../types/eggRoomReport';
 import { eggRoomReportApi } from '../services/api';
+import { toYYYYMMDD } from '../utility/date-utils';
 
 const defaultEntry = (reportDate?: string): EggRoomStockEntry => ({
-  report_date: reportDate || new Date().toISOString().slice(0, 10), // Use report_date
+  report_date: reportDate || toYYYYMMDD(new Date()), // Use report_date
   table_opening: 0,
   table_received: 0,
   table_transfer: 0,
@@ -29,7 +30,7 @@ const defaultEntry = (reportDate?: string): EggRoomStockEntry => ({
 });
 
 export const useEggRoomStock = () => {
-  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().slice(0, 10));
+  const [selectedDate, setSelectedDate] = useState<string>(toYYYYMMDD(new Date()));
   const [form, setForm] = useState<EggRoomStockEntry>(defaultEntry());
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);

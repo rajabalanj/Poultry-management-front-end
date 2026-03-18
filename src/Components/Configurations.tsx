@@ -8,6 +8,7 @@ import { BovansPerformance } from "../types/bovans"; // Import BovansPerformance
 import { format } from 'date-fns'; // For date formatting
 import type { FinancialSettings as IFinancialSettings, UpdateFinancialSettings } from "../types/financialSettings";
 import type { ChartOfAccountsResponse } from "../types/chartOfAccounts";
+import { toYYYYMMDD } from '../utility/date-utils';
 
 
 const KG_PER_TON = 1000;
@@ -745,7 +746,7 @@ return (
                     className="form-control"
                     id="eggRoomStartDate"
                     selected={eggRoomStartDate ? new Date(eggRoomStartDate) : null}
-                    onChange={(date: Date | null) => date && setEggRoomStartDate(date.toISOString().slice(0, 10))}
+                    onChange={(date: Date | null) => date && setEggRoomStartDate(toYYYYMMDD(date))}
                     disabled={eggRoomSaving}
                     showMonthDropdown
                     showYearDropdown

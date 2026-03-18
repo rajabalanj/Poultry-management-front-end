@@ -10,6 +10,7 @@ import { eggRoomReportApi } from '../services/api';
 import * as htmlToImage from 'html-to-image';
 import { toast } from 'react-toastify';
 import { exportTableToExcel } from '../utility/export-utils';
+import { toYYYYMMDD } from '../utility/date-utils';
 
 // Define a common type for the fields to ensure consistency
 type StockFieldConfig = {
@@ -93,9 +94,8 @@ const EggRoomStock: React.FC = () => {
     summary,
   } = useEggRoomStock();
 
-  const todayDate = new Date();
-  const [startDate, setStartDate] = useState<Date | null>(todayDate);
-  const [endDate, setEndDate] = useState<Date | null>(todayDate);
+  const [startDate, setStartDate] = useState<Date | null>(new Date());
+  const [endDate, setEndDate] = useState<Date | null>(new Date());
   const [dateRangeError, setDateRangeError] = useState<string | null>(null);
   const [reports, setReports] = useState<EggRoomStockEntry[]>([]);
   const [reportLoading, setReportLoading] = useState(false);
@@ -155,8 +155,8 @@ const EggRoomStock: React.FC = () => {
     setReportLoading(true);
     setReportError(null);
     try {
-      const startStr = start.toISOString().slice(0,10);
-      const endStr = end.toISOString().slice(0,10);
+      const startStr = toYYYYMMDD(start);
+      const endStr = toYYYYMMDD(end);
       const { details, summary: summaryData } = await eggRoomReportApi.getReports(startStr, endStr);
       const reportsData: EggRoomStockEntry[] = details.map((item: any) => ({
         ...item,
@@ -186,7 +186,8 @@ const EggRoomStock: React.FC = () => {
 
   const handleConfirmDateChange = () => {
     if (suggestedStartDate) {
-      const parsed = new Date(suggestedStartDate);
+      // Append T00:00:00 to force local time construction instead of UTC
+      const parsed = new Date(`${suggestedStartDate}T00:00:00`);
       console.debug('Confirm suggested start date:', { suggestedStartDate, parsed });
       // If parsed is invalid, warn and abort
       if (isNaN(parsed.getTime())) {
@@ -199,12 +200,12 @@ const EggRoomStock: React.FC = () => {
         }
         // Also update the report date picker to the suggested date
         try {
-          setSelectedDate(parsed.toISOString().slice(0,10));
+          setSelectedDate(toYYYYMMDD(parsed));
         } catch (e) {
           console.warn('Failed to set selectedDate from suggested date', e);
         }
         // Show a toast so it's obvious in the UI that the date changed
-        toast.info(`Start date set to ${parsed.toISOString().slice(0,10)}`);
+        toast.info(`Start date set to ${toYYYYMMDD(parsed)}`);
         fetchReports(parsed);
       }
     }
@@ -367,7 +368,7 @@ const EggRoomStock: React.FC = () => {
                 <label className="form-label me-3 mb-0">Report Date</label>
                 <CustomDatePicker
                   selected={selectedDate ? new Date(selectedDate) : null}
-                  onChange={(date: Date | null) => date && setSelectedDate(date.toISOString().slice(0, 10))}
+                  onChange={(date: Date | null) => date && setSelectedDate(toYYYYMMDD(date))}
                   maxDate={new Date()}
                   disabled={loading}
                   className="form-control"
@@ -431,7 +432,7 @@ const EggRoomStock: React.FC = () => {
               dropdownMode="select"
               className="form-control"
               placeholderText="Start Date"
-              key={`start-date-${startDate ? startDate.toISOString().slice(0,10) : ''}`}
+              key={`start-date-${startDate ? toYYYYMMDD(startDate) : 'null'}`} // Force remount to reset internal state when date changes
             />
           </div>
           <div className="col-auto d-flex align-items-center mt-3">
@@ -440,7 +441,7 @@ const EggRoomStock: React.FC = () => {
               selected={endDate}
               onChange={(date: Date | null) => date && setEndDate(date)}
               minDate={startDate || undefined}
-              maxDate={todayDate}
+              maxDate={new Date()}
               showMonthDropdown
               showYearDropdown
               dropdownMode="select"

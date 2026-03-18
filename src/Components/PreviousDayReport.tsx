@@ -14,6 +14,7 @@ import CustomDatePicker from './Common/CustomDatePicker';
 import { useEscapeKey } from '../hooks/useEscapeKey';
 import { configApi, batchApi, shedApi, dailyBatchApi, reportsApi } from '../services/api';
 import StyledSelect from './Common/StyledSelect';
+import { toYYYYMMDD } from '../utility/date-utils';
 
 // Memoized table row component to prevent unnecessary re-renders
 const TableRow = memo(({ 
@@ -453,24 +454,24 @@ const PreviousDayReport = () => {
                     <div className="col-auto d-flex align-items-center mt-3">
             <label className="form-label me-3 mb-0">Start Date</label>
                       <CustomDatePicker
-                        selected={startDate ? new Date(startDate) : null}
-                        onChange={(date: Date | null) => date && setStartDate(date.toISOString().slice(0, 10))}
+                        selected={startDate ? new Date(`${startDate}T00:00:00`) : null}
+                        onChange={(date: Date | null) => date && setStartDate(toYYYYMMDD(date))}
                         showMonthDropdown
                         showYearDropdown
                         dropdownMode="select"
-                        maxDate={endDate ? new Date(endDate) : undefined}
+                        maxDate={endDate ? new Date(`${endDate}T00:00:00`) : undefined}
                         className="form-control"
                       />
                     </div>
                     <div className="col-auto d-flex align-items-center mt-3">
             <label className="form-label me-3 mb-0">End Date</label>
                       <CustomDatePicker
-                        selected={endDate ? new Date(endDate) : null}
-                        onChange={(date: Date | null) => date && setEndDate(date.toISOString().slice(0, 10))}
+                        selected={endDate ? new Date(`${endDate}T00:00:00`) : null}
+                        onChange={(date: Date | null) => date && setEndDate(toYYYYMMDD(date))}
                         showMonthDropdown
                         showYearDropdown
                         dropdownMode="select"
-                        minDate={startDate ? new Date(startDate) : undefined}
+                        minDate={startDate ? new Date(`${startDate}T00:00:00`) : undefined}
                         maxDate={new Date()}
                         className="form-control"
                       />

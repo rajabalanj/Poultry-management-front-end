@@ -12,6 +12,7 @@ import PurchaseLedgerComponent from './Ledgers/PurchaseLedgerComponent';
 import SalesLedgerComponent from './Ledgers/SalesLedgerComponent';
 import InventoryLedgerComponent from './Ledgers/InventoryLedgerComponent';
 import StyledSelect from './Common/StyledSelect';
+import { toYYYYMMDD } from '../utility/date-utils';
 
 type ReportType = 'pnl' | 'balance-sheet' | 'general-ledger' | 'purchase-ledger' | 'sales-ledger' | 'inventory-ledger' | 'financial-summary';
 
@@ -29,7 +30,7 @@ const getReportLabel = (value: ReportType): string => {
 };
 
 const FinancialReports: React.FC = () => {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = toYYYYMMDD(new Date());
   const [activeTab, setActiveTab] = useState<ReportType>(() => {
     return (sessionStorage.getItem('financial_active_tab') as ReportType) || 'pnl';
   });
@@ -73,7 +74,7 @@ const FinancialReports: React.FC = () => {
   const [opExDetails, setOpExDetails] = useState<OperatingExpenseByAccount[]>([]);
 
   const handleFetchPnl = useCallback(async () => {
-    if (new Date(pnlStartDate) > new Date(pnlEndDate)) {
+    if (pnlStartDate > pnlEndDate) {
       toast.error('Start date cannot be after end date.');
       return;
     }
@@ -91,7 +92,7 @@ const FinancialReports: React.FC = () => {
   }, [pnlStartDate, pnlEndDate]);
 
   const handleFetchFs = useCallback(async () => {
-    if (new Date(fsStartDate) > new Date(fsEndDate)) {
+    if (fsStartDate > fsEndDate) {
         toast.error('Start date cannot be after end date.');
         return;
     }
@@ -354,9 +355,9 @@ const FinancialReports: React.FC = () => {
                     <label htmlFor="fsStartDate" className="form-label me-3 mb-0">Start Date</label>
                     <CustomDatePicker
                       id="fsStartDate"
-                      selected={fsStartDate ? new Date(fsStartDate) : null}
-                      onChange={(date: Date | null) => date && setFsStartDate(date.toISOString().slice(0, 10))}
-                      maxDate={fsEndDate ? new Date(fsEndDate) : undefined}
+                      selected={fsStartDate ? new Date(`${fsStartDate}T00:00:00`) : null}
+                      onChange={(date: Date | null) => date && setFsStartDate(toYYYYMMDD(date))}
+                      maxDate={fsEndDate ? new Date(`${fsEndDate}T00:00:00`) : undefined}
                       className="form-control"
                       showMonthDropdown
                       showYearDropdown
@@ -368,10 +369,10 @@ const FinancialReports: React.FC = () => {
                     <label htmlFor="fsEndDate" className="form-label me-3 mb-0">End Date</label>
                     <CustomDatePicker
                       id="fsEndDate"
-                      selected={fsEndDate ? new Date(fsEndDate) : null}
-                      onChange={(date: Date | null) => date && setFsEndDate(date.toISOString().slice(0, 10))}
-                      minDate={fsStartDate ? new Date(fsStartDate) : undefined}
-                      maxDate={new Date(today)}
+                      selected={fsEndDate ? new Date(`${fsEndDate}T00:00:00`) : null}
+                      onChange={(date: Date | null) => date && setFsEndDate(toYYYYMMDD(date))}
+                      minDate={fsStartDate ? new Date(`${fsStartDate}T00:00:00`) : undefined}
+                      maxDate={new Date(`${today}T00:00:00`)}
                       className="form-control"
                       showMonthDropdown
                       showYearDropdown
@@ -395,9 +396,9 @@ const FinancialReports: React.FC = () => {
                     <label htmlFor="pnlStartDate" className="form-label me-3 mb-0">Start Date</label>
                     <CustomDatePicker
                       id="pnlStartDate"
-                      selected={pnlStartDate ? new Date(pnlStartDate) : null}
-                      onChange={(date: Date | null) => date && setPnlStartDate(date.toISOString().slice(0, 10))}
-                      maxDate={pnlEndDate ? new Date(pnlEndDate) : undefined}
+                      selected={pnlStartDate ? new Date(`${pnlStartDate}T00:00:00`) : null}
+                      onChange={(date: Date | null) => date && setPnlStartDate(toYYYYMMDD(date))}
+                      maxDate={pnlEndDate ? new Date(`${pnlEndDate}T00:00:00`) : undefined}
                       className="form-control"
                       showMonthDropdown
                       showYearDropdown
@@ -409,10 +410,10 @@ const FinancialReports: React.FC = () => {
                     <label htmlFor="pnlEndDate" className="form-label me-3 mb-0">End Date</label>
                     <CustomDatePicker
                       id="pnlEndDate"
-                      selected={pnlEndDate ? new Date(pnlEndDate) : null}
-                      onChange={(date: Date | null) => date && setPnlEndDate(date.toISOString().slice(0, 10))}
-                      minDate={pnlStartDate ? new Date(pnlStartDate) : undefined}
-                      maxDate={new Date(today)}
+                      selected={pnlEndDate ? new Date(`${pnlEndDate}T00:00:00`) : null}
+                      onChange={(date: Date | null) => date && setPnlEndDate(toYYYYMMDD(date))}
+                      minDate={pnlStartDate ? new Date(`${pnlStartDate}T00:00:00`) : undefined}
+                      maxDate={new Date(`${today}T00:00:00`)}
                       className="form-control"
                       showMonthDropdown
                       showYearDropdown
@@ -436,9 +437,9 @@ const FinancialReports: React.FC = () => {
                     <label htmlFor="bsAsOfDate" className="form-label me-3 mb-0">As of Date</label>
                     <CustomDatePicker
                       id="bsAsOfDate"
-                      selected={bsAsOfDate ? new Date(bsAsOfDate) : null}
-                      onChange={(date: Date | null) => date && setBsAsOfDate(date.toISOString().slice(0, 10))}
-                      maxDate={new Date(today)}
+                      selected={bsAsOfDate ? new Date(`${bsAsOfDate}T00:00:00`) : null}
+                      onChange={(date: Date | null) => date && setBsAsOfDate(toYYYYMMDD(date))}
+                      maxDate={new Date(`${today}T00:00:00`)}
                       className="form-control"
                       showMonthDropdown
                       showYearDropdown

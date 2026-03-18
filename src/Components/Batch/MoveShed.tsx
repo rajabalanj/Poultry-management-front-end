@@ -8,6 +8,7 @@ import Loading from '../Common/Loading';
 import CustomDatePicker from '../Common/CustomDatePicker';
 import StyledSelect from '../Common/StyledSelect';
 import { DailyBatch } from '../../types/daily_batch';
+import { toYYYYMMDD } from '../../utility/date-utils';
 
 const MoveShed: React.FC = () => {
   const { batch_id } = useParams<{ batch_id: string }>();
@@ -33,7 +34,7 @@ const MoveShed: React.FC = () => {
 
         // Fetch current shed info for the batch
         if (batch_id) {
-          const today = new Date().toISOString().split('T')[0];
+          const today = toYYYYMMDD(new Date());
           const dailyBatches: DailyBatch[] = await dailyBatchApi.getDailyBatches(today);
           const currentBatch = dailyBatches.find(db => db.batch_id === Number(batch_id));
 
@@ -72,10 +73,10 @@ const MoveShed: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      const formattedDate = moveDate.toISOString().split('T')[0];
+      const formattedDate = toYYYYMMDD(moveDate);
       await batchApi.moveShed(Number(batch_id), Number(newShedId), formattedDate);
       toast.success('Batch moved successfully!');
-      navigate(`/batch/${batch_id}/${moveDate.toISOString()}/details`);
+      navigate(`/batch/${batch_id}/${toYYYYMMDD(moveDate)}/details`);
     } catch (error) {
       toast.error(getApiErrorMessage(error, 'Failed to move batch.'));
     } finally {
@@ -99,7 +100,7 @@ const MoveShed: React.FC = () => {
       <PageHeader
         title="Move Batch to a New Shed"
         buttonLabel="Back to Batch Details"
-        buttonLink={batch_id ? `/batch/${batch_id}/${new Date().toISOString()}/details` : '/production'}
+        buttonLink={batch_id ? `/batch/${batch_id}/${toYYYYMMDD(new Date())}/details` : '/production'}
         buttonIcon="bi-arrow-left"
       />
       <div className="container">

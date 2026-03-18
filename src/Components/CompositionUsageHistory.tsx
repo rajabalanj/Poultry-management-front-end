@@ -10,6 +10,7 @@ import { toPng } from 'html-to-image';
 import { exportTableToExcel } from '../utility/export-utils';
 import Loading from './Common/Loading';
 import CustomDatePicker from './Common/CustomDatePicker';
+import { toYYYYMMDD } from '../utility/date-utils';
 
 const CompositionUsageHistory = () => {
   const { compositionId } = useParams<{ compositionId: string }>();
@@ -36,10 +37,8 @@ const CompositionUsageHistory = () => {
         const offset = (currentPage - 1) * ITEMS_PER_PAGE;
         const limit = ITEMS_PER_PAGE;
 
-        const formatDate = (date: Date) => date.toISOString().split('T')[0];
-
-        const startDateStr = startDate ? formatDate(startDate) : undefined;
-        const endDateStr = endDate ? formatDate(endDate) : undefined;
+        const startDateStr = startDate ? toYYYYMMDD(startDate) : undefined;
+        const endDateStr = endDate ? toYYYYMMDD(endDate) : undefined;
 
         const response = compositionId
           ? await compositionApi.getCompositionUsageHistoryById(Number(compositionId), offset, limit, startDateStr, endDateStr)
