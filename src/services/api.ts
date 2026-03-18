@@ -1416,18 +1416,24 @@ export const ledgerApi = {
     }
   },
 
-  getPurchaseLedger: async (vendorId: number): Promise<PurchaseLedger> => {
+  getPurchaseLedger: async (vendorId: number, startDate?: string, endDate?: string): Promise<PurchaseLedger> => {
     try {
-      const response = await api.get<PurchaseLedger>(`/financial-reports/subsidiary-ledger/purchases/${vendorId}`);
+      const params: any = {};
+      if (startDate) params.start_date = startDate;
+      if (endDate) params.end_date = endDate;
+      const response = await api.get<PurchaseLedger>(`/financial-reports/subsidiary-ledger/purchases/${vendorId}`, { params });
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch Purchase Ledger'));
     }
   },
 
-  getSalesLedger: async (customerId: number): Promise<SalesLedger> => {
+  getSalesLedger: async (customerId: number, startDate?: string, endDate?: string): Promise<SalesLedger> => {
     try {
-      const response = await api.get<SalesLedger>(`/financial-reports/subsidiary-ledger/sales/${customerId}`);
+      const params: any = {};
+      if (startDate) params.start_date = startDate;
+      if (endDate) params.end_date = endDate;
+      const response = await api.get<SalesLedger>(`/financial-reports/subsidiary-ledger/sales/${customerId}`, { params });
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch Sales Ledger'));

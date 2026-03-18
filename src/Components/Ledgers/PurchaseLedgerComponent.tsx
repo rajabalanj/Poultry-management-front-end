@@ -1,12 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
+import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { ledgerApi, businessPartnerApi } from '../../services/api';
 import { PurchaseLedger } from '../../types/ledgers';
 import Loading from '../Common/Loading';
 import { BusinessPartner } from '../../types/BusinessPartner';
 import StyledSelect from '../Common/StyledSelect';
+import CustomDatePicker from '../Common/CustomDatePicker';
 
 type OptionType = { value: string; label: string };
 
@@ -15,6 +17,8 @@ const PurchaseLedgerComponent: React.FC = () => {
     const [ledgerData, setLedgerData] = useState<PurchaseLedger | null>(null);
     const [loading, setLoading] = useState(false);
     const [vendors, setVendors] = useState<BusinessPartner[]>([]);
+    const [startDate, setStartDate] = useState<Date | null>(null);
+    const [endDate, setEndDate] = useState<Date | null>(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -48,7 +52,9 @@ const PurchaseLedgerComponent: React.FC = () => {
         setLoading(true);
         setLedgerData(null);
         try {
-            const data = await ledgerApi.getPurchaseLedger(parseInt(vendorId, 10));
+            const formattedStartDate = startDate ? format(startDate, 'yyyy-MM-dd') : undefined;
+            const formattedEndDate = endDate ? format(endDate, 'yyyy-MM-dd') : undefined;
+            const data = await ledgerApi.getPurchaseLedger(parseInt(vendorId, 10), formattedStartDate, formattedEndDate);
             setLedgerData(data);
             sessionStorage.setItem('pl_loaded', 'true');
         } catch (error: any) {
@@ -71,7 +77,7 @@ const PurchaseLedgerComponent: React.FC = () => {
     return (
         <div>
             <div className="row g-3 align-items-end p-3 border-bottom">
-                <div className="col-md-4">
+                <div className="col-md-3">
                     <label htmlFor="vendorId" className="form-label">Vendor ID</label>
                     <StyledSelect
                         id="vendorId"
@@ -81,7 +87,25 @@ const PurchaseLedgerComponent: React.FC = () => {
                         placeholder="Select a Vendor"
                     />
                 </div>
-                <div className="col-md-4 d-flex justify-content-center justify-content-md-end">
+                <div className="col-md-3">
+                    <label className="form-label">Start Date</label>
+                    <CustomDatePicker
+                        selected={startDate}
+                        onChange={setStartDate}
+                        placeholderText="Start Date"
+                        isClearable
+                    />
+                </div>
+                <div className="col-md-3">
+                    <label className="form-label">End Date</label>
+                    <CustomDatePicker
+                        selected={endDate}
+                        onChange={setEndDate}
+                        placeholderText="End Date"
+                        isClearable
+                    />
+                </div>
+                <div className="col-md-3 d-flex justify-content-center justify-content-md-end">
                     <button className="btn btn-primary mb-2" onClick={handleFetchLedger} disabled={loading}>
                         {loading ? 'Generating...' : 'Get Purchase Ledger'}
                     </button>
