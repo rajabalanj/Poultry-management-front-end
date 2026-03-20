@@ -372,7 +372,7 @@ export const dailyBatchApi = {
 // Composition API for create, read, update, delete
 
 export const compositionApi = {
-  createComposition: async (composition: { name: string, inventory_items: { inventory_item_id: number, weight: number, wastage_percentage: number, tenant_id: string }[], tenant_id: string }): Promise<CompositionResponse> => {
+  createComposition: async (composition: { name: string, wastage_percentage: number, inventory_items: { inventory_item_id: number, weight: number, wastage_percentage: number, tenant_id: string }[], tenant_id: string }): Promise<CompositionResponse> => {
     try {
       const response = await api.post<CompositionResponse>('/compositions/', composition);
       return response.data;
@@ -396,7 +396,7 @@ export const compositionApi = {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch composition'));
     }
   },
-  updateComposition: async (id: number, composition: { name: string, inventory_items: { inventory_item_id: number, weight: number, wastage_percentage: number, tenant_id: string }[], tenant_id: string }): Promise<CompositionResponse> => {
+  updateComposition: async (id: number, composition: { name: string, wastage_percentage: number, inventory_items: { inventory_item_id: number, weight: number, wastage_percentage?: number, tenant_id: string }[], tenant_id: string }): Promise<CompositionResponse> => {
     try {
       const response = await api.patch<CompositionResponse>(`/compositions/${id}`, composition);
       return response.data;

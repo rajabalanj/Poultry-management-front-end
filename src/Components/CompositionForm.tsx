@@ -6,6 +6,8 @@ interface CompositionFormProps {
   title: string;
   initialCompName?: string;
   onCompNameChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  wastagePercentage?: number | string;
+  onWastagePercentageChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   search: string;
   handleItemSearch: (e: React.ChangeEvent<HTMLInputElement>) => void;
   filteredItems: InventoryItemResponse[];
@@ -25,6 +27,8 @@ function CompositionForm({
   title,
   initialCompName,
   onCompNameChange,
+  wastagePercentage,
+  onWastagePercentageChange,
   search,
   handleItemSearch,
   filteredItems,
@@ -47,14 +51,28 @@ function CompositionForm({
       <div className="card-body">
       <div className="row">
         <div className="mb-3 col-12 col-md-6">
-        {initialCompName !== undefined && onCompNameChange && (
-            <input
-              type="text"
-              className="form-control form-control-sm mb-2"
-              placeholder="Composition Name"
-              value={initialCompName}
-              onChange={onCompNameChange}
-            />
+          {initialCompName !== undefined && onCompNameChange && (
+            <div className="d-flex gap-2 mb-2">
+              <div className="flex-grow-1">
+                <input
+                  type="text"
+                  className="form-control form-control-sm"
+                  placeholder="Composition Name"
+                  value={initialCompName}
+                  onChange={onCompNameChange}
+                />
+              </div>
+              <div style={{ width: '120px' }}>
+                <input
+                  type="number"
+                  className="form-control form-control-sm"
+                  placeholder="Wastage %"
+                  value={wastagePercentage ?? ''}
+                  onChange={onWastagePercentageChange}
+                  title="Overall Wastage Percentage"
+                />
+              </div>
+            </div>
           )}
           <div className="card mb-3">
             <ul className="list-group list-group-flush">

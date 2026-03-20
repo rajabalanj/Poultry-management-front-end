@@ -5,6 +5,7 @@ import { InventoryItemResponse, InventoryItemCategory } from "../types/Inventory
 import { BatchResponse } from "../types/batch";
 import CompositionForm from "./CompositionForm";
 import { StylesConfig, SingleValue } from 'react-select';
+import { InventoryItemInComposition } from "../types/compositon";
 import StyledSelect from './Common/StyledSelect';
 import { toast } from "react-toastify";
 import { useNavigate } from 'react-router-dom';
@@ -20,11 +21,12 @@ function FeedMillStock() {
     const stored = sessionStorage.getItem(SELECTED_COMPOSITION_KEY);
     return stored ? Number(stored) : null;
   });
-  const [editItems, setEditItems] = useState<any[]>([]);
+  const [editItems, setEditItems] = useState<InventoryItemInComposition[]>([]);
   const [search, setSearch] = useState("");
   const [newCompName, setNewCompName] = useState("");
   const [timesToUse, setTimesToUse] = useState(1);
   const [editCompName, setEditCompName] = useState("");
+  const [wastagePercentage, setWastagePercentage] = useState<number | string>(0);
   const [batches, setBatches] = useState<BatchResponse[]>([]);
   const [selectedBatchNo, setSelectedBatchNo] = useState<string>('');
   const [batchDate, setBatchDate] = useState<string>('');
@@ -82,22 +84,23 @@ function FeedMillStock() {
 
   const handleEdit = () => {
     if (!selectedComposition) return;
-    setEditItems(selectedComposition.inventory_items.map((i: any) => ({ ...i })));
+    setEditItems(selectedComposition.inventory_items.map((i: any) => ({ ...i, wastage_percentage: i.wastage_percentage || 0 })));
     setEditCompName(selectedComposition.name);
+    setWastagePercentage(selectedComposition.wastage_percentage || 0);
     setViewState("edit");
   };
 
   const handleItemWeightChange = (item_id: number, weight: number | string) => {
     const processedValue = weight === '' ? null : Number(weight);
     setEditItems(
-      editItems.map((i: any) => (i.inventory_item_id === item_id ? { ...i, weight: processedValue } : i))
+      editItems.map((i) => (i.inventory_item_id === item_id ? { ...i, weight: processedValue as number } : i))
     );
   };
 
   const handleItemWastageChange = (item_id: number, wastage: number | string) => {
-    const processedValue = wastage === '' ? null : Number(wastage);
+    const processedValue = wastage === '' ? undefined : Number(wastage);
     setEditItems(
-      editItems.map((i: any) =>
+      editItems.map((i) =>
         i.inventory_item_id === item_id ? { ...i, wastage_percentage: processedValue } : i
       )
     );
@@ -108,13 +111,13 @@ function FeedMillStock() {
 
   const handleAddItem = (item: { id?: number; name?: string }) => {
     if (!item.id) return;
-    if (!editItems.some((i: any) => i.inventory_item_id === item.id)) {
+    if (!editItems.some((i) => i.inventory_item_id === item.id)) {
       setEditItems([...editItems, { inventory_item_id: item.id, weight: 0, wastage_percentage: 0 }]);
     }
   };
 
   const handleRemoveItem = (item_id: number) => {
-    setEditItems(editItems.filter((i: any) => i.inventory_item_id !== item_id));
+    setEditItems(editItems.filter((i) => i.inventory_item_id !== item_id));
   };
 
   const handleSave = async () => {
@@ -128,6 +131,7 @@ function FeedMillStock() {
       selectedComposition.id,
       {
         name: editCompName,
+        wastage_percentage: Number(wastagePercentage),
         inventory_items: editItems.map(item => ({
           ...item,
           wastage_percentage: item.wastage_percentage || 0,
@@ -145,6 +149,7 @@ function FeedMillStock() {
     setViewState("add");
     setEditItems([]);
     setNewCompName("");
+    setWastagePercentage(0);
   };
 
   const handleOpenCreateItem = () => {
@@ -163,6 +168,7 @@ function FeedMillStock() {
     }
     await compositionApi.createComposition({
       name: newCompName,
+      wastage_percentage: Number(wastagePercentage),
       inventory_items: editItems.map(item => ({
         ...item,
         wastage_percentage: item.wastage_percentage || 0,
@@ -176,6 +182,7 @@ function FeedMillStock() {
     setNewCompName("");
     setEditItems([]);
     setViewState("view");
+    setWastagePercentage(0);
   };
 
   type OptionType = { value: number | string; label: string };
@@ -263,12 +270,12 @@ function FeedMillStock() {
       {selectedComposition && viewState !== "edit" && viewState !== "add" && (
         <div className="card shadow-sm mb-4">
           <div className="card-header bg-primary text-white">
-            <h5 className="mb-0">Items in Composition</h5>
+            <h5 className="mb-0">Items in Composition (Wastage: {selectedComposition.wastage_percentage || 0}%)</h5>
           </div>
           <div className="card-body">
             <ul className="list-group">
             {selectedComposition.inventory_items.map((i: any) => {
-              const item = inventoryItems.find((id) => id.id === i.inventory_item_id);
+              const item = inventoryItems.find((inv) => inv.id === i.inventory_item_id);
               if (!item) return null;
               return (
                 <li
@@ -402,6 +409,8 @@ function FeedMillStock() {
           title="Create Composition"
           initialCompName={newCompName}
           onCompNameChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewCompName(e.target.value)}
+          wastagePercentage={wastagePercentage}
+          onWastagePercentageChange={(e: React.ChangeEvent<HTMLInputElement>) => setWastagePercentage(e.target.value)}
           search={search}
           handleItemSearch={handleItemSearch}
           filteredItems={filteredItems}
@@ -423,6 +432,8 @@ function FeedMillStock() {
           title="Edit Composition"
           initialCompName={editCompName}
           onCompNameChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditCompName(e.target.value)}
+          wastagePercentage={wastagePercentage}
+          onWastagePercentageChange={(e: React.ChangeEvent<HTMLInputElement>) => setWastagePercentage(e.target.value)}
           search={search}
           handleItemSearch={handleItemSearch}
           filteredItems={filteredItems}

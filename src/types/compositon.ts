@@ -1,7 +1,7 @@
 export interface InventoryItemInComposition {
   inventory_item_id: number;
   weight: number;
-  wastage_percentage?: number;
+  wastage_percentage?: number; // Optional to handle empty UI state, defaults to 0 on save
 }
 
 export interface CompositionInventoryItem {
@@ -16,6 +16,7 @@ export interface CompositionInventoryItem {
 export interface CompositionResponse {
   id: number;
   name: string;
+  wastage_percentage: number;
   tenant_id: string;
   inventory_items: CompositionInventoryItem[];
   created_by: string;
