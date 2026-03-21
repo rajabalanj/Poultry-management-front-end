@@ -8,7 +8,7 @@ import { BovansPerformance, PaginatedBovansPerformanceResponse } from "../types/
 import { BusinessPartner, BusinessPartnerCreate, BusinessPartnerUpdate, PartnerStatus } from '../types/BusinessPartner';
 import { InventoryItemResponse, InventoryItemCreate, InventoryItemUpdate, InventoryItemCategory } from '../types/InventoryItem';
 import { InventoryItemAudit } from '../types/InventoryItemAudit';
-import { InventoryStockLevel } from '../types/inventoryStockLevel';
+import { InventoryStockLevel, DailyStockReportEntry } from '../types/inventoryStockLevel';
 import {
   PurchaseOrderResponse,
   PurchaseOrderCreate,
@@ -925,6 +925,20 @@ export const inventoryItemApi = {
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to adjust inventory item'));
+    }
+  },
+
+  getDailyStockReport: async (itemId: number, startDate: string, endDate: string): Promise<DailyStockReportEntry[]> => {
+    try {
+      const response = await api.get<DailyStockReportEntry[]>(`/inventory-items/reports/daily-stock/${itemId}`, {
+        params: {
+          start_date: startDate,
+          end_date: endDate,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch daily stock report'));
     }
   },
 };

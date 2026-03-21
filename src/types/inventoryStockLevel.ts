@@ -14,3 +14,8 @@ export interface InventoryStockLevel {
   average_cost_str?: string;
   average_cost_words?: string;
 }
+
+export interface DailyStockReportEntry {
+  date: string;
+  stock: string;
+}

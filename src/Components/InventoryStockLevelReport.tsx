@@ -1,10 +1,10 @@
-
 import { useEffect, useState, useRef } from 'react';
 import { toast } from 'react-toastify';
+import { Modal, Button, Form, Table } from 'react-bootstrap';
 import PageHeader from './Layout/PageHeader';
 import Loading from './Common/Loading';
 import { inventoryItemApi } from '../services/api';
-import { InventoryStockLevel } from '../types/inventoryStockLevel';
+import { InventoryStockLevel, DailyStockReportEntry } from '../types/inventoryStockLevel';
 import { InventoryItemCategory } from '../types/InventoryItem';
 import StyledSelect from './Common/StyledSelect';
 import { toPng } from 'html-to-image';
@@ -17,6 +17,14 @@ const InventoryStockLevelReport = () => {
   const [category, setCategory] = useState<string>('');
   const [isSharing, setIsSharing] = useState(false);
   const tableRef = useRef<HTMLDivElement>(null);
+
+  // State for Daily Stock History Modal
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<InventoryStockLevel | null>(null);
+  const [historyData, setHistoryData] = useState<DailyStockReportEntry[]>([]);
+  const [historyStartDate, setHistoryStartDate] = useState<string>('');
+  const [historyEndDate, setHistoryEndDate] = useState<string>('');
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
 
   const fetchData = async (filterCategory?: string) => {
     setIsLoading(true);
@@ -36,6 +44,38 @@ const InventoryStockLevelReport = () => {
   useEffect(() => {
     fetchData(category);
   }, [category]);
+
+  useEffect(() => {
+    // Initialize history dates to last 30 days
+    const end = new Date();
+    const start = new Date();
+    start.setDate(end.getDate() - 30);
+    
+    setHistoryEndDate(end.toISOString().split('T')[0]);
+    setHistoryStartDate(start.toISOString().split('T')[0]);
+  }, []);
+
+  const fetchHistoryData = async (itemId: number, start: string, end: string) => {
+    setIsHistoryLoading(true);
+    try {
+      const data = await inventoryItemApi.getDailyStockReport(itemId, start, end);
+      setHistoryData(data);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to load history");
+    } finally {
+      setIsHistoryLoading(false);
+    }
+  };
+
+  const handleViewHistory = (item: InventoryStockLevel) => {
+    setSelectedItem(item);
+    setShowHistoryModal(true);
+    // Reset data and fetch new
+    setHistoryData([]);
+    if (historyStartDate && historyEndDate) {
+      fetchHistoryData(item.id, historyStartDate, historyEndDate);
+    }
+  };
 
   const handleCategoryChange = (option: any) => {
     setCategory(option ? option.value : '');
@@ -171,6 +211,7 @@ const InventoryStockLevelReport = () => {
                     <th>Unit</th>
                     <th>Average Cost</th>
                     <th>Reorder Level</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -182,6 +223,14 @@ const InventoryStockLevelReport = () => {
                       <td>{item.unit}</td>
                       <td>{item.average_cost_str || item.average_cost}</td>
                       <td>{item.reorder_level}</td>
+                      <td>
+                        <button 
+                          className="btn btn-sm btn-info text-white"
+                          onClick={() => handleViewHistory(item)}
+                        >
+                          View History
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -191,6 +240,71 @@ const InventoryStockLevelReport = () => {
             </div>
           </div>
         )}
+
+        {/* Daily Stock History Modal */}
+        <Modal show={showHistoryModal} onHide={() => setShowHistoryModal(false)} size="lg">
+          <Modal.Header closeButton>
+            <Modal.Title>Daily Stock History: {selectedItem?.name}</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <div className="row g-3 mb-3 align-items-end">
+              <div className="col-md-4">
+                <Form.Label>Start Date</Form.Label>
+                <Form.Control 
+                  type="date" 
+                  value={historyStartDate} 
+                  onChange={(e) => setHistoryStartDate(e.target.value)} 
+                />
+              </div>
+              <div className="col-md-4">
+                <Form.Label>End Date</Form.Label>
+                <Form.Control 
+                  type="date" 
+                  value={historyEndDate} 
+                  onChange={(e) => setHistoryEndDate(e.target.value)} 
+                />
+              </div>
+              <div className="col-md-4">
+                <Button 
+                  variant="primary" 
+                  className="w-100"
+                  onClick={() => selectedItem && fetchHistoryData(selectedItem.id, historyStartDate, historyEndDate)}
+                  disabled={isHistoryLoading || !historyStartDate || !historyEndDate}
+                >
+                  {isHistoryLoading ? 'Loading...' : 'Update Report'}
+                </Button>
+              </div>
+            </div>
+
+            {historyData.length > 0 ? (
+              <div className="table-responsive" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                <Table striped bordered hover size="sm">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Stock Level</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {historyData.map((entry, index) => (
+                      <tr key={index}>
+                        <td>{entry.date}</td>
+                        <td>{entry.stock} {selectedItem?.unit}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              </div>
+            ) : (
+              !isHistoryLoading && <p className="text-center text-muted mt-3">No history data found for the selected period.</p>
+            )}
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowHistoryModal(false)}>
+              Close
+            </Button>
+          </Modal.Footer>
+        </Modal>
       </div>
     </>
   );
