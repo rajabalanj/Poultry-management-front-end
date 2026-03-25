@@ -5,7 +5,7 @@ import { SalesOrderResponse } from "../../types/SalesOrder";
 import { SalesOrderItemResponse } from "../../types/SalesOrderItem";
 import { BusinessPartner } from "../../types/BusinessPartner";
 import SalesOrderCard from "../SalesOrder/SalesOrderCard";
-import { Button } from 'react-bootstrap';
+import { Button, Pagination } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import ItemsModal from '../Common/ItemsModal';
 import { inventoryItemApi, salesOrderApi } from "../../services/api";
@@ -60,6 +60,75 @@ const SalesOrderTable: React.FC<SalesOrderTableProps> = ({ salesOrders, loading,
     setSelectedSOId(so_number);
     setShowItemsModal(true);
   }, []);
+
+  const renderPaginationItems = () => {
+    if (!pagination) return null;
+    const { currentPage, totalPages, setCurrentPage } = pagination;
+    const items = [];
+
+    items.push(
+      <Pagination.Prev
+        key="prev"
+        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+        disabled={currentPage === 1}
+      />
+    );
+
+    if (totalPages <= 7) {
+      for (let number = 1; number <= totalPages; number++) {
+        items.push(
+          <Pagination.Item key={number} active={number === currentPage} onClick={() => setCurrentPage(number)}>
+            {number}
+          </Pagination.Item>
+        );
+      }
+    } else {
+      items.push(
+        <Pagination.Item key={1} active={1 === currentPage} onClick={() => setCurrentPage(1)}>
+          1
+        </Pagination.Item>
+      );
+
+      if (currentPage > 4) items.push(<Pagination.Ellipsis key="start-ellipsis" disabled />);
+
+      let startPage = Math.max(2, currentPage - 1);
+      let endPage = Math.min(totalPages - 1, currentPage + 1);
+
+      if (currentPage <= 4) {
+        endPage = 5;
+        startPage = 2;
+      } else if (currentPage >= totalPages - 3) {
+        startPage = totalPages - 4;
+        endPage = totalPages - 1;
+      }
+
+      for (let number = startPage; number <= endPage; number++) {
+        items.push(
+          <Pagination.Item key={number} active={number === currentPage} onClick={() => setCurrentPage(number)}>
+            {number}
+          </Pagination.Item>
+        );
+      }
+
+      if (currentPage < totalPages - 3) items.push(<Pagination.Ellipsis key="end-ellipsis" disabled />);
+
+      items.push(
+        <Pagination.Item key={totalPages} active={totalPages === currentPage} onClick={() => setCurrentPage(totalPages)}>
+          {totalPages}
+        </Pagination.Item>
+      );
+    }
+
+    items.push(
+      <Pagination.Next
+        key="next"
+        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+        disabled={currentPage === totalPages}
+      />
+    );
+
+    return items;
+  };
 
 
   const handleShareAsImage = async () => {
@@ -130,42 +199,8 @@ const SalesOrderTable: React.FC<SalesOrderTableProps> = ({ salesOrders, loading,
   );
 
   const soCards = useMemo(() => {
-    // Apply filters to sales orders
-    let filteredOrders = [...salesOrders];
-
-    if (filters) {
-      // Filter by customer
-      if (filters.customer_id) {
-        filteredOrders = filteredOrders.filter(so => so.customer_id === filters.customer_id);
-      }
-
-      // Filter by status
-      if (filters.status) {
-        filteredOrders = filteredOrders.filter(so => so.status === filters.status);
-      }
-
-      // Filter by date range
-      if (filters.startDate) {
-        const startDate = new Date(filters.startDate);
-        filteredOrders = filteredOrders.filter(so => new Date(so.order_date) >= startDate);
-      }
-
-      if (filters.endDate) {
-        const endDate = new Date(filters.endDate);
-        filteredOrders = filteredOrders.filter(so => new Date(so.order_date) <= endDate);
-      }
-
-      // Filter by amount range
-      if (filters.minAmount) {
-        filteredOrders = filteredOrders.filter(so => so.total_amount >= parseFloat(filters.minAmount));
-      }
-
-      if (filters.maxAmount) {
-        filteredOrders = filteredOrders.filter(so => so.total_amount <= parseFloat(filters.maxAmount));
-      }
-    }
-
-    return filteredOrders.map((so) => (
+    // The salesOrders prop is already filtered and paginated by the parent component.
+    return salesOrders.map((so) => (
       <SalesOrderCard
         key={so.id}
         so={so}
@@ -177,7 +212,7 @@ const SalesOrderTable: React.FC<SalesOrderTableProps> = ({ salesOrders, loading,
         onViewItems={handleViewItems}
       />
     ));
-  }, [salesOrders, customers, handleViewDetails, handleEdit, onDelete, onAddPayment, handleViewItems, filters]);
+  }, [salesOrders, customers, handleViewDetails, handleEdit, onDelete, onAddPayment, handleViewItems]);
 
   if (loading) return <div className="text-center">Loading sales...</div>;
   if (error) return <div className="text-center text-danger">{error}</div>;
@@ -237,25 +272,9 @@ const SalesOrderTable: React.FC<SalesOrderTableProps> = ({ salesOrders, loading,
         </div>
       </div>
       {pagination && pagination.totalPages > 1 && (
-        <div className="d-flex justify-content-between align-items-center mt-3">
-          <button
-            className="btn btn-secondary"
-            onClick={() => pagination.setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={pagination.currentPage === 1}
-          >
-            Previous
-          </button>
-          <span>
-            Page {pagination.currentPage} of {pagination.totalPages}
-          </span>
-          <button
-            className="btn btn-secondary"
-            onClick={() => pagination.setCurrentPage((prev) => Math.min(prev + 1, pagination.totalPages))}
-            disabled={pagination.currentPage === pagination.totalPages}
-          >
-            Next
-          </button>
-        </div>
+        <Pagination className="justify-content-center mt-3">
+            {renderPaginationItems()}
+        </Pagination>
       )}
       <ItemsModal
         show={showItemsModal}

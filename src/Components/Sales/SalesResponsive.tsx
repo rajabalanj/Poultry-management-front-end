@@ -1,9 +1,10 @@
 // src/Components/Sales/SalesResponsive.tsx
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useMediaQuery } from 'react-responsive';
 import { useLocation } from 'react-router-dom';
 import PageHeader from '../Layout/PageHeader';
 import { Modal, Button } from 'react-bootstrap';
+import { SalesOrderStatus } from '../../types/SalesOrder';
 import { useSalesOrders } from '../../hooks/useSalesOrders'; // New hook
 import SalesOrderTable from '../SalesOrder/SalesOrderTable';
 import SalesReportTable from '../Reports/SalesReportsTable';
@@ -16,7 +17,7 @@ const SalesResponsive: React.FC = () => {
     salesOrders,
     customers,
     filters,
-    setFilters,
+    setFilters: originalSetFilters,
     deleteModal,
     handleAddPayment,
   } = useSalesOrders();
@@ -27,6 +28,25 @@ const SalesResponsive: React.FC = () => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState<number>(1);
   const rowsPerPage = 10;
+
+  const setFilters = useMemo(() => ({
+    setCustomerId: (value: string) => {
+      originalSetFilters.setCustomerId(value);
+      setCurrentPage(1);
+    },
+    setStatus: (value: SalesOrderStatus | '') => {
+      originalSetFilters.setStatus(value);
+      setCurrentPage(1);
+    },
+    setStartDate: (value: Date | null) => {
+      originalSetFilters.setStartDate(value);
+      setCurrentPage(1);
+    },
+    setEndDate: (value: Date | null) => {
+      originalSetFilters.setEndDate(value);
+      setCurrentPage(1);
+    },
+  }), [originalSetFilters]);
   
   // Calculate pagination
   const totalPages = salesOrders.length > 0 ? Math.ceil(salesOrders.length / rowsPerPage) : 0;

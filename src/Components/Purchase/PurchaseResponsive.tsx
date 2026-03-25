@@ -1,9 +1,10 @@
 // src/Components/Purchase/PurchaseResponsive.tsx
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useMediaQuery } from 'react-responsive';
 import { useLocation } from 'react-router-dom';
 import PageHeader from '../Layout/PageHeader';
 import { Modal, Button } from 'react-bootstrap';
+import { PurchaseOrderStatus } from '../../types/PurchaseOrder';
 import { usePurchaseOrders } from '../../hooks/usePurchaseOrders'; // New hook
 import PurchaseOrderTable from '../PurchaseOrder/PurchaseOrderTable';
 import PurchaseReportTable from '../Reports/PurchaseReportTable';
@@ -16,7 +17,7 @@ const PurchaseResponsive: React.FC = () => {
     purchaseOrders,
     vendors,
     filters,
-    setFilters,
+    setFilters: originalSetFilters,
     deleteModal,
     handleAddPayment,
   } = usePurchaseOrders();
@@ -27,6 +28,25 @@ const PurchaseResponsive: React.FC = () => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState<number>(1);
   const rowsPerPage = 10;
+
+  const setFilters = useMemo(() => ({
+    setVendorId: (value: string) => {
+      originalSetFilters.setVendorId(value);
+      setCurrentPage(1);
+    },
+    setStatus: (value: PurchaseOrderStatus | '') => {
+      originalSetFilters.setStatus(value);
+      setCurrentPage(1);
+    },
+    setStartDate: (value: Date | null) => {
+      originalSetFilters.setStartDate(value);
+      setCurrentPage(1);
+    },
+    setEndDate: (value: Date | null) => {
+      originalSetFilters.setEndDate(value);
+      setCurrentPage(1);
+    },
+  }), [originalSetFilters]);
   
   // Calculate pagination
   const totalPages = purchaseOrders.length > 0 ? Math.ceil(purchaseOrders.length / rowsPerPage) : 0;

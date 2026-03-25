@@ -52,6 +52,7 @@ const PurchaseFilter: React.FC<PurchaseFilterProps> = ({ vendors, filters, setFi
           <label htmlFor="vendorFilter" className="form-label">Vendor:</label>
           <StyledSelect
             id="vendorFilter"
+            // @ts-ignore
             isMulti
             value={selectedVendorOptions}
             onChange={(selectedOptions: any) => setFilters.setVendorId(selectedOptions ? selectedOptions.map((opt: OptionType) => opt.value).join(',') : '')}

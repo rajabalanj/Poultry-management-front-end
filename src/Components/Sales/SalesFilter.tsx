@@ -52,6 +52,7 @@ const SalesFilter: React.FC<SalesFilterProps> = ({ customers, filters, setFilter
           <label htmlFor="customerFilter" className="form-label">Customer:</label>
           <StyledSelect
             id="customerFilter"
+            // @ts-ignore
             isMulti
             value={selectedCustomerOptions}
             onChange={(selectedOptions: any) => setFilters.setCustomerId(selectedOptions ? selectedOptions.map((opt: OptionType) => opt.value).join(',') : '')}
