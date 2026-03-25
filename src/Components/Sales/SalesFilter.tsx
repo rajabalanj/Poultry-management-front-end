@@ -7,13 +7,13 @@ import StyledSelect from '../Common/StyledSelect';
 interface SalesFilterProps {
   customers: BusinessPartner[];
   filters: {
-    customerId: number | '';
+    customerId: string;
     status: SalesOrderStatus | '';
     startDate: Date | null;
     endDate: Date | null;
   };
   setFilters: {
-    setCustomerId: (value: number | '') => void;
+    setCustomerId: (value: string) => void;
     setStatus: (value: SalesOrderStatus | '') => void;
     setStartDate: (value: Date | null) => void;
     setEndDate: (value: Date | null) => void;
@@ -25,13 +25,14 @@ type OptionType = { value: number | string; label: string };
 const SalesFilter: React.FC<SalesFilterProps> = ({ customers, filters, setFilters }) => {
 
   const customerOptions: OptionType[] = [
-    { value: '', label: 'All Customers' },
     ...customers.map((customer) => ({
       value: customer.id,
       label: customer.name,
     })),
   ];
-  const selectedCustomerOption = customerOptions.find(option => option.value === filters.customerId);
+
+  const selectedCustomerIds = filters.customerId ? filters.customerId.split(',').map(Number) : [];
+  const selectedCustomerOptions = customerOptions.filter(option => selectedCustomerIds.includes(Number(option.value)));
 
   const statusOptions: OptionType[] = [
     { value: '', label: 'All Statuses' },
@@ -51,8 +52,9 @@ const SalesFilter: React.FC<SalesFilterProps> = ({ customers, filters, setFilter
           <label htmlFor="customerFilter" className="form-label">Customer:</label>
           <StyledSelect
             id="customerFilter"
-            value={selectedCustomerOption}
-            onChange={(option, _action) => setFilters.setCustomerId(option ? Number(option.value) : '')}
+            isMulti
+            value={selectedCustomerOptions}
+            onChange={(selectedOptions: any) => setFilters.setCustomerId(selectedOptions ? selectedOptions.map((opt: OptionType) => opt.value).join(',') : '')}
             options={customerOptions}
             placeholder="All Customers"
           />

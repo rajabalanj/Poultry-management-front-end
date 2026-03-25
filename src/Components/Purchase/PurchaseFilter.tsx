@@ -8,13 +8,13 @@ import StyledSelect from '../Common/StyledSelect';
 interface PurchaseFilterProps {
   vendors: BusinessPartner[];
   filters: {
-    vendorId: number | '';
+    vendorId: string;
     status: PurchaseOrderStatus | '';
     startDate: Date | null;
     endDate: Date | null;
   };
   setFilters: {
-    setVendorId: (value: number | '') => void;
+    setVendorId: (value: string) => void;
     setStatus: (value: PurchaseOrderStatus | '') => void;
     setStartDate: (value: Date | null) => void;
     setEndDate: (value: Date | null) => void;
@@ -26,13 +26,14 @@ type OptionType = { value: number | string; label: string };
 const PurchaseFilter: React.FC<PurchaseFilterProps> = ({ vendors, filters, setFilters }) => {
 
   const vendorOptions: OptionType[] = [
-    { value: '', label: 'All Vendors' },
     ...vendors.map((vendor) => ({
       value: vendor.id,
       label: vendor.name,
     })),
   ];
-  const selectedVendorOption = vendorOptions.find(option => option.value === filters.vendorId);
+
+  const selectedVendorIds = filters.vendorId ? filters.vendorId.split(',').map(Number) : [];
+  const selectedVendorOptions = vendorOptions.filter(option => selectedVendorIds.includes(Number(option.value)));
 
   const statusOptions: OptionType[] = [
     { value: '', label: 'All Statuses' },
@@ -51,8 +52,9 @@ const PurchaseFilter: React.FC<PurchaseFilterProps> = ({ vendors, filters, setFi
           <label htmlFor="vendorFilter" className="form-label">Vendor:</label>
           <StyledSelect
             id="vendorFilter"
-            value={selectedVendorOption}
-            onChange={(option, _action) => setFilters.setVendorId(option ? Number(option.value) : '')}
+            isMulti
+            value={selectedVendorOptions}
+            onChange={(selectedOptions: any) => setFilters.setVendorId(selectedOptions ? selectedOptions.map((opt: OptionType) => opt.value).join(',') : '')}
             options={vendorOptions}
             placeholder="All Vendors"
           />

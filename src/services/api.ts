@@ -1006,7 +1006,7 @@ export const purchaseOrderApi = {
   getPurchaseOrders: async (
     skip: number = 0,
     limit: number = 100,
-    vendorId?: number,
+    vendorId?: string,
     status?: PurchaseOrderStatus,
     startDate?: string, // YYYY-MM-DD
     endDate?: string,   // YYYY-MM-DD
@@ -1200,7 +1200,7 @@ export const salesOrderApi = {
   getSalesOrders: async (
     skip: number = 0,
     limit: number = 100,
-    customerId?: number,
+    customerId?: string,
     status?: SalesOrderStatus,
     startDate?: string, // YYYY-MM-DD
     endDate?: string,   // YYYY-MM-DD

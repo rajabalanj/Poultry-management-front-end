@@ -14,7 +14,7 @@ export const useSalesOrders = () => {
   const [error, setError] = useState<string | null>(null);
   const [salesOrders, setSalesOrders] = useState<SalesOrderResponse[]>([]);
   const [customers, setCustomers] = useState<BusinessPartner[]>([]);
-  const [filterCustomerId, setFilterCustomerId] = useState<number | ''>('');
+  const [filterCustomerId, setFilterCustomerId] = useState<string>('');
   const [filterStatus, setFilterStatus] = useState<SalesOrderStatus | ''>('');
   const [filterStartDate, setFilterStartDate] = useState<Date | null>(null);
   const [filterEndDate, setFilterEndDate] = useState<Date | null>(null);
@@ -43,7 +43,7 @@ export const useSalesOrders = () => {
       const response = await salesOrderApi.getSalesOrders(
         0,
         100, // Maybe increase this limit
-        filterCustomerId === '' ? undefined : filterCustomerId,
+        filterCustomerId || undefined,
         filterStatus === '' ? undefined : filterStatus,
         filterStartDate ? format(filterStartDate, 'yyyy-MM-dd') : undefined,
         filterEndDate ? format(filterEndDate, 'yyyy-MM-dd') : undefined,
@@ -106,7 +106,7 @@ export const useSalesOrders = () => {
       endDate: filterEndDate,
     },
     setFilters: {
-      setCustomerId: setFilterCustomerId,
+      setCustomerId: (value: string) => setFilterCustomerId(value),
       setStatus: setFilterStatus,
       setStartDate: setFilterStartDate,
       setEndDate: setFilterEndDate,

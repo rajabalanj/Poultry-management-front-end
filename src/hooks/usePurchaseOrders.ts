@@ -14,7 +14,7 @@ export const usePurchaseOrders = () => {
   const [error, setError] = useState<string | null>(null);
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrderResponse[]>([]);
   const [vendors, setVendors] = useState<BusinessPartner[]>([]);
-  const [filterVendorId, setFilterVendorId] = useState<number | ''>('');
+  const [filterVendorId, setFilterVendorId] = useState<string>('');
   const [filterStatus, setFilterStatus] = useState<PurchaseOrderStatus | ''>('');
   const [filterStartDate, setFilterStartDate] = useState<Date | null>(null);
   const [filterEndDate, setFilterEndDate] = useState<Date | null>(null);
@@ -43,7 +43,7 @@ export const usePurchaseOrders = () => {
       const response = await purchaseOrderApi.getPurchaseOrders(
         0,
         100,
-        filterVendorId === '' ? undefined : filterVendorId,
+        filterVendorId || undefined,
         filterStatus === '' ? undefined : filterStatus,
         filterStartDate ? format(filterStartDate, 'yyyy-MM-dd') : undefined,
         filterEndDate ? format(filterEndDate, 'yyyy-MM-dd') : undefined,
@@ -106,7 +106,7 @@ export const usePurchaseOrders = () => {
       endDate: filterEndDate,
     },
     setFilters: {
-      setVendorId: setFilterVendorId,
+      setVendorId: (value: string) => setFilterVendorId(value),
       setStatus: setFilterStatus,
       setStartDate: setFilterStartDate,
       setEndDate: setFilterEndDate,
