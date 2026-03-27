@@ -9,6 +9,7 @@ import EggProductionGraph from './EggProductionGraph';
 import EggProductionCostGraph from './EggProductionCostGraph';
 import CompositionUsagePieChart from './CompositionUsagePieChart';
 import FeedConsumptionPerEggGraph from './FeedConsumptionPerEggGraph';
+import EggPriceCard from './EggPriceCard';
 
 const BATCH_DATE_KEY = 'dashboard_batch_date';
 
@@ -262,6 +263,12 @@ const Dashboard: React.FC = () => {
               </div>
             )
           })}
+        </div>
+
+        <div className="row mt-4">
+          <div className="col-12">
+            <EggPriceCard />
+          </div>
         </div>
 
 

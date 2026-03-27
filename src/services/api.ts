@@ -9,6 +9,7 @@ import { BusinessPartner, BusinessPartnerCreate, BusinessPartnerUpdate, PartnerS
 import { InventoryItemResponse, InventoryItemCreate, InventoryItemUpdate, InventoryItemCategory } from '../types/InventoryItem';
 import { InventoryItemAudit } from '../types/InventoryItemAudit';
 import { InventoryStockLevel, DailyStockReportEntry } from '../types/inventoryStockLevel';
+import { EggPrice } from '../types/EggPrice';
 import {
   PurchaseOrderResponse,
   PurchaseOrderCreate,
@@ -287,6 +288,17 @@ export const reportsApi = {
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch composition usage report'));
+    }
+  },
+};
+
+export const eggPriceApi = {
+  fetchCurrent: async (): Promise<EggPrice> => {
+    try {
+      const response = await api.get<EggPrice>('/egg-prices/fetch-current');
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch current egg prices'));
     }
   },
 };
