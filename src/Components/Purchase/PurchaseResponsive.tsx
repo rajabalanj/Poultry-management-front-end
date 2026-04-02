@@ -9,6 +9,8 @@ import { usePurchaseOrders } from '../../hooks/usePurchaseOrders'; // New hook
 import PurchaseOrderTable from '../PurchaseOrder/PurchaseOrderTable';
 import PurchaseReportTable from '../Reports/PurchaseReportTable';
 import PurchaseFilter from './PurchaseFilter'; // New filter component
+import AddPaymentForm from '../PurchaseOrder/AddPaymentForm';
+import { useEscapeKey } from '../../hooks/useEscapeKey';
 
 const PurchaseResponsive: React.FC = () => {
   const {
@@ -18,8 +20,7 @@ const PurchaseResponsive: React.FC = () => {
     vendors,
     filters,
     setFilters: originalSetFilters,
-    deleteModal,
-    handleAddPayment,
+    deleteModal
   } = usePurchaseOrders();
 
   const isMobile = useMediaQuery({ maxWidth: 768 });
@@ -28,6 +29,10 @@ const PurchaseResponsive: React.FC = () => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState<number>(1);
   const rowsPerPage = 10;
+
+  // Payment modal state
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedPoId, setSelectedPoId] = useState<number | null>(null);
 
   const setFilters = useMemo(() => ({
     setVendorId: (value: string) => {
@@ -57,6 +62,17 @@ const PurchaseResponsive: React.FC = () => {
   const isReportView = location.pathname.includes('/reports/purchases');
   const title = isReportView ? "Purchase Reports" : "Purchases";
 
+  const handleOpenPayment = (poId: number) => {
+    setSelectedPoId(poId);
+    setShowPaymentModal(true);
+  };
+
+  // Handle Escape key for delete modal
+  useEscapeKey(deleteModal.cancelDelete, deleteModal.show);
+
+  // Handle Escape key for payment modal
+  useEscapeKey(() => setShowPaymentModal(false), showPaymentModal);
+
   const renderContent = () => {
     if (isMobile) {
       // Mobile view - Management view with PurchaseOrderTable
@@ -78,7 +94,7 @@ const PurchaseResponsive: React.FC = () => {
               error={error}
               onDelete={deleteModal.handleDelete}
               vendors={vendors}
-              onAddPayment={handleAddPayment}
+              onAddPayment={handleOpenPayment}
               pagination={{
                 currentPage,
                 totalPages,
@@ -106,6 +122,24 @@ const PurchaseResponsive: React.FC = () => {
                 </Button>
               </Modal.Footer>
             </Modal>
+
+            <Modal show={showPaymentModal} onHide={() => setShowPaymentModal(false)} size="lg" centered>
+              <Modal.Header closeButton>
+                <Modal.Title>Add Payment</Modal.Title>
+              </Modal.Header>
+              <Modal.Body>
+                {selectedPoId && (
+                  <AddPaymentForm
+                    poId={selectedPoId}
+                    onSuccess={() => {
+                      setShowPaymentModal(false);
+                      // Refresh the purchase orders list
+                    }}
+                    onCancel={() => setShowPaymentModal(false)}
+                  />
+                )}
+              </Modal.Body>
+            </Modal>
           </div>
         </>
       );
@@ -130,6 +164,7 @@ const PurchaseResponsive: React.FC = () => {
             error={error}
             vendors={vendors}
             filters={filters}
+            onAddPayment={handleOpenPayment}
             pagination={{
               currentPage,
               totalPages,
@@ -137,6 +172,24 @@ const PurchaseResponsive: React.FC = () => {
             }}
           />
         </div>
+
+        <Modal show={showPaymentModal} onHide={() => setShowPaymentModal(false)} size="lg" centered>
+          <Modal.Header closeButton>
+            <Modal.Title>Add Payment</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            {selectedPoId && (
+              <AddPaymentForm
+                poId={selectedPoId}
+                onSuccess={() => {
+                  setShowPaymentModal(false);
+                  // Refresh the purchase orders list
+                }}
+                onCancel={() => setShowPaymentModal(false)}
+              />
+            )}
+          </Modal.Body>
+        </Modal>
       </>
     );
   };

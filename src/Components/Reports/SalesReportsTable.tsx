@@ -15,6 +15,7 @@ interface SalesReportTableProps {
   loading: boolean;
   error: string | null;
   filters?: Record<string, any>;
+  onAddPayment?: (soId: number) => void;
   pagination?: {
     currentPage: number;
     totalPages: number;
@@ -22,7 +23,7 @@ interface SalesReportTableProps {
   };
 }
 
-const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, customers, loading, error, pagination, filters = {} }) => {
+const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, customers, loading, error, pagination, filters = {}, onAddPayment }) => {
   const navigate = useNavigate();
   const [isSharing, setIsSharing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -171,6 +172,19 @@ const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, custom
                       >
                         View Items
                       </Button>
+                      {onAddPayment && (
+                        <Button
+                          variant="outline-primary"
+                          size="sm"
+                          className="ms-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onAddPayment(so.id);
+                          }}
+                        >
+                          Add Payment
+                        </Button>
+                      )}
                     </td>
                   </tr>
                   {isExpanded && (

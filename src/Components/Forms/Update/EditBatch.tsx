@@ -20,7 +20,7 @@ interface UsageHistoryItem {
 const EditBatch: React.FC = () => {
   const navigate = useNavigate();
   const { batchId, batch_date } = useParams<{ batchId: string; batch_date: string }>();
-  useEscapeKey();
+  useEscapeKey(() => navigate(-1));
   const [batch, setBatch] = useState<DailyBatch | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -129,7 +129,7 @@ const PreviousDayReport = () => {
 
   const effectiveBatchId = batchIdFromUrl || searchParams.get('batch_id') || undefined;
 
-  useEscapeKey();
+  useEscapeKey(() => navigate(-1));
 
   // Component state for data display
   const [gridData, setGridData] = useState<GridRow[]>([]);

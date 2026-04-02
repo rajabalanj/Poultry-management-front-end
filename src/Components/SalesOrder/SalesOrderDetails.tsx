@@ -9,7 +9,7 @@ import { BusinessPartner } from "../../types/BusinessPartner";
 import { InventoryItemResponse } from "../../types/InventoryItem"; // Add InventoryItemResponse
 import { format } from 'date-fns';
 import { Modal, Button, Form } from 'react-bootstrap';
-import { salesOrderApi, inventoryItemApi, businessPartnerApi } from "../../services/api"; // Add businessPartnerApiimport DatePicker from 'react-datepicker';
+import { salesOrderApi, inventoryItemApi, businessPartnerApi } from "../../services/api";
 
 const getStatusBadgeClass = (status: SalesOrderStatus | PaymentStatus) => {
   switch (status) {
@@ -151,9 +151,10 @@ const SalesOrderDetails: React.FC = () => {
 
   const handleDownloadReceipt = async () => {
     try {
-      if (salesOrder?.id) {
-        console.log(`Attempting to download sales order receipt for SO ID: ${salesOrder.id}`);
-        await salesOrderApi.downloadSalesOrderReceipt(salesOrder.id);
+      const id = salesOrder?.id || Number(so_id);
+      if (id) {
+        console.log(`Attempting to download sales order receipt for SO ID: ${id}`);
+        await salesOrderApi.downloadSalesOrderReceipt(id);
         toast.success("Receipt opened in a new tab!");
       } else {
         console.warn('Sales Order ID is not available to download receipt.');

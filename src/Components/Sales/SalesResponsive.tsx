@@ -9,6 +9,8 @@ import { useSalesOrders } from '../../hooks/useSalesOrders'; // New hook
 import SalesOrderTable from '../SalesOrder/SalesOrderTable';
 import SalesReportTable from '../Reports/SalesReportsTable';
 import SalesFilter from './SalesFilter'; // New filter component
+import AddSalesPaymentForm from '../SalesOrder/AddSalesPaymentForm';
+import { useEscapeKey } from '../../hooks/useEscapeKey';
 
 const SalesResponsive: React.FC = () => {
   const {
@@ -19,7 +21,6 @@ const SalesResponsive: React.FC = () => {
     filters,
     setFilters: originalSetFilters,
     deleteModal,
-    handleAddPayment,
   } = useSalesOrders();
 
   const isMobile = useMediaQuery({ maxWidth: 768 });
@@ -28,6 +29,10 @@ const SalesResponsive: React.FC = () => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState<number>(1);
   const rowsPerPage = 10;
+
+  // Payment modal state
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedSoId, setSelectedSoId] = useState<number | null>(null);
 
   const setFilters = useMemo(() => ({
     setCustomerId: (value: string) => {
@@ -57,6 +62,17 @@ const SalesResponsive: React.FC = () => {
   const isReportView = location.pathname.includes('/reports/sales');
   const title = isReportView ? "Sales Reports" : "Sales";
 
+  const handleOpenPayment = (soId: number) => {
+    setSelectedSoId(soId);
+    setShowPaymentModal(true);
+  };
+
+  // Handle Escape key for delete modal
+  useEscapeKey(deleteModal.cancelDelete, deleteModal.show);
+
+  // Handle Escape key for payment modal
+  useEscapeKey(() => setShowPaymentModal(false), showPaymentModal);
+
   const renderContent = () => {
     // On desktop, always show the report view.
     // On mobile, show the management view.
@@ -84,7 +100,7 @@ const SalesResponsive: React.FC = () => {
               error={error}
               onDelete={deleteModal.handleDelete}
               customers={customers}
-              onAddPayment={handleAddPayment}
+              onAddPayment={handleOpenPayment}
               pagination={{
                 currentPage,
                 totalPages,
@@ -112,6 +128,24 @@ const SalesResponsive: React.FC = () => {
                 </Button>
               </Modal.Footer>
             </Modal>
+
+            <Modal show={showPaymentModal} onHide={() => setShowPaymentModal(false)} size="lg" centered>
+              <Modal.Header closeButton>
+                <Modal.Title>Add Payment</Modal.Title>
+              </Modal.Header>
+              <Modal.Body>
+                {selectedSoId && (
+                  <AddSalesPaymentForm
+                    soId={selectedSoId}
+                    onSuccess={() => {
+                      setShowPaymentModal(false);
+                      // Refresh the sales orders list
+                    }}
+                    onCancel={() => setShowPaymentModal(false)}
+                  />
+                )}
+              </Modal.Body>
+            </Modal>
           </div>
         </>
       );
@@ -136,6 +170,7 @@ const SalesResponsive: React.FC = () => {
             error={error}
             customers={customers}
             filters={filters}
+            onAddPayment={handleOpenPayment}
             pagination={{
               currentPage,
               totalPages,
@@ -143,6 +178,24 @@ const SalesResponsive: React.FC = () => {
             }}
           />
         </div>
+
+        <Modal show={showPaymentModal} onHide={() => setShowPaymentModal(false)} size="lg" centered>
+          <Modal.Header closeButton>
+            <Modal.Title>Add Payment</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            {selectedSoId && (
+              <AddSalesPaymentForm
+                soId={selectedSoId}
+                onSuccess={() => {
+                  setShowPaymentModal(false);
+                  // Refresh the sales orders list
+                }}
+                onCancel={() => setShowPaymentModal(false)}
+              />
+            )}
+          </Modal.Body>
+        </Modal>
       </>
     );
   };

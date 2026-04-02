@@ -22,7 +22,7 @@ interface UsageHistoryItem {
 const BatchDetails: React.FC = () => {
   const navigate = useNavigate();
   const { batch_id, batch_date } = useParams<{ batch_id: string; batch_date: string }>();
-  useEscapeKey();
+  useEscapeKey(() => navigate(-1));
   // Get batch_date from query params or default to today
   const [batch, setBatch] = useState<DailyBatch | null>(null);
   const [sheds, setSheds] = useState<ShedResponse[]>([]);

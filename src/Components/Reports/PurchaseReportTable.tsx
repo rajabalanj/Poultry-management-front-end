@@ -15,6 +15,7 @@ interface PurchaseReportTableProps {
   loading: boolean;
   error: string | null;
   filters?: Record<string, any>;
+  onAddPayment?: (poId: number) => void;
   pagination?: {
     currentPage: number;
     totalPages: number;
@@ -22,7 +23,7 @@ interface PurchaseReportTableProps {
   };
 }
 
-const PurchaseReportTable: React.FC<PurchaseReportTableProps> = ({ purchaseOrders, vendors, loading, error, pagination, filters = {} }) => {
+const PurchaseReportTable: React.FC<PurchaseReportTableProps> = ({ purchaseOrders, vendors, loading, error, pagination, filters = {}, onAddPayment }) => {
   const navigate = useNavigate();
   const [isSharing, setIsSharing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -168,6 +169,19 @@ const PurchaseReportTable: React.FC<PurchaseReportTableProps> = ({ purchaseOrder
                       >
                         View Items
                       </Button>
+                      {onAddPayment && (
+                        <Button
+                          variant="outline-primary"
+                          size="sm"
+                          className="ms-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onAddPayment(po.id);
+                          }}
+                        >
+                          Add Payment
+                        </Button>
+                      )}
                     </td>
                   </tr>
                   {isExpanded && (

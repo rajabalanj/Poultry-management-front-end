@@ -12,8 +12,15 @@ import StyledSelect from '../Common/StyledSelect';
 const paymentModes = ["Cash", "Bank Transfer", "Cheque", "Online Payment", "Other"];
 type OptionType = { value: string; label: string };
 
-const AddSalesPaymentForm: React.FC = () => {
-  const { so_id } = useParams<{ so_id: string }>();
+interface AddSalesPaymentFormProps {
+  soId?: number;
+  onSuccess?: () => void;
+  onCancel?: () => void;
+}
+
+const AddSalesPaymentForm: React.FC<AddSalesPaymentFormProps> = ({ soId, onSuccess, onCancel }) => {
+  const { so_id: urlSoId } = useParams<{ so_id: string }>();
+  const effectiveSoId = soId || Number(urlSoId);
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [salesOrder, setSalesOrder] = useState<SalesOrderResponse | null>(null);
@@ -34,12 +41,12 @@ const AddSalesPaymentForm: React.FC = () => {
       setLoadingSo(true);
       setErrorSo(null);
       try {
-        if (!so_id) {
+        if (!effectiveSoId) {
             setErrorSo("Sales Order ID is missing.");
             setLoadingSo(false);
             return;
         }
-        const data = await salesOrderApi.getSalesOrder(Number(so_id));
+        const data = await salesOrderApi.getSalesOrder(effectiveSoId);
         setSalesOrder(data);
         // Optionally pre-fill amount with remaining balance
         const remainingBalance = data.total_amount - data.total_amount_paid;
@@ -48,7 +55,7 @@ const AddSalesPaymentForm: React.FC = () => {
         }
 
       } catch (err: any) {
-        console.error("Error fetching Sales for payment:", err);
+        console.error("Error fetching Sales Order for payment:", err);
         setErrorSo(err?.message || "Failed to load Sales Order details.");
         toast.error(err?.message || "Failed to load Sales Order details for payment.");
       } finally {
@@ -56,14 +63,14 @@ const AddSalesPaymentForm: React.FC = () => {
       }
     };
     fetchSoDetails();
-  }, [so_id]);
+  }, [effectiveSoId]);
 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    if (!so_id) {
+    if (!effectiveSoId) {
       toast.error("Sales Order ID is missing.");
       setIsLoading(false);
       return;
@@ -83,13 +90,13 @@ const AddSalesPaymentForm: React.FC = () => {
 
     // Optional: Add validation for overpayment
     if (salesOrder && (Number(amountPaid) + salesOrder.total_amount_paid) > salesOrder.total_amount + 0.01) { // Add small epsilon for floating point
-        toast.warn(`Amount entered (${Number(amountPaid).toFixed(2)}) would overpay this Sales. Total due: Rs. ${(salesOrder.total_amount - salesOrder.total_amount_paid).toFixed(2)}.`);
+        toast.warn(`Amount entered (${Number(amountPaid).toFixed(2)}) would overpay this Sales Order. Total due: Rs. ${(salesOrder.total_amount - salesOrder.total_amount_paid).toFixed(2)}.`);
         // Allow to proceed or return, depending on business logic. For now, warn and allow.
     }
 
 
     const newPayment: SalesPaymentCreate = {
-      sales_order_id: Number(so_id),
+      sales_order_id: effectiveSoId,
       amount_paid: Number(amountPaid),
       payment_date: format(paymentDate, 'yyyy-MM-dd'),
       payment_mode: paymentMode,
@@ -100,7 +107,11 @@ const AddSalesPaymentForm: React.FC = () => {
     try {
       await salesOrderApi.addPaymentToSalesOrder(newPayment);
       toast.success('Payment added successfully!');
-      navigate(`/sales-orders/${so_id}/details`); // Go back to SO details page
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        navigate(`/sales-orders/${effectiveSoId}/details`); // Go back to Sales Order details page
+      }
     } catch (error: any) {
       toast.error(error?.message || 'Failed to add payment.');
       console.error('Error adding payment:', error);
@@ -122,12 +133,14 @@ const AddSalesPaymentForm: React.FC = () => {
 
   return (
     <>
-      <PageHeader
-        title={`Add Payment for Sales: ${salesOrder.so_number}`}
-        buttonVariant="secondary"
-        buttonLabel="Back"
-        buttonIcon="bi-arrow-left"
-      />
+      {!onCancel && (
+        <PageHeader
+          title={`Add Payment for Sales: ${salesOrder.so_number}`}
+          buttonVariant="secondary"
+          buttonLabel="Back to Sales Order Details"
+          buttonIcon="bi-arrow-left"
+        />
+      )}
       <div className="container mt-4">
         <div className="card shadow-sm">
           <div className="card-body">
@@ -220,7 +233,7 @@ const AddSalesPaymentForm: React.FC = () => {
                   <button
                     type="button"
                     className="btn btn-secondary"
-                    onClick={() => navigate(`/sales-orders/${so_id}/details`)}
+                    onClick={() => onCancel ? onCancel() : navigate(`/sales-orders/${effectiveSoId}/details`)}
                     disabled={isLoading}
                   >
                     Cancel

@@ -12,8 +12,15 @@ import StyledSelect from '../Common/StyledSelect';
 const paymentModes = ["Cash", "Bank Transfer", "Cheque", "Online Payment", "Other"];
 type OptionType = { value: string; label: string };
 
-const AddPaymentForm: React.FC = () => {
-  const { po_id } = useParams<{ po_id: string }>();
+interface AddPaymentFormProps {
+  poId?: number;
+  onSuccess?: () => void;
+  onCancel?: () => void;
+}
+
+const AddPaymentForm: React.FC<AddPaymentFormProps> = ({ poId, onSuccess, onCancel }) => {
+  const { po_id: urlPoId } = useParams<{ po_id: string }>();
+  const effectivePoId = poId || Number(urlPoId);
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [purchaseOrder, setPurchaseOrder] = useState<PurchaseOrderResponse | null>(null);
@@ -34,12 +41,12 @@ const AddPaymentForm: React.FC = () => {
       setLoadingPo(true);
       setErrorPo(null);
       try {
-        if (!po_id) {
+        if (!effectivePoId) {
             setErrorPo("Purchase ID is missing.");
             setLoadingPo(false);
             return;
         }
-        const data = await purchaseOrderApi.getPurchaseOrder(Number(po_id));
+        const data = await purchaseOrderApi.getPurchaseOrder(effectivePoId);
         setPurchaseOrder(data);
         // Optionally pre-fill amount with remaining balance
         const remainingBalance = data.total_amount - data.total_amount_paid;
@@ -56,14 +63,14 @@ const AddPaymentForm: React.FC = () => {
       }
     };
     fetchPoDetails();
-  }, [po_id]);
+  }, [effectivePoId]);
 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    if (!po_id) {
+    if (!effectivePoId) {
       toast.error("Purchase ID is missing.");
       setIsLoading(false);
       return;
@@ -89,7 +96,7 @@ const AddPaymentForm: React.FC = () => {
 
 
     const newPayment: PaymentCreate = {
-      purchase_order_id: Number(po_id),
+      purchase_order_id: effectivePoId,
       amount_paid: Number(amountPaid),
       payment_date: format(paymentDate, 'yyyy-MM-dd'),
       payment_mode: paymentMode,
@@ -107,7 +114,11 @@ const AddPaymentForm: React.FC = () => {
       }
       
       toast.success('Payment added successfully!');
-      navigate(`/purchase-orders/${po_id}/details`); // Go back to Purchase details page
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        navigate(`/purchase-orders/${effectivePoId}/details`); // Go back to Purchase details page
+      }
     } catch (error: any) {
       toast.error(error?.message || 'Failed to add payment.');
       console.error('Error adding payment:', error);
@@ -129,12 +140,14 @@ const AddPaymentForm: React.FC = () => {
 
   return (
     <>
-      <PageHeader
-        title={`Add Payment for Purchase: ${purchaseOrder.po_number}`}
-        buttonVariant="secondary"
-        buttonLabel="Back to Purchase Details"
-        buttonIcon="bi-arrow-left"
-      />
+      {!onCancel && (
+        <PageHeader
+          title={`Add Payment for Purchase: ${purchaseOrder.po_number}`}
+          buttonVariant="secondary"
+          buttonLabel="Back to Purchase Details"
+          buttonIcon="bi-arrow-left"
+        />
+      )}
       <div className="container mt-4">
         <div className="card shadow-sm">
           <div className="card-body">
@@ -238,7 +251,7 @@ const AddPaymentForm: React.FC = () => {
                   <button
                     type="button"
                     className="btn btn-secondary"
-                    onClick={() => navigate(`/purchase-orders/${po_id}/details`)}
+                    onClick={() => onCancel ? onCancel() : navigate(`/purchase-orders/${effectivePoId}/details`)}
                     disabled={isLoading}
                   >
                     Cancel
