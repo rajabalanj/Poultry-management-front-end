@@ -3,7 +3,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useMediaQuery } from 'react-responsive';
 import { useLocation } from 'react-router-dom';
 import PageHeader from '../Layout/PageHeader';
-import { Modal, Button } from 'react-bootstrap';
+import { Modal, Button, Form } from 'react-bootstrap';
 import { SalesOrderStatus } from '../../types/SalesOrder';
 import { useSalesOrders } from '../../hooks/useSalesOrders';
 import { salesOrderApi } from '../../services/api';
@@ -38,6 +38,7 @@ const SalesResponsive: React.FC = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedSoId, setSelectedSoId] = useState<number | null>(null);
   const [downloadingBill, setDownloadingBill] = useState(false);
+  const [billType, setBillType] = useState<'paid' | 'unpaid' | 'none'>('unpaid');
 
   // Keyboard navigation state
   const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1);
@@ -70,16 +71,17 @@ const SalesResponsive: React.FC = () => {
   const isReportView = location.pathname.includes('/reports/sales');
   const title = isReportView ? "Sales Reports" : "Sales";
 
-  const handleDownloadBill = async (status: 'paid' | 'unpaid') => {
+  const handleDownloadBill = async (status: 'paid' | 'unpaid' | 'none') => {
     if (!filters.customerId) {
       toast.error("Please select a customer first.");
       return;
     }
     setDownloadingBill(true);
     try {
+      const apiStatus = status === 'none' ? undefined : status;
       const startDateStr = filters.startDate ? format(filters.startDate, 'yyyy-MM-dd') : undefined;
       const endDateStr = filters.endDate ? format(filters.endDate, 'yyyy-MM-dd') : undefined;
-      const blob = await salesOrderApi.getCustomerBill(parseInt(filters.customerId), startDateStr, endDateStr, status);
+      const blob = await salesOrderApi.getCustomerBill(parseInt(filters.customerId), startDateStr, endDateStr, apiStatus as any);
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -156,22 +158,26 @@ const SalesResponsive: React.FC = () => {
             <SalesFilter customers={customers} filters={filters} setFilters={setFilters} />
 
             {filters.customerId && (
-              <div className="d-flex justify-content-end gap-2 mb-3">
-                <Button 
-                  variant="outline-danger" 
-                  onClick={() => handleDownloadBill('unpaid')}
-                  disabled={downloadingBill}
-                >
-                  <i className="bi bi-file-earmark-pdf me-2"></i>{downloadingBill ? '...' : 'Download Unpaid Bill'}
-                </Button>
-                <Button
-                  variant="outline-success"
-                  onClick={() => handleDownloadBill('paid')}
-                  disabled={downloadingBill}
-                >
-                  <i className="bi bi-file-earmark-pdf me-2"></i>{downloadingBill ? '...' : 'Download Paid Bill'}
-                </Button>
-              </div>
+                <div className="d-flex justify-content-end align-items-center gap-2 mb-3">
+                  <Form.Select 
+                    size="sm" 
+                    className="w-auto"
+                    value={billType}
+                    onChange={(e) => setBillType(e.target.value as any)}
+                  >
+                    <option value="unpaid">Unpaid Bills</option>
+                    <option value="paid">Paid Bills</option>
+                    <option value="none">All</option>
+                  </Form.Select>
+                  <Button 
+                    variant="outline-primary" 
+                    size="sm"
+                    onClick={() => handleDownloadBill(billType)}
+                    disabled={downloadingBill}
+                  >
+                    <i className="bi bi-file-earmark-pdf me-2"></i>{downloadingBill ? '...' : 'Download Bill'}
+                  </Button>
+                </div>
             )}
 
             <SalesOrderTable
@@ -248,22 +254,26 @@ const SalesResponsive: React.FC = () => {
           <SalesFilter customers={customers} filters={filters} setFilters={setFilters} />
 
           {filters.customerId && (
-            <div className="d-flex justify-content-end gap-2 mb-3">
-              <Button
-                variant="outline-danger"
-                onClick={() => handleDownloadBill('unpaid')}
-                disabled={downloadingBill}
-              >
-                <i className="bi bi-file-earmark-pdf me-2"></i>{downloadingBill ? '...' : 'Download Unpaid Bill'}
-              </Button>
-              <Button
-                variant="outline-success"
-                onClick={() => handleDownloadBill('paid')}
-                disabled={downloadingBill}
-              >
-                <i className="bi bi-file-earmark-pdf me-2"></i>{downloadingBill ? '...' : 'Download Paid Bill'}
-              </Button>
-            </div>
+              <div className="d-flex justify-content-end align-items-center gap-2 mb-3">
+                <Form.Select 
+                  size="sm" 
+                  className="w-auto"
+                  value={billType}
+                  onChange={(e) => setBillType(e.target.value as any)}
+                >
+                  <option value="unpaid">Unpaid Bills</option>
+                  <option value="paid">Paid Bills</option>
+                  <option value="none">All</option>
+                </Form.Select>
+                <Button 
+                  variant="outline-primary" 
+                  size="sm"
+                  onClick={() => handleDownloadBill(billType)}
+                  disabled={downloadingBill}
+                >
+                  <i className="bi bi-file-earmark-pdf me-2"></i>{downloadingBill ? '...' : 'Download Bill'}
+                </Button>
+              </div>
           )}
 
           <SalesReportTable

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
-import { Modal } from 'react-bootstrap';
+import { Modal, Form } from 'react-bootstrap';
 import { ledgerApi, businessPartnerApi, salesOrderApi } from '../../services/api';
 import { SalesLedger } from '../../types/ledgers';
 import Loading from '../Common/Loading';
@@ -26,6 +26,7 @@ const SalesLedgerComponent: React.FC = () => {
     const navigate = useNavigate();
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [downloadingBill, setDownloadingBill] = useState(false);
+    const [billType, setBillType] = useState<'paid' | 'unpaid' | 'none'>('unpaid');
     const [selectedSoId, setSelectedSoId] = useState<number | null>(null);
     const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1);
 
@@ -72,16 +73,17 @@ const SalesLedgerComponent: React.FC = () => {
         }
     };
 
-    const handleDownloadBill = async (status: 'paid' | 'unpaid') => {
+    const handleDownloadBill = async (status: 'paid' | 'unpaid' | 'none') => {
         if (!customerId) {
             toast.error('Please select a customer.');
             return;
         }
         setDownloadingBill(true);
         try {
+            const apiStatus = status === 'none' ? undefined : status;
             const formattedStartDate = startDate ? format(startDate, 'yyyy-MM-dd') : undefined;
             const formattedEndDate = endDate ? format(endDate, 'yyyy-MM-dd') : undefined;
-            const blob = await salesOrderApi.getCustomerBill(parseInt(customerId, 10), formattedStartDate, formattedEndDate, status);
+            const blob = await salesOrderApi.getCustomerBill(parseInt(customerId, 10), formattedStartDate, formattedEndDate, apiStatus as any);
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -181,25 +183,25 @@ const SalesLedgerComponent: React.FC = () => {
                     </div>
                     <div className="col-md-3 d-flex flex-wrap gap-2 justify-content-center justify-content-md-end">
                         <button className="btn btn-primary" onClick={handleFetchLedger} disabled={loading}>
-                            {loading ? 'Generating...' : 'Get Sales Ledger'}
+                            <i className="bi bi-journal-text me-2"></i>{loading ? 'Generating...' : 'Get Sales Ledger'}
                         </button>
                         {customerId && (
-                            <>
-                                <button 
-                                    className="btn btn-outline-danger" 
-                                    onClick={() => handleDownloadBill('unpaid')} 
-                                    disabled={downloadingBill}
+                            <div className="d-flex gap-2">
+                                <Form.Select 
+                                    size="sm" 
+                                    className="w-auto"
+                                    value={billType}
+                                    onChange={(e) => setBillType(e.target.value as any)}
                                 >
-                                    {downloadingBill ? '...' : 'Unpaid Bill'}
+                                    <option value="unpaid">Unpaid Bills</option>
+                                    <option value="paid">Paid Bills</option>
+                                    <option value="none">All</option>
+                                </Form.Select>
+                                <button className="btn btn-outline-primary" onClick={() => handleDownloadBill(billType)} disabled={downloadingBill}>
+                                    <i className="bi bi-file-earmark-pdf me-2"></i>
+                                    {downloadingBill ? '...' : 'Download Bill'}
                                 </button>
-                                <button 
-                                    className="btn btn-outline-success" 
-                                    onClick={() => handleDownloadBill('paid')} 
-                                    disabled={downloadingBill}
-                                >
-                                    {downloadingBill ? '...' : 'Paid Bill'}
-                                </button>
-                            </>
+                            </div>
                         )}
                     </div>
                 </div>
