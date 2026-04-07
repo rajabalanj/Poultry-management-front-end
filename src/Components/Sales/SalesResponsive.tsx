@@ -1,16 +1,20 @@
 // src/Components/Sales/SalesResponsive.tsx
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useMediaQuery } from 'react-responsive';
 import { useLocation } from 'react-router-dom';
 import PageHeader from '../Layout/PageHeader';
 import { Modal, Button } from 'react-bootstrap';
 import { SalesOrderStatus } from '../../types/SalesOrder';
-import { useSalesOrders } from '../../hooks/useSalesOrders'; // New hook
+import { useSalesOrders } from '../../hooks/useSalesOrders';
+import { salesOrderApi } from '../../services/api';
+import { toast } from 'react-toastify';
+import { format } from 'date-fns';
 import SalesOrderTable from '../SalesOrder/SalesOrderTable';
 import SalesReportTable from '../Reports/SalesReportsTable';
 import SalesFilter from './SalesFilter'; // New filter component
 import AddSalesPaymentForm from '../SalesOrder/AddSalesPaymentForm';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
+import { useTableKeyboardNavigation } from '../../hooks/useTableKeyboardNavigation';
 
 const SalesResponsive: React.FC = () => {
   const {
@@ -33,6 +37,10 @@ const SalesResponsive: React.FC = () => {
   // Payment modal state
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedSoId, setSelectedSoId] = useState<number | null>(null);
+  const [downloadingBill, setDownloadingBill] = useState(false);
+
+  // Keyboard navigation state
+  const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1);
 
   const setFilters = useMemo(() => ({
     setCustomerId: (value: string) => {
@@ -62,6 +70,30 @@ const SalesResponsive: React.FC = () => {
   const isReportView = location.pathname.includes('/reports/sales');
   const title = isReportView ? "Sales Reports" : "Sales";
 
+  const handleDownloadBill = async (status: 'paid' | 'unpaid') => {
+    if (!filters.customerId) {
+      toast.error("Please select a customer first.");
+      return;
+    }
+    setDownloadingBill(true);
+    try {
+      const startDateStr = filters.startDate ? format(filters.startDate, 'yyyy-MM-dd') : undefined;
+      const endDateStr = filters.endDate ? format(filters.endDate, 'yyyy-MM-dd') : undefined;
+      const blob = await salesOrderApi.getCustomerBill(parseInt(filters.customerId), startDateStr, endDateStr, status);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Bill_${filters.customerId}_${status}_${format(new Date(), 'yyyyMMdd')}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to download bill");
+    } finally {
+      setDownloadingBill(false);
+    }
+  };
+
   const handleOpenPayment = (soId: number) => {
     setSelectedSoId(soId);
     setShowPaymentModal(true);
@@ -72,6 +104,35 @@ const SalesResponsive: React.FC = () => {
 
   // Handle Escape key for payment modal
   useEscapeKey(() => setShowPaymentModal(false), showPaymentModal);
+
+  // Keyboard navigation for table rows
+  const { resetSelection, setSelectedIndex } = useTableKeyboardNavigation({
+    rowCount: paginatedSalesOrders.length,
+    onRowSelect: (index) => {
+      setFocusedRowIndex(index);
+      const row = document.querySelector(`tr[data-row-index="${index}"]`);
+      row?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    },
+    onRowEnter: (index) => {
+      const order = paginatedSalesOrders[index];
+      if (order) {
+        window.location.href = `/sales-orders/${order.id}/details`;
+      }
+    },
+    onRowAction: (index, key) => {
+      if (key === 'p' && paginatedSalesOrders[index]) {
+        setSelectedSoId(paginatedSalesOrders[index].id);
+        setShowPaymentModal(true);
+      }
+    },
+    enabled: !showPaymentModal && !loading && paginatedSalesOrders.length > 0,
+  });
+
+  // Reset keyboard navigation when page changes
+  useEffect(() => {
+    resetSelection();
+    setFocusedRowIndex(-1);
+  }, [currentPage, resetSelection]);
 
   const renderContent = () => {
     // On desktop, always show the report view.
@@ -94,6 +155,25 @@ const SalesResponsive: React.FC = () => {
           <div className="container mt-4">
             <SalesFilter customers={customers} filters={filters} setFilters={setFilters} />
 
+            {filters.customerId && (
+              <div className="d-flex justify-content-end gap-2 mb-3">
+                <Button 
+                  variant="outline-danger" 
+                  onClick={() => handleDownloadBill('unpaid')}
+                  disabled={downloadingBill}
+                >
+                  <i className="bi bi-file-earmark-pdf me-2"></i>{downloadingBill ? '...' : 'Download Unpaid Bill'}
+                </Button>
+                <Button
+                  variant="outline-success"
+                  onClick={() => handleDownloadBill('paid')}
+                  disabled={downloadingBill}
+                >
+                  <i className="bi bi-file-earmark-pdf me-2"></i>{downloadingBill ? '...' : 'Download Paid Bill'}
+                </Button>
+              </div>
+            )}
+
             <SalesOrderTable
               salesOrders={paginatedSalesOrders}
               loading={loading}
@@ -101,6 +181,9 @@ const SalesResponsive: React.FC = () => {
               onDelete={deleteModal.handleDelete}
               customers={customers}
               onAddPayment={handleOpenPayment}
+              focusedRowIndex={focusedRowIndex}
+              setFocusedRowIndex={setFocusedRowIndex}
+              setSelectedIndex={setSelectedIndex}
               pagination={{
                 currentPage,
                 totalPages,
@@ -164,6 +247,25 @@ const SalesResponsive: React.FC = () => {
         <div className="container mt-4">
           <SalesFilter customers={customers} filters={filters} setFilters={setFilters} />
 
+          {filters.customerId && (
+            <div className="d-flex justify-content-end gap-2 mb-3">
+              <Button
+                variant="outline-danger"
+                onClick={() => handleDownloadBill('unpaid')}
+                disabled={downloadingBill}
+              >
+                <i className="bi bi-file-earmark-pdf me-2"></i>{downloadingBill ? '...' : 'Download Unpaid Bill'}
+              </Button>
+              <Button
+                variant="outline-success"
+                onClick={() => handleDownloadBill('paid')}
+                disabled={downloadingBill}
+              >
+                <i className="bi bi-file-earmark-pdf me-2"></i>{downloadingBill ? '...' : 'Download Paid Bill'}
+              </Button>
+            </div>
+          )}
+
           <SalesReportTable
             salesOrders={paginatedSalesOrders}
             loading={loading}
@@ -171,6 +273,9 @@ const SalesResponsive: React.FC = () => {
             customers={customers}
             filters={filters}
             onAddPayment={handleOpenPayment}
+            focusedRowIndex={focusedRowIndex}
+            setFocusedRowIndex={setFocusedRowIndex}
+            setSelectedIndex={setSelectedIndex}
             pagination={{
               currentPage,
               totalPages,

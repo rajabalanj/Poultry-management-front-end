@@ -169,7 +169,7 @@ const SalesOrderDetails: React.FC = () => {
   const handleDownloadPaymentReceipt = async (paymentId: number) => {
     try {
       await salesOrderApi.downloadSalesPaymentReceipt(paymentId);
-      toast.success("Payment receipt downloaded successfully!");
+      toast.success("Payment receipt opened in a new tab!");
     } catch (error: any) {
       toast.error(error.message || "Failed to download payment receipt.");
     }

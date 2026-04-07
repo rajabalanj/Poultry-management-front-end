@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { Modal } from 'react-bootstrap';
-import { ledgerApi, businessPartnerApi } from '../../services/api';
+import { ledgerApi, businessPartnerApi, salesOrderApi } from '../../services/api';
 import { SalesLedger } from '../../types/ledgers';
 import Loading from '../Common/Loading';
 import { BusinessPartner } from '../../types/BusinessPartner';
@@ -25,6 +25,7 @@ const SalesLedgerComponent: React.FC = () => {
     const [endDate, setEndDate] = useState<Date | null>(null);
     const navigate = useNavigate();
     const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [downloadingBill, setDownloadingBill] = useState(false);
     const [selectedSoId, setSelectedSoId] = useState<number | null>(null);
     const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1);
 
@@ -68,6 +69,30 @@ const SalesLedgerComponent: React.FC = () => {
             toast.error(error.message || 'Failed to fetch Sales Ledger.');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleDownloadBill = async (status: 'paid' | 'unpaid') => {
+        if (!customerId) {
+            toast.error('Please select a customer.');
+            return;
+        }
+        setDownloadingBill(true);
+        try {
+            const formattedStartDate = startDate ? format(startDate, 'yyyy-MM-dd') : undefined;
+            const formattedEndDate = endDate ? format(endDate, 'yyyy-MM-dd') : undefined;
+            const blob = await salesOrderApi.getCustomerBill(parseInt(customerId, 10), formattedStartDate, formattedEndDate, status);
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `Bill_${customerId}_${status}_${format(new Date(), 'yyyyMMdd')}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to download bill.');
+        } finally {
+            setDownloadingBill(false);
         }
     };
 
@@ -154,10 +179,28 @@ const SalesLedgerComponent: React.FC = () => {
                             isClearable
                         />
                     </div>
-                    <div className="col-md-3 d-flex justify-content-center justify-content-md-end">
-                        <button className="btn btn-primary mb-2" onClick={handleFetchLedger} disabled={loading}>
+                    <div className="col-md-3 d-flex flex-wrap gap-2 justify-content-center justify-content-md-end">
+                        <button className="btn btn-primary" onClick={handleFetchLedger} disabled={loading}>
                             {loading ? 'Generating...' : 'Get Sales Ledger'}
                         </button>
+                        {customerId && (
+                            <>
+                                <button 
+                                    className="btn btn-outline-danger" 
+                                    onClick={() => handleDownloadBill('unpaid')} 
+                                    disabled={downloadingBill}
+                                >
+                                    {downloadingBill ? '...' : 'Unpaid Bill'}
+                                </button>
+                                <button 
+                                    className="btn btn-outline-success" 
+                                    onClick={() => handleDownloadBill('paid')} 
+                                    disabled={downloadingBill}
+                                >
+                                    {downloadingBill ? '...' : 'Paid Bill'}
+                                </button>
+                            </>
+                        )}
                     </div>
                 </div>
                 {loading && <Loading message="Loading data..." />}

@@ -1177,7 +1177,7 @@ export const salesOrderApi = {
   },
   downloadSalesOrderReceipt: async (soId: number): Promise<void> => {
     try {
-      const { data } = await api.get(`/sales-orders/${soId}/receipt-download-url`);
+      const { data } = await api.get(`/sales-orders/${soId}/receipt`);
       if (data.download_url) {
         window.open(data.download_url, '_blank');
       } else {
@@ -1338,6 +1338,28 @@ export const salesOrderApi = {
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to export detailed sales report'));
+    }
+  },
+
+  getCustomerBill: async (
+    customerId: number,
+    startDate?: string,
+    endDate?: string,
+    status?: 'paid' | 'unpaid'
+  ): Promise<Blob> => {
+    try {
+      const params: any = {};
+      if (startDate) params.start_date = startDate;
+      if (endDate) params.end_date = endDate;
+      if (status) params.status = status;
+
+      const response = await api.get(`/sales-orders/customer-bill/${customerId}`, {
+        params,
+        responseType: 'blob',
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch customer bill'));
     }
   },
 };

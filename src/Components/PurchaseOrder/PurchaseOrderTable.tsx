@@ -24,6 +24,9 @@ interface PurchaseOrderTableProps {
     totalPages: number;
     setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
   };
+  focusedRowIndex?: number;
+  setFocusedRowIndex?: (index: number) => void;
+  setSelectedIndex?: (index: number) => void;
 }
 
 const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders, loading, error, onDelete, vendors, onAddPayment, pagination, filters = {} }) => {

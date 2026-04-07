@@ -1,5 +1,5 @@
 // src/Components/Purchase/PurchaseResponsive.tsx
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useMediaQuery } from 'react-responsive';
 import { useLocation } from 'react-router-dom';
 import PageHeader from '../Layout/PageHeader';
@@ -11,6 +11,7 @@ import PurchaseReportTable from '../Reports/PurchaseReportTable';
 import PurchaseFilter from './PurchaseFilter'; // New filter component
 import AddPaymentForm from '../PurchaseOrder/AddPaymentForm';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
+import { useTableKeyboardNavigation } from '../../hooks/useTableKeyboardNavigation';
 
 const PurchaseResponsive: React.FC = () => {
   const {
@@ -33,6 +34,9 @@ const PurchaseResponsive: React.FC = () => {
   // Payment modal state
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedPoId, setSelectedPoId] = useState<number | null>(null);
+
+  // Keyboard navigation state
+  const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1);
 
   const setFilters = useMemo(() => ({
     setVendorId: (value: string) => {
@@ -73,6 +77,35 @@ const PurchaseResponsive: React.FC = () => {
   // Handle Escape key for payment modal
   useEscapeKey(() => setShowPaymentModal(false), showPaymentModal);
 
+  // Keyboard navigation for table rows
+  const { resetSelection, setSelectedIndex } = useTableKeyboardNavigation({
+    rowCount: paginatedPurchaseOrders.length,
+    onRowSelect: (index) => {
+      setFocusedRowIndex(index);
+      const row = document.querySelector(`tr[data-row-index="${index}"]`);
+      row?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    },
+    onRowEnter: (index) => {
+      const order = paginatedPurchaseOrders[index];
+      if (order) {
+        window.location.href = `/purchase-orders/${order.id}/details`;
+      }
+    },
+    onRowAction: (index, key) => {
+      if (key === 'p' && paginatedPurchaseOrders[index]) {
+        setSelectedPoId(paginatedPurchaseOrders[index].id);
+        setShowPaymentModal(true);
+      }
+    },
+    enabled: !showPaymentModal && !loading && paginatedPurchaseOrders.length > 0,
+  });
+
+  // Reset keyboard navigation when page changes
+  useEffect(() => {
+    resetSelection();
+    setFocusedRowIndex(-1);
+  }, [currentPage, resetSelection]);
+
   const renderContent = () => {
     if (isMobile) {
       // Mobile view - Management view with PurchaseOrderTable
@@ -95,6 +128,9 @@ const PurchaseResponsive: React.FC = () => {
               onDelete={deleteModal.handleDelete}
               vendors={vendors}
               onAddPayment={handleOpenPayment}
+              focusedRowIndex={focusedRowIndex}
+              setFocusedRowIndex={setFocusedRowIndex}
+              setSelectedIndex={setSelectedIndex}
               pagination={{
                 currentPage,
                 totalPages,
@@ -165,6 +201,9 @@ const PurchaseResponsive: React.FC = () => {
             vendors={vendors}
             filters={filters}
             onAddPayment={handleOpenPayment}
+            focusedRowIndex={focusedRowIndex}
+            setFocusedRowIndex={setFocusedRowIndex}
+            setSelectedIndex={setSelectedIndex}
             pagination={{
               currentPage,
               totalPages,

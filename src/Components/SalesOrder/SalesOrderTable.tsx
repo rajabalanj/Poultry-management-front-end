@@ -24,6 +24,9 @@ interface SalesOrderTableProps {
     totalPages: number;
     setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
   };
+  focusedRowIndex?: number;
+  setFocusedRowIndex?: (index: number) => void;
+  setSelectedIndex?: (index: number) => void;
 }
 
 const SalesOrderTable: React.FC<SalesOrderTableProps> = ({ salesOrders, loading, error, onDelete, customers, onAddPayment, pagination, filters = {} }) => {

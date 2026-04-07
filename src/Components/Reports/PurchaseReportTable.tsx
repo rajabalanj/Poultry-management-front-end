@@ -21,9 +21,12 @@ interface PurchaseReportTableProps {
     totalPages: number;
     setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
   };
+  focusedRowIndex?: number;
+  setFocusedRowIndex?: (index: number) => void;
+  setSelectedIndex?: (index: number) => void;
 }
 
-const PurchaseReportTable: React.FC<PurchaseReportTableProps> = ({ purchaseOrders, vendors, loading, error, pagination, filters = {}, onAddPayment }) => {
+const PurchaseReportTable: React.FC<PurchaseReportTableProps> = ({ purchaseOrders, vendors, loading, error, pagination, filters = {}, onAddPayment, focusedRowIndex, setFocusedRowIndex, setSelectedIndex }) => {
   const navigate = useNavigate();
   const [isSharing, setIsSharing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -129,12 +132,22 @@ const PurchaseReportTable: React.FC<PurchaseReportTableProps> = ({ purchaseOrder
             </tr>
           </thead>
           <tbody>
-            {purchaseOrders.map((po) => {
+            {purchaseOrders.map((po, index) => {
               const vendorName = vendors.find(v => v.id === po.vendor_id)?.name || 'N/A';
               const isExpanded = expandedRows.includes(po.id);
+              const isFocused = focusedRowIndex === index;
               return (
                 <React.Fragment key={po.id}>
-                  <tr onClick={() => handleViewDetails(po.id)} style={{ cursor: 'pointer' }}>
+                  <tr
+                    onClick={() => {
+                      handleViewDetails(po.id);
+                      if (setFocusedRowIndex) setFocusedRowIndex(index);
+                      if (setSelectedIndex) setSelectedIndex(index);
+                    }}
+                    data-row-index={index}
+                    className={isFocused ? 'table-primary' : ''}
+                    style={{ cursor: 'pointer' }}
+                  >
                     <td>
                       <Button
                         variant="link"

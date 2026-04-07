@@ -21,9 +21,12 @@ interface SalesReportTableProps {
     totalPages: number;
     setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
   };
+  focusedRowIndex?: number;
+  setFocusedRowIndex?: (index: number) => void;
+  setSelectedIndex?: (index: number) => void;
 }
 
-const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, customers, loading, error, pagination, filters = {}, onAddPayment }) => {
+const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, customers, loading, error, pagination, filters = {}, onAddPayment, focusedRowIndex, setFocusedRowIndex, setSelectedIndex }) => {
   const navigate = useNavigate();
   const [isSharing, setIsSharing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -129,12 +132,22 @@ const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, custom
             </tr>
           </thead>
           <tbody>
-            {salesOrders.map((so) => {
+            {salesOrders.map((so, index) => {
               const customerName = customers.find(c => c.id === so.customer_id)?.name || 'N/A';
               const isExpanded = expandedRows.includes(so.id);
+              const isFocused = focusedRowIndex === index;
               return (
                 <React.Fragment key={so.id}>
-                  <tr onClick={() => handleViewDetails(so.id)} style={{ cursor: 'pointer' }}>
+                  <tr
+                    onClick={() => {
+                      handleViewDetails(so.id);
+                      if (setFocusedRowIndex) setFocusedRowIndex(index);
+                      if (setSelectedIndex) setSelectedIndex(index);
+                    }}
+                    data-row-index={index}
+                    className={isFocused ? 'table-primary' : ''}
+                    style={{ cursor: 'pointer' }}
+                  >
                     <td>
                       <Button
                         variant="link"
