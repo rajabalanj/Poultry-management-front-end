@@ -21,7 +21,10 @@ export const SaveControls: React.FC<SaveControlsProps> = ({
       className={`btn btn-primary ${className || ''}`}
       disabled={loading}
       onClick={onSave}
-      style={style}
+      style={{
+    minWidth: '140px',
+    ...style
+  }}
     >
       {loading ? (
         <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true" />

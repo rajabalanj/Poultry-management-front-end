@@ -397,17 +397,17 @@ const EggRoomStock: React.FC = () => {
             ))}
           </div>
 
-          <div className="col-12 col-md-4 d-flex gap-2 mb-2 mt-3">
+          <div className="col-12 d-flex flex-wrap gap-2 mb-2 mt-3">
             <SaveControls
               editing={editing}
               loading={loading}
               onSave={handleSave}
-              className=""
+              className="flex-grow-1 flex-md-grow-0"
               style={{ minWidth: '140px' }}
             />
             <button
               type="button"
-              className="btn btn-info"
+              className="btn btn-info flex-grow-1 flex-md-grow-0"
               onClick={handleShareStockForm}
               disabled={isSharing}
               style={{ minWidth: '140px' }}
@@ -451,9 +451,9 @@ const EggRoomStock: React.FC = () => {
             />
           </div>
           </div>
-            <div className="col-12 col-md-4 d-flex gap-2 mb-2 mt-3">
+            <div className="col-12 d-flex flex-wrap gap-2 mb-2 mt-3">
               <button
-                className="btn btn-primary"
+                className="btn btn-primary flex-grow-1 flex-md-grow-0"
                 onClick={() => fetchReports()}
                 disabled={
                   !startDate || !endDate || reportLoading || !!dateRangeError
@@ -463,7 +463,7 @@ const EggRoomStock: React.FC = () => {
                 {reportLoading ? "Loading..." : "Get Report"}
               </button>
               <button
-                className="btn btn-info"
+                className="btn btn-info flex-grow-1 flex-md-grow-0"
                 onClick={handleShare}
                 disabled={reports.length === 0 || reportLoading || isSharing}
                 style={{ minWidth: '140px' }}
@@ -471,7 +471,7 @@ const EggRoomStock: React.FC = () => {
                 {isSharing ? "Generating..." : "Share as Image"}
               </button>
               <button
-                className="btn btn-success"
+                className="btn btn-success flex-grow-1 flex-md-grow-0"
                 onClick={handleExport}
                 disabled={reports.length === 0 || reportLoading || isSharing}
                 style={{ minWidth: '140px' }}
@@ -525,7 +525,7 @@ const EggRoomStock: React.FC = () => {
                   </button>
                   <button
                     type="button"
-                    className="btn btn-primary"
+                    className="btn btn-primary flex-grow-1 flex-md-grow-0"
                     onClick={handleConfirmDateChange}
                   >
                     Use Suggested Date
