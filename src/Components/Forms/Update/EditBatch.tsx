@@ -22,6 +22,7 @@ const EditBatch: React.FC = () => {
   const { batchId, batch_date } = useParams<{ batchId: string; batch_date: string }>();
   useEscapeKey(() => navigate(-1));
   const [batch, setBatch] = useState<DailyBatch | null>(null);
+  const [initialBatch, setInitialBatch] = useState<DailyBatch | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [batch_type, setBatchType] = useState<string>(); // Default to 'layer'
@@ -45,6 +46,7 @@ const EditBatch: React.FC = () => {
         const found = batches.find(b => b.batch_id === Number(batchId));
         if (found) {
           setBatch(found);
+          setInitialBatch(found);
           setBatchType(found.batch_type);
         } else {
           setBatch(null);
@@ -61,19 +63,6 @@ const EditBatch: React.FC = () => {
     fetchData();
   }, [batchId, batch_date]);
 
-  const fetchUsageHistory = async () => {
-    if (!batchId || !batch_date) return;
-    try {
-      const history = await compositionApi.getFilteredCompositionUsageHistory(
-        batch_date,
-        Number(batchId)
-      );
-      setUsageHistory(history);
-    } catch (error) {
-      toast.error("Failed to fetch feed usage history.");
-    }
-  };
-
   useEffect(() => {
     compositionApi.getCompositions().then((comps) => {
       setCompositions(comps);
@@ -89,20 +78,57 @@ const EditBatch: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!batch || !batchId || !batch_date) return;
+    if (!batch || !initialBatch || !batchId || !batch_date) return;
+
+    const hasBatchChanges = 
+      batch.mortality !== initialBatch.mortality ||
+      batch.culls !== initialBatch.culls ||
+      batch.birds_added !== initialBatch.birds_added ||
+      batch.table_eggs !== initialBatch.table_eggs ||
+      batch.jumbo !== initialBatch.jumbo ||
+      batch.cr !== initialBatch.cr ||
+      (batch.notes || "") !== (initialBatch.notes || "");
+
+    const hasFeedUsage = !!selectedCompositionId;
+
+    if (!hasBatchChanges && !hasFeedUsage) {
+      toast.info("No changes to update.");
+      return;
+    }
+
     try {
-      const payload: Partial<DailyBatch> = {
-        mortality: batch.mortality,
-        culls: batch.culls,
-        table_eggs: batch.table_eggs,
-        jumbo: batch.jumbo,
-        cr: batch.cr,
-        notes: batch.notes || "",
-        standard_hen_day_percentage: batch.standard_hen_day_percentage ?? 0,
-        birds_added: batch.birds_added,
-      };
-      await dailyBatchApi.updateDailyBatch(Number(batchId), batch_date, payload);
-      toast.success("Batch updated successfully");
+      const promises: Promise<any>[] = [];
+
+      if (hasBatchChanges) {
+        const payload: Partial<DailyBatch> = {
+          mortality: batch.mortality,
+          culls: batch.culls,
+          table_eggs: batch.table_eggs,
+          jumbo: batch.jumbo,
+          cr: batch.cr,
+          notes: batch.notes || "",
+          standard_hen_day_percentage: batch.standard_hen_day_percentage ?? 0,
+          birds_added: batch.birds_added,
+        };
+        promises.push(dailyBatchApi.updateDailyBatch(Number(batchId), batch_date, payload));
+      }
+
+      if (hasFeedUsage) {
+        const selectedComposition = compositions.find(c => c.id === selectedCompositionId);
+        if (selectedComposition) {
+          const usedAtDate = batch.batch_date.split('T')[0];
+          const usedAt = `${usedAtDate}T00:00:00`;
+          promises.push(compositionApi.useComposition({
+            compositionId: selectedComposition.id,
+            times: timesToUse,
+            usedAt,
+            batch_no: batch.batch_no,
+          }));
+        }
+      }
+
+      await Promise.all(promises);
+      toast.success("Updated successfully");
       navigate(-1);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to update batch";
@@ -111,37 +137,6 @@ const EditBatch: React.FC = () => {
       toast.error(message);
     }
   };
-
-  const handleUseComposition = async () => {
-    if (!selectedCompositionId || !batch) {
-      toast.error("Please select a composition and ensure batch data is loaded.");
-      return;
-    }
-
-    const selectedComposition = compositions.find(c => c.id === selectedCompositionId);
-    if (!selectedComposition) {
-      toast.error("Selected composition not found.");
-      return;
-    }
-
-  // Use the batch's date so the composition usage is recorded for the batch day,
-  // not necessarily today's date.
-  const usedAtDate = batch.batch_date.split('T')[0];
-  const usedAt = `${usedAtDate}T00:00:00`;
-    try {
-      await compositionApi.useComposition({
-        compositionId: selectedComposition.id,
-        times: timesToUse,
-        usedAt,
-        batch_no: batch.batch_no, // Pass batch.batch_no as batch_no
-      });
-      toast.success(`Used composition ${selectedComposition.name} ${timesToUse} time(s) for Batch ${batch?.batch_no}`);
-      fetchUsageHistory(); // Refresh history
-    } catch (err) {
-      toast.error("Failed to use composition");
-    }
-  };
-
 
   const handleNumberInput = (value: string, field: keyof DailyBatch) => {
     if (value === "") {
@@ -319,6 +314,111 @@ const EditBatch: React.FC = () => {
                   </div>
                 </div>
               </div>
+              
+              {/* Update Feed Section moved inside form */}
+              <div className="card shadow-sm mb-4">
+                <div className="card-header bg-primary text-white">
+                  <h5 className="mb-0">Update Feed</h5>
+                </div>
+                <div className="card-body">
+                  <div className="row">
+                    <div className="col-md-6">
+                      <div className="mb-3">
+                        <label htmlFor="compositionSelect" className="form-label">
+                          Select Composition:
+                        </label>
+                        <StyledSelect
+                          id="compositionSelect"
+                          value={
+                            selectedCompositionId
+                              ? compositions.find(
+                                  (c) => c.id === selectedCompositionId,
+                                )
+                                ? {
+                                    value: selectedCompositionId,
+                                    label:
+                                      compositions.find(
+                                        (c) => c.id === selectedCompositionId,
+                                      )?.name || "",
+                                  }
+                                : null
+                              : null
+                          }
+                          onChange={(option) =>
+                            setSelectedCompositionId(
+                              option ? Number(option.value) : null,
+                            )
+                          }
+                          options={compositions.map((c) => ({
+                            value: c.id,
+                            label: c.name,
+                          }))}
+                          placeholder="Select a Composition"
+                          isClearable
+                        />
+                      </div>
+                      <div className="d-flex align-items-center gap-2 mb-3">
+                        <span>Times:</span>
+                        <button
+                          type="button"
+                          className="btn btn-danger btn-sm"
+                          onClick={() =>
+                            setTimesToUse((prev) => Math.max(1, prev - 1))
+                          }
+                        >
+                          -
+                        </button>
+                        <span>{timesToUse}</span>
+                        <button
+                          type="button"
+                          className="btn btn-success btn-sm"
+                          onClick={() => setTimesToUse((prev) => prev + 1)}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                    <div className="col-md-6">
+                      {usageHistory.length > 0 && (
+                        <div className="mt-3 mt-md-0">
+                          <h6 className="mb-3">Feed Usage for this day</h6>
+                          <div className="table-responsive">
+                            <table className="table table-sm table-bordered">
+                              <thead>
+                                <tr>
+                                  <th>Composition</th>
+                                  <th>Times Used</th>
+                                  <th>Actions</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {usageHistory.map((item) => (
+                                  <tr key={item.id}>
+                                    <td>{item.composition_name}</td>
+                                    <td>{item.times}</td>
+                                    <td>
+                                      <button
+                                        type="button"
+                                        className="btn btn-sm btn-outline-danger"
+                                        onClick={() => {
+                                          setUsageToRevert(item.id);
+                                          setShowRevertModal(true);
+                                        }}
+                                      >
+                                        Revert
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               <div className="mt-3 d-flex justify-content-center">
                 <button type="submit" className="btn btn-primary me-2">
@@ -333,114 +433,6 @@ const EditBatch: React.FC = () => {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-
-        {/* Update Feed Section */}
-        <div className="card shadow-sm mb-4">
-          <div className="card-header bg-primary text-white">
-            <h5 className="mb-0">Update Feed</h5>
-          </div>
-          <div className="card-body">
-            <div className="row">
-              <div className="col-md-6">
-                <div className="mb-3">
-                  <label htmlFor="compositionSelect" className="form-label">
-                    Select Composition:
-                  </label>
-                  <StyledSelect
-                    id="compositionSelect"
-                    value={
-                      selectedCompositionId
-                        ? compositions.find(
-                            (c) => c.id === selectedCompositionId,
-                          )
-                          ? {
-                              value: selectedCompositionId,
-                              label:
-                                compositions.find(
-                                  (c) => c.id === selectedCompositionId,
-                                )?.name || "",
-                            }
-                          : null
-                        : null
-                    }
-                    onChange={(option) =>
-                      setSelectedCompositionId(
-                        option ? Number(option.value) : null,
-                      )
-                    }
-                    options={compositions.map((c) => ({
-                      value: c.id,
-                      label: c.name,
-                    }))}
-                    placeholder="Select a Composition"
-                    isClearable
-                  />
-                </div>
-                <div className="d-flex align-items-center gap-2 mb-3">
-                  <span>Times:</span>
-                  <button
-                    className="btn btn-danger btn-sm"
-                    onClick={() =>
-                      setTimesToUse((prev) => Math.max(1, prev - 1))
-                    }
-                  >
-                    -
-                  </button>
-                  <span>{timesToUse}</span>
-                  <button
-                    className="btn btn-success btn-sm"
-                    onClick={() => setTimesToUse((prev) => prev + 1)}
-                  >
-                    +
-                  </button>
-                </div>
-                <button
-                  className="btn btn-primary"
-                  onClick={handleUseComposition}
-                >
-                  Confirm
-                </button>
-              </div>
-              <div className="col-md-6">
-                {usageHistory.length > 0 && (
-                  <div className="mt-3 mt-md-0">
-                    <h6 className="mb-3">Feed Usage for this day</h6>
-                    <div className="table-responsive">
-                      <table className="table table-sm table-bordered">
-                        <thead>
-                          <tr>
-                            <th>Composition</th>
-                            <th>Times Used</th>
-                            <th>Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {usageHistory.map((item) => (
-                            <tr key={item.id}>
-                              <td>{item.composition_name}</td>
-                              <td>{item.times}</td>
-                              <td>
-                                <button
-                                  className="btn btn-sm btn-outline-danger"
-                                  onClick={() => {
-                                    setUsageToRevert(item.id);
-                                    setShowRevertModal(true);
-                                  }}
-                                >
-                                  Revert
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
           </div>
         </div>
       </div>

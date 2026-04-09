@@ -844,6 +844,17 @@ export const inventoryItemApi = {
     }
   },
 
+  getStockAtDate: async (id: number, targetDate: string): Promise<{ date: string; stock: string; unit: string }> => {
+    try {
+      const response = await api.get<{ date: string; stock: string; unit: string }>(`/inventory-items/${id}/stock-at-date`, {
+        params: { target_date: targetDate }
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch stock at date'));
+    }
+  },
+
   updateInventoryItem: async (id: number, itemData: InventoryItemUpdate): Promise<InventoryItemResponse> => {
     try {
       const response = await api.patch<InventoryItemResponse>(`/inventory-items/${id}`, itemData);

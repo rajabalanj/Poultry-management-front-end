@@ -10,6 +10,7 @@ import { InventoryItemResponse, InventoryItemCategory } from "../../types/Invent
 import { toast } from 'react-toastify';
 import InventoryItemCard from "./InventoryItemCard";
 import StyledSelect from "../Common/StyledSelect";
+import CustomDatePicker from "../Common/CustomDatePicker";
 
 const InventoryItemResponsive: React.FC = () => {
   const navigate = useNavigate();
@@ -25,6 +26,9 @@ const InventoryItemResponsive: React.FC = () => {
     medicineLowKgThreshold: 3000,
   });
   const [inventoryValue, setInventoryValue] = useState<number | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [stockData, setStockData] = useState<Record<number, { stock: string; unit: string }>>({});
+  const [loadingStock, setLoadingStock] = useState(false);
 
   const isMobile = useMediaQuery({ maxWidth: 768 });
 
@@ -100,6 +104,39 @@ const InventoryItemResponsive: React.FC = () => {
     setDeleteErrorMessage(null);
   };
 
+  const handleDateChange = async (date: Date | null) => {
+    setSelectedDate(date);
+    if (date) {
+      setLoadingStock(true);
+      setStockData({});
+      const dateString = date.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+      try {
+        const stockPromises = inventoryItems.map(async (item) => {
+          try {
+            const data = await inventoryItemApi.getStockAtDate(item.id, dateString);
+            return { id: item.id, stock: data.stock, unit: data.unit };
+          } catch (error) {
+            console.error(`Failed to fetch stock for item ${item.id}:`, error);
+            return { id: item.id, stock: item.current_stock?.toString() || '0', unit: item.unit };
+          }
+        });
+        const results = await Promise.all(stockPromises);
+        const stockMap = results.reduce((acc, result) => {
+          acc[result.id] = { stock: result.stock, unit: result.unit };
+          return acc;
+        }, {} as Record<number, { stock: string; unit: string }>);
+        setStockData(stockMap);
+      } catch (error) {
+        console.error("Failed to fetch stock at date:", error);
+        toast.error("Failed to fetch stock at date");
+      } finally {
+        setLoadingStock(false);
+      }
+    } else {
+      setStockData({});
+    }
+  };
+
   const groupedItems = inventoryItems.reduce((acc, item) => {
     const category = item.category;
     if (!acc[category]) {
@@ -143,7 +180,7 @@ const InventoryItemResponsive: React.FC = () => {
           />
           <div className="container mt-4">
             {/* Filter Section */}
-            <div className="mb-4">
+            <div className="mb-4 d-flex gap-3 align-items-center flex-wrap">
               <StyledSelect
                 id="categoryFilter"
                 className="w-auto"
@@ -159,7 +196,22 @@ const InventoryItemResponsive: React.FC = () => {
                 placeholder="Select Category"
                 isClearable
               />
+              <div className={`d-flex align-items-center gap-2 p-2 rounded position-relative flex-wrap ${selectedDate ? 'bg-primary bg-opacity-10 border border-primary' : 'bg-light'}`}>
+                <i className={`bi bi-calendar3 ${selectedDate ? 'text-primary' : 'text-secondary'}`}></i>
+                <label htmlFor="stockDate" className="form-label mb-0 fw-semibold text-nowrap">Stock as of:</label>
+                <CustomDatePicker
+                  id="stockDate"
+                  selected={selectedDate}
+                  onChange={handleDateChange}
+                  dateFormat="yyyy-MM-dd"
+                  placeholderText="Select date"
+                  isClearable={true}
+                  className="form-control-sm"
+                  popperPlacement="bottom"
+                />
+              </div>
             </div>
+            {loadingStock && <div className="alert alert-info"><i className="bi bi-hourglass-split me-2"></i>Fetching stock data for selected date...</div>}
 
             {Object.entries(groupedItems).map(([category, items]) => (
               <div key={category} className="mb-4">
@@ -214,7 +266,7 @@ const InventoryItemResponsive: React.FC = () => {
         />
         <div className="container mt-4">
           {/* Filter Section */}
-          <div className="mb-4">
+          <div className="mb-4 d-flex gap-3 align-items-center flex-wrap">
             <StyledSelect
               id="categoryFilter"
               className="w-auto"
@@ -230,22 +282,36 @@ const InventoryItemResponsive: React.FC = () => {
               placeholder="Select Category"
               isClearable
             />
+            <div className={`d-flex align-items-center gap-2 p-2 rounded position-relative flex-wrap ${selectedDate ? 'bg-primary bg-opacity-10 border border-primary' : 'bg-light'}`}>
+              <i className={`bi bi-calendar3 ${selectedDate ? 'text-primary' : 'text-secondary'}`}></i>
+              <label htmlFor="stockDate" className="form-label mb-0 fw-semibold text-nowrap">Stock as of:</label>
+              <CustomDatePicker
+                id="stockDate"
+                selected={selectedDate}
+                onChange={handleDateChange}
+                dateFormat="yyyy-MM-dd"
+                placeholderText="Select date"
+                isClearable={true}
+                className="form-control-sm"
+                popperPlacement={isMobile ? "bottom" : "bottom-start"}
+              />
+            </div>
           </div>
 
-          {loading && <div className="text-center">Loading inventory items...</div>}
-          {error && <div className="text-center text-danger">{error}</div>}
-          {!loading && !error && inventoryItems.length === 0 && <div className="text-center">No inventory items found</div>}
+          {loading && <div className="text-center py-4"><div className="spinner-border" role="status"><span className="visually-hidden">Loading...</span></div></div>}
+          {error && <div className="alert alert-danger text-center">{error}</div>}
+          {!loading && !error && inventoryItems.length === 0 && <div className="alert alert-info text-center">No inventory items found</div>}
+          {loadingStock && <div className="alert alert-info"><i className="bi bi-hourglass-split me-2"></i>Fetching stock data for selected date...</div>}
 
           {!loading && !error && inventoryItems.length > 0 && (
-            <Table striped bordered hover responsive>
-              <thead>
+            <Table striped bordered hover responsive className="table-hover shadow-sm">
+              <thead className="table-primary">
                 <tr>
-                  <th>Name</th>
-                  <th>Category</th>
-                  <th>Unit</th>
-                  <th>Current Stock</th>
-                  <th>Reorder Level</th>
-                  <th>Status</th>
+                  <th className="fw-bold">Name</th>
+                  <th className="fw-bold">Category</th>
+                  <th className="fw-bold">{selectedDate ? `Stock as of ${selectedDate.toISOString().split('T')[0]}` : 'Current Stock'}</th>
+                  <th className="fw-bold">Reorder Level</th>
+                  <th className="fw-bold">Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -257,8 +323,20 @@ const InventoryItemResponsive: React.FC = () => {
                   >
                     <td>{item.name}</td>
                     <td>{item.category}</td>
-                    <td>{item.unit}</td>
-                    <td>{item.current_stock}</td>
+                    <td>
+                      {(() => {
+                        const stockInfo = stockData[item.id] || { stock: item.current_stock?.toString() || '0', unit: item.unit };
+                        const displayStock = selectedDate ? stockInfo.stock : item.current_stock;
+                        return loadingStock ? (
+                          <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        ) : (
+                          <span className="d-flex align-items-center gap-2">
+                            <span className="fw-semibold">{displayStock}</span>
+                            <Badge bg="light" text="dark" className="border">{stockInfo.unit}</Badge>
+                          </span>
+                        );
+                      })()}
+                    </td>
                     <td>{item.reorder_level || 'N/A'}</td>
                     <td>{getStockStatus(item)}</td>
                   </tr>
