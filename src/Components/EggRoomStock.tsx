@@ -325,12 +325,19 @@ const EggRoomStock: React.FC = () => {
       const file = new File([blob], `egg-room-stock-form-${selectedDate}.png`, { type: 'image/png' });
 
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          title: 'Egg Room Stock Form',
-          text: `Egg Room Stock Form for ${selectedDate}.`,
-          files: [file],
-        });
-        toast.success("Stock Form details shared successfully!");
+        // Ensure share is called directly from user gesture
+        try {
+          await navigator.share({
+            title: 'Egg Room Stock Form',
+            text: `Egg Room Stock Form for ${selectedDate}.`,
+            files: [file],
+          });
+          toast.success("Stock Form details shared successfully!");
+        } catch (shareError: any) {
+          if (shareError.name !== 'AbortError') {
+            throw shareError;
+          }
+        }
       } else {
         toast.error("Sharing files is not supported on this device.");
       }

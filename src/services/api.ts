@@ -1188,12 +1188,17 @@ export const salesOrderApi = {
   },
   downloadSalesOrderReceipt: async (soId: number): Promise<void> => {
     try {
-      const { data } = await api.get(`/sales-orders/${soId}/receipt`);
-      if (data.download_url) {
-        window.open(data.download_url, '_blank');
-      } else {
-        throw new Error('Download URL not found in response');
-      }
+      const { data } = await api.get(`/sales-orders/${soId}/receipt`, {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `sales_order_receipt_${soId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to download sales order receipt'));
     }

@@ -70,8 +70,15 @@ const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, custom
       const file = new File([blob], `sales-report.pdf`, { type: 'application/pdf' });
 
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ title: 'Sales Report', text: 'Detailed Sales Report', files: [file] });
-        toast.success('Report shared successfully!');
+        // Ensure share is called directly from user gesture
+        try {
+          await navigator.share({ title: 'Sales Report', text: 'Detailed Sales Report', files: [file] });
+          toast.success('Report shared successfully!');
+        } catch (shareError: any) {
+          if (shareError.name !== 'AbortError') {
+            throw shareError;
+          }
+        }
       } else {
         toast.error('Sharing files is not supported on this device.');
       }
