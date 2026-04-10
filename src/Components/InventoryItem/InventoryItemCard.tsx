@@ -10,12 +10,19 @@ interface InventoryItemCardProps {
     lowKgThreshold: number;
     medicineLowKgThreshold: number;
   };
+  stockData?: Record<number, { stock: string; unit: string }>;
+  selectedDate?: Date | null;
 }
 
 const InventoryItemCard: React.FC<InventoryItemCardProps> = React.memo(
-  ({ item, onView, thresholds }) => {
+  ({ item, onView, thresholds, stockData, selectedDate }) => {
+    // Get the stock to display - either from stockData (if a date is selected) or from item.current_stock
+    const stockInfo = stockData && selectedDate ? stockData[item.id] : null;
+    const displayStock = stockInfo ? stockInfo.stock : item.current_stock;
+    const displayUnit = stockInfo ? stockInfo.unit : item.unit;
+    
     const getCardBackground = () => {
-      const currentStock = parseFloat(String(item.current_stock));
+      const currentStock = parseFloat(String(displayStock));
       const reorderLevel = item.reorder_level ? parseFloat(String(item.reorder_level)) : 0;
 
       if (reorderLevel > 0) {
@@ -46,9 +53,9 @@ const InventoryItemCard: React.FC<InventoryItemCardProps> = React.memo(
             <div>
               <h6 className="mb-1">Name: {item.name}</h6>
               <div className="text-sm">
-                <p className="mb-0">Unit: {item.unit}</p>
+                <p className="mb-0">Unit: {displayUnit}</p>
                 
-                <p className="mb-0">Quantity: {item.current_stock}</p>
+                <p className="mb-0">Quantity: {displayStock}</p>
               </div>
             </div>
 

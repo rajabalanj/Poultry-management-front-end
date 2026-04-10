@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { inventoryItemApi, configApi } from "../../services/api";
 import { InventoryItemResponse, InventoryItemCategory } from "../../types/InventoryItem";
 import { toast } from 'react-toastify';
+import { exportTableToExcel } from "../../utility/export-utils";
 import InventoryItemCard from "./InventoryItemCard";
 import StyledSelect from "../Common/StyledSelect";
 import CustomDatePicker from "../Common/CustomDatePicker";
@@ -104,12 +105,21 @@ const InventoryItemResponsive: React.FC = () => {
     setDeleteErrorMessage(null);
   };
 
+  const handleExport = () => {
+    const fileName = `inventory-report-${new Date().toISOString().split('T')[0]}`;
+    exportTableToExcel('inventory-items-table', fileName, 'Inventory Items Report');
+  };
+
   const handleDateChange = async (date: Date | null) => {
     setSelectedDate(date);
     if (date) {
       setLoadingStock(true);
       setStockData({});
-      const dateString = date.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+      // Format as YYYY-MM-DD using local timezone to avoid date shift
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const dateString = `${year}-${month}-${day}`;
       try {
         const stockPromises = inventoryItems.map(async (item) => {
           try {
@@ -136,6 +146,54 @@ const InventoryItemResponsive: React.FC = () => {
       setStockData({});
     }
   };
+
+  const renderInventoryTable = (id?: string) => (
+    <Table id={id} striped bordered hover responsive className="table-hover shadow-sm">
+      <thead className="table-primary">
+        <tr>
+          <th className="fw-bold">Name</th>
+          <th className="fw-bold">Category</th>
+          <th className="fw-bold">{selectedDate ? (() => {
+            // Format as YYYY-MM-DD using local timezone to avoid date shift
+            const year = selectedDate.getFullYear();
+            const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+            const day = String(selectedDate.getDate()).padStart(2, '0');
+            return `Stock as of ${year}-${month}-${day}`;
+          })() : 'Current Stock'}</th>
+          <th className="fw-bold">Reorder Level</th>
+          <th className="fw-bold">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {inventoryItems.map((item) => (
+          <tr 
+            key={item.id} 
+            onClick={() => navigate(`/inventory-items/${item.id}/details`)}
+            style={{ cursor: 'pointer' }}
+          >
+            <td>{item.name}</td>
+            <td>{item.category}</td>
+            <td>
+              {(() => {
+                const stockInfo = stockData[item.id] || { stock: item.current_stock?.toString() || '0', unit: item.unit };
+                const displayStock = selectedDate ? stockInfo.stock : item.current_stock;
+                return loadingStock ? (
+                  <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                ) : (
+                  <span className="d-flex align-items-center gap-2">
+                    <span className="fw-semibold">{displayStock}</span>
+                    <Badge bg="light" text="dark" className="border">{stockInfo.unit}</Badge>
+                  </span>
+                );
+              })()}
+            </td>
+            <td>{item.reorder_level || 'N/A'}</td>
+            <td>{getStockStatus(item)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </Table>
+  );
 
   const groupedItems = inventoryItems.reduce((acc, item) => {
     const category = item.category;
@@ -210,6 +268,15 @@ const InventoryItemResponsive: React.FC = () => {
                   popperPlacement="bottom"
                 />
               </div>
+              <Button
+                variant="success"
+                onClick={handleExport}
+                disabled={loading || inventoryItems.length === 0}
+                className="ms-auto"
+              >
+                <i className="bi bi-file-earmark-excel me-2"></i>
+                Export
+              </Button>
             </div>
             {loadingStock && <div className="alert alert-info"><i className="bi bi-hourglass-split me-2"></i>Fetching stock data for selected date...</div>}
 
@@ -224,10 +291,19 @@ const InventoryItemResponsive: React.FC = () => {
                     onEdit={(id) => navigate(`/inventory-items/${id}/edit`)}
                     onDelete={handleDelete}
                     thresholds={thresholds}
+                    stockData={stockData}
+                    selectedDate={selectedDate}
                   />
                 ))}
               </div>
             ))}
+
+            {/* Hidden table for export functionality on mobile */}
+            {!loading && !error && inventoryItems.length > 0 && (
+              <div className="d-none">
+                {renderInventoryTable("inventory-items-table")}
+              </div>
+            )}
 
             <Modal show={showDeleteModal} onHide={cancelDelete}>
               <Modal.Header closeButton>
@@ -296,6 +372,14 @@ const InventoryItemResponsive: React.FC = () => {
                 popperPlacement={isMobile ? "bottom" : "bottom-start"}
               />
             </div>
+            <Button
+              variant="success"
+              onClick={handleExport}
+              disabled={loading || inventoryItems.length === 0}
+              className="ms-md-auto"
+            >
+              <i className="bi bi-file-earmark-excel me-2"></i>Export to Excel
+            </Button>
           </div>
 
           {loading && <div className="text-center py-4"><div className="spinner-border" role="status"><span className="visually-hidden">Loading...</span></div></div>}
@@ -303,47 +387,7 @@ const InventoryItemResponsive: React.FC = () => {
           {!loading && !error && inventoryItems.length === 0 && <div className="alert alert-info text-center">No inventory items found</div>}
           {loadingStock && <div className="alert alert-info"><i className="bi bi-hourglass-split me-2"></i>Fetching stock data for selected date...</div>}
 
-          {!loading && !error && inventoryItems.length > 0 && (
-            <Table striped bordered hover responsive className="table-hover shadow-sm">
-              <thead className="table-primary">
-                <tr>
-                  <th className="fw-bold">Name</th>
-                  <th className="fw-bold">Category</th>
-                  <th className="fw-bold">{selectedDate ? `Stock as of ${selectedDate.toISOString().split('T')[0]}` : 'Current Stock'}</th>
-                  <th className="fw-bold">Reorder Level</th>
-                  <th className="fw-bold">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {inventoryItems.map((item) => (
-                  <tr 
-                    key={item.id} 
-                    onClick={() => navigate(`/inventory-items/${item.id}/details`)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <td>{item.name}</td>
-                    <td>{item.category}</td>
-                    <td>
-                      {(() => {
-                        const stockInfo = stockData[item.id] || { stock: item.current_stock?.toString() || '0', unit: item.unit };
-                        const displayStock = selectedDate ? stockInfo.stock : item.current_stock;
-                        return loadingStock ? (
-                          <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                        ) : (
-                          <span className="d-flex align-items-center gap-2">
-                            <span className="fw-semibold">{displayStock}</span>
-                            <Badge bg="light" text="dark" className="border">{stockInfo.unit}</Badge>
-                          </span>
-                        );
-                      })()}
-                    </td>
-                    <td>{item.reorder_level || 'N/A'}</td>
-                    <td>{getStockStatus(item)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          )}
+          {!loading && !error && inventoryItems.length > 0 && renderInventoryTable("inventory-items-table")}
 
           <Modal show={showDeleteModal} onHide={cancelDelete}>
             <Modal.Header closeButton>
