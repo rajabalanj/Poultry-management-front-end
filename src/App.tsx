@@ -16,6 +16,7 @@ const DashboardIndex = lazy(() => import('./Components/Dashboard'));
 const FeedMillStock = lazy(() => import('./Components/FeedMillStock'));
 const PreviousDayReport = lazy(() => import('./Components/PreviousDayReport'));
 const CompositionUsageHistory = lazy(() => import('./Components/CompositionUsageHistory'));
+const InventoryUsageHistory = lazy(() => import('./Components/InventoryUsageHistory'));
 const UploadBatch = lazy(() => import('./Components/UploadBatch'));
 const EditBatchSimple = lazy(() => import('./Components/Forms/Update/EditBatchSimple'));
 const Configurations = lazy(() => import('./Components/Configurations'));
@@ -129,6 +130,14 @@ const App: React.FC = () => {
                 <Route
                   path="/compositions/:compositionId/usage-history"
                   element={<CompositionUsageHistory />}
+                />
+                <Route
+                  path="/inventory/usage-history"
+                  element={<InventoryUsageHistory />}
+                />
+                <Route
+                  path="/inventory-items/:item_id/usage-history"
+                  element={<InventoryUsageHistory />}
                 />
                 <Route path="/egg-room-stock" element={<EggRoomStock />} />
                 <Route path="/inventory-items" element={<InventoryItemResponsive />} />

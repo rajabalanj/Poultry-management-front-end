@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import PageHeader from '../Layout/PageHeader';
-import { dailyBatchApi, compositionApi, reportsApi } from '../../services/api';
+import { dailyBatchApi, compositionApi, inventoryItemApi, reportsApi } from '../../services/api';
 import { DailyBatch } from '../../types/daily_batch';
+import { InventoryUsageSummary } from '../../types/InventoryUsageSummary';
 import CustomDatePicker from '../Common/CustomDatePicker';
 import Loading from '../Common/Loading';
 import * as Icons from 'lucide-react';
@@ -23,6 +24,8 @@ const Dashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [feedUsage, setFeedUsage] = useState<{ total_feed: number } | null>(null);
   const [feedLoading, setFeedLoading] = useState(false);
+  const [inventoryUsage, setInventoryUsage] = useState<InventoryUsageSummary | null>(null);
+  const [inventoryLoading, setInventoryLoading] = useState(false);
 
   // State for Graphs
   const [startDate, setStartDate] = useState<string>(() => {
@@ -71,20 +74,34 @@ const Dashboard: React.FC = () => {
       }
     };
 
-    const fetchFeedUsage = async () => {
+    const fetchUsageData = async () => {
       setFeedLoading(true);
+      setInventoryLoading(true);
       try {
-        const usage = await compositionApi.getFeedUsageByDate(batchDate);
-        setFeedUsage(usage);
+        const [feed, inventory] = await Promise.all([
+          compositionApi.getFeedUsageByDate(batchDate).catch(err => {
+            console.warn('Feed usage not found/available:', err);
+            return null;
+          }),
+          inventoryItemApi.getInventoryUsageByDate(batchDate).catch(err => {
+            console.warn('Inventory usage not found/available:', err);
+            return null;
+          }),
+        ]);
+
+        setFeedUsage(feed);
+        setInventoryUsage(inventory);
       } catch (err: any) {
         setFeedUsage(null);
+        setInventoryUsage(null);
       } finally {
         setFeedLoading(false);
+        setInventoryLoading(false);
       }
     };
 
     fetchBatches();
-    fetchFeedUsage();
+    fetchUsageData();
   }, [batchDate]);
 
   useEffect(() => {
@@ -215,7 +232,7 @@ const Dashboard: React.FC = () => {
   const dashboardStats = [
     { title: "Total Birds", value: totalBirds, unit: '', icon: 'Bird' },
     { title: "Total Eggs", value: totalEggs, unit: '', icon: 'Egg' },
-    { title: "Total Feed", value: feedUsage ? feedUsage.total_feed : 0, unit: ' kg', icon: 'Package' },
+    { title: "Material Usage", value: (feedUsage?.total_feed || 0) + (inventoryUsage?.total_used || 0), unit: ' kg', icon: 'Package' },
     { title: "Hen Day %", value: avgHD, unit: '%', icon: 'Percent' }
   ];
 
@@ -240,9 +257,9 @@ const Dashboard: React.FC = () => {
 
       <div className="container-fluid mt-4">
         <div className="row g-4">
-          {(loading || feedLoading) && <div className="col-12"><Loading message="Loading dashboard data..." /></div>}
+          {(loading || feedLoading || inventoryLoading) && <div className="col-12"><Loading message="Loading dashboard data..." /></div>}
           {error && <div className="col-12"><div className="alert alert-danger">{error}</div></div>}
-          {!(loading || feedLoading) && !error && dashboardStats.map((stat, index) => {
+          {!(loading || feedLoading || inventoryLoading) && !error && dashboardStats.map((stat, index) => {
             const IconComponent = (Icons as any)[stat.icon] || Icons.HelpCircle;
             return (
               <div className="col-12 col-md-6 col-lg-3" key={index}>

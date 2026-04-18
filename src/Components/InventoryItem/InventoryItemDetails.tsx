@@ -10,6 +10,7 @@ import { InventoryItemVariant } from "../../types/inventoryItemVariant";
 import Loading from '../Common/Loading';
 import CustomDatePicker from '../Common/CustomDatePicker';
 import AdjustInventoryModal from './AdjustInventoryModal'; // Import the modal
+import UseInventoryItemModal from './UseInventoryItemModal';
 
 const InventoryItemDetails: React.FC = () => {
   const { item_id } = useParams<{ item_id: string }>();
@@ -25,6 +26,7 @@ const InventoryItemDetails: React.FC = () => {
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false); // State for modal
+  const [isUseModalOpen, setIsUseModalOpen] = useState(false);
   const [variants, setVariants] = useState<InventoryItemVariant[]>([]);
 
   useEffect(() => {
@@ -83,6 +85,11 @@ const handleAdjustmentSuccess = (updatedItem: InventoryItemResponse) => {
   setItem(updatedItem);
   toast.success('Inventory adjusted successfully!');
   fetchAuditLog(); // Refresh audit log after adjustment
+};
+
+const handleUseSuccess = () => {
+  // Refresh page to see updated stock levels
+  window.location.reload();
 };
 
   const totalPages = Math.ceil(auditLog.length / rowsPerPage);
@@ -152,6 +159,14 @@ const handleAdjustmentSuccess = (updatedItem: InventoryItemResponse) => {
         )}
 
         <div className="mt-4 d-flex justify-content-center gap-3">
+        <button
+            type="button"
+            className="btn btn-warning"
+            onClick={() => setIsUseModalOpen(true)}
+          >
+            <i className="bi bi-box-arrow-right me-1"></i>
+            Use Item
+          </button>
         <button
             type="button"
             className="btn btn-warning"
@@ -315,6 +330,14 @@ const handleAdjustmentSuccess = (updatedItem: InventoryItemResponse) => {
           item={item}
           onClose={() => setIsAdjustModalOpen(false)}
           onSuccess={handleAdjustmentSuccess}
+        />
+      )}
+      {isUseModalOpen && item && (
+        <UseInventoryItemModal
+          item={item}
+          show={isUseModalOpen}
+          onClose={() => setIsUseModalOpen(false)}
+          onSuccess={handleUseSuccess}
         />
       )}
     </>

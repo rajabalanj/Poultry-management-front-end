@@ -12,6 +12,7 @@ import { exportTableToExcel } from "../../utility/export-utils";
 import InventoryItemCard from "./InventoryItemCard";
 import StyledSelect from "../Common/StyledSelect";
 import CustomDatePicker from "../Common/CustomDatePicker";
+import UseInventoryItemModal from "./UseInventoryItemModal";
 
 const InventoryItemResponsive: React.FC = () => {
   const navigate = useNavigate();
@@ -30,6 +31,8 @@ const InventoryItemResponsive: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [stockData, setStockData] = useState<Record<number, { stock: string; unit: string }>>({});
   const [loadingStock, setLoadingStock] = useState(false);
+  const [showUseModal, setShowUseModal] = useState(false);
+  const [itemToUse, setItemToUse] = useState<InventoryItemResponse | null>(null);
 
   const isMobile = useMediaQuery({ maxWidth: 768 });
 
@@ -162,6 +165,7 @@ const InventoryItemResponsive: React.FC = () => {
           })() : 'Current Stock'}</th>
           <th className="fw-bold">Reorder Level</th>
           <th className="fw-bold">Status</th>
+          <th className="fw-bold">Action</th>
         </tr>
       </thead>
       <tbody>
@@ -189,6 +193,21 @@ const InventoryItemResponsive: React.FC = () => {
             </td>
             <td>{item.reorder_level || 'N/A'}</td>
             <td>{getStockStatus(item)}</td>
+            <td>
+              {item.category.toString() !== 'Supplies' && (
+                <Button 
+                  variant="outline-primary" 
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setItemToUse(item);
+                    setShowUseModal(true);
+                  }}
+                >
+                  Use
+                </Button>
+              )}
+            </td>
           </tr>
         ))}
       </tbody>
@@ -222,6 +241,11 @@ const InventoryItemResponsive: React.FC = () => {
       }
     }
     return <Badge bg="success">In Stock</Badge>;
+  };
+
+  const handleUseSuccess = () => {
+    // Refresh page or trigger list fetch to reflect stock change
+    window.location.reload();
   };
 
   const renderContent = () => {
@@ -325,6 +349,15 @@ const InventoryItemResponsive: React.FC = () => {
                 </Button>
               </Modal.Footer>
             </Modal>
+
+            {itemToUse && (
+              <UseInventoryItemModal
+                item={itemToUse}
+                show={showUseModal}
+                onClose={() => setShowUseModal(false)}
+                onSuccess={handleUseSuccess}
+              />
+            )}
           </div>
         </>
       );
@@ -424,6 +457,15 @@ const InventoryItemResponsive: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {itemToUse && (
+            <UseInventoryItemModal
+              item={itemToUse}
+              show={showUseModal}
+              onClose={() => setShowUseModal(false)}
+              onSuccess={handleUseSuccess}
+            />
+          )}
         </div>
       </>
     );

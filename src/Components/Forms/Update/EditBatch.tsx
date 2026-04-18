@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { dailyBatchApi, compositionApi } from "../../../services/api";
+import { dailyBatchApi, compositionApi, inventoryItemApi } from "../../../services/api";
 import { DailyBatch } from "../../../types/daily_batch";
 import { toast } from "react-toastify";
 import PageHeader from "../../Layout/PageHeader";
@@ -10,6 +10,7 @@ import Loading from '../../Common/Loading';
 import { useEscapeKey } from '../../../hooks/useEscapeKey';
 import CustomDatePicker from "../../Common/CustomDatePicker";
 import StyledSelect from "../../Common/StyledSelect";
+import { InventoryItemUsageResponse } from "../../../types/InventoryItemUsage";
 
 interface UsageHistoryItem {
   id: number;
@@ -30,17 +31,22 @@ const EditBatch: React.FC = () => {
   const [selectedCompositionId, setSelectedCompositionId] = useState<number | null>(null);
   const [timesToUse, setTimesToUse] = useState(1);
   const [usageHistory, setUsageHistory] = useState<UsageHistoryItem[]>([]);
+  const [itemUsageHistory, setItemUsageHistory] = useState<InventoryItemUsageResponse[]>([]);
   const [showRevertModal, setShowRevertModal] = useState(false);
   const [usageToRevert, setUsageToRevert] = useState<number | null>(null);
+  const [revertType, setRevertType] = useState<'composition' | 'item' | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       if (!batchId || !batch_date) return;
       setLoading(true);
       try {
-        const [batches, history] = await Promise.all([
+        const [batches, history, itemHistory] = await Promise.all([
           dailyBatchApi.getDailyBatches(batch_date),
           compositionApi.getFilteredCompositionUsageHistory(batch_date, Number(batchId))
+            .catch(err => { console.warn("Composition history failed:", err); return []; }),
+          inventoryItemApi.getFilteredInventoryUsageHistory(batch_date, Number(batchId))
+            .catch(err => { console.warn("Inventory history failed:", err); return []; })
         ]);
 
         const found = batches.find(b => b.batch_id === Number(batchId));
@@ -52,6 +58,7 @@ const EditBatch: React.FC = () => {
           setBatch(null);
         }
         setUsageHistory(history);
+        setItemUsageHistory(itemHistory);
       } catch (err) {
         console.error("Error fetching batch data:", err);
         setError("Failed to load batch data");
@@ -415,6 +422,43 @@ const EditBatch: React.FC = () => {
                           </div>
                         </div>
                       )}
+                      {itemUsageHistory.length > 0 && (
+                        <div className="mt-4">
+                          <h6 className="mb-3">Individual Item Usage for this day</h6>
+                          <div className="table-responsive">
+                            <table className="table table-sm table-bordered">
+                              <thead>
+                                <tr>
+                                  <th>Item</th>
+                                  <th>Quantity</th>
+                                  <th>Actions</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {itemUsageHistory.map((item) => (
+                                  <tr key={item.id}>
+                                    <td>{item.inventory_item_name || `Item ID: ${item.inventory_item_id}`}</td>
+                                    <td>{item.used_quantity} {item.unit}</td>
+                                    <td>
+                                      <button
+                                        type="button"
+                                        className="btn btn-sm btn-outline-danger"
+                                        onClick={() => {
+                                          setUsageToRevert(item.id);
+                                          setRevertType('item');
+                                          setShowRevertModal(true);
+                                        }}
+                                      >
+                                        Revert
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -441,7 +485,7 @@ const EditBatch: React.FC = () => {
           <Modal.Title>Confirm Revert</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          Are you sure you want to revert this composition usage? This action
+          Are you sure you want to revert this {revertType} usage? This action
           will restore the used feed quantities.
         </Modal.Body>
         <Modal.Footer>
@@ -451,18 +495,26 @@ const EditBatch: React.FC = () => {
           <Button
             variant="danger"
             onClick={async () => {
-              if (!usageToRevert) return;
+              if (!usageToRevert || !revertType) return;
               try {
-                await compositionApi.revertCompositionUsage(usageToRevert);
-                setUsageHistory((prev) =>
-                  prev.filter((h) => h.id !== usageToRevert),
-                );
+                if (revertType === 'composition') {
+                  await compositionApi.revertCompositionUsage(usageToRevert);
+                  setUsageHistory((prev) =>
+                    prev.filter((h) => h.id !== usageToRevert),
+                  );
+                } else {
+                  await inventoryItemApi.revertInventoryItemUsage(usageToRevert);
+                  setItemUsageHistory((prev) =>
+                    prev.filter((h) => h.id !== usageToRevert),
+                  );
+                }
                 toast.success("Reverted successfully");
               } catch (err: any) {
                 toast.error(err.message || "Failed to revert");
               } finally {
                 setShowRevertModal(false);
                 setUsageToRevert(null);
+                setRevertType(null);
               }
             }}
           >

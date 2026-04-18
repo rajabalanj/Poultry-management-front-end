@@ -35,6 +35,7 @@ const SalesOrderDetails: React.FC = () => {
   const [inventoryItems, setInventoryItems] = useState<InventoryItemResponse[]>([]); // Add inventoryItems state
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSharing, setIsSharing] = useState(false);
   
   // State for payment modals
   const [showEditPaymentModal, setShowEditPaymentModal] = useState(false);
@@ -166,6 +167,103 @@ const SalesOrderDetails: React.FC = () => {
     }
   };
 
+  const handleShareAsPDF = async () => {
+    if (!navigator.share) {
+      toast.error("Web Share API is not supported in your browser.");
+      return;
+    }
+    const id = salesOrder?.id || Number(so_id);
+    if (!id) {
+      toast.error('Sales Order ID is not available to share receipt.');
+      return;
+    }
+
+    setIsSharing(true);
+    try {
+      const blob = await salesOrderApi.downloadSalesOrderReceipt(id);
+      const file = new File([blob as any], `SalesOrder_${salesOrder?.so_number || id}.pdf`, { type: 'application/pdf' });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ 
+          title: `Sales Order ${salesOrder?.so_number}`, 
+          text: `Detailed Receipt for Sales Order ${salesOrder?.so_number}`, 
+          files: [file] 
+        });
+        toast.success('Receipt shared successfully!');
+      } else {
+        toast.error('Sharing files is not supported on this device.');
+      }
+    } catch (error: any) {
+      console.error('Sharing failed', error);
+      toast.error(`Failed to share receipt: ${error.message || 'Unknown error'}`);
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
+  const handleSharePaymentReceipt = async (paymentId: number, amountStr: string) => {
+    if (!navigator.share) {
+      toast.error("Web Share API is not supported in your browser.");
+      return;
+    }
+
+    setIsSharing(true);
+    try {
+      // Fetch the actual PDF content as a blob
+      const blob = await salesOrderApi.getSalesPaymentReceiptBlob(paymentId);
+      const fileName = `PaymentReceipt_${salesOrder?.so_number || paymentId}.pdf`;
+      const file = new File([blob], fileName, { type: 'application/pdf' });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title: `Payment Receipt - ${salesOrder?.so_number}`,
+          text: `Receipt for payment of ${amountStr}`,
+          files: [file]
+        });
+        toast.success('Receipt shared successfully!');
+      } else {
+        const downloadUrl = await salesOrderApi.getSalesPaymentReceiptDownloadUrl(paymentId);
+        if (navigator.canShare && navigator.canShare({ url: downloadUrl })) {
+          await navigator.share({
+            title: `Payment Receipt - ${salesOrder?.so_number}`,
+            text: `Receipt for payment of ${amountStr}`,
+            url: downloadUrl,
+          });
+          toast.success('Payment receipt link shared successfully!');
+        } else {
+          window.open(downloadUrl, '_blank');
+          toast.info('File sharing not supported; receipt opened in new tab.');
+        }
+      }
+    } catch (error: any) {
+      console.error('Sharing failed', error);
+      if (error.message?.includes('Failed to fetch sales payment receipt blob') || error.message?.includes('Failed to fetch receipt')) {
+        try {
+          const downloadUrl = await salesOrderApi.getSalesPaymentReceiptDownloadUrl(paymentId);
+          if (navigator.canShare && navigator.canShare({ url: downloadUrl })) {
+            await navigator.share({
+              title: `Payment Receipt - ${salesOrder?.so_number}`,
+              text: `Receipt for payment of ${amountStr}`,
+              url: downloadUrl,
+            });
+            toast.success('Payment receipt link shared successfully!');
+            return;
+          }
+
+          window.open(downloadUrl, '_blank');
+          toast.info('Receipt could not be fetched directly; opened download link in a new tab.');
+          return;
+        } catch (downloadError: any) {
+          console.error('Fallback download failed', downloadError);
+        }
+      }
+      toast.error(`Failed to share receipt: ${error.message || 'Unknown error'}`);
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
+
   const handleDownloadPaymentReceipt = async (paymentId: number) => {
     try {
       await salesOrderApi.downloadSalesPaymentReceipt(paymentId);
@@ -186,13 +284,23 @@ const SalesOrderDetails: React.FC = () => {
         <div className="card shadow-sm mb-4">
           <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h5 className="mb-0">Sales Order Information</h5>
-            <Button
-              variant="light"
-              size="sm"
-              onClick={handleDownloadReceipt}
-            >
-              <i className="bi bi-download me-1"></i> Download Receipt
-            </Button>
+            <div className="d-flex gap-2">
+              <Button
+                variant="light"
+                size="sm"
+                onClick={handleDownloadReceipt}
+              >
+                <i className="bi bi-download me-1"></i> Download Receipt
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleShareAsPDF}
+                disabled={isSharing}
+              >
+                {isSharing ? 'Generating...' : <><i className="bi bi-share me-1"></i> Share as PDF</>}
+              </Button>
+            </div>
           </div>
           <div className="card-body">
             <div className="row mb-3">
@@ -312,13 +420,25 @@ const SalesOrderDetails: React.FC = () => {
                         <td>{payment.payment_mode || 'N/A'}</td>
                         <td>{payment.reference_number || 'N/A'}</td>
                         <td>
-                          <Button
-                            variant="outline-primary"
-                            size="sm"
-                            onClick={() => handleDownloadPaymentReceipt(payment.id)}
-                          >
-                            <i className="bi bi-download"></i>
-                          </Button>
+                          <div className="d-flex gap-1">
+                            <Button
+                              variant="outline-primary"
+                              size="sm"
+                              onClick={() => handleDownloadPaymentReceipt(payment.id)}
+                              title="Download Receipt"
+                            >
+                              <i className="bi bi-download"></i>
+                            </Button>
+                            <Button
+                              variant="outline-secondary"
+                              size="sm"
+                              onClick={() => handleSharePaymentReceipt(payment.id, payment.amount_paid_str || '')}
+                              disabled={isSharing}
+                              title="Share Receipt"
+                            >
+                              {isSharing ? <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> : <i className="bi bi-share"></i>}
+                            </Button>
+                          </div>
                         </td>
                         <td>
                           <Button

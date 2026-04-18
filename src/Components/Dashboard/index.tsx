@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import HeaderCardGroup from './HeaderCardGroup';
 import GraphsSection from './GraphsSection';
 import BatchTable from '../BatchTable';
-import { dailyBatchApi, compositionApi, shedApi, configApi } from '../../services/api';
+import { dailyBatchApi, compositionApi, shedApi, configApi, inventoryItemApi } from '../../services/api';
 import { DailyBatch } from '../../types/daily_batch';
 import { ShedResponse } from '../../types/shed';
 import CustomDatePicker from '../Common/CustomDatePicker';
@@ -27,10 +27,11 @@ const DashboardIndex = () => {
   const [selectedShedNo, setSelectedShedNo] = useState<string>("");
   // Feed usage state
   const [feedUsage, setFeedUsage] = useState<{ total_feed: number, feed_breakdown: { feed_type: string, amount: number, composition_name?: string, composition_items?: { inventory_item_id: number, inventory_item_name?: string, weight: number, unit?: string }[] }[] } | null>(null);
-  const [feedLoading, setFeedLoading] = useState(false);
   // Removed unused feedError
   const [henDayDeviation, setHenDayDeviation] = useState(0);
 
+  // Inventory usage state
+  const [inventoryUsage, setInventoryUsage] = useState<{ total_used: number, breakdown: { inventory_item_id: number, amount: number, unit: string, name?: string }[] } | null>(null);
 
   // Modal state for feed details
   const [showFeedModal, setShowFeedModal] = useState(false);
@@ -125,14 +126,20 @@ const DashboardIndex = () => {
   }, [batchDate]);
 
   const fetchFeedUsageData = async (date: string, bId?: number) => {
-    setFeedLoading(true);
     try {
       const usage = await compositionApi.getFeedUsageByDate(date, bId);
       setFeedUsage(usage);
     } catch (err: any) {
       setFeedUsage(null);
-    } finally {
-      setFeedLoading(false);
+    }
+  };
+
+  const fetchInventoryUsageData = async (date: string, bId?: number) => {
+    try {
+      const usage = await inventoryItemApi.getInventoryUsageByDate(date, bId);
+      setInventoryUsage(usage);
+    } catch (err: any) {
+      setInventoryUsage(null);
     }
   };
 
@@ -140,6 +147,7 @@ const DashboardIndex = () => {
   useEffect(() => {
     if (!selectedShedNo) {
       fetchFeedUsageData(batchDate, undefined);
+      fetchInventoryUsageData(batchDate, undefined);
     }
   }, [batchDate, selectedShedNo]);
 
@@ -150,8 +158,10 @@ const DashboardIndex = () => {
       const batch = selectedShed ? batches.find(b => b.shed_id === selectedShed.id) : undefined;
       if (batch) {
         fetchFeedUsageData(batchDate, batch.batch_id);
+        fetchInventoryUsageData(batchDate, batch.batch_id);
       } else {
         setFeedUsage(null);
+        setInventoryUsage(null);
       }
     }
   }, [batchDate, selectedShedNo, loading, batches, sheds]);
@@ -193,19 +203,28 @@ const DashboardIndex = () => {
       ]
     },
     {
-      title: "Total Feed (kg)",
-      mainValue: feedUsage ? feedUsage.total_feed : (feedLoading ? 0 : 0),
-      icon: "Package",
-      subValues: feedUsage && feedUsage.feed_breakdown.length > 0
-        ? feedUsage.feed_breakdown.map(fb => ({
-            label: fb.composition_name || fb.feed_type,
-            value: fb.amount,
-            subValue: fb.composition_items && fb.composition_items.length > 0
-              ? fb.composition_items.map(ci => `${ci.inventory_item_name || ci.inventory_item_id}: ${ci.weight}${ci.unit ? ` ${ci.unit}` : ''}`).join(', ')
-              : undefined,
-          }))
-        : (feedLoading ? [{ label: 'Loading...', value: 0 }] : [])
-    },
+  title: "Material Usage",
+  mainValue: (feedUsage?.total_feed || 0) + (inventoryUsage?.total_used || 0),
+  icon: "Package",
+  subValues: [
+    // Feed section
+    ...(feedUsage?.feed_breakdown.map(fb => ({
+      label: `Feed: ${fb.composition_name || fb.feed_type}`,
+      value: fb.amount,
+      subValue: fb.composition_items?.map(ci => 
+        `${ci.inventory_item_name}: ${ci.weight}${ci.unit}`
+      ).join(', ')
+    })) || []),
+    // Direct inventory section
+    ...(inventoryUsage?.breakdown
+      .filter(item => !item.name?.toLowerCase().includes('feed')) // Exclude feed items
+      .map(item => ({
+        label: item.name || `Item ${item.inventory_item_id}`,
+        value: item.amount,
+        subValue: item.unit
+      })) || [])
+  ]
+},
     {
       title: "Total Eggs",
       mainValue: totalEggs,

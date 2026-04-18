@@ -55,6 +55,7 @@ const Configurations: React.FC = () => {
   const [financialSettings, setFinancialSettings] = useState<IFinancialSettings | null>(null);
   const [standardPerformanceValue, setStandardPerformanceValue] = useState<string>('');
   const [chartOfAccounts, setChartOfAccounts] = useState<ChartOfAccountsResponse[]>([]);
+  const [sellerAddress, setSellerAddress] = useState<string>('');
   const [financialSettingsFormData, setFinancialSettingsFormData] = useState<UpdateFinancialSettings>({
     default_cash_account_id: 0,
     default_sales_account_id: 0,
@@ -100,6 +101,17 @@ const Configurations: React.FC = () => {
         if (standardPerformanceConfig) {
           setStandardPerformanceValue(standardPerformanceConfig.value);
         }
+
+        // Fetch seller address
+        try {
+          const sellerAddressConfig = await configApi.getSellerAddress();
+          if (sellerAddressConfig) {
+            setSellerAddress(sellerAddressConfig.value);
+          }
+        } catch (error) {
+          console.error("Failed to fetch seller address:", error);
+        }
+
         // Fetch financial settings
         try {
           const [settingsData, accountsData] = await Promise.all([
@@ -312,6 +324,18 @@ const Configurations: React.FC = () => {
     setStandardPerformanceValue(e.target.value);
   };
 
+  const handleSaveSellerAddress = async () => {
+    setSaving(true);
+    try {
+      await configApi.updateSellerAddress(sellerAddress);
+      toast.success("Company address saved successfully!");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save company address.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   // Pagination handlers for Bovans Performance
   const handleBovansPageChange = (pageNumber: number) => {
     setBovansCurrentPage(pageNumber);
@@ -500,7 +524,27 @@ return (
         </div>
       </div>
 
-
+      {/* Company Information */}
+      <div className="p-3 border shadow-sm mb-4 mt-2">
+        <label className="form-label fw-semibold">
+          Company Address:
+        </label>
+        <div className="mb-3">
+          <textarea
+            className="form-control form-control-sm"
+            rows={3}
+            value={sellerAddress}
+            onChange={(e) => setSellerAddress(e.target.value)}
+            disabled={loading}
+            placeholder="Enter company address to be displayed on receipts and invoices"
+          />
+        </div>
+        <div className="mt-3 text-end">
+          <button className="btn btn-primary" onClick={handleSaveSellerAddress} disabled={saving || loading}>
+            {saving ? "Saving..." : "Save Company Address"}
+          </button>
+        </div>
+      </div>
 
       {/* Accordion for Batch and Bovans Performance */}
       <div className="accordion" id="configurationsAccordion">

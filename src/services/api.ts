@@ -6,6 +6,7 @@ import { TopSellingItem } from '../types/topSellingItem';import { BatchResponse,
 import { EggRoomReportResponse, EggRoomReportCreate, EggRoomReportUpdate, EggRoomSingleReportResponse } from '../types/eggRoomReport.ts';
 import { BovansPerformance, PaginatedBovansPerformanceResponse } from "../types/bovans"; // Ensure this import is present
 import { BusinessPartner, BusinessPartnerCreate, BusinessPartnerUpdate, PartnerStatus } from '../types/BusinessPartner';
+import { InventoryItemUsageCreate, InventoryItemUsageResponse, PaginatedInventoryItemUsageResponse } from '../types/InventoryItemUsage';
 import { InventoryItemResponse, InventoryItemCreate, InventoryItemUpdate, InventoryItemCategory } from '../types/InventoryItem';
 import { InventoryItemAudit } from '../types/InventoryItemAudit';
 import { InventoryStockLevel, DailyStockReportEntry } from '../types/inventoryStockLevel';
@@ -45,6 +46,7 @@ import { Shed, ShedResponse } from '../types/shed';
 import { ChartOfAccountsRequest, ChartOfAccountsResponse } from '../types/chartOfAccounts';
 import { FinancialSettings, UpdateFinancialSettings } from '../types/financialSettings';
 import { JournalEntryCreate, JournalEntryResponse } from '../types/journalEntry';
+import { InventoryUsageSummary } from '../types/InventoryUsageSummary';
 // Define types for our data
 // Define types for our data
 
@@ -71,10 +73,32 @@ const api = axios.create({
 
 // JWT token storage
 let accessToken: string | null = null;
-let tenantId: string | null = null;
+let tenantId: string | null = typeof window !== 'undefined' ? window.localStorage.getItem('tenantId') : null;
+
+const attachHeader = (config: any, name: string, value: string) => {
+  if (!config.headers) {
+    config.headers = {};
+  }
+
+  if (typeof config.headers.set === 'function') {
+    config.headers.set(name, value);
+  } else {
+    config.headers = {
+      ...config.headers,
+      [name]: value,
+    };
+  }
+};
 
 export const setTenantId = (id: string | null) => {
   tenantId = id;
+  if (typeof window !== 'undefined') {
+    if (id) {
+      window.localStorage.setItem('tenantId', id);
+    } else {
+      window.localStorage.removeItem('tenantId');
+    }
+  }
 };
 
 export const setAccessToken = (token: string | null) => {
@@ -88,13 +112,29 @@ export const getTenantId = () => tenantId;
 // Update api instance to include user ID header and JWT token when available
 api.interceptors.request.use(
   (config) => {
-    if (accessToken) {
-      config.headers['Authorization'] = `Bearer ${accessToken}`;
+    const isAbsolute = config.url?.startsWith('http');
+    let isExternal = false;
+    if (isAbsolute && config.url) {
+      try {
+        const requestUrl = new URL(config.url);
+        const baseUrl = new URL(api.defaults.baseURL || window.location.origin);
+        isExternal = requestUrl.origin !== baseUrl.origin;
+      } catch (error) {
+        isExternal = true;
+      }
     }
-    if (tenantId) {
-      config.headers['X-Tenant-ID'] = tenantId;
+
+    // Only attach Auth and Tenant headers to internal API requests
+    if (!isExternal) {
+      if (accessToken) {
+        attachHeader(config, 'Authorization', `Bearer ${accessToken}`);
+      }
+      if (tenantId) {
+        attachHeader(config, 'X-Tenant-ID', tenantId);
+      } else {
+        console.warn(`[API] Tenant ID is missing for internal request: ${config.url}`);
+      }
     }
-    console.log("Request config with Tenant ID:", config.headers['X-Tenant-ID']);
     return config;
   },
   (error) => {
@@ -595,7 +635,25 @@ export const configApi = {
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to update standard performance configuration'));
     }
-  }
+  },
+
+  getSellerAddress: async (): Promise<StandardPerformanceConfig> => {
+    try {
+      const response = await api.get<StandardPerformanceConfig>('/configurations/seller-address');
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch seller address configuration'));
+    }
+  },
+
+  updateSellerAddress: async (value: string): Promise<StandardPerformanceConfig> => {
+    try {
+      const response = await api.patch<StandardPerformanceConfig>('/configurations/seller-address', { value });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to update seller address configuration'));
+    }
+  },
 };
 
 // Restore batchApi for master batch operations
@@ -877,6 +935,59 @@ export const inventoryItemApi = {
     }
   },
 
+  getFilteredInventoryUsageHistory: async (batchDate: string, batchId?: number): Promise<InventoryItemUsageResponse[]> => {
+    try {
+      const response = await api.get<InventoryItemUsageResponse[]>('/inventory-items/usage-history/filtered', {
+        params: {
+          usage_date: batchDate,
+          batch_id: batchId || undefined,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch filtered inventory usage history'));
+    }
+  },
+
+  getInventoryItemUsageHistory: async (offset: number = 0, limit: number = 10, startDate?: string, endDate?: string): Promise<PaginatedInventoryItemUsageResponse> => {
+    try {
+      const params: { [key: string]: any } = { offset, limit };
+      if (startDate) params.start_date = startDate;
+      if (endDate) params.end_date = endDate;
+
+      const response = await api.get<PaginatedInventoryItemUsageResponse>('/inventory-items/usage-history', {
+        params
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch inventory item usage history'));
+    }
+  },
+
+  getInventoryItemUsageHistoryById: async (itemId: number, offset: number = 0, limit: number = 10, startDate?: string, endDate?: string): Promise<PaginatedInventoryItemUsageResponse> => {
+    try {
+      const params: { [key: string]: any } = { offset, limit };
+      if (startDate) params.start_date = startDate;
+      if (endDate) params.end_date = endDate;
+
+      const response = await api.get<PaginatedInventoryItemUsageResponse>(`/inventory-items/${itemId}/usage-history`, {
+        params
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch inventory item usage history'));
+    }
+  },
+
+  revertInventoryItemUsage: async (usageId: number): Promise<{ message: string }> => {
+    try {
+      const response = await api.post<{ message: string }>(`/inventory-items/revert-usage/${usageId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to revert inventory item usage'));
+    }
+  },
+
   getInventoryItemAudit: async (id: number, startDate?: string, endDate?: string): Promise<InventoryItemAudit[]> => {
     try {
       let url = `/inventory-items/${id}/audit`;
@@ -951,6 +1062,15 @@ export const inventoryItemApi = {
     }
   },
 
+  useInventoryItem: async (usageData: InventoryItemUsageCreate): Promise<InventoryItemUsageResponse> => {
+    try {
+      const response = await api.post<InventoryItemUsageResponse>("/inventory-items/use", usageData);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to use inventory item'));
+    }
+  },
+
   getDailyStockReport: async (itemId: number, startDate: string, endDate: string): Promise<DailyStockReportEntry[]> => {
     try {
       const response = await api.get<DailyStockReportEntry[]>(`/inventory-items/reports/daily-stock/${itemId}`, {
@@ -962,6 +1082,31 @@ export const inventoryItemApi = {
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch daily stock report'));
+    }
+  },
+  /**
+   * Get inventory item usage summary by date (and optional batch_id)
+   * @param usageDate - string (YYYY-MM-DD)
+   * @param batchId - optional number
+   */
+  getInventoryUsageByDate: async (usageDate: string, batchId?: number): Promise<InventoryUsageSummary> => {
+    try {
+      const response = await api.get('/inventory-items/usage-by-date/', {
+        params: {
+          usage_date: usageDate,
+          batch_id: batchId || undefined,
+        },
+      });
+      const rawData = response.data as { total_used: string; breakdown: { inventory_item_id: number; name?: string; amount: string; unit: string }[] };
+      return {
+        total_used: parseFloat(rawData.total_used) || 0,
+        breakdown: rawData.breakdown.map((item) => ({
+          ...item,
+          amount: parseFloat(item.amount) || 0,
+        })),
+      };
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch inventory usage by date'));
     }
   },
 };
@@ -992,11 +1137,13 @@ export const purchaseOrderApi = {
     const response = await api.post(`/payments/${paymentId}/receipt-upload-url`, { filename });
     return response.data;
   },
-  downloadPurchaseOrderReceipt: async (poId: number): Promise<void> => {
+  downloadPurchaseOrderReceipt: async (poId: number): Promise<Blob> => {
     try {
       const { data } = await api.get(`/purchase-orders/${poId}/receipt-download-url`);
       if (data.download_url) {
         window.open(data.download_url, '_blank');
+        const fileResponse = await fetch(data.download_url);
+        return await fileResponse.blob();
       } else {
         throw new Error('Download URL not found in response');
       }
@@ -1186,7 +1333,7 @@ export const salesOrderApi = {
     const response = await api.post(`/sales-payments/${paymentId}/receipt-upload-url`, { filename });
     return response.data;
   },
-  downloadSalesOrderReceipt: async (soId: number): Promise<void> => {
+  downloadSalesOrderReceipt: async (soId: number): Promise<Blob> => {
     try {
       const { data } = await api.get(`/sales-orders/${soId}/receipt`, {
         responseType: 'blob',
@@ -1199,6 +1346,7 @@ export const salesOrderApi = {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
+      return data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to download sales order receipt'));
     }
@@ -1206,14 +1354,36 @@ export const salesOrderApi = {
 
   downloadSalesPaymentReceipt: async (paymentId: number): Promise<void> => {
     try {
-      const { data } = await api.get(`/sales-payments/${paymentId}/receipt-download-url`);
-      if (data.download_url) {
-        window.open(data.download_url, '_blank');
-      } else {
-        throw new Error('Download URL not found in response');
-      }
+      const response = await api.get(`/sales-payments/${paymentId}/receipt`, {
+        responseType: 'blob',
+      });
+
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `sales_payment_receipt_${paymentId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to download sales payment receipt'));
+    }
+  },
+
+  getSalesPaymentReceiptDownloadUrl: async (paymentId: number): Promise<string> => {
+    // Fallback helper in case a direct browser URL is needed.
+    return `${api.defaults.baseURL}/sales-payments/${paymentId}/receipt`;
+  },
+  getSalesPaymentReceiptBlob: async (paymentId: number): Promise<Blob> => {
+    try {
+      const response = await api.get(`/sales-payments/${paymentId}/receipt`, {
+        responseType: 'blob',
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch sales payment receipt blob'));
     }
   },
   createSalesOrder: async (soData: SalesOrderCreate): Promise<SalesOrderResponse> => {

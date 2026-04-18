@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { dailyBatchApi, shedApi, configApi } from '../../../services/api';
-import { compositionApi } from '../../../services/api';
+import { dailyBatchApi, shedApi, configApi, inventoryItemApi, compositionApi } from '../../../services/api';
 import { DailyBatch } from '../../../types/daily_batch';
 import { ShedResponse } from '../../../types/shed';
+import { InventoryUsageSummary } from '../../../types/InventoryUsageSummary';
 import { toast } from 'react-toastify';
 import PageHeader from '../../Layout/PageHeader';
 import HeaderCardGroup from '../../Dashboard/HeaderCardGroup';
@@ -12,6 +12,7 @@ import ListModal from '../../Common/ListModal'; // Import ListModal
 import CustomDatePicker from '../../Common/CustomDatePicker';
 import Loading from '../../Common/Loading';
 import { useEscapeKey } from '../../../hooks/useEscapeKey';
+import { InventoryItemUsageResponse } from '../../../types/InventoryItemUsage';
 
 interface UsageHistoryItem {
   id: number;
@@ -32,8 +33,10 @@ const BatchDetails: React.FC = () => {
   const [reportType, setReportType] = useState('daily'); // 'daily' or 'weekly'
   const [week, setWeek] = useState('');
   const [usageHistory, setUsageHistory] = useState<UsageHistoryItem[]>([]);
+  const [itemUsageHistory, _setItemUsageHistory] = useState<InventoryItemUsageResponse[]>([]);
   const [henDayDeviation, setHenDayDeviation] = useState(0);
-  
+  const [inventoryUsage, setInventoryUsage] = useState<InventoryUsageSummary | null>(null);
+  const [inventoryLoading, setInventoryLoading] = useState(false);
 
   // Feed usage state
   const [feedUsage, setFeedUsage] = useState<{ total_feed: number, feed_breakdown: { feed_type: string, amount: number, composition_name?: string, composition_items?: { inventory_item_id: number, inventory_item_name?: string, weight: number, unit?: string }[] }[] } | null>(null);
@@ -96,22 +99,32 @@ const BatchDetails: React.FC = () => {
 
       setIsLoading(true);
       setFeedLoading(true);
+      setInventoryLoading(true);
 
       try {
         const formattedDate = new Date(batch_date).toISOString().split('T')[0];
 
         // These can run in parallel
-        const [batches, history, feedUsageData] = await Promise.all([
+        const [batches, history, feedUsageData, inventoryUsageData] = await Promise.all([
           dailyBatchApi.getDailyBatches(formattedDate),
           compositionApi.getFilteredCompositionUsageHistory(
             formattedDate,
             Number(batch_id)
-          ),
-          compositionApi.getFeedUsageByDate(formattedDate, Number(batch_id))
+          ).catch(err => { console.warn("Composition history failed:", err); return []; }),
+          compositionApi.getFeedUsageByDate(formattedDate, Number(batch_id)).catch(err => {
+            console.warn("Feed usage not found/available:", err);
+            return null;
+          }),
+          inventoryItemApi.getInventoryUsageByDate(formattedDate, Number(batch_id))
+            .catch(err => {
+              console.warn("Inventory item usage not found/available:", err);
+              return { total_used: 0, breakdown: [] };
+            })
         ]);
 
         setUsageHistory(history);
-        setFeedUsage(feedUsageData);
+        setFeedUsage(feedUsageData || null);
+        setInventoryUsage(inventoryUsageData);
 
         const foundBatch = batches.find(b => b.batch_id === Number(batch_id));
         if (foundBatch) {
@@ -125,9 +138,11 @@ const BatchDetails: React.FC = () => {
         setBatch(null);
         setUsageHistory([]);
         setFeedUsage(null);
+        setInventoryUsage(null);
       } finally {
         setIsLoading(false);
         setFeedLoading(false);
+        setInventoryLoading(false);
       }
     };
     fetchData();
@@ -209,19 +224,26 @@ const BatchDetails: React.FC = () => {
               icon: 'Bird',
             },
             {
-              title: 'Total Feed (kg)',
-              mainValue: feedUsage ? feedUsage.total_feed : (feedLoading ? 0 : 0),
+              title: 'Material Usage',
+              mainValue: (feedUsage?.total_feed || 0) + (inventoryUsage?.total_used || 0),
 
-              subValues: feedUsage && feedUsage.feed_breakdown.length > 0
-                ? feedUsage.feed_breakdown.map(fb => ({
+              subValues: (() => {
+                const items = [
+                  ...(feedUsage?.feed_breakdown.map(fb => ({
                     label: fb.composition_name || fb.feed_type,
                     value: fb.amount,
-                    // If composition_items exists, present them as a string list in subValue for modal display
                     subValue: fb.composition_items && fb.composition_items.length > 0
                       ? fb.composition_items.map(ci => `${ci.inventory_item_name || ci.inventory_item_id}: ${ci.weight}${ci.unit ? ` ${ci.unit}` : ''}`).join(', ')
                       : undefined,
-                  }))
-                : (feedLoading ? [{ label: 'Loading...', value: 0 }] : []),
+                  })) || []),
+                  ...(inventoryUsage?.breakdown.map((item: { inventory_item_id: number; name?: string; amount: number; unit: string }) => ({
+                    label: item.name || `Item ${item.inventory_item_id}`,
+                    value: item.amount,
+                    subValue: item.unit,
+                  })) || []),
+                ];
+                return items.length > 0 ? items : (feedLoading || inventoryLoading ? [{ label: 'Loading...', value: 0 }] : []);
+              })(),
               icon:'Package',
             },
             {
@@ -311,6 +333,29 @@ const BatchDetails: React.FC = () => {
                                                   <tr key={item.id}>
                                                       <td>{item.composition_name}</td>
                                                       <td>{item.times}</td>
+                                                  </tr>
+                                              ))}
+                                          </tbody>
+                                      </table>
+                                  </div>
+                              </div>
+                          )}
+                          {itemUsageHistory.length > 0 && (
+                              <div className="mt-4">
+                                  <h5 className="mb-3">Individual Item Usage for this day</h5>
+                                  <div className="table-responsive">
+                                      <table className="table table-sm table-bordered">
+                                          <thead>
+                                              <tr>
+                                                  <th>Item</th>
+                                                  <th>Quantity</th>
+                                              </tr>
+                                          </thead>
+                                          <tbody>
+                                              {itemUsageHistory.map((item) => (
+                                                  <tr key={item.id}>
+                                                      <td>{item.inventory_item_name || `Item ID: ${item.inventory_item_id}`}</td>
+                                                      <td>{item.used_quantity} {item.unit}</td>
                                                   </tr>
                                               ))}
                                           </tbody>

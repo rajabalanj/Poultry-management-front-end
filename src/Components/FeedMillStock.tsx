@@ -263,7 +263,13 @@ function FeedMillStock() {
             onClick={() => navigate('/compositions/usage-history')}
             className="btn btn-info"
           >
-            All Usages
+            Composition History
+          </button>
+          <button
+            onClick={() => navigate('/inventory/usage-history')}
+            className="btn btn-outline-info"
+          >
+            Inventory History
           </button>
         </div>
       </div>
