@@ -16,8 +16,8 @@ export const useSalesOrders = () => {
   const [customers, setCustomers] = useState<BusinessPartner[]>([]);
   const [filterCustomerId, setFilterCustomerId] = useState<string>('');
   const [filterStatus, setFilterStatus] = useState<SalesOrderStatus | ''>('');
-  const [filterStartDate, setFilterStartDate] = useState<Date | null>(null);
-  const [filterEndDate, setFilterEndDate] = useState<Date | null>(null);
+  const [filterStartDate, setFilterStartDate] = useState<Date | null>(new Date());
+  const [filterEndDate, setFilterEndDate] = useState<Date | null>(new Date());
 
   // Delete modal state
   const [showDeleteModal, setShowDeleteModal] = useState(false);

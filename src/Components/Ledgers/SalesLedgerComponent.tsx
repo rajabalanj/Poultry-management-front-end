@@ -21,8 +21,8 @@ const SalesLedgerComponent: React.FC = () => {
     const [ledgerData, setLedgerData] = useState<SalesLedger | null>(null);
     const [loading, setLoading] = useState(false);
     const [customers, setCustomers] = useState<BusinessPartner[]>([]);
-    const [startDate, setStartDate] = useState<Date | null>(null);
-    const [endDate, setEndDate] = useState<Date | null>(null);
+    const [startDate, setStartDate] = useState<Date | null>(new Date());
+    const [endDate, setEndDate] = useState<Date | null>(new Date());
     const navigate = useNavigate();
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [downloadingBill, setDownloadingBill] = useState(false);
@@ -78,11 +78,15 @@ const SalesLedgerComponent: React.FC = () => {
             toast.error('Please select a customer.');
             return;
         }
+        if (!startDate || !endDate) {
+            toast.error('Please select both start and end dates.');
+            return;
+        }
         setDownloadingBill(true);
         try {
             const apiStatus = status === 'none' ? undefined : status;
-            const formattedStartDate = startDate ? format(startDate, 'yyyy-MM-dd') : undefined;
-            const formattedEndDate = endDate ? format(endDate, 'yyyy-MM-dd') : undefined;
+            const formattedStartDate = format(startDate, 'yyyy-MM-dd');
+            const formattedEndDate = format(endDate, 'yyyy-MM-dd');
             const blob = await salesOrderApi.getCustomerBill(parseInt(customerId, 10), formattedStartDate, formattedEndDate, apiStatus as any);
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');

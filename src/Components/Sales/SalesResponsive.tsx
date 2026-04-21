@@ -76,11 +76,15 @@ const SalesResponsive: React.FC = () => {
       toast.error("Please select a customer first.");
       return;
     }
+    if (!filters.startDate || !filters.endDate) {
+      toast.error("Please select both start and end dates.");
+      return;
+    }
     setDownloadingBill(true);
     try {
       const apiStatus = status === 'none' ? undefined : status;
-      const startDateStr = filters.startDate ? format(filters.startDate, 'yyyy-MM-dd') : undefined;
-      const endDateStr = filters.endDate ? format(filters.endDate, 'yyyy-MM-dd') : undefined;
+      const startDateStr = format(filters.startDate, 'yyyy-MM-dd');
+      const endDateStr = format(filters.endDate, 'yyyy-MM-dd');
       const blob = await salesOrderApi.getCustomerBill(parseInt(filters.customerId), startDateStr, endDateStr, apiStatus as any);
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');

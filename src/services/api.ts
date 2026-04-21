@@ -1529,14 +1529,15 @@ export const salesOrderApi = {
 
   getCustomerBill: async (
     customerId: number,
-    startDate?: string,
-    endDate?: string,
+    startDate: string,
+    endDate: string,
     status?: 'paid' | 'unpaid'
   ): Promise<Blob> => {
     try {
-      const params: any = {};
-      if (startDate) params.start_date = startDate;
-      if (endDate) params.end_date = endDate;
+      const params: any = {
+        start_date: startDate,
+        end_date: endDate,
+      };
       if (status) params.status = status;
 
       const response = await api.get(`/sales-orders/customer-bill/${customerId}`, {
