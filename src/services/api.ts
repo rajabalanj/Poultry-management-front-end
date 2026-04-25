@@ -580,7 +580,7 @@ export const configApi = {
   // Get all configurations (GET)
   getAllConfigs: async (name?: string): Promise<AppConfigKV[]> => {
     try {
-      const response = await api.get<AppConfigKV[]>('/configurations/', {
+      const response = await api.get<AppConfigKV[]>('/configurations', {
         params: name ? { name } : undefined,
       });
       return response.data;
@@ -592,7 +592,7 @@ export const configApi = {
   // Save or update a configuration (PATCH)
   saveConfig: async (name: string, value: string): Promise<AppConfigKV> => {
     try {
-      const response = await api.patch<AppConfigKV>(`/configurations/${name}/`, { value });
+      const response = await api.patch<AppConfigKV>(`/configurations/${name}`, { value });
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to save configuration'));
@@ -1583,6 +1583,55 @@ export const financialReportsApi = {
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch Balance Sheet report'));
     }
+  },
+  exportFinancialSummary: async (startDate: string, endDate: string, format = 'pdf') => {
+    const response = await api.get('/financial-reports/financial-summary/export', {
+      params: { start_date: startDate, end_date: endDate, format },
+      responseType: 'blob'
+    });
+    return response.data;
+  },
+  exportProfitAndLoss: async (startDate: string, endDate: string, format = 'pdf') => {
+    const response = await api.get('/financial-reports/profit-and-loss/export', {
+      params: { start_date: startDate, end_date: endDate, format },
+      responseType: 'blob'
+    });
+    return response.data;
+  },
+  exportBalanceSheet: async (asOfDate: string, format = 'pdf') => {
+    const response = await api.get('/financial-reports/balance-sheet/export', {
+      params: { as_of_date: asOfDate, format },
+      responseType: 'blob'
+    });
+    return response.data;
+  },
+  exportGeneralLedger: async (startDate: string, endDate: string, format = 'pdf') => {
+    const response = await api.get('/financial-reports/general-ledger/export', {
+      params: { start_date: startDate, end_date: endDate, format },
+      responseType: 'blob'
+    });
+    return response.data;
+  },
+  exportPurchaseLedger: async (vendorId: number, startDate: string, endDate: string, format = 'pdf') => {
+    const response = await api.get(`/financial-reports/subsidiary-ledger/purchases/${vendorId}/export`, {
+      params: { start_date: startDate, end_date: endDate, format },
+      responseType: 'blob'
+    });
+    return response.data;
+  },
+  exportSalesLedger: async (customerId: number, startDate: string, endDate: string, format = 'pdf') => {
+    const response = await api.get(`/financial-reports/subsidiary-ledger/sales/${customerId}/export`, {
+      params: { start_date: startDate, end_date: endDate, format },
+      responseType: 'blob'
+    });
+    return response.data;
+  },
+  exportInventoryLedger: async (itemId: number, startDate: string, endDate: string, format = 'pdf') => {
+    const response = await api.get(`/financial-reports/subsidiary-ledger/inventory/${itemId}/export`, {
+      params: { start_date: startDate, end_date: endDate, format },
+      responseType: 'blob'
+    });
+    return response.data;
   },
 };
 

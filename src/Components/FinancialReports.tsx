@@ -73,6 +73,8 @@ const FinancialReports: React.FC = () => {
   const [showOpExModal, setShowOpExModal] = useState(false);
   const [opExDetails, setOpExDetails] = useState<OperatingExpenseByAccount[]>([]);
 
+  const [isSharing, setIsSharing] = useState(false);
+
   const handleFetchPnl = useCallback(async () => {
     if (pnlStartDate > pnlEndDate) {
       toast.error('Start date cannot be after end date.');
@@ -142,6 +144,47 @@ const FinancialReports: React.FC = () => {
       setOpExDetails([]);
     }
   };
+
+  const handleShareOrDownload = async (fetchBlob: () => Promise<Blob>, filename: string, title: string) => {
+    setIsSharing(true);
+    try {
+      const blob = await fetchBlob();
+      const file = new File([blob], filename, { type: 'application/pdf' });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ title, files: [file] });
+          toast.success(`${title} shared successfully!`);
+          return;
+        } catch (shareError: any) {
+          if (shareError.name === 'AbortError') return;
+          console.error('Share error:', shareError);
+        }
+      }
+      
+      // Fallback: direct download
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      toast.success(`${title} downloaded successfully!`);
+    } catch (error: any) {
+      console.error('Failed to export PDF:', error);
+      toast.error(error.message || `Failed to export ${title}.`);
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
+  const handleSharePnlPDF = () => handleShareOrDownload(() => financialReportsApi.exportProfitAndLoss(pnlStartDate, pnlEndDate, 'pdf'), `Profit_And_Loss_${pnlStartDate}_to_${pnlEndDate}.pdf`, 'Profit & Loss Report');
+
+  const handleShareFsPDF = () => handleShareOrDownload(() => financialReportsApi.exportFinancialSummary(fsStartDate, fsEndDate, 'pdf'), `Financial_Summary_${fsStartDate}_to_${fsEndDate}.pdf`, 'Financial Summary Report');
+
+  const handleShareBsPDF = () => handleShareOrDownload(() => financialReportsApi.exportBalanceSheet(bsAsOfDate, 'pdf'), `Balance_Sheet_${bsAsOfDate}.pdf`, 'Balance Sheet Report');
 
   const renderPnlReport = () => {
     if (pnlLoading) return <Loading message="Loading data..." />;
@@ -380,9 +423,12 @@ const FinancialReports: React.FC = () => {
                       dateFormat="dd-MM-yyyy"
                     />
                   </div>
-                  <div className="col-md-4 d-flex justify-content-center justify-content-md-end">
-                    <button className="btn btn-primary mb-2" onClick={handleFetchFs} disabled={fsLoading}>
+                  <div className="col-md-4 d-flex justify-content-center justify-content-md-end gap-2">
+                    <button className="btn btn-primary mb-2" onClick={handleFetchFs} disabled={fsLoading || isSharing}>
                       {fsLoading ? 'Generating...' : 'Get Financial Summary'}
+                    </button>
+                    <button className="btn btn-secondary mb-2" onClick={handleShareFsPDF} disabled={!fsData || fsLoading || isSharing}>
+                      <i className="bi bi-file-pdf me-1"></i>{isSharing ? 'Exporting...' : 'Share as PDF'}
                     </button>
                   </div>
                 </div>
@@ -421,9 +467,12 @@ const FinancialReports: React.FC = () => {
                       dateFormat="dd-MM-yyyy"
                     />
                   </div>
-                  <div className="col-md-4 d-flex justify-content-center justify-content-md-end">
-                    <button className="btn btn-primary mb-2" onClick={handleFetchPnl} disabled={pnlLoading}>
+                  <div className="col-md-4 d-flex justify-content-center justify-content-md-end gap-2">
+                    <button className="btn btn-primary mb-2" onClick={handleFetchPnl} disabled={pnlLoading || isSharing}>
                       {pnlLoading ? 'Generating...' : 'Get P&L Report'}
+                    </button>
+                    <button className="btn btn-secondary mb-2" onClick={handleSharePnlPDF} disabled={!pnlData || pnlLoading || isSharing}>
+                      <i className="bi bi-file-pdf me-1"></i>{isSharing ? 'Exporting...' : 'Share as PDF'}
                     </button>
                   </div>
                 </div>
@@ -447,9 +496,12 @@ const FinancialReports: React.FC = () => {
                       dateFormat="dd-MM-yyyy"
                     />
                   </div>
-                  <div className="col-md-4 d-flex justify-content-center justify-content-md-end">
-                    <button className="btn btn-primary mb-2" onClick={handleFetchBs} disabled={bsLoading}>
+                  <div className="col-md-4 d-flex justify-content-center justify-content-md-end gap-2">
+                    <button className="btn btn-primary mb-2" onClick={handleFetchBs} disabled={bsLoading || isSharing}>
                       {bsLoading ? 'Generating...' : 'Get Balance Sheet'}
+                    </button>
+                    <button className="btn btn-secondary mb-2" onClick={handleShareBsPDF} disabled={!bsData || bsLoading || isSharing}>
+                      <i className="bi bi-file-pdf me-1"></i>{isSharing ? 'Exporting...' : 'Share as PDF'}
                     </button>
                   </div>
                 </div>

@@ -125,7 +125,7 @@ const InventoryLedgerComponent: React.FC = () => {
                 <div className="p-3">
                     <h5 className="mb-3">{ledgerData.title}</h5>
                     <p className="text-muted">Item ID: {ledgerData.item_id}</p>
-                    <p className="text-muted">Opening Quantity: {ledgerData.opening_quantity.toFixed(2)}</p>
+                    <p className="text-muted">Opening Quantity: {Number(ledgerData.opening_quantity || 0).toFixed(2)}</p>
                     <div className="table-responsive">
                         <table className="table table-striped">
                             <thead>
@@ -144,17 +144,17 @@ const InventoryLedgerComponent: React.FC = () => {
                                     <tr key={index}>
                                         <td>{entry.date}</td>
                                         <td>{entry.reference}</td>
-                                        <td>{entry.quantity_received?.toFixed(2)}</td>
-                                        <td>{entry.unit_cost_str || entry.unit_cost?.toFixed(2)}</td>
-                                        <td>{entry.total_cost_str || entry.total_cost?.toFixed(2)}</td>
-                                        <td>{entry.quantity_sold?.toFixed(2)}</td>
-                                        <td>{entry.quantity_on_hand.toFixed(2)}</td>
+                                        <td>{entry.quantity_received != null ? Number(entry.quantity_received).toFixed(2) : ''}</td>
+                                        <td>{entry.unit_cost_str || (entry.unit_cost != null ? Number(entry.unit_cost).toFixed(2) : '')}</td>
+                                        <td>{entry.total_cost_str || (entry.total_cost != null ? Number(entry.total_cost).toFixed(2) : '')}</td>
+                                        <td>{entry.quantity_sold != null ? Number(entry.quantity_sold).toFixed(2) : ''}</td>
+                                        <td>{Number(entry.quantity_on_hand || 0).toFixed(2)}</td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
                     </div>
-                    <p className="text-muted">Closing Quantity on Hand: {ledgerData.closing_quantity_on_hand.toFixed(2)}</p>
+                    <p className="text-muted">Closing Quantity on Hand: {Number(ledgerData.closing_quantity_on_hand || 0).toFixed(2)}</p>
                 </div>
             )}
         </div>
