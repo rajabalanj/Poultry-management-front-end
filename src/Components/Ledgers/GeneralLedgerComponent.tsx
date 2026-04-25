@@ -7,6 +7,7 @@ import { GeneralLedger } from '../../types/ledgers';
 import Loading from '../Common/Loading';
 import CustomDatePicker from '../Common/CustomDatePicker';
 import StyledSelect from '../Common/StyledSelect';
+import { financialReportsApi } from '../../services/api';
 
 const GeneralLedgerComponent: React.FC = () => {
     const today = new Date().toISOString().slice(0, 10);
@@ -15,6 +16,7 @@ const GeneralLedgerComponent: React.FC = () => {
     const [transactionType, setTransactionType] = useState(() => sessionStorage.getItem('gl_transaction_type') || '');
     const [ledgerData, setLedgerData] = useState<GeneralLedger | null>(null);
     const [loading, setLoading] = useState(false);
+    const [isSharing, setIsSharing] = useState(false);
     const navigate = useNavigate();
 
     const handleRowClick = (entry: GeneralLedger['entries'][0]) => {
@@ -37,6 +39,48 @@ const GeneralLedgerComponent: React.FC = () => {
             navigate(`/sales-orders/${entry.reference_id}/add-payment`);
         }
     };
+
+    const handleShareOrDownload = async (fetchBlob: () => Promise<Blob>, filename: string, title: string) => {
+        setIsSharing(true);
+        try {
+          const blob = await fetchBlob();
+          const file = new File([blob], filename, { type: 'application/pdf' });
+    
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            try {
+              await navigator.share({ title, files: [file] });
+              toast.success(`${title} shared successfully!`);
+              return;
+            } catch (shareError: any) {
+              if (shareError.name === 'AbortError') return;
+              console.error('Share error:', shareError);
+            }
+          }
+          
+          // Fallback: direct download
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = filename;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          toast.success(`${title} downloaded successfully!`);
+        } catch (error: any) {
+          console.error('Failed to export PDF:', error);
+          toast.error(error.message || `Failed to export ${title}.`);
+        } finally {
+          setIsSharing(false);
+        }
+      };
+
+    const handleShareGeneralLedgerPDF = () => handleShareOrDownload(
+  () => financialReportsApi.exportGeneralLedger(startDate, endDate, 'pdf'),
+  `General_Ledger_${startDate}_to_${endDate}.pdf`,
+  'General Ledger Report'
+);
+
 
     useEffect(() => {
         sessionStorage.setItem('gl_start_date', startDate);
@@ -115,9 +159,12 @@ const GeneralLedgerComponent: React.FC = () => {
                         placeholder="Select Transaction Type"
                     />
                 </div>
-                <div className="col-md-3 d-flex justify-content-center justify-content-md-end">
-                    <button className="btn btn-primary mb-2" onClick={handleFetchLedger} disabled={loading}>
+                <div className="col-md-4 d-flex justify-content-center justify-content-md-end gap-2">
+                    <button className="btn btn-primary mb-2" onClick={handleFetchLedger} disabled={loading || isSharing}>
                         {loading ? 'Generating...' : 'Get General Ledger'}
+                    </button>
+                    <button className="btn btn-secondary mb-2" onClick={handleShareGeneralLedgerPDF} disabled={loading || isSharing}>
+                        <i className="bi bi-file-pdf me-1"></i>{isSharing ? 'Exporting...' : 'Share as PDF'}
                     </button>
                 </div>
             </div>

@@ -13,6 +13,7 @@ import CustomDatePicker from '../Common/CustomDatePicker';
 import AddSalesPaymentForm from '../SalesOrder/AddSalesPaymentForm';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
 import { useTableKeyboardNavigation } from '../../hooks/useTableKeyboardNavigation';
+import { financialReportsApi } from '../../services/api';
 
 type OptionType = { value: string; label: string };
 
@@ -29,6 +30,7 @@ const SalesLedgerComponent: React.FC = () => {
     const [billType, setBillType] = useState<'paid' | 'unpaid' | 'none'>('unpaid');
     const [selectedSoId, setSelectedSoId] = useState<number | null>(null);
     const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1);
+    const [isSharing, setIsSharing] = useState(false);
 
     useEffect(() => {
         const fetchCustomers = async () => {
@@ -116,6 +118,47 @@ const SalesLedgerComponent: React.FC = () => {
         setShowPaymentModal(true);
     };
 
+    const handleShareOrDownload = async (fetchBlob: () => Promise<Blob>, filename: string, title: string) => {
+                setIsSharing(true);
+                try {
+                  const blob = await fetchBlob();
+                  const file = new File([blob], filename, { type: 'application/pdf' });
+            
+                  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    try {
+                      await navigator.share({ title, files: [file] });
+                      toast.success(`${title} shared successfully!`);
+                      return;
+                    } catch (shareError: any) {
+                      if (shareError.name === 'AbortError') return;
+                      console.error('Share error:', shareError);
+                    }
+                  }
+                  
+                  // Fallback: direct download
+                  const url = window.URL.createObjectURL(blob);
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.download = filename;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  window.URL.revokeObjectURL(url);
+                  toast.success(`${title} downloaded successfully!`);
+                } catch (error: any) {
+                  console.error('Failed to export PDF:', error);
+                  toast.error(error.message || `Failed to export ${title}.`);
+                } finally {
+                  setIsSharing(false);
+                }
+              };
+    
+    const handleShareSalesLedgerPDF = () => handleShareOrDownload(
+        () => financialReportsApi.exportSalesLedger(parseInt(customerId, 10), startDate ? format(startDate, 'yyyy-MM-dd') : '', endDate ? format(endDate, 'yyyy-MM-dd') : '', 'pdf'),
+        `Sales_Ledger_${customerId}_${format(new Date(), 'yyyyMMdd')}.pdf`,
+        'Sales Ledger'
+    );
+
     // Handle Escape key for payment modal
     useEscapeKey(() => setShowPaymentModal(false), showPaymentModal);
 
@@ -185,9 +228,12 @@ const SalesLedgerComponent: React.FC = () => {
                             isClearable
                         />
                     </div>
-                    <div className="col-md-3 d-flex flex-wrap gap-2 justify-content-center justify-content-md-end">
-                        <button className="btn btn-primary" onClick={handleFetchLedger} disabled={loading}>
+                    <div className="col-md-4 d-flex flex-wrap justify-content-center justify-content-md-end gap-2">
+                        <button className="btn btn-primary" onClick={handleFetchLedger} disabled={loading || isSharing}>
                             <i className="bi bi-journal-text me-2"></i>{loading ? 'Generating...' : 'Get Sales Ledger'}
+                        </button>
+                        <button className="btn btn-secondary mb-2" onClick={handleShareSalesLedgerPDF} disabled={loading || isSharing || !ledgerData}>
+                            <i className="bi bi-file-pdf me-1"></i>{isSharing ? 'Exporting...' : 'Share as PDF'}
                         </button>
                         {customerId && (
                             <div className="d-flex gap-2">

@@ -7,6 +7,8 @@ import Loading from '../Common/Loading';
 import { InventoryItemResponse } from '../../types/InventoryItem';
 import CustomDatePicker from '../Common/CustomDatePicker';
 import StyledSelect from '../Common/StyledSelect';
+import {financialReportsApi} from '../../services/api';
+import { format } from 'date-fns';
 
 type OptionType = { value: string; label: string };
 
@@ -18,6 +20,7 @@ const InventoryLedgerComponent: React.FC = () => {
     const [ledgerData, setLedgerData] = useState<InventoryLedger | null>(null);
     const [loading, setLoading] = useState(false);
     const [inventoryItems, setInventoryItems] = useState<InventoryItemResponse[]>([]);
+    const [isSharing, setIsSharing] = useState(false);
 
     useEffect(() => {
         const fetchItems = async () => {
@@ -65,6 +68,44 @@ const InventoryLedgerComponent: React.FC = () => {
             setLoading(false);
         }
     };
+
+    const handleShareOrDownload = async (fetchBlob: () => Promise<Blob>, filename: string, title: string) => {
+                setIsSharing(true);
+                try {
+                  const blob = await fetchBlob();
+                  const file = new File([blob], filename, { type: 'application/pdf' });
+            
+                  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    try {
+                      await navigator.share({ title, files: [file] });
+                      toast.success(`${title} shared successfully!`);
+                      return;
+                    } catch (shareError: any) {
+                      if (shareError.name === 'AbortError') return;
+                      console.error('Share error:', shareError);
+                    }
+                  }
+                  
+                  // Fallback: direct download
+                  const url = window.URL.createObjectURL(blob);
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.download = filename;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  window.URL.revokeObjectURL(url);
+                  toast.success(`${title} downloaded successfully!`);
+                } catch (error: any) {
+                  console.error('Failed to export PDF:', error);
+                  toast.error(error.message || `Failed to export ${title}.`);
+                } finally {
+                  setIsSharing(false);
+                }
+              };
+
+        const handleShareInventoryLedgerPDF = () => handleShareOrDownload(() => financialReportsApi.exportInventoryLedger(parseInt(itemId, 10), startDate ? format(startDate, 'yyyy-MM-dd') : '', endDate ? format(endDate, 'yyyy-MM-dd') : '', 'pdf'), 
+        `Inventory_Ledger_Item_${itemId}_${startDate}_to_${endDate}.pdf`, 'Inventory Ledger Report');
 
     const itemOptions: OptionType[] = inventoryItems.map((item) => ({
         value: String(item.id),
@@ -114,10 +155,13 @@ const InventoryLedgerComponent: React.FC = () => {
                         dateFormat="dd-MM-yyyy"
                     />
                 </div>
-                <div className="col-md-3 d-flex justify-content-center justify-content-md-end">
-                    <button className="btn btn-primary mb-2" onClick={handleFetchLedger} disabled={loading}>
-                        {loading ? 'Generating...' : 'Get Inventory Ledger'}
+                <div className="col-md-4 d-flex flex-wrap justify-content-center justify-content-md-end gap-2">
+                    <button className="btn btn-primary mb-2" onClick={handleFetchLedger} disabled={loading || isSharing}>
+                        <i className="bi bi-journal-text me-2"></i>{loading ? 'Generating...' : 'Get Inventory Ledger'}
                     </button>
+                    <button className="btn btn-secondary mb-2" onClick={handleShareInventoryLedgerPDF} disabled={loading || isSharing || !ledgerData}>
+                            <i className="bi bi-file-pdf me-1"></i>{isSharing ? 'Exporting...' : 'Share as PDF'}
+                        </button>
                 </div>
             </div>
             {loading && <Loading message="Loading data..." />}
