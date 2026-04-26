@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import Loading from '../Common/Loading';
 
@@ -10,28 +10,37 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, roles }) => {
   const auth = useAuth();
   const { user } = auth;
+  const loginAttempted = useRef(false);
+
+  useEffect(() => {
+    // Only attempt login after mount and when not authenticated
+    if (!auth.isAuthenticated && !auth.isLoading && !loginAttempted.current) {
+      loginAttempted.current = true;
+      
+      // Check if we just logged out
+      const justLoggedOut = (() => {
+        try {
+          return sessionStorage.getItem('justLoggedOut') === '1';
+        } catch (e) {
+          return false;
+        }
+      })();
+
+      if (justLoggedOut) {
+        try { sessionStorage.removeItem('justLoggedOut'); } catch (e) {}
+        return;
+      }
+
+      auth.login();
+    }
+  }, [auth.isAuthenticated, auth.isLoading]);
 
   if (auth.isLoading) {
     return <Loading message="Loading data..." />;
   }
 
   if (!auth.isAuthenticated) {
-    // If we just logged out, skip auto-login to allow post-logout redirect to settle.
-    const justLoggedOut = (() => {
-      try {
-        return sessionStorage.getItem('justLoggedOut') === '1';
-      } catch (e) {
-        return false;
-      }
-    })();
-
-    if (justLoggedOut) {
-      try { sessionStorage.removeItem('justLoggedOut'); } catch (e) {}
-      return <div>You have signed out.</div>;
-    }
-
-    auth.login();
-    return <div>Redirecting to login...</div>;
+    return <Loading message="Redirecting to login..." />;
   }
 
   if (roles && roles.length > 0) {
@@ -40,7 +49,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, roles }) => {
     const hasRole = roles.some(role => userGroups.includes(role));
 
     if (!hasRole) {
-      return <div>Access Denied</div>; // Or redirect to an unauthorized page
+      return <div>Access Denied</div>;
     }
   }
 
