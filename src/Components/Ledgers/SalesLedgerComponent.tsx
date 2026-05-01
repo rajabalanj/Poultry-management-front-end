@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
-import { Modal, Form } from 'react-bootstrap';
+import { Modal, Form, Pagination } from 'react-bootstrap';
 import { ledgerApi, businessPartnerApi, salesOrderApi } from '../../services/api';
 import { SalesLedger } from '../../types/ledgers';
 import Loading from '../Common/Loading';
@@ -31,6 +31,8 @@ const SalesLedgerComponent: React.FC = () => {
     const [selectedSoId, setSelectedSoId] = useState<number | null>(null);
     const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1);
     const [isSharing, setIsSharing] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 10;
 
     useEffect(() => {
         const fetchCustomers = async () => {
@@ -56,16 +58,14 @@ const SalesLedgerComponent: React.FC = () => {
     }, []);
 
     const handleFetchLedger = async () => {
-        if (!customerId) {
-            toast.error('Please enter a Customer ID.');
-            return;
-        }
         setLoading(true);
         setLedgerData(null);
+        setCurrentPage(1);
         try {
             const formattedStartDate = startDate ? format(startDate, 'yyyy-MM-dd') : undefined;
             const formattedEndDate = endDate ? format(endDate, 'yyyy-MM-dd') : undefined;
-            const data = await ledgerApi.getSalesLedger(parseInt(customerId, 10), formattedStartDate, formattedEndDate);
+            const parsedCustomerId = customerId ? parseInt(customerId, 10) : undefined;
+            const data = await ledgerApi.getSalesLedger(parsedCustomerId, formattedStartDate, formattedEndDate);
             setLedgerData(data);
             sessionStorage.setItem('sl_loaded', 'true');
         } catch (error: any) {
@@ -154,41 +154,111 @@ const SalesLedgerComponent: React.FC = () => {
               };
     
     const handleShareSalesLedgerPDF = () => handleShareOrDownload(
-        () => financialReportsApi.exportSalesLedger(parseInt(customerId, 10), startDate ? format(startDate, 'yyyy-MM-dd') : '', endDate ? format(endDate, 'yyyy-MM-dd') : '', 'pdf'),
-        `Sales_Ledger_${customerId}_${format(new Date(), 'yyyyMMdd')}.pdf`,
+        () => financialReportsApi.exportSalesLedger(customerId ? parseInt(customerId, 10) : undefined, startDate ? format(startDate, 'yyyy-MM-dd') : undefined, endDate ? format(endDate, 'yyyy-MM-dd') : undefined, 'pdf'),
+        `Sales_Ledger_${customerId || 'All'}_${format(new Date(), 'yyyyMMdd')}.pdf`,
         'Sales Ledger'
     );
 
     // Handle Escape key for payment modal
     useEscapeKey(() => setShowPaymentModal(false), showPaymentModal);
 
+    const paginatedEntries = ledgerData?.entries.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE) || [];
+    const totalPages = Math.ceil((ledgerData?.entries.length || 0) / ITEMS_PER_PAGE);
+
+    const renderPaginationItems = () => {
+        const items = [];
+        
+        items.push(
+            <Pagination.Prev
+                key="prev"
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+            />
+        );
+
+        if (totalPages <= 7) {
+            for (let number = 1; number <= totalPages; number++) {
+                items.push(
+                    <Pagination.Item key={number} active={number === currentPage} onClick={() => setCurrentPage(number)}>
+                        {number}
+                    </Pagination.Item>
+                );
+            }
+        } else {
+            items.push(
+                <Pagination.Item key={1} active={1 === currentPage} onClick={() => setCurrentPage(1)}>
+                    1
+                </Pagination.Item>
+            );
+
+            if (currentPage > 4) items.push(<Pagination.Ellipsis key="start-ellipsis" disabled />);
+
+            let startPage = Math.max(2, currentPage - 1);
+            let endPage = Math.min(totalPages - 1, currentPage + 1);
+
+            if (currentPage <= 4) {
+                endPage = 5;
+                startPage = 2;
+            } else if (currentPage >= totalPages - 3) {
+                startPage = totalPages - 4;
+                endPage = totalPages - 1;
+            }
+
+            for (let number = startPage; number <= endPage; number++) {
+                items.push(
+                    <Pagination.Item key={number} active={number === currentPage} onClick={() => setCurrentPage(number)}>
+                        {number}
+                    </Pagination.Item>
+                );
+            }
+
+            if (currentPage < totalPages - 3) items.push(<Pagination.Ellipsis key="end-ellipsis" disabled />);
+
+            items.push(
+                <Pagination.Item key={totalPages} active={totalPages === currentPage} onClick={() => setCurrentPage(totalPages)}>
+                    {totalPages}
+                </Pagination.Item>
+            );
+        }
+
+        items.push(
+            <Pagination.Next
+                key="next"
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+            />
+        );
+
+        return items;
+    };
+
     // Keyboard navigation for table rows
     const { resetSelection, setSelectedIndex } = useTableKeyboardNavigation({
-        rowCount: ledgerData?.entries.length || 0,
+        rowCount: paginatedEntries.length || 0,
         onRowSelect: (index) => {
             setFocusedRowIndex(index);
             const row = document.querySelector(`tr[data-row-index="${index}"]`);
             row?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
         },
         onRowEnter: (index) => {
-            if (ledgerData && ledgerData.entries[index]) {
-                handleRowClick(ledgerData.entries[index], index);
+            if (paginatedEntries && paginatedEntries[index]) {
+                handleRowClick(paginatedEntries[index], index);
             }
         },
         onRowAction: (index, key) => {
-            if (key === 'p' && ledgerData && ledgerData.entries[index]) {
-                setSelectedSoId(ledgerData.entries[index].so_id);
+            if (key === 'p' && paginatedEntries && paginatedEntries[index]) {
+                setSelectedSoId(paginatedEntries[index].so_id);
                 setShowPaymentModal(true);
             }
         },
-        enabled: !showPaymentModal && !!ledgerData,
+        enabled: !showPaymentModal && paginatedEntries.length > 0,
     });
 
     // Reset keyboard navigation when ledger data changes
     useEffect(() => {
         resetSelection();
         setFocusedRowIndex(-1);
-    }, [ledgerData, resetSelection]);
+    }, [ledgerData, currentPage, resetSelection]);
 
     const customerOptions: OptionType[] = customers.map((customer) => ({
         value: String(customer.id),
@@ -259,7 +329,10 @@ const SalesLedgerComponent: React.FC = () => {
                 {ledgerData && (
                     <div className="p-3">
                         <h5 className="mb-3">{ledgerData.title}</h5>
-                        <p className="text-muted">Customer ID: {ledgerData.customer_id}</p>
+                        <p className="text-muted">
+                            Customer: {ledgerData.customer_name ? `${ledgerData.customer_name} (ID: ${ledgerData.customer_id})` : ledgerData.customer_id}
+                            {ledgerData.total_records !== undefined && ` | Total records: ${ledgerData.total_records}`}
+                        </p>
                         <div className="table-responsive">
                             <table className="table table-striped table-hover">
                                 <thead>
@@ -276,7 +349,7 @@ const SalesLedgerComponent: React.FC = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {ledgerData.entries.map((entry, index) => (
+                                    {paginatedEntries.map((entry, index) => (
                                         <tr 
                                             key={index} 
                                             data-row-index={index}
@@ -305,6 +378,11 @@ const SalesLedgerComponent: React.FC = () => {
                                 </tbody>
                             </table>
                         </div>
+                        {totalPages > 1 && (
+                            <Pagination className="justify-content-center mt-3">
+                                {renderPaginationItems()}
+                            </Pagination>
+                        )}
                     </div>
                 )}
             </div>

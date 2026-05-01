@@ -1612,23 +1612,31 @@ export const financialReportsApi = {
     });
     return response.data;
   },
-  exportPurchaseLedger: async (vendorId: number, startDate: string, endDate: string, format = 'pdf') => {
-    const response = await api.get(`/financial-reports/subsidiary-ledger/purchases/${vendorId}/export`, {
-      params: { start_date: startDate, end_date: endDate, format },
+  exportPurchaseLedger: async (vendorId: number | undefined, startDate?: string, endDate?: string, format = 'pdf') => {
+    const params: any = { format };
+    if (startDate) params.start_date = startDate;
+    if (endDate) params.end_date = endDate;
+    if (vendorId) params.vendor_id = vendorId;
+    const response = await api.get(`/financial-reports/subsidiary-ledger/purchases/export`, {
+      params,
       responseType: 'blob'
     });
     return response.data;
   },
-  exportSalesLedger: async (customerId: number, startDate: string, endDate: string, format = 'pdf') => {
-    const response = await api.get(`/financial-reports/subsidiary-ledger/sales/${customerId}/export`, {
-      params: { start_date: startDate, end_date: endDate, format },
+  exportSalesLedger: async (customerId: number | undefined, startDate?: string, endDate?: string, format = 'pdf') => {
+    const params: any = { format };
+    if (startDate) params.start_date = startDate;
+    if (endDate) params.end_date = endDate;
+    if (customerId) params.customer_id = customerId;
+    const response = await api.get(`/financial-reports/subsidiary-ledger/sales/export`, {
+      params,
       responseType: 'blob'
     });
     return response.data;
   },
   exportInventoryLedger: async (itemId: number, startDate: string, endDate: string, format = 'pdf') => {
-    const response = await api.get(`/financial-reports/subsidiary-ledger/inventory/${itemId}/export`, {
-      params: { start_date: startDate, end_date: endDate, format },
+    const response = await api.get(`/financial-reports/subsidiary-ledger/inventory/export`, {
+      params: { start_date: startDate, end_date: endDate, item_id: itemId, format },
       responseType: 'blob'
     });
     return response.data;
@@ -1700,24 +1708,26 @@ export const ledgerApi = {
     }
   },
 
-  getPurchaseLedger: async (vendorId: number, startDate?: string, endDate?: string): Promise<PurchaseLedger> => {
+  getPurchaseLedger: async (vendorId: number | undefined, startDate?: string, endDate?: string): Promise<PurchaseLedger> => {
     try {
       const params: any = {};
       if (startDate) params.start_date = startDate;
       if (endDate) params.end_date = endDate;
-      const response = await api.get<PurchaseLedger>(`/financial-reports/subsidiary-ledger/purchases/${vendorId}`, { params });
+      if (vendorId) params.vendor_id = vendorId;
+      const response = await api.get<PurchaseLedger>(`/financial-reports/subsidiary-ledger/purchases`, { params });
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch Purchase Ledger'));
     }
   },
 
-  getSalesLedger: async (customerId: number, startDate?: string, endDate?: string): Promise<SalesLedger> => {
+  getSalesLedger: async (customerId: number | undefined, startDate?: string, endDate?: string): Promise<SalesLedger> => {
     try {
       const params: any = {};
       if (startDate) params.start_date = startDate;
       if (endDate) params.end_date = endDate;
-      const response = await api.get<SalesLedger>(`/financial-reports/subsidiary-ledger/sales/${customerId}`, { params });
+      if (customerId) params.customer_id = customerId;
+      const response = await api.get<SalesLedger>(`/financial-reports/subsidiary-ledger/sales`, { params });
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch Sales Ledger'));
@@ -1726,8 +1736,8 @@ export const ledgerApi = {
 
   getInventoryLedger: async (itemId: number, startDate: string, endDate: string): Promise<InventoryLedger> => {
     try {
-      const response = await api.get<InventoryLedger>(`/financial-reports/subsidiary-ledger/inventory/${itemId}`, {
-        params: { start_date: startDate, end_date: endDate },
+      const response = await api.get<InventoryLedger>(`/financial-reports/subsidiary-ledger/inventory`, {
+        params: { start_date: startDate, end_date: endDate, item_id: itemId },
       });
       return response.data;
     } catch (error) {

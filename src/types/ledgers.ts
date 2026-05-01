@@ -51,6 +51,8 @@ export interface PurchaseLedgerEntry {
 export interface PurchaseLedger {
     title: string;
     vendor_id: number;
+    vendor_name?: string;
+    total_records?: number;
     entries: PurchaseLedgerEntry[];
 }
 
@@ -76,6 +78,8 @@ export interface SalesLedger {
     title: string;
     customer_id: number;
     entries: SalesLedgerEntry[];
+    customer_name?: string;
+    total_records?: number;
 }
 
 export interface InventoryLedgerEntry {

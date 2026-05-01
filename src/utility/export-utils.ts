@@ -28,14 +28,14 @@ export const exportTableToExcel = async (
     // Add header rows from <thead>
     const headerRows = Array.from(table.tHead?.rows || []);
     headerRows.forEach(headerRow => {
-      const row = worksheet.addRow(Array.from(headerRow.cells).map(cell => cell.innerText));
+      const row = worksheet.addRow(Array.from(headerRow.cells).filter(cell => !cell.classList.contains('no-export')).map(cell => cell.innerText));
       row.font = { bold: true };
     });
 
     // Add body rows from <tbody>
     const bodyRows = Array.from(table.tBodies[0]?.rows || []);
     bodyRows.forEach(bodyRow => {
-        worksheet.addRow(Array.from(bodyRow.cells).map(cell => {
+        worksheet.addRow(Array.from(bodyRow.cells).filter(cell => !cell.classList.contains('no-export')).map(cell => {
             const text = cell.innerText;
             // Attempt to convert to number if it looks like one
             if (text && !isNaN(Number(text))) {

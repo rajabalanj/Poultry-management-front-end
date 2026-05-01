@@ -26,6 +26,7 @@ const Configurations: React.FC = () => {
   const [initialJumboOpening, setInitialJumboOpening] = useState<number | ''>(0);
   const [initialGradeCOpening, setInitialGradeCOpening] = useState<number | ''>(0);
   const [eggRoomSaving, setEggRoomSaving] = useState(false); // To manage loading state for egg room setup
+  const [fetchingBalances, setFetchingBalances] = useState(false);
 
   const originalEggRoomStartDate = useRef<string>('');
   const originalTableOpening = useRef<number>(0);
@@ -153,38 +154,34 @@ const Configurations: React.FC = () => {
     // eslint-disable-next-line
   }, []);
 
-  useEffect(() => {
-  const fetchPreviousDayReport = async () => {
-    if (!eggRoomStartDate) return;
+  const handleFetchBalances = async () => {
+    if (!eggRoomStartDate) {
+      toast.error("Please select an Egg Room Start Date first.");
+      return;
+    }
 
     const startDate = new Date(eggRoomStartDate);
     if (isNaN(startDate.getTime())) return;
 
+    setFetchingBalances(true);
     const reportDate = format(new Date(eggRoomStartDate), 'yyyy-MM-dd');
-
 
     try {
       const report = await eggRoomReportApi.getReport(reportDate);
-      // These are assumed keys from EggRoomSingleReportResponse
       setInitialTableOpening(report.table_opening || 0);
       setInitialJumboOpening(report.jumbo_opening || 0);
       setInitialGradeCOpening(report.grade_c_opening || 0);
       originalTableOpening.current = report.table_opening || 0;
       originalJumboOpening.current = report.jumbo_opening || 0;
       originalGradeCOpening.current = report.grade_c_opening || 0;
+      toast.success("Opening balances fetched successfully.");
     } catch (error) {
       console.warn("No previous report found for Egg Room start date:", error);
-      setInitialTableOpening(0);
-      setInitialJumboOpening(0);
-      setInitialGradeCOpening(0);
-      originalTableOpening.current = 0;
-      originalJumboOpening.current = 0;
-      originalGradeCOpening.current = 0;
+      toast.info("No previous balances found for the selected date.");
+    } finally {
+      setFetchingBalances(false);
     }
   };
-
-  fetchPreviousDayReport();
-}, [eggRoomStartDate]);
 
 
   // Function to handle the Egg Room initial setup
@@ -786,15 +783,25 @@ return (
                   Egg Room Start Date
                 </label>
                 <div className="col-sm-8">
-                  <CustomDatePicker
-                    className="form-control"
-                    id="eggRoomStartDate"
-                    selected={eggRoomStartDate ? new Date(eggRoomStartDate) : null}
-                    onChange={(date: Date | null) => date && setEggRoomStartDate(toYYYYMMDD(date))}
-                    disabled={eggRoomSaving}
-                    showMonthDropdown
-                    showYearDropdown
-                  />
+                  <div className="d-flex gap-2">
+                    <CustomDatePicker
+                      className="form-control"
+                      id="eggRoomStartDate"
+                      selected={eggRoomStartDate ? new Date(eggRoomStartDate) : null}
+                      onChange={(date: Date | null) => date && setEggRoomStartDate(toYYYYMMDD(date))}
+                      disabled={eggRoomSaving || fetchingBalances}
+                      showMonthDropdown
+                      showYearDropdown
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-secondary text-nowrap"
+                      onClick={handleFetchBalances}
+                      disabled={eggRoomSaving || fetchingBalances || !eggRoomStartDate}
+                    >
+                      {fetchingBalances ? "Fetching..." : "Fetch Balances"}
+                    </button>
+                  </div>
                 </div>
               </div>
               <div className="form-group row mb-3">

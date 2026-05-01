@@ -1,5 +1,5 @@
 // src/Components/InventoryItem/InventoryItemResponsive.tsx
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useRef } from "react";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import PageHeader from "../Layout/PageHeader";
 import { Modal, Button, Table, Badge } from "react-bootstrap";
@@ -13,6 +13,7 @@ import InventoryItemCard from "./InventoryItemCard";
 import StyledSelect from "../Common/StyledSelect";
 import CustomDatePicker from "../Common/CustomDatePicker";
 import UseInventoryItemModal from "./UseInventoryItemModal";
+import { toPng } from 'html-to-image';
 
 const InventoryItemResponsive: React.FC = () => {
   const navigate = useNavigate();
@@ -33,6 +34,8 @@ const InventoryItemResponsive: React.FC = () => {
   const [loadingStock, setLoadingStock] = useState(false);
   const [showUseModal, setShowUseModal] = useState(false);
   const [itemToUse, setItemToUse] = useState<InventoryItemResponse | null>(null);
+  const [isSharing, setIsSharing] = useState(false);
+  const tableRef = useRef<HTMLDivElement>(null);
 
   const isMobile = useMediaQuery({ maxWidth: 768 });
 
@@ -108,9 +111,83 @@ const InventoryItemResponsive: React.FC = () => {
     setDeleteErrorMessage(null);
   };
 
-  const handleExport = () => {
-    const fileName = `inventory-report-${new Date().toISOString().split('T')[0]}`;
-    exportTableToExcel('inventory-items-table', fileName, 'Inventory Items Report');
+  const handleExport = () => { const dateStr = selectedDate ? `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}` : new Date().toISOString().split('T')[0]; const fileName = `inventory-items-report-${filterCategory || 'all'}-${dateStr}`; exportTableToExcel('inventory-items-table', fileName, 'Inventory Items Report'); };
+
+  const handleShare = async () => {
+    if (!tableRef.current) {
+      toast.error("Table element not found.");
+      return;
+    }
+
+    if (!navigator.share) {
+      toast.error("Web Share API is not supported in your browser.");
+      return;
+    }
+
+    const tableNode = tableRef.current;
+    
+    // Check if it's hidden inside d-none (mobile view)
+    const hiddenParent = tableNode.closest('.d-none');
+    if (hiddenParent) {
+      hiddenParent.classList.remove('d-none');
+    }
+
+    setIsSharing(true);
+
+    const originalTableStyle = {
+      width: tableNode.style.width,
+      minWidth: tableNode.style.minWidth,
+      whiteSpace: tableNode.style.whiteSpace,
+    };
+
+    try {
+      tableNode.style.width = 'auto';
+      tableNode.style.minWidth = '1200px';
+      tableNode.style.whiteSpace = 'nowrap';
+
+      // Temporarily hide 'no-export' elements for the screenshot
+      const noExportElements = tableNode.querySelectorAll('.no-export');
+      noExportElements.forEach((el) => {
+        (el as HTMLElement).style.display = 'none';
+      });
+
+      const dataUrl = await toPng(tableNode, {
+        backgroundColor: '#ffffff',
+      });
+      
+      // Restore 'no-export' elements
+      noExportElements.forEach((el) => {
+        (el as HTMLElement).style.display = '';
+      });
+
+      const blob = await (await fetch(dataUrl)).blob();
+      const dateStr = selectedDate ? `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}` : new Date().toISOString().split('T')[0];
+      const file = new File([blob], `inventory-items-report-${filterCategory || 'all'}-${dateStr}.png`, { type: 'image/png' });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title: 'Inventory Items Report',
+          text: `Inventory Items Report as of ${dateStr}.`,
+          files: [file],
+        });
+        toast.success("Report shared successfully!");
+      } else {
+        toast.error("Sharing files is not supported on this device.");
+      }
+    } catch (error: any) {
+      if (error.name !== 'AbortError') {
+        console.error('Sharing failed', error);
+        toast.error(`Failed to share report: ${error.message}`);
+      }
+    } finally {
+      tableNode.style.width = originalTableStyle.width;
+      tableNode.style.minWidth = originalTableStyle.minWidth;
+      tableNode.style.whiteSpace = originalTableStyle.whiteSpace;
+      if (hiddenParent) {
+        hiddenParent.classList.add('d-none');
+      }
+      setIsSharing(false);
+    }
   };
 
   const handleDateChange = async (date: Date | null) => {
@@ -151,67 +228,69 @@ const InventoryItemResponsive: React.FC = () => {
   };
 
   const renderInventoryTable = (id?: string) => (
-    <Table id={id} striped bordered hover responsive className="table-hover shadow-sm">
-      <thead className="table-primary">
-        <tr>
-          <th className="fw-bold">Name</th>
-          <th className="fw-bold">Category</th>
-          <th className="fw-bold">{selectedDate ? (() => {
-            // Format as YYYY-MM-DD using local timezone to avoid date shift
-            const year = selectedDate.getFullYear();
-            const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
-            const day = String(selectedDate.getDate()).padStart(2, '0');
-            return `Stock as of ${year}-${month}-${day}`;
-          })() : 'Current Stock'}</th>
-          <th className="fw-bold">Reorder Level</th>
-          <th className="fw-bold">Status</th>
-          <th className="fw-bold">Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        {inventoryItems.map((item) => (
-          <tr 
-            key={item.id} 
-            onClick={() => navigate(`/inventory-items/${item.id}/details`)}
-            style={{ cursor: 'pointer' }}
-          >
-            <td>{item.name}</td>
-            <td>{item.category}</td>
-            <td>
-              {(() => {
-                const stockInfo = stockData[item.id] || { stock: item.current_stock?.toString() || '0', unit: item.unit };
-                const displayStock = selectedDate ? stockInfo.stock : item.current_stock;
-                return loadingStock ? (
-                  <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                ) : (
-                  <span className="d-flex align-items-center gap-2">
-                    <span className="fw-semibold">{displayStock}</span>
-                    <Badge bg="light" text="dark" className="border">{stockInfo.unit}</Badge>
-                  </span>
-                );
-              })()}
-            </td>
-            <td>{item.reorder_level || 'N/A'}</td>
-            <td>{getStockStatus(item)}</td>
-            <td>
-              {item.category.toString() !== 'Supplies' && (
-                <Button 
-                  variant="outline-primary" 
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setItemToUse(item);
-                    setShowUseModal(true);
-                  }}
-                >
-                  Use
-                </Button>
-              )}
-            </td>
+    <div ref={tableRef} className="table-responsive">
+      <Table id={id} striped bordered hover responsive className="table-hover shadow-sm">
+        <thead className="table-primary">
+          <tr>
+            <th className="fw-bold">Name</th>
+            <th className="fw-bold">Category</th>
+            <th className="fw-bold">{selectedDate ? (() => {
+              // Format as YYYY-MM-DD using local timezone to avoid date shift
+              const year = selectedDate.getFullYear();
+              const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+              const day = String(selectedDate.getDate()).padStart(2, '0');
+              return `Stock as of ${year}-${month}-${day}`;
+            })() : 'Current Stock'}</th>
+            <th className="fw-bold">Reorder Level</th>
+            <th className="fw-bold">Status</th>
+            <th className="fw-bold no-export">Action</th>
           </tr>
-        ))}
-      </tbody>
-    </Table>
+        </thead>
+        <tbody>
+          {inventoryItems.map((item) => (
+            <tr 
+              key={item.id} 
+            onClick={() => navigate(`/inventory-items/${item.id}/details`)}
+              style={{ cursor: 'pointer' }}
+            >
+              <td>{item.name}</td>
+              <td>{item.category}</td>
+              <td>
+                {(() => {
+                  const stockInfo = stockData[item.id] || { stock: item.current_stock?.toString() || '0', unit: item.unit };
+                  const displayStock = selectedDate ? stockInfo.stock : item.current_stock;
+                  return loadingStock ? (
+                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                  ) : (
+                    <span className="d-flex align-items-center gap-2">
+                      <span className="fw-semibold">{displayStock}</span>
+                      <Badge bg="light" text="dark" className="border">{stockInfo.unit}</Badge>
+                    </span>
+                  );
+                })()}
+              </td>
+              <td>{item.reorder_level || 'N/A'}</td>
+              <td>{getStockStatus(item)}</td>
+              <td className="no-export">
+                {item.category.toString() !== 'Supplies' && (
+                  <Button 
+                    variant="outline-primary" 
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setItemToUse(item);
+                      setShowUseModal(true);
+                    }}
+                  >
+                    Use
+                  </Button>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+    </div>
   );
 
   const groupedItems = inventoryItems.reduce((acc, item) => {
@@ -292,15 +371,24 @@ const InventoryItemResponsive: React.FC = () => {
                   popperPlacement="bottom"
                 />
               </div>
-              <Button
-                variant="success"
-                onClick={handleExport}
-                disabled={loading || inventoryItems.length === 0}
-                className="ms-auto"
-              >
-                <i className="bi bi-file-earmark-excel me-2"></i>
-                Export
-              </Button>
+              <div className="ms-auto d-flex gap-2">
+                <Button
+                  variant="secondary"
+                  onClick={handleShare}
+                  disabled={isSharing || inventoryItems.length === 0}
+                >
+                  <i className="bi bi-share me-2"></i>
+                  {isSharing ? 'Generating...' : 'Share'}
+                </Button>
+                <Button
+                  variant="success"
+                  onClick={handleExport}
+                  disabled={loading || inventoryItems.length === 0}
+                >
+                  <i className="bi bi-file-earmark-excel me-2"></i>
+                  Export
+                </Button>
+              </div>
             </div>
             {loadingStock && <div className="alert alert-info"><i className="bi bi-hourglass-split me-2"></i>Fetching stock data for selected date...</div>}
 
@@ -314,6 +402,10 @@ const InventoryItemResponsive: React.FC = () => {
                     onView={(id) => navigate(`/inventory-items/${id}/details`)}
                     onEdit={(id) => navigate(`/inventory-items/${id}/edit`)}
                     onDelete={handleDelete}
+                    onUse={(item) => {
+                      setItemToUse(item);
+                      setShowUseModal(true);
+                    }}
                     thresholds={thresholds}
                     stockData={stockData}
                     selectedDate={selectedDate}
@@ -405,14 +497,23 @@ const InventoryItemResponsive: React.FC = () => {
                 popperPlacement={isMobile ? "bottom" : "bottom-start"}
               />
             </div>
-            <Button
-              variant="success"
-              onClick={handleExport}
-              disabled={loading || inventoryItems.length === 0}
-              className="ms-md-auto"
-            >
-              <i className="bi bi-file-earmark-excel me-2"></i>Export to Excel
-            </Button>
+            <div className="ms-md-auto d-flex gap-2">
+              <Button
+                variant="secondary"
+                onClick={handleShare}
+                disabled={isSharing || inventoryItems.length === 0}
+              >
+                <i className="bi bi-share me-2"></i>
+                {isSharing ? 'Generating...' : 'Share as Image'}
+              </Button>
+              <Button
+                variant="success"
+                onClick={handleExport}
+                disabled={loading || inventoryItems.length === 0}
+              >
+                <i className="bi bi-file-earmark-excel me-2"></i>Export to Excel
+              </Button>
+            </div>
           </div>
 
           {loading && <div className="text-center py-4"><div className="spinner-border" role="status"><span className="visually-hidden">Loading...</span></div></div>}
