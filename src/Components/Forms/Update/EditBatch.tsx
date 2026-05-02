@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿﻿import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { dailyBatchApi, compositionApi, inventoryItemApi } from "../../../services/api";
 import { DailyBatch } from "../../../types/daily_batch";
@@ -11,6 +11,7 @@ import { useEscapeKey } from '../../../hooks/useEscapeKey';
 import CustomDatePicker from "../../Common/CustomDatePicker";
 import StyledSelect from "../../Common/StyledSelect";
 import { InventoryItemUsageResponse } from "../../../types/InventoryItemUsage";
+import { InventoryItemResponse } from "../../../types/InventoryItem";
 
 interface UsageHistoryItem {
   id: number;
@@ -28,7 +29,11 @@ const EditBatch: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [batch_type, setBatchType] = useState<string>(); // Default to 'layer'
   const [compositions, setCompositions] = useState<CompositionResponse[]>([]);
+  const [inventoryItems, setInventoryItems] = useState<InventoryItemResponse[]>([]);
   const [selectedCompositionId, setSelectedCompositionId] = useState<number | null>(null);
+  const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
+  const [selectedItemUnit, setSelectedItemUnit] = useState<string>("");
+  const [itemQuantityToUse, setItemQuantityToUse] = useState<number | "">("");
   const [timesToUse, setTimesToUse] = useState(1);
   const [usageHistory, setUsageHistory] = useState<UsageHistoryItem[]>([]);
   const [itemUsageHistory, setItemUsageHistory] = useState<InventoryItemUsageResponse[]>([]);
@@ -74,12 +79,73 @@ const EditBatch: React.FC = () => {
     compositionApi.getCompositions().then((comps) => {
       setCompositions(comps);
     });
+    inventoryItemApi.getInventoryItems(0, 100).then((res) => {
+      setInventoryItems(res.filter((item) => item.category.toString() !== "Supplies"));
+    }).catch(err => console.warn("Inventory items fetch failed:", err));
   }, []);
 
   const handleDateChange = (newDate: Date | null) => {
     if (batchId && newDate) {
       const formattedDate = newDate.toISOString().split('T')[0];
       navigate(`/batch/${batchId}/${formattedDate}/edit`);
+    }
+  };
+
+  const handleUseComposition = async () => {
+    if (!batch || !selectedCompositionId) return;
+    const selectedComposition = compositions.find(c => c.id === selectedCompositionId);
+    if (!selectedComposition) return;
+
+    try {
+      const usedAtDate = batch.batch_date.split('T')[0];
+      const usedAt = `${usedAtDate}T00:00:00`;
+      await compositionApi.useComposition({
+        compositionId: selectedComposition.id,
+        times: timesToUse,
+        usedAt,
+        batch_no: batch.batch_no,
+      });
+      toast.success("Composition used successfully");
+      
+      if (batchId && batch_date) {
+        const history = await compositionApi.getFilteredCompositionUsageHistory(batch_date, Number(batchId));
+        setUsageHistory(history);
+      }
+      
+      setSelectedCompositionId(null);
+      setTimesToUse(1);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to use composition");
+    }
+  };
+
+  const handleUseItem = async () => {
+    if (!batch || !selectedItemId || !itemQuantityToUse) return;
+    const selectedItem = inventoryItems.find(i => i.id === selectedItemId);
+    if (!selectedItem) return;
+
+    try {
+      const usedAtDate = batch.batch_date.split('T')[0];
+      const usedAt = `${usedAtDate}T00:00:00`;
+      await inventoryItemApi.useInventoryItem({
+        inventory_item_id: selectedItem.id,
+        batch_no: batch.batch_no,
+        used_quantity: Number(itemQuantityToUse),
+        usedAt,
+        unit: (selectedItemUnit || selectedItem.unit) as any,
+      });
+      toast.success("Inventory item used successfully");
+      
+      if (batchId && batch_date) {
+        const history = await inventoryItemApi.getFilteredInventoryUsageHistory(batch_date, Number(batchId));
+        setItemUsageHistory(history);
+      }
+      
+      setSelectedItemId(null);
+      setItemQuantityToUse("");
+      setSelectedItemUnit("");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to use inventory item");
     }
   };
 
@@ -97,8 +163,9 @@ const EditBatch: React.FC = () => {
       (batch.notes || "") !== (initialBatch.notes || "");
 
     const hasFeedUsage = !!selectedCompositionId;
+    const hasItemUsage = !!selectedItemId && !!itemQuantityToUse;
 
-    if (!hasBatchChanges && !hasFeedUsage) {
+    if (!hasBatchChanges && !hasFeedUsage && !hasItemUsage) {
       toast.info("No changes to update.");
       return;
     }
@@ -130,6 +197,21 @@ const EditBatch: React.FC = () => {
             times: timesToUse,
             usedAt,
             batch_no: batch.batch_no,
+          }));
+        }
+      }
+
+      if (hasItemUsage) {
+        const selectedItem = inventoryItems.find(i => i.id === selectedItemId);
+        if (selectedItem) {
+          const usedAtDate = batch.batch_date.split('T')[0];
+          const usedAt = `${usedAtDate}T00:00:00`;
+          promises.push(inventoryItemApi.useInventoryItem({
+            inventory_item_id: selectedItem.id,
+            batch_no: batch.batch_no,
+            used_quantity: Number(itemQuantityToUse),
+            usedAt,
+            unit: (selectedItemUnit || selectedItem.unit) as any,
           }));
         }
       }
@@ -298,39 +380,17 @@ const EditBatch: React.FC = () => {
                     </div>
                   </div>
                 )}
-
-                {/* Notes Section */}
-                <div className="col-12">
-                  <div className="card shadow-sm mb-4">
-                    <div className="card-header bg-primary text-white">
-                      <h5 className="mb-0">Notes</h5>
-                    </div>
-                    <div className="card-body">
-                      <textarea
-                        className="form-control"
-                        value={batch.notes || ""}
-                        placeholder="Optional daily notes, details, or observations..."
-                        onChange={(e) =>
-                          setBatch((prev) =>
-                            prev ? { ...prev, notes: e.target.value } : null,
-                          )
-                        }
-                        rows={3}
-                      />
-                    </div>
-                  </div>
-                </div>
               </div>
               
               {/* Update Feed Section moved inside form */}
               <div className="card shadow-sm mb-4">
                 <div className="card-header bg-primary text-white">
-                  <h5 className="mb-0">Update Feed</h5>
+                  <h5 className="mb-0">Update Feed & Items</h5>
                 </div>
                 <div className="card-body">
                   <div className="row">
                     <div className="col-md-6">
-                      <div className="mb-3">
+                                            <div className="mb-3">
                         <label htmlFor="compositionSelect" className="form-label">
                           Select Composition:
                         </label>
@@ -338,50 +398,104 @@ const EditBatch: React.FC = () => {
                           id="compositionSelect"
                           value={
                             selectedCompositionId
-                              ? compositions.find(
-                                  (c) => c.id === selectedCompositionId,
-                                )
+                              ? compositions.find((c) => c.id === selectedCompositionId)
                                 ? {
                                     value: selectedCompositionId,
-                                    label:
-                                      compositions.find(
-                                        (c) => c.id === selectedCompositionId,
-                                      )?.name || "",
+                                    label: compositions.find((c) => c.id === selectedCompositionId)?.name || "",
                                   }
                                 : null
                               : null
                           }
-                          onChange={(option) =>
-                            setSelectedCompositionId(
-                              option ? Number(option.value) : null,
-                            )
-                          }
-                          options={compositions.map((c) => ({
-                            value: c.id,
-                            label: c.name,
-                          }))}
+                          onChange={(option) => setSelectedCompositionId(option ? Number(option.value) : null)}
+                          options={compositions.map((c) => ({ value: c.id, label: c.name }))}
                           placeholder="Select a Composition"
                           isClearable
                         />
                       </div>
-                      <div className="d-flex align-items-center gap-2 mb-3">
+                      <div className="d-flex align-items-center gap-2 mb-4">
                         <span>Times:</span>
-                        <button
-                          type="button"
-                          className="btn btn-danger btn-sm"
-                          onClick={() =>
-                            setTimesToUse((prev) => Math.max(1, prev - 1))
-                          }
-                        >
+                        <button type="button" className="btn btn-danger btn-sm" onClick={() => setTimesToUse((prev) => Math.max(1, prev - 1))}>
                           -
                         </button>
                         <span>{timesToUse}</span>
+                        <button type="button" className="btn btn-success btn-sm" onClick={() => setTimesToUse((prev) => prev + 1)}>
+                          +
+                        </button>
                         <button
                           type="button"
-                          className="btn btn-success btn-sm"
-                          onClick={() => setTimesToUse((prev) => prev + 1)}
+                          className="btn btn-outline-primary btn-sm ms-auto"
+                          onClick={handleUseComposition}
+                          disabled={!selectedCompositionId}
                         >
-                          +
+                          Use
+                        </button>
+                      </div>
+
+                      <hr />
+                      
+                      <div className="mb-3 mt-3">
+                        <label htmlFor="itemSelect" className="form-label">
+                          Select Inventory Item:
+                        </label>
+                        <StyledSelect
+                          id="itemSelect"
+                          value={
+                            selectedItemId
+                              ? inventoryItems.find((i) => i.id === selectedItemId)
+                                ? {
+                                    value: selectedItemId,
+                                    label: `${inventoryItems.find((i) => i.id === selectedItemId)?.name} (${inventoryItems.find((i) => i.id === selectedItemId)?.unit})`,
+                                  }
+                                : null
+                              : null
+                          }
+                          onChange={(option) => {
+                            const id = option ? Number(option.value) : null;
+                            setSelectedItemId(id);
+                            if (id) {
+                              setSelectedItemUnit(inventoryItems.find((i) => i.id === id)?.unit || "");
+                            } else {
+                              setSelectedItemUnit("");
+                            }
+                          }}
+                          options={inventoryItems.map((i) => ({ value: i.id, label: `${i.name} (${i.unit})` }))}
+                          placeholder="Select an Item"
+                          isClearable
+                        />
+                      </div>
+                      <div className="d-flex align-items-center gap-2 mb-4">
+                        <input
+                          type="number"
+                          className="form-control"
+                          placeholder="Quantity"
+                          value={itemQuantityToUse}
+                          onChange={(e) => setItemQuantityToUse(e.target.value ? Number(e.target.value) : "")}
+                          min="0"
+                          step="any"
+                        />
+                        <div style={{ minWidth: '100px' }}>
+                          <StyledSelect
+                            value={
+                              selectedItemUnit
+                                ? { value: selectedItemUnit, label: selectedItemUnit }
+                                : null
+                            }
+                            onChange={(option) => setSelectedItemUnit(option ? String(option.value) : "")}
+                            options={[
+                              { value: "gram", label: "gram" },
+                              { value: "kg", label: "kg" },
+                              { value: "ton", label: "ton" },
+                            ]}
+                            isClearable={false}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          className="btn btn-outline-primary ms-auto text-nowrap"
+                          onClick={handleUseItem}
+                          disabled={!selectedItemId || !itemQuantityToUse}
+                        >
+                          Use Item
                         </button>
                       </div>
                     </div>
@@ -459,6 +573,30 @@ const EditBatch: React.FC = () => {
                           </div>
                         </div>
                       )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Notes Section */}
+              <div className="row">
+                <div className="col-12">
+                  <div className="card shadow-sm mb-4">
+                    <div className="card-header bg-primary text-white">
+                      <h5 className="mb-0">Notes</h5>
+                    </div>
+                    <div className="card-body">
+                      <textarea
+                        className="form-control"
+                        value={batch.notes || ""}
+                        placeholder="Optional daily notes, details, or observations..."
+                        onChange={(e) =>
+                          setBatch((prev) =>
+                            prev ? { ...prev, notes: e.target.value } : null,
+                          )
+                        }
+                        rows={3}
+                      />
                     </div>
                   </div>
                 </div>

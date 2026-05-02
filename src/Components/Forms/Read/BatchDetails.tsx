@@ -33,7 +33,7 @@ const BatchDetails: React.FC = () => {
   const [reportType, setReportType] = useState('daily'); // 'daily' or 'weekly'
   const [week, setWeek] = useState('');
   const [usageHistory, setUsageHistory] = useState<UsageHistoryItem[]>([]);
-  const [itemUsageHistory, _setItemUsageHistory] = useState<InventoryItemUsageResponse[]>([]);
+  const [itemUsageHistory, setItemUsageHistory] = useState<InventoryItemUsageResponse[]>([]);
   const [henDayDeviation, setHenDayDeviation] = useState(0);
   const [inventoryUsage, setInventoryUsage] = useState<InventoryUsageSummary | null>(null);
   const [inventoryLoading, setInventoryLoading] = useState(false);
@@ -105,7 +105,7 @@ const BatchDetails: React.FC = () => {
         const formattedDate = new Date(batch_date).toISOString().split('T')[0];
 
         // These can run in parallel
-        const [batches, history, feedUsageData, inventoryUsageData] = await Promise.all([
+        const [batches, history, feedUsageData, inventoryUsageData, itemHistory] = await Promise.all([
           dailyBatchApi.getDailyBatches(formattedDate),
           compositionApi.getFilteredCompositionUsageHistory(
             formattedDate,
@@ -119,10 +119,13 @@ const BatchDetails: React.FC = () => {
             .catch(err => {
               console.warn("Inventory item usage not found/available:", err);
               return { total_used: 0, breakdown: [] };
-            })
+            }),
+          inventoryItemApi.getFilteredInventoryUsageHistory(formattedDate, Number(batch_id))
+            .catch(err => { console.warn("Inventory history failed:", err); return []; })
         ]);
 
         setUsageHistory(history);
+        setItemUsageHistory(itemHistory);
         setFeedUsage(feedUsageData || null);
         setInventoryUsage(inventoryUsageData);
 

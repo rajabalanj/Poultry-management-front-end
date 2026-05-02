@@ -6,6 +6,7 @@ interface InventoryItemCardProps {
   onView: (id: number) => void;
   onEdit: (id: number) => void;
   onDelete: (id: number) => void;
+  onUse?: (item: InventoryItemResponse) => void;
   thresholds: {
     lowKgThreshold: number;
     medicineLowKgThreshold: number;
@@ -15,7 +16,7 @@ interface InventoryItemCardProps {
 }
 
 const InventoryItemCard: React.FC<InventoryItemCardProps> = React.memo(
-  ({ item, onView, thresholds, stockData, selectedDate }) => {
+  ({ item, onView, onUse, thresholds, stockData, selectedDate }) => {
     // Get the stock to display - either from stockData (if a date is selected) or from item.current_stock
     const stockInfo = stockData && selectedDate ? stockData[item.id] : null;
     const displayStock = stockInfo ? stockInfo.stock : item.current_stock;
@@ -58,7 +59,19 @@ const InventoryItemCard: React.FC<InventoryItemCardProps> = React.memo(
                 <p className="mb-0">Quantity: {displayStock}</p>
               </div>
             </div>
-
+            {onUse && item.category.toString() !== 'Supplies' && (
+              <div>
+                <button
+                  className="btn btn-outline-primary btn-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onUse(item);
+                  }}
+                >
+                  Use
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
