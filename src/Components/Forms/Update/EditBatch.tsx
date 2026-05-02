@@ -162,61 +162,24 @@ const EditBatch: React.FC = () => {
       batch.cr !== initialBatch.cr ||
       (batch.notes || "") !== (initialBatch.notes || "");
 
-    const hasFeedUsage = !!selectedCompositionId;
-    const hasItemUsage = !!selectedItemId && !!itemQuantityToUse;
-
-    if (!hasBatchChanges && !hasFeedUsage && !hasItemUsage) {
+    if (!hasBatchChanges) {
       toast.info("No changes to update.");
       return;
     }
 
     try {
-      const promises: Promise<any>[] = [];
-
-      if (hasBatchChanges) {
-        const payload: Partial<DailyBatch> = {
-          mortality: batch.mortality,
-          culls: batch.culls,
-          table_eggs: batch.table_eggs,
-          jumbo: batch.jumbo,
-          cr: batch.cr,
-          notes: batch.notes || "",
-          standard_hen_day_percentage: batch.standard_hen_day_percentage ?? 0,
-          birds_added: batch.birds_added,
-        };
-        promises.push(dailyBatchApi.updateDailyBatch(Number(batchId), batch_date, payload));
-      }
-
-      if (hasFeedUsage) {
-        const selectedComposition = compositions.find(c => c.id === selectedCompositionId);
-        if (selectedComposition) {
-          const usedAtDate = batch.batch_date.split('T')[0];
-          const usedAt = `${usedAtDate}T00:00:00`;
-          promises.push(compositionApi.useComposition({
-            compositionId: selectedComposition.id,
-            times: timesToUse,
-            usedAt,
-            batch_no: batch.batch_no,
-          }));
-        }
-      }
-
-      if (hasItemUsage) {
-        const selectedItem = inventoryItems.find(i => i.id === selectedItemId);
-        if (selectedItem) {
-          const usedAtDate = batch.batch_date.split('T')[0];
-          const usedAt = `${usedAtDate}T00:00:00`;
-          promises.push(inventoryItemApi.useInventoryItem({
-            inventory_item_id: selectedItem.id,
-            batch_no: batch.batch_no,
-            used_quantity: Number(itemQuantityToUse),
-            usedAt,
-            unit: (selectedItemUnit || selectedItem.unit) as any,
-          }));
-        }
-      }
-
-      await Promise.all(promises);
+      const payload: Partial<DailyBatch> = {
+        mortality: batch.mortality,
+        culls: batch.culls,
+        table_eggs: batch.table_eggs,
+        jumbo: batch.jumbo,
+        cr: batch.cr,
+        notes: batch.notes || "",
+        standard_hen_day_percentage: batch.standard_hen_day_percentage ?? 0,
+        birds_added: batch.birds_added,
+      };
+      
+      await dailyBatchApi.updateDailyBatch(Number(batchId), batch_date, payload);
       toast.success("Updated successfully");
       navigate(-1);
     } catch (err) {
@@ -382,10 +345,48 @@ const EditBatch: React.FC = () => {
                 )}
               </div>
               
-              {/* Update Feed Section moved inside form */}
+              {/* Notes Section (Moved Up to keep batch details grouped together) */}
+              <div className="row">
+                <div className="col-12">
+                  <div className="card shadow-sm mb-4">
+                    <div className="card-header bg-primary text-white">
+                      <h5 className="mb-0">Notes</h5>
+                    </div>
+                    <div className="card-body">
+                      <textarea
+                        className="form-control"
+                        value={batch.notes || ""}
+                        placeholder="Optional daily notes, details, or observations..."
+                        onChange={(e) =>
+                          setBatch((prev) =>
+                            prev ? { ...prev, notes: e.target.value } : null,
+                          )
+                        }
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-3 mb-5 d-flex justify-content-center">
+                <button type="submit" className="btn btn-primary me-2">
+                  Save Batch Details
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => navigate(-1)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+
+            {/* Standalone Update Feed & Items Section */}
               <div className="card shadow-sm mb-4">
                 <div className="card-header bg-primary text-white">
-                  <h5 className="mb-0">Update Feed & Items</h5>
+                  <h5 className="mb-0">Record Feed & Items Usage</h5>
                 </div>
                 <div className="card-body">
                   <div className="row">
@@ -577,44 +578,6 @@ const EditBatch: React.FC = () => {
                   </div>
                 </div>
               </div>
-
-              {/* Notes Section */}
-              <div className="row">
-                <div className="col-12">
-                  <div className="card shadow-sm mb-4">
-                    <div className="card-header bg-primary text-white">
-                      <h5 className="mb-0">Notes</h5>
-                    </div>
-                    <div className="card-body">
-                      <textarea
-                        className="form-control"
-                        value={batch.notes || ""}
-                        placeholder="Optional daily notes, details, or observations..."
-                        onChange={(e) =>
-                          setBatch((prev) =>
-                            prev ? { ...prev, notes: e.target.value } : null,
-                          )
-                        }
-                        rows={3}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-3 d-flex justify-content-center">
-                <button type="submit" className="btn btn-primary me-2">
-                  Save Changes
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => navigate(-1)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       </div>
