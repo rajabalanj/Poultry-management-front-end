@@ -6,7 +6,7 @@ import Loading from '../Common/Loading'; // Import Loading component
 export interface HeaderCardData {
   title: string;
   mainValue: number;
-  icon: string;
+  icon: React.ElementType;
   iconColor?: string;
   // subValue can be a number (secondary numeric value) or a string (extra info like a list)
   subValues?: { label: string; value: number; subValue?: number | string }[]; // Ensure subValue is included

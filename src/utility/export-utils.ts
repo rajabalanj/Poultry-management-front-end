@@ -1,6 +1,5 @@
 // src/utility/export-utils.ts
 import { toast } from 'react-toastify';
-import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
 /**
@@ -22,6 +21,8 @@ export const exportTableToExcel = async (
   }
 
   try {
+    // Dynamically import exceljs only when this function is executed
+    const ExcelJS = (await import('exceljs')).default;
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet(sheetName);
 

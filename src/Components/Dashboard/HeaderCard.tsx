@@ -1,6 +1,5 @@
 import React from 'react';
 import { Button } from 'react-bootstrap';
-import * as Icons from 'lucide-react';
 
 interface SubValue {
   label: string;
@@ -13,7 +12,7 @@ interface HeaderCardProps {
   title: string;
   mainValue: number;
   subValues?: SubValue[];
-  icon?: string;
+  icon?: React.ElementType;
   onViewDetails?: (title: string, items: string[]) => void; // New prop for modal
 }
 
@@ -41,7 +40,7 @@ const HeaderCard: React.FC<HeaderCardProps> = ({ title, mainValue, subValues, ic
         <div className="mb-2">
           <div className="d-flex align-items-center mb-2">
             {icon && (() => {
-              const IconComponent = (Icons as any)[icon] || Icons.Circle;
+              const IconComponent = icon;
               return (
                 <div className="me-2 d-flex align-items-center justify-content-center rounded-3 bg-primary-subtle p-2">
                   <IconComponent className="text-primary" size={20} />

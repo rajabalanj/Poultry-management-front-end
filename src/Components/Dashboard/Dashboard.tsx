@@ -5,7 +5,7 @@ import { DailyBatch } from '../../types/daily_batch';
 import { InventoryUsageSummary } from '../../types/InventoryUsageSummary';
 import CustomDatePicker from '../Common/CustomDatePicker';
 import Loading from '../Common/Loading';
-import * as Icons from 'lucide-react';
+import { Bird, Egg, Package, Percent, HelpCircle } from 'lucide-react';
 import EggProductionGraph from './EggProductionGraph';
 import EggProductionCostGraph from './EggProductionCostGraph';
 import CompositionUsagePieChart from './CompositionUsagePieChart';
@@ -230,10 +230,10 @@ const Dashboard: React.FC = () => {
   }, [batches]);
 
   const dashboardStats = [
-    { title: "Total Birds", value: totalBirds, unit: '', icon: 'Bird' },
-    { title: "Total Eggs", value: totalEggs, unit: '', icon: 'Egg' },
-    { title: "Material Usage", value: (feedUsage?.total_feed || 0) + (inventoryUsage?.total_used || 0), unit: ' kg', icon: 'Package' },
-    { title: "Hen Day %", value: avgHD, unit: '%', icon: 'Percent' }
+    { title: "Total Birds", value: totalBirds, unit: '', icon: Bird },
+    { title: "Total Eggs", value: totalEggs, unit: '', icon: Egg },
+    { title: "Material Usage", value: (feedUsage?.total_feed || 0) + (inventoryUsage?.total_used || 0), unit: ' kg', icon: Package },
+    { title: "Hen Day %", value: avgHD, unit: '%', icon: Percent }
   ];
 
   return (
@@ -260,7 +260,7 @@ const Dashboard: React.FC = () => {
           {(loading || feedLoading || inventoryLoading) && <div className="col-12"><Loading message="Loading dashboard data..." /></div>}
           {error && <div className="col-12"><div className="alert alert-danger">{error}</div></div>}
           {!(loading || feedLoading || inventoryLoading) && !error && dashboardStats.map((stat, index) => {
-            const IconComponent = (Icons as any)[stat.icon] || Icons.HelpCircle;
+            const IconComponent = stat.icon || HelpCircle;
             return (
               <div className="col-12 col-md-6 col-lg-3" key={index}>
                 <div className="card h-100 shadow">

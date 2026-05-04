@@ -9,6 +9,7 @@ import { ShedResponse } from '../../types/shed';
 import CustomDatePicker from '../Common/CustomDatePicker';
 import ListModal from '../Common/ListModal'; // Import ListModal
 import StyledSelect from '../Common/StyledSelect';
+import { Bird, Package, Egg } from 'lucide-react';
 
 const BATCH_DATE_KEY = 'dashboard_batch_date';
 
@@ -194,7 +195,7 @@ const DashboardIndex = () => {
     {
       title: "Total Birds",
       mainValue: totalBirds,
-      icon: "Bird",
+      icon: Bird,
       subValues: [
         { label: "Opening", value: openingCount },
         { label: "Mortality", value: mortality },
@@ -205,7 +206,7 @@ const DashboardIndex = () => {
     {
   title: "Material Usage",
   mainValue: (feedUsage?.total_feed || 0) + (inventoryUsage?.total_used || 0),
-  icon: "Package",
+  icon: Package,
   subValues: [
     // Feed section
     ...(feedUsage?.feed_breakdown.map(fb => ({
@@ -228,7 +229,7 @@ const DashboardIndex = () => {
     {
       title: "Total Eggs",
       mainValue: totalEggs,
-      icon: "Egg",
+      icon: Egg,
       subValues: [
         { label: "Normal", value: filteredBatches.reduce((sum, b) => sum + (b.table_eggs || 0), 0) },
         { label: "Jumbo", value: filteredBatches.reduce((sum, b) => sum + (b.jumbo || 0), 0) },

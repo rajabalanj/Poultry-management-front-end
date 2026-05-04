@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { eggPriceApi } from '../../services/api';
 import { EggPrice } from '../../types/EggPrice';
 import { Card, Row, Col, Spinner, Alert } from 'react-bootstrap';
-import * as Icons from 'lucide-react';
+import { Egg } from 'lucide-react';
 
 const EggPriceCard: React.FC = () => {
   const [data, setData] = useState<EggPrice | null>(null);
@@ -44,7 +44,7 @@ const EggPriceCard: React.FC = () => {
       <Card.Header className="bg-white border-bottom py-3">
         <div className="d-flex justify-content-between align-items-center">
           <h5 className="mb-0 text-primary d-flex align-items-center">
-            <Icons.Egg className="me-2" size={20} />
+            <Egg className="me-2" size={20} />
             Current Market Egg Prices
           </h5>
           <span className="badge bg-light text-dark border fw-normal">

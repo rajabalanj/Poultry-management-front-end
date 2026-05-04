@@ -13,6 +13,7 @@ import CustomDatePicker from '../../Common/CustomDatePicker';
 import Loading from '../../Common/Loading';
 import { useEscapeKey } from '../../../hooks/useEscapeKey';
 import { InventoryItemUsageResponse } from '../../../types/InventoryItemUsage';
+import { Bird, Package, Egg } from 'lucide-react';
 
 interface UsageHistoryItem {
   id: number;
@@ -224,7 +225,7 @@ const BatchDetails: React.FC = () => {
                 { label: 'Culls', value: batch.culls },
                 { label: "Birds Added", value: batch.birds_added }
               ],
-              icon: 'Bird',
+              icon: Bird,
             },
             {
               title: 'Material Usage',
@@ -247,7 +248,7 @@ const BatchDetails: React.FC = () => {
                 ];
                 return items.length > 0 ? items : (feedLoading || inventoryLoading ? [{ label: 'Loading...', value: 0 }] : []);
               })(),
-              icon:'Package',
+              icon:Package,
             },
             {
               title: 'Total Eggs',
@@ -258,7 +259,7 @@ const BatchDetails: React.FC = () => {
                 { label: 'Jumbo', value: batch.jumbo || 0 },
                 { label: 'Crack', value: batch.cr || 0 },
               ],
-              icon: 'Egg',
+              icon: Egg,
             },
           ]}
           loading={false}
