@@ -20,6 +20,8 @@ import { InventoryItemResponse, InventoryItemCategory } from '../../types/Invent
 import { InventoryItemVariant } from '../../types/inventoryItemVariant';
 import { format } from 'date-fns';
 import StyledSelect from '../Common/StyledSelect';
+import { useSubscription } from '../context/SubscriptionContext';
+import SubscriptionWarning from '../Common/SubscriptionWarning';
 
 interface FormSalesOrderItem extends SalesOrderItemResponse {
   tempId: number; // For new items, to uniquely identify them before they have a backend ID
@@ -59,6 +61,8 @@ const EditSalesOrder: React.FC = () => {
   const grandTotal = useMemo(() => {
     return items.filter(item => !item.isDeleted).reduce((sum, item) => sum + (item.quantity * item.price_per_unit), 0);
   }, [items]);
+
+  const { isSubscriptionPaid } = useSubscription();
 
   // --- Initial Data Fetch (SO, Customers, Inventory Items) ---
   useEffect(() => {
@@ -338,7 +342,8 @@ const EditSalesOrder: React.FC = () => {
   return (
     <>
       <PageHeader title={`Edit Sales: ${so_id || 'Loading...'}`} buttonVariant="secondary" buttonLabel="Back" buttonIcon='bi-arrow-left'/>
-      <div className="container mt-4">
+      <div className="container">
+        <SubscriptionWarning />
         <div className="card shadow-sm">
           <div className="card-body">
             <form onSubmit={handleSubmit}>
@@ -362,7 +367,7 @@ const EditSalesOrder: React.FC = () => {
                       type="button"
                       className="btn btn-outline-primary"
                       onClick={() => setShowCreateCustomerModal(true)}
-                      disabled={isLoading}
+                      disabled={isLoading || isSubscriptionPaid === false}
                       title="Add Customer"
                     >
                       <i className="bi bi-plus-lg"></i>
@@ -434,7 +439,7 @@ const EditSalesOrder: React.FC = () => {
                           type="button"
                           className="btn btn-outline-danger btn-sm"
                           onClick={() => handleRemoveItem(item.tempId)}
-                          disabled={isLoading}
+                          disabled={isLoading || isSubscriptionPaid === false}
                         >
                           <i className="bi bi-x-lg"></i> Mark for Remove
                         </button>
@@ -443,7 +448,7 @@ const EditSalesOrder: React.FC = () => {
                           type="button"
                           className="btn btn-outline-primary btn-sm fw-bold"
                           onClick={() => handleUndoRemoveItem(item.tempId)}
-                          disabled={isLoading}
+                          disabled={isLoading || isSubscriptionPaid === false}
                         >
                           <i className="bi bi-arrow-counterclockwise"></i> Undo Remove
                         </button>
@@ -532,7 +537,7 @@ const EditSalesOrder: React.FC = () => {
                     type="button"
                     className="btn btn-outline-primary btn-sm"
                     onClick={handleAddItem}
-                    disabled={isLoading}
+                    disabled={isLoading || isSubscriptionPaid === false}
                   >
                     <i className="bi bi-plus-circle me-1"></i> Add Item
                   </button>
@@ -542,7 +547,7 @@ const EditSalesOrder: React.FC = () => {
                   <button
                     type="submit"
                     className="btn btn-primary me-2"
-                    disabled={isLoading}
+                    disabled={isLoading || isSubscriptionPaid === false}
                   >
                     {isLoading ? 'Updating...' : 'Update Sales Order'}
                   </button>

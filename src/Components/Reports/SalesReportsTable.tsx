@@ -8,6 +8,7 @@ import { Button } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import { salesOrderApi, inventoryItemApi } from '../../services/api';
 import { InventoryItemResponse } from '../../types/InventoryItem';
+import { useSubscription } from '../context/SubscriptionContext';
 
 interface SalesReportTableProps {
   salesOrders: SalesOrderResponse[];
@@ -16,6 +17,7 @@ interface SalesReportTableProps {
   error: string | null;
   filters?: Record<string, any>;
   onAddPayment?: (soId: number) => void;
+  onDelete?: (id: number) => void;
   pagination?: {
     currentPage: number;
     totalPages: number;
@@ -26,12 +28,13 @@ interface SalesReportTableProps {
   setSelectedIndex?: (index: number) => void;
 }
 
-const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, customers, loading, error, pagination, filters = {}, onAddPayment, focusedRowIndex, setFocusedRowIndex, setSelectedIndex }) => {
+const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, customers, loading, error, pagination, filters = {}, onAddPayment, onDelete, focusedRowIndex, setFocusedRowIndex, setSelectedIndex }) => {
   const navigate = useNavigate();
   const [isSharing, setIsSharing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [expandedRows, setExpandedRows] = useState<number[]>([]);
   const [inventoryItems, setInventoryItems] = useState<InventoryItemResponse[]>([]);
+  const { isSubscriptionPaid } = useSubscription();
 
   useEffect(() => {
     const fetchInventoryItems = async () => {
@@ -201,8 +204,23 @@ const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, custom
                             e.stopPropagation();
                             onAddPayment(so.id);
                           }}
+                          disabled={isSubscriptionPaid === false}
                         >
                           Add Payment
+                        </Button>
+                      )}
+                      {onDelete && (
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          className="ms-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete(so.id);
+                          }}
+                          disabled={isSubscriptionPaid === false}
+                        >
+                          Delete
                         </Button>
                       )}
                     </td>

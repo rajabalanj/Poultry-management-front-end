@@ -8,6 +8,9 @@ import { salesOrderApi } from '../../services/api';
 import { PaymentCreate as SalesPaymentCreate, SalesOrderResponse } from '../../types/SalesOrder';
 import { format } from 'date-fns';
 import StyledSelect from '../Common/StyledSelect';
+import { useSubscription } from '../context/SubscriptionContext';
+import SubscriptionWarning from "../Common/SubscriptionWarning"; // adjust path as needed
+
 
 const paymentModes = ["Cash", "Bank Transfer", "Cheque", "Online Payment", "Other"];
 type OptionType = { value: string; label: string };
@@ -33,6 +36,8 @@ const AddSalesPaymentForm: React.FC<AddSalesPaymentFormProps> = ({ soId, onSucce
   const [paymentMode, setPaymentMode] = useState<string>('');
   const [referenceNumber, setReferenceNumber] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
+
+  const { isSubscriptionPaid } = useSubscription();
 
 
   // Fetch the SO details to display context
@@ -141,7 +146,8 @@ const AddSalesPaymentForm: React.FC<AddSalesPaymentFormProps> = ({ soId, onSucce
           buttonIcon="bi-arrow-left"
         />
       )}
-      <div className="container mt-4">
+      <div className="container">
+        <SubscriptionWarning />
         <div className="card shadow-sm">
           <div className="card-body">
             <h5 className="mb-3">Payment Details</h5>
@@ -226,7 +232,7 @@ const AddSalesPaymentForm: React.FC<AddSalesPaymentFormProps> = ({ soId, onSucce
                   <button
                     type="submit"
                     className="btn btn-primary me-2"
-                    disabled={isLoading}
+                    disabled={isLoading || isSubscriptionPaid === false}
                   >
                     {isLoading ? 'Adding Payment...' : 'Add Payment'}
                   </button>

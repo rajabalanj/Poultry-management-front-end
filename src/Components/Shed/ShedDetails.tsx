@@ -5,6 +5,9 @@ import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
 import { shedApi } from '../../services/api';
 import { ShedResponse } from '../../types/shed';
+import { useSubscription } from '../context/SubscriptionContext';
+import SubscriptionWarning from '../Common/SubscriptionWarning';
+
 
 const ShedDetails: React.FC = () => {
     const { shed_id } = useParams<{ shed_id: string }>();
@@ -12,6 +15,8 @@ const ShedDetails: React.FC = () => {
     const [shed, setShed] = useState<ShedResponse | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const { isSubscriptionPaid } = useSubscription();
+
 
     useEffect(() => {
         const fetchShed = async () => {
@@ -41,7 +46,8 @@ const ShedDetails: React.FC = () => {
     return (
         <>
             <PageHeader title="Shed Details" buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/sheds" buttonIcon='bi-arrow-left' />
-            <div className="container mt-4">
+            <div className="container">
+                <SubscriptionWarning />
                 <div className="card shadow-sm">
                     <div className="card-header bg-primary text-white">
                         <h5 className="mb-0">Shed Information: {shed.shed_no}</h5>
@@ -68,6 +74,7 @@ const ShedDetails: React.FC = () => {
                         type="button"
                         className="btn btn-primary"
                         onClick={() => navigate(`/sheds/${shed_id}/edit`)}
+                        disabled={isSubscriptionPaid === false}
                     >
                         <i className="bi bi-pencil-square me-1"></i>
                         Edit
@@ -87,6 +94,7 @@ const ShedDetails: React.FC = () => {
                                     });
                             }
                         }}
+                        disabled={isSubscriptionPaid === false}
                     >
                         <i className="bi bi-trash me-1"></i>
                         Delete

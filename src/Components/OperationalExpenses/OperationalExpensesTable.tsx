@@ -3,6 +3,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { OperationalExpense } from "../../types/operationalExpense";
 import { Button } from "react-bootstrap";
+import { useSubscription } from "../context/SubscriptionContext";
 
 interface OperationalExpensesTableProps {
   expenses: OperationalExpense[];
@@ -21,6 +22,8 @@ const OperationalExpensesTable: React.FC<OperationalExpensesTableProps> = ({ exp
   const handleView = (id: number) => {
     navigate(`/operational-expenses/${id}/details`);
   };
+
+  const { isSubscriptionPaid } = useSubscription();
 
   const formatDate = (dateString: string) => {
     if (!dateString) return "";
@@ -53,10 +56,10 @@ const OperationalExpensesTable: React.FC<OperationalExpensesTableProps> = ({ exp
               <td>{expense.expense_type}</td>
               <td>{expense.amount_str || (typeof expense.amount === 'number' ? expense.amount.toFixed(2) : parseFloat(expense.amount || '0').toFixed(2))}</td>
               <td>
-                <Button variant="outline-primary" size="sm" className="ms-2" onClick={(e) => { e.stopPropagation(); handleEdit(expense.id); }}>
+                <Button variant="outline-primary" size="sm" className="ms-2" onClick={(e) => { e.stopPropagation(); handleEdit(expense.id); }} disabled={isSubscriptionPaid === false}>
                   <i className="bi bi-pencil-fill"></i>
                 </Button>
-                <Button variant="outline-danger" size="sm" className="ms-2" onClick={(e) => { e.stopPropagation(); onDelete(expense.id); }}>
+                <Button variant="outline-danger" size="sm" className="ms-2" onClick={(e) => { e.stopPropagation(); onDelete(expense.id); }} disabled={isSubscriptionPaid === false}>
                   <i className="bi bi-trash-fill"></i>
                 </Button>
               </td>

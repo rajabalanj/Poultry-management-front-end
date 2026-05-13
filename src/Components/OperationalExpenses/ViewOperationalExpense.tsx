@@ -5,6 +5,8 @@ import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
 import { operationalExpenseApi } from '../../services/api';
 import { OperationalExpense } from '../../types/operationalExpense';
+import { useSubscription } from '../context/SubscriptionContext';
+import SubscriptionWarning from "../Common/SubscriptionWarning"; // adjust path as needed
 
 const ViewOperationalExpense: React.FC = () => {
     const { expense_id } = useParams<{ expense_id: string }>();
@@ -12,6 +14,7 @@ const ViewOperationalExpense: React.FC = () => {
     const [expense, setExpense] = useState<OperationalExpense | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const { isSubscriptionPaid } = useSubscription();
 
     useEffect(() => {
         const fetchExpense = async () => {
@@ -54,7 +57,8 @@ const ViewOperationalExpense: React.FC = () => {
                 buttonLink="/operational-expenses" 
                 buttonIcon='bi-arrow-left'
             />
-            <div className="container mt-4">
+            <div className="container">
+                <SubscriptionWarning />
                 <div className="card shadow-sm">
                     <div className="card-body">
                         <div className="row g-3">
@@ -77,6 +81,7 @@ const ViewOperationalExpense: React.FC = () => {
                                 <button
                                     className="btn btn-primary"
                                     onClick={() => navigate(`/operational-expenses/${expense.id}/edit`)}
+                                    disabled ={isSubscriptionPaid === false}
                                 >
                                     <i className="bi bi-pencil me-1"></i> Edit
                                 </button>

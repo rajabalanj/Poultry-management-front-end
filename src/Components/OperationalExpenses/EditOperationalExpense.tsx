@@ -6,6 +6,8 @@ import PageHeader from '../Layout/PageHeader';
 import { operationalExpenseApi } from '../../services/api';
 import { OperationalExpense } from '../../types/operationalExpense';
 import CustomDatePicker from '../Common/CustomDatePicker';
+import { useSubscription } from '../context/SubscriptionContext';
+import SubscriptionWarning from "../Common/SubscriptionWarning"; // adjust path as needed
 
 const EditOperationalExpense: React.FC = () => {
     const { expense_id } = useParams<{ expense_id: string }>();
@@ -17,6 +19,8 @@ const EditOperationalExpense: React.FC = () => {
     const [date, setDate] = useState('');
     const [expense_type, setExpenseType] = useState('');
     const [amount, setAmount] = useState<number | ''>('');
+
+    const { isSubscriptionPaid } = useSubscription();
 
     useEffect(() => {
         const fetchExpense = async () => {
@@ -89,7 +93,8 @@ const EditOperationalExpense: React.FC = () => {
     return (
         <>
             <PageHeader title={`Edit Expense: ${expense.expense_type}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/operational-expenses" buttonIcon='bi-arrow-left'/>
-            <div className="container mt-4">
+            <div className="container">
+                <SubscriptionWarning />
                 <div className="card shadow-sm">
                     <div className="card-body">
                         <form onSubmit={handleSubmit}>
@@ -135,7 +140,7 @@ const EditOperationalExpense: React.FC = () => {
                                     <button
                                         type="submit"
                                         className="btn btn-primary"
-                                        disabled={loading}
+                                        disabled={loading || isSubscriptionPaid === false}
                                     >
                                         {loading ? 'Saving...' : 'Save Changes'}
                                     </button>

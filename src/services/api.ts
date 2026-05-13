@@ -47,6 +47,11 @@ import { ChartOfAccountsRequest, ChartOfAccountsResponse } from '../types/chartO
 import { FinancialSettings, UpdateFinancialSettings } from '../types/financialSettings';
 import { JournalEntryCreate, JournalEntryResponse } from '../types/journalEntry';
 import { InventoryUsageSummary } from '../types/InventoryUsageSummary';
+import { 
+  SubscriptionStatusResponse, 
+  SubscriptionCreate, 
+  SubscriptionUpdate 
+} from '../types/subscription';
 // Define types for our data
 // Define types for our data
 
@@ -90,6 +95,10 @@ const attachHeader = (config: any, name: string, value: string) => {
   }
 };
 
+const SUBSCRIPTION_STATUS_KEY = 'isSubscriptionPaid';
+
+let subscriptionPaid: boolean | null = null;
+
 export const setTenantId = (id: string | null) => {
   tenantId = id;
   if (typeof window !== 'undefined') {
@@ -99,6 +108,26 @@ export const setTenantId = (id: string | null) => {
       window.localStorage.removeItem('tenantId');
     }
   }
+};
+
+export const setSubscriptionPaid = (paid: boolean | null) => {
+  subscriptionPaid = paid;
+  if (typeof window !== 'undefined') {
+    if (paid === null) {
+      window.localStorage.removeItem(SUBSCRIPTION_STATUS_KEY);
+    } else {
+      window.localStorage.setItem(SUBSCRIPTION_STATUS_KEY, String(paid));
+    }
+  }
+};
+
+export const getSubscriptionPaid = (): boolean | null => {
+  if (subscriptionPaid === null && typeof window !== 'undefined') {
+    const stored = window.localStorage.getItem(SUBSCRIPTION_STATUS_KEY);
+    if (stored === 'true') subscriptionPaid = true;
+    else if (stored === 'false') subscriptionPaid = false;
+  }
+  return subscriptionPaid;
 };
 
 export const setAccessToken = (token: string | null) => {
@@ -126,6 +155,18 @@ api.interceptors.request.use(
 
     // Only attach Auth and Tenant headers to internal API requests
     if (!isExternal) {
+      const method = config.method?.toLowerCase();
+      const mutationMethods = ['post', 'put', 'patch', 'delete'];
+      const subscriptionPaths = ['/subscriptions', '/subscriptions/status'];
+      const requestPath = config.url ? config.url.toString() : '';
+      const resolvedPath = requestPath.startsWith('http') ? new URL(requestPath).pathname : requestPath;
+      const isSubscriptionRequest = subscriptionPaths.some((path) => resolvedPath.startsWith(path));
+      const paid = getSubscriptionPaid();
+
+      if (mutationMethods.includes(method || '') && paid === false && !isSubscriptionRequest) {
+        return Promise.reject(new Error('Subscription inactive: write actions are blocked until subscription is renewed.'));
+      }
+
       if (accessToken) {
         attachHeader(config, 'Authorization', `Bearer ${accessToken}`);
       }
@@ -1927,6 +1968,46 @@ export const journalEntryApi = {
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, "Failed to fetch journal entry"));
+    }
+  },
+};
+
+export const subscriptionApi = {
+  createSubscription: async (subscription: SubscriptionCreate): Promise<SubscriptionStatusResponse> => {
+    try {
+      const response = await api.post<SubscriptionStatusResponse>('/subscriptions/', subscription);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, "Failed to create subscription"));
+    }
+  },
+
+  updateSubscription: async (tenant_id: string, subscription: SubscriptionUpdate): Promise<SubscriptionStatusResponse> => {
+    try {
+      const response = await api.patch<SubscriptionStatusResponse>(`/subscriptions/${tenant_id}`, subscription);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, "Failed to update subscription"));
+    }
+  },
+
+  getStatus: async (): Promise<SubscriptionStatusResponse> => {
+    try {
+      const response = await api.get<SubscriptionStatusResponse>('/subscriptions/status');
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, "Failed to fetch subscription status"));
+    }
+  },
+
+  getSubscriptions: async (skip: number = 0, limit: number = 100): Promise<SubscriptionStatusResponse[]> => {
+    try {
+      const response = await api.get<SubscriptionStatusResponse[]>('/subscriptions/', {
+        params: { skip, limit }
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, "Failed to fetch subscriptions"));
     }
   },
 };

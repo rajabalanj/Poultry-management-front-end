@@ -11,6 +11,8 @@ import { exportTableToExcel } from '../utility/export-utils';
 import Loading from './Common/Loading';
 import CustomDatePicker from './Common/CustomDatePicker';
 import { toYYYYMMDD } from '../utility/date-utils';
+import { useSubscription } from "./context/SubscriptionContext";
+import SubscriptionWarning from "./Common/SubscriptionWarning";
 
 const CompositionUsageHistory = () => {
   const { compositionId } = useParams<{ compositionId: string }>();
@@ -28,6 +30,7 @@ const CompositionUsageHistory = () => {
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const ITEMS_PER_PAGE = 10;
+  const { isSubscriptionPaid } = useSubscription();
 
 
   useEffect(() => {
@@ -211,6 +214,7 @@ const CompositionUsageHistory = () => {
         buttonIcon="bi-arrow-left"
       />
     <div className="container">
+      <SubscriptionWarning />
       <Card className="mb-4">
         <Card.Body>
           <Card.Title>Date Filters</Card.Title>
@@ -289,7 +293,7 @@ const CompositionUsageHistory = () => {
                           setUsageToRevert(item.id);
                           setShowRevertModal(true);
                         }}
-
+                        disabled={isSubscriptionPaid === false}
                       >
                         Revert
                       </button>
@@ -333,6 +337,7 @@ const CompositionUsageHistory = () => {
           setShowRevertModal(false);
         }
       }}
+      disabled={ isSubscriptionPaid === false}
     >
       Revert
     </Button>

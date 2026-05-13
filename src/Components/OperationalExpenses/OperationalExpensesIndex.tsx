@@ -9,6 +9,7 @@ import { toast } from 'react-toastify';
 import OperationalExpensesTable from "./OperationalExpensesTable";
 import ErrorBoundary from "../Common/ErrorBoundary";
 import CustomDatePicker from '../Common/CustomDatePicker';
+import { useSubscription } from '../context/SubscriptionContext';
 
 const OperationalExpensesIndexPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -19,6 +20,7 @@ const OperationalExpensesIndexPage: React.FC = () => {
   const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(null);
   const [startDate, setStartDate] = useState(new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+  const { isSubscriptionPaid } = useSubscription();
 
   const fetchOperationalExpenses = async (start: string, end: string) => {
     setLoading(true);
@@ -79,6 +81,7 @@ const OperationalExpensesIndexPage: React.FC = () => {
         buttonLabel="Add New Expense"
         buttonLink="/operational-expenses/create"
         buttonIcon="bi-plus-lg"
+        buttonDisabled={isSubscriptionPaid === false}
       />
       <div className="container mt-4">
         <div className="card shadow-sm mb-3">

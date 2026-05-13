@@ -11,6 +11,8 @@ import PurchaseReportTable from '../Reports/PurchaseReportTable';
 import PurchaseFilter from './PurchaseFilter'; // New filter component
 import AddPaymentForm from '../PurchaseOrder/AddPaymentForm';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
+import { useSubscription } from '../context/SubscriptionContext';
+import SubscriptionWarning from '../Common/SubscriptionWarning';
 import { useTableKeyboardNavigation } from '../../hooks/useTableKeyboardNavigation';
 
 const PurchaseResponsive: React.FC = () => {
@@ -65,6 +67,7 @@ const PurchaseResponsive: React.FC = () => {
   // Determine title based on the route
   const isReportView = location.pathname.includes('/reports/purchases');
   const title = isReportView ? "Purchase Reports" : "Purchases";
+  const { isSubscriptionPaid } = useSubscription();
 
   const handleOpenPayment = (poId: number) => {
     setSelectedPoId(poId);
@@ -117,8 +120,10 @@ const PurchaseResponsive: React.FC = () => {
             buttonLabel="Create New"
             buttonLink="/purchase-orders/create"
             buttonIcon="bi-plus-lg"
+            buttonDisabled={isSubscriptionPaid === false}
           />
-          <div className="container mt-4">
+          <div className="container">
+            <SubscriptionWarning />
             <PurchaseFilter vendors={vendors} filters={filters} setFilters={setFilters} />
 
             <PurchaseOrderTable
@@ -153,7 +158,7 @@ const PurchaseResponsive: React.FC = () => {
                 <Button variant="secondary" onClick={deleteModal.cancelDelete}>
                   Cancel
                 </Button>
-                <Button variant="danger" onClick={deleteModal.confirmDelete} disabled={!!deleteModal.errorMessage}>
+                <Button variant="danger" onClick={deleteModal.confirmDelete} disabled={!!deleteModal.errorMessage || isSubscriptionPaid === false}>
                   Delete
                 </Button>
               </Modal.Footer>
@@ -190,8 +195,10 @@ const PurchaseResponsive: React.FC = () => {
           buttonLabel="Create New"
           buttonLink="/purchase-orders/create"
           buttonIcon="bi-plus-lg"
+          buttonDisabled={isSubscriptionPaid === false}
         />
-        <div className="container mt-4">
+        <div className="container">
+          <SubscriptionWarning />
           <PurchaseFilter vendors={vendors} filters={filters} setFilters={setFilters} />
 
           <PurchaseReportTable
@@ -201,6 +208,7 @@ const PurchaseResponsive: React.FC = () => {
             vendors={vendors}
             filters={filters}
             onAddPayment={handleOpenPayment}
+            onDelete={deleteModal.handleDelete}
             focusedRowIndex={focusedRowIndex}
             setFocusedRowIndex={setFocusedRowIndex}
             setSelectedIndex={setSelectedIndex}
@@ -211,6 +219,27 @@ const PurchaseResponsive: React.FC = () => {
             }}
           />
         </div>
+
+        <Modal show={deleteModal.show} onHide={deleteModal.cancelDelete}>
+          <Modal.Header closeButton>
+            <Modal.Title>Confirm Delete</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            {deleteModal.errorMessage ? (
+              <div className="text-danger mb-3">{deleteModal.errorMessage}</div>
+            ) : (
+              "Are you sure you want to delete this purchase order? This action cannot be undone."
+            )}
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={deleteModal.cancelDelete}>
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={deleteModal.confirmDelete} disabled={!!deleteModal.errorMessage || isSubscriptionPaid === false}>
+              Delete
+            </Button>
+          </Modal.Footer>
+        </Modal>
 
         <Modal show={showPaymentModal} onHide={() => setShowPaymentModal(false)} size="lg" centered>
           <Modal.Header closeButton>

@@ -529,7 +529,39 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     </Link>
                   </li>
                 )}
-                
+               {/* Admin - Simple Link */}
+                {userGroups.includes("admin") && (
+                  <li className="nav-menu-item">
+                    <Link
+                      to="/admin"
+                      className={`nav-menu-link ${
+                        location.pathname === "/admin" ? "active-link" : ""
+                      }`}
+                      onClick={closeSidebarMobile}
+                    >
+                      <i className="bi bi-shield-lock me-2 sidebar-icon"></i>
+                      <span className="sidebar-text">Admin</span>
+                    </Link>
+                  </li>
+                )}
+
+                {/* Super Admin Subscriptions - Simple Link */}
+                {userGroups.includes("super_admin") && (
+                  <li className="nav-menu-item">
+                    <Link
+                      to="/super-admin/subscriptions"
+                      className={`nav-menu-link ${
+                        location.pathname === "/super-admin/subscriptions"
+                          ? "active-link"
+                          : ""
+                      }`}
+                      onClick={closeSidebarMobile}
+                    >
+                      <i className="bi bi-globe me-2 sidebar-icon"></i>
+                      <span className="sidebar-text">Super Admin</span>
+                    </Link>
+                  </li>
+                )} 
               </ul>
               {/* </ul> */}
             </div>

@@ -5,11 +5,14 @@ import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
 import { shedApi } from '../../services/api';
 import { Shed } from '../../types/shed';
+import { useSubscription } from '../context/SubscriptionContext';
+import SubscriptionWarning from '../Common/SubscriptionWarning';
 
 const CreateShedForm: React.FC = () => {
     const [shedNo, setShedNo] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
+    const { isSubscriptionPaid } = useSubscription();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -39,7 +42,8 @@ const CreateShedForm: React.FC = () => {
     return (
         <>
             <PageHeader title="Create New Shed" buttonVariant="secondary" buttonLabel="Back" buttonLink="/sheds" buttonIcon='bi-arrow-left'/>
-            <div className='container mt-4'>
+            <div className='container'>
+                <SubscriptionWarning />
                 <div className="card shadow-sm">
                     <div className="card-body">
                         <form onSubmit={handleSubmit}>
@@ -61,7 +65,7 @@ const CreateShedForm: React.FC = () => {
                                     <button
                                         type="submit"
                                         className="btn btn-primary"
-                                        disabled={isLoading}
+                                        disabled={isLoading || isSubscriptionPaid === false}
                                     >
                                         {isLoading ? 'Creating...' : 'Create Shed'}
                                     </button>

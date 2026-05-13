@@ -1,6 +1,8 @@
 import React from 'react';
 import { InventoryItemResponse } from '../types/InventoryItem';
 import { InventoryItemInComposition } from '../types/compositon';
+import { useSubscription } from './context/SubscriptionContext';
+import SubscriptionWarning from './Common/SubscriptionWarning';
 
 interface CompositionFormProps {
   title: string;
@@ -43,8 +45,11 @@ function CompositionForm({
   onCancel,
   onOpenCreateItem,
 }: CompositionFormProps) {
+  const { isSubscriptionPaid } = useSubscription();
+
   return (
     <div className="card shadow-sm mb-4">
+      <SubscriptionWarning />
       <div className="card-header bg-primary text-white">
         <h5 className="mb-0">{title}</h5>
       </div>
@@ -112,6 +117,7 @@ function CompositionForm({
                       onClick={() => handleRemoveItem(i.inventory_item_id)}
                       className="btn btn-sm btn-danger flex-shrink-0"
                       title="Remove Item"
+                      disabled={isSubscriptionPaid === false}
                     >
                       <i className="bi bi-trash"></i>
                     </button>
@@ -137,6 +143,7 @@ function CompositionForm({
                 className="btn btn-sm btn-outline-primary"
                 onClick={onOpenCreateItem}
                 title="Create Item"
+                disabled={isSubscriptionPaid === false}
               >
                 <i className="bi bi-plus-lg"></i>
               </button>
@@ -156,7 +163,7 @@ function CompositionForm({
                   className={`list-group-item list-group-item-action d-flex justify-content-between align-items-center ${
                     editItems.some((ei) => ei.inventory_item_id === item.id) ? 'disabled' : ''
                   }`}
-                  disabled={editItems.some((ei) => ei.inventory_item_id === item.id)}
+                  disabled={editItems.some((ei) => ei.inventory_item_id === item.id) || isSubscriptionPaid === false}
                 >
                   {item.name}
                   <i className="bi bi-plus-circle-fill text-success"></i>
@@ -166,7 +173,7 @@ function CompositionForm({
         </div>
       </div>
       <div className="d-flex gap-2 mt-3">
-        <button onClick={onSave} className="btn btn-primary">
+        <button onClick={onSave} className="btn btn-primary" disabled={isSubscriptionPaid === false}>
           <i className="bi bi-save me-1"></i>{saveButtonLabel}
         </button>
         <button onClick={onCancel} className="btn btn-secondary">

@@ -8,6 +8,7 @@ import PageHeader from "./Components/Layout/PageHeader";
 import ProtectedRoute from './Components/Auth/ProtectedRoute';
 import ScrollToTop from './Components/Common/ScrollToTop';
 import ErrorBoundary from './Components/ErrorBoundary';
+import { SubscriptionProvider } from './Components/context/SubscriptionContext';
 
 const AddBatch = lazy(() => import('./Components/Forms/Create/AddBatch'));
 const BatchDetails = lazy(() => import('./Components/Forms/Read/BatchDetails'));
@@ -63,11 +64,15 @@ const ChartOfAccountView = lazy(() => import('./Components/ChartOfAccounts/Chart
 const JournalEntries = lazy(() => import('./Components/JournalEntries/JournalEntries'));
 const JournalEntryCreate = lazy(() => import('./Components/JournalEntries/JournalEntryCreate'));
 const JournalEntryView = lazy(() => import('./Components/JournalEntries/JournalEntryView'));
+const AdminDashboard = lazy(() => import('./Components/Admin/AdminDashboard'));
+const SubscriptionsList = lazy(() => import('./Components/SuperAdmin/SubscriptionsList'));
 
 
 const ProtectedRoutes = () => (
   <ProtectedRoute>
+    <SubscriptionProvider>
     <Outlet />
+    </SubscriptionProvider>
   </ProtectedRoute>
 );
 
@@ -184,7 +189,29 @@ const App: React.FC = () => {
                 path="/configurations"
                 element={
                   <ProtectedRoute roles={['admin']}>
+                    <SubscriptionProvider>
                     <Configurations />
+                    </SubscriptionProvider>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute roles={['admin']}>
+                    <SubscriptionProvider>
+                    <AdminDashboard />
+                    </SubscriptionProvider>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/super-admin/subscriptions"
+                element={
+                  <ProtectedRoute roles={['super_admin']}>
+                    <SubscriptionProvider>
+                    <SubscriptionsList />
+                    </SubscriptionProvider>
                   </ProtectedRoute>
                 }
               />

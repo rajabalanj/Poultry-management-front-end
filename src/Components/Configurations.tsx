@@ -9,6 +9,8 @@ import { format } from 'date-fns'; // For date formatting
 import type { FinancialSettings as IFinancialSettings, UpdateFinancialSettings } from "../types/financialSettings";
 import type { ChartOfAccountsResponse } from "../types/chartOfAccounts";
 import { toYYYYMMDD } from '../utility/date-utils';
+import { useSubscription } from './context/SubscriptionContext';
+import SubscriptionWarning from './Common/SubscriptionWarning';
 
 
 const KG_PER_TON = 1000;
@@ -67,6 +69,7 @@ const Configurations: React.FC = () => {
     default_accounts_receivable_account_id: 0,
   });
   const [financialSettingsSaving, setFinancialSettingsSaving] = useState(false);
+  const { isSubscriptionPaid } = useSubscription();
 
   // Function to fetch Bovans performance data with pagination
 
@@ -400,7 +403,7 @@ return (
   <>
   <PageHeader title="Configurations"></PageHeader>
     <div className="container">
-
+      <SubscriptionWarning />
       <div className="p-3 border shadow-sm mb-4 mt-2"> {/* Added mb-4 for spacing */}
         {/* Global Low Feed Thresholds */}
         <div className="mb-4">
@@ -491,7 +494,7 @@ return (
           <button
             className="btn btn-primary"
             onClick={handleSave}
-            disabled={saving || loading}
+            disabled={saving || loading || isSubscriptionPaid === false}
           >
             {saving ? "Saving..." : "Save Configurations"}
           </button>
@@ -515,7 +518,7 @@ return (
           </select>
         </div>
         <div className="mt-3 text-end">
-          <button className="btn btn-primary" onClick={handleSaveStandardPerformance} disabled={saving || loading}>
+          <button className="btn btn-primary" onClick={handleSaveStandardPerformance} disabled={saving || loading || isSubscriptionPaid === false}>
             {saving ? "Saving..." : "Save Standard Performance"}
           </button>
         </div>
@@ -537,7 +540,7 @@ return (
           />
         </div>
         <div className="mt-3 text-end">
-          <button className="btn btn-primary" onClick={handleSaveSellerAddress} disabled={saving || loading}>
+          <button className="btn btn-primary" onClick={handleSaveSellerAddress} disabled={saving || loading || isSubscriptionPaid === false}>
             {saving ? "Saving..." : "Save Company Address"}
           </button>
         </div>
@@ -586,7 +589,7 @@ return (
                                 <button
                                     className="btn btn-primary"
                                     onClick={handleSaveFinancialConfig}
-                                    disabled={financialConfigSaving || loading}
+                                    disabled={financialConfigSaving || loading || isSubscriptionPaid === false}
                                 >
                                     {financialConfigSaving ? "Saving..." : "Save Configuration"}
                                 </button>
@@ -738,7 +741,7 @@ return (
                                         <button
                                             className="btn btn-primary"
                                             type="submit"
-                                            disabled={financialSettingsSaving}
+                                            disabled={financialSettingsSaving || isSubscriptionPaid === false}
                                         >
                                             {financialSettingsSaving ? "Saving..." : "Update Settings"}
                                         </button>
@@ -854,7 +857,7 @@ return (
                   <button
                     className="btn btn-primary"
                     onClick={handleEggRoomInitialSetup}
-                    disabled={eggRoomSaving}
+                    disabled={eggRoomSaving || isSubscriptionPaid === false}
                   >
                     {eggRoomSaving ? "Saving..." : "Set Initial Egg Room Data"}
                   </button>

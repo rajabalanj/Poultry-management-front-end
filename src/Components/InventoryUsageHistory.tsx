@@ -12,6 +12,9 @@ import { exportTableToExcel } from '../utility/export-utils';
 import Loading from './Common/Loading';
 import CustomDatePicker from './Common/CustomDatePicker';
 import { toYYYYMMDD } from '../utility/date-utils';
+import { useSubscription } from "./context/SubscriptionContext";
+import SubscriptionWarning from "./Common/SubscriptionWarning";
+
 
 const InventoryUsageHistory = () => {
   const { item_id } = useParams<{ item_id: string }>();
@@ -29,6 +32,7 @@ const InventoryUsageHistory = () => {
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const ITEMS_PER_PAGE = 10;
+  const { isSubscriptionPaid } = useSubscription();
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -112,6 +116,7 @@ const InventoryUsageHistory = () => {
         buttonIcon="bi-arrow-left"
       />
       <div className="container">
+        <SubscriptionWarning />
         <Card className="mb-4 shadow-sm border-0">
           <Card.Body>
             <Row>
@@ -189,6 +194,7 @@ const InventoryUsageHistory = () => {
                                 setUsageToRevert(item.id);
                                 setShowRevertModal(true);
                               }}
+                              disabled={isSubscriptionPaid === false}
                             >
                               Revert
                             </Button>

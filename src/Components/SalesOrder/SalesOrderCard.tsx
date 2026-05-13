@@ -3,6 +3,7 @@ import React from "react";
 import { SalesOrderResponse, SalesOrderStatus, PaymentStatus } from "../../types/SalesOrder";
 import { SalesOrderItemResponse } from "../../types/SalesOrderItem";
 import { BusinessPartner } from "../../types/BusinessPartner";
+import { useSubscription } from "../context/SubscriptionContext";
 
 interface SalesOrderCardProps {
   so: SalesOrderResponse;
@@ -44,6 +45,8 @@ const SalesOrderCard: React.FC<SalesOrderCardProps> = React.memo(
         };
     
         const showActions = onEdit || onDelete || onAddPayment;
+
+        const { isSubscriptionPaid } = useSubscription();
     
         return (
           <div 
@@ -71,17 +74,17 @@ const SalesOrderCard: React.FC<SalesOrderCardProps> = React.memo(
                     {showActions && (
                     <>
                         {onEdit && (
-                        <button className="btn btn-sm btn-outline-primary me-2" onClick={(e) => handleActionClick(e, onEdit, so.id)}>
+                        <button className="btn btn-sm btn-outline-primary me-2" onClick={(e) => handleActionClick(e, onEdit, so.id)} disabled={isSubscriptionPaid === false}>
                             <i className="bi bi-pencil-fill"></i>
                         </button>
                         )}
                         {onDelete && (
-                        <button className="btn btn-sm btn-outline-danger me-2" onClick={(e) => handleActionClick(e, onDelete, so.id)}>
+                        <button className="btn btn-sm btn-outline-danger me-2" onClick={(e) => handleActionClick(e, onDelete, so.id)} disabled={isSubscriptionPaid === false}>
                             <i className="bi bi-trash-fill"></i>
                         </button>
                         )}
                         {onAddPayment && (
-                        <button className="btn btn-sm btn-outline-success" onClick={(e) => handleActionClick(e, onAddPayment, so.id)}>
+                        <button className="btn btn-sm btn-outline-success" onClick={(e) => handleActionClick(e, onAddPayment, so.id)} disabled={isSubscriptionPaid === false}>
                             <i className="bi bi-credit-card-fill"></i>
                         </button>
                         )}

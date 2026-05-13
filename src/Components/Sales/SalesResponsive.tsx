@@ -10,11 +10,13 @@ import { salesOrderApi } from '../../services/api';
 import { toast } from 'react-toastify';
 import { format } from 'date-fns';
 import SalesOrderTable from '../SalesOrder/SalesOrderTable';
+import { useSubscription } from '../context/SubscriptionContext';
 import SalesReportTable from '../Reports/SalesReportsTable';
 import SalesFilter from './SalesFilter'; // New filter component
 import AddSalesPaymentForm from '../SalesOrder/AddSalesPaymentForm';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
 import { useTableKeyboardNavigation } from '../../hooks/useTableKeyboardNavigation';
+import SubscriptionWarning from '../Common/SubscriptionWarning'; // adjust path as needed
 
 const SalesResponsive: React.FC = () => {
   const {
@@ -70,6 +72,7 @@ const SalesResponsive: React.FC = () => {
   // Determine title based on the route
   const isReportView = location.pathname.includes('/reports/sales');
   const title = isReportView ? "Sales Reports" : "Sales";
+  const { isSubscriptionPaid } = useSubscription();
 
   const handleDownloadBill = async (status: 'paid' | 'unpaid' | 'none') => {
     if (!filters.customerId) {
@@ -157,8 +160,11 @@ const SalesResponsive: React.FC = () => {
             buttonLabel="Create New"
             buttonLink="/sales-orders/create"
             buttonIcon="bi-plus-lg"
+            buttonDisabled={isSubscriptionPaid === false}
           />
-          <div className="container mt-4">
+          <div className="container">
+            <SubscriptionWarning />
+
             <SalesFilter customers={customers} filters={filters} setFilters={setFilters} />
 
             {filters.customerId && (
@@ -216,7 +222,7 @@ const SalesResponsive: React.FC = () => {
                 <Button variant="secondary" onClick={deleteModal.cancelDelete}>
                   Cancel
                 </Button>
-                <Button variant="danger" onClick={deleteModal.confirmDelete} disabled={!!deleteModal.errorMessage}>
+                <Button variant="danger" onClick={deleteModal.confirmDelete} disabled={!!deleteModal.errorMessage || isSubscriptionPaid === false}>
                   Delete
                 </Button>
               </Modal.Footer>
@@ -253,8 +259,10 @@ const SalesResponsive: React.FC = () => {
           buttonLabel="Create New"
           buttonLink="/sales-orders/create"
           buttonIcon="bi-plus-lg"
+          buttonDisabled={isSubscriptionPaid === false}
         />
-        <div className="container mt-4">
+        <div className="container">
+          <SubscriptionWarning />
           <SalesFilter customers={customers} filters={filters} setFilters={setFilters} />
 
           {filters.customerId && (
@@ -287,6 +295,7 @@ const SalesResponsive: React.FC = () => {
             customers={customers}
             filters={filters}
             onAddPayment={handleOpenPayment}
+            onDelete={deleteModal.handleDelete}
             focusedRowIndex={focusedRowIndex}
             setFocusedRowIndex={setFocusedRowIndex}
             setSelectedIndex={setSelectedIndex}
@@ -297,6 +306,27 @@ const SalesResponsive: React.FC = () => {
             }}
           />
         </div>
+
+        <Modal show={deleteModal.show} onHide={deleteModal.cancelDelete}>
+          <Modal.Header closeButton>
+            <Modal.Title>Confirm Delete</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            {deleteModal.errorMessage ? (
+              <div className="text-danger mb-3">{deleteModal.errorMessage}</div>
+            ) : (
+              "Are you sure you want to delete this sales order? This action cannot be undone."
+            )}
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={deleteModal.cancelDelete}>
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={deleteModal.confirmDelete} disabled={!!deleteModal.errorMessage || isSubscriptionPaid === false}>
+              Delete
+            </Button>
+          </Modal.Footer>
+        </Modal>
 
         <Modal show={showPaymentModal} onHide={() => setShowPaymentModal(false)} size="lg" centered>
           <Modal.Header closeButton>

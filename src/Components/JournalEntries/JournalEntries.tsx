@@ -5,6 +5,7 @@ import { Pagination } from 'react-bootstrap';
 import { journalEntryApi } from '../../services/api';
 import { JournalEntryResponse } from '../../types/journalEntry';
 import PageHeader from '../Layout/PageHeader';
+import { useSubscription } from '../context/SubscriptionContext';
 import { format } from 'date-fns';
 import CustomDatePicker from '../Common/CustomDatePicker';
 
@@ -16,6 +17,7 @@ const JournalEntries: React.FC = () => {
   const [endDate, setEndDate] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
+  const { isSubscriptionPaid } = useSubscription();
 
   const fetchEntries = async () => {
     setLoading(true);
@@ -119,6 +121,7 @@ const JournalEntries: React.FC = () => {
         buttonLink="/journal-entries/create"
         buttonVariant="primary"
         buttonIcon='bi-plus-lg'
+        buttonDisabled={isSubscriptionPaid === false}
       />
       <div className="container">
         <div className="p-3 border shadow-sm mb-4">

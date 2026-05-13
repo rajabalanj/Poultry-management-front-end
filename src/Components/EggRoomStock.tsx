@@ -11,6 +11,7 @@ import * as htmlToImage from 'html-to-image';
 import { toast } from 'react-toastify';
 import { exportTableToExcel } from '../utility/export-utils';
 import { toYYYYMMDD } from '../utility/date-utils';
+import SubscriptionWarning from '../Components/Common/SubscriptionWarning';
 
 // Define a common type for the fields to ensure consistency
 type StockFieldConfig = {
@@ -366,6 +367,7 @@ const EggRoomStock: React.FC = () => {
     <>
       <PageHeader title="Egg Room Stock" />
       <div className="container">
+        <SubscriptionWarning />
         {error && <div className="alert alert-danger text-center">{error}</div>}
 
         <form onSubmit={handleSave} className="card p-3 mb-4 mt-2">

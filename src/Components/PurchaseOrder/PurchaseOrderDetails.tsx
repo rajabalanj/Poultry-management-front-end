@@ -9,6 +9,8 @@ import { BusinessPartner } from "../../types/BusinessPartner";
 import { InventoryItemResponse } from "../../types/InventoryItem";
 import { format } from 'date-fns';
 import { Modal, Button, Form } from 'react-bootstrap';
+import { useSubscription } from "../context/SubscriptionContext";
+import SubscriptionWarning from "../Common/SubscriptionWarning"; // adjust path as needed
 
 const getStatusBadgeClass = (status: PurchaseOrderStatus | PaymentStatus) => {
   switch (status) {
@@ -46,6 +48,8 @@ const PurchaseOrderDetails: React.FC = () => {
     reference_number: '',
     notes: '',
   });
+
+  const { isSubscriptionPaid } = useSubscription();
 
   const fetchPurchaseOrderDetails = async () => {
     try {
@@ -180,7 +184,8 @@ const PurchaseOrderDetails: React.FC = () => {
   return (
     <>
       <PageHeader title={`Purchase Details: ${purchaseOrder.po_number}`} buttonVariant="secondary" buttonLabel="Back" buttonIcon="bi-arrow-left"/>
-      <div className="container mt-4">
+      <div className="container">
+        <SubscriptionWarning />
         <div className="card shadow-sm mb-4">
           <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h5 className="mb-0">Purchase Information</h5>
@@ -315,7 +320,7 @@ const PurchaseOrderDetails: React.FC = () => {
                               size="sm"
                               onClick={() => handleDownloadPaymentReceipt(payment.id)}
                             >
-                              <i className="bi bi-download"></i>
+                              <i className="bi bi-outline-download"></i>
                             </Button>
                           ) : (
                             'N/A'
@@ -325,12 +330,14 @@ const PurchaseOrderDetails: React.FC = () => {
                           <Button
                             variant="info" size="sm" className="me-2"
                             onClick={() => handleEditPayment(payment)}
+                            disabled={isSubscriptionPaid === false}
                           >
                             <i className="bi bi-pencil"></i>
                           </Button>
                           <Button
                             variant="danger" size="sm"
                             onClick={() => handleDeletePayment(payment)}
+                            disabled={isSubscriptionPaid === false}
                           >
                             <i className="bi bi-trash"></i>
                           </Button>
@@ -355,6 +362,7 @@ const PurchaseOrderDetails: React.FC = () => {
                 type="button"
                 className="btn btn-primary btn-sm"
                 onClick={() => navigate(`/purchase-orders/${po_id}/add-payment`)}
+                disabled={isSubscriptionPaid === false}
               >
                 <i className="bi bi-wallet-fill me-1"></i> Add Payment
               </button>
@@ -367,6 +375,7 @@ const PurchaseOrderDetails: React.FC = () => {
             type="button"
             className="btn btn-primary"
             onClick={() => navigate(`/purchase-orders/${purchaseOrder.id}/edit`)}
+            disabled={isSubscriptionPaid === false}
           >
             <i className="bi bi-pencil-square me-1"></i>
             Edit
@@ -387,6 +396,7 @@ const PurchaseOrderDetails: React.FC = () => {
                   });
               }
             }}
+            disabled={isSubscriptionPaid === false}
           >
             <i className="bi bi-trash me-1"></i>
             Delete

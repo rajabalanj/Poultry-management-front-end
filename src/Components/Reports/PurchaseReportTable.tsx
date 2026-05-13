@@ -8,6 +8,7 @@ import { Button } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import { purchaseOrderApi, inventoryItemApi } from '../../services/api';
 import { InventoryItemResponse } from '../../types/InventoryItem';
+import { useSubscription } from '../context/SubscriptionContext';
 
 interface PurchaseReportTableProps {
   purchaseOrders: PurchaseOrderResponse[];
@@ -16,6 +17,7 @@ interface PurchaseReportTableProps {
   error: string | null;
   filters?: Record<string, any>;
   onAddPayment?: (poId: number) => void;
+  onDelete?: (id: number) => void;
   pagination?: {
     currentPage: number;
     totalPages: number;
@@ -26,12 +28,13 @@ interface PurchaseReportTableProps {
   setSelectedIndex?: (index: number) => void;
 }
 
-const PurchaseReportTable: React.FC<PurchaseReportTableProps> = ({ purchaseOrders, vendors, loading, error, pagination, filters = {}, onAddPayment, focusedRowIndex, setFocusedRowIndex, setSelectedIndex }) => {
+const PurchaseReportTable: React.FC<PurchaseReportTableProps> = ({ purchaseOrders, vendors, loading, error, pagination, filters = {}, onAddPayment, onDelete, focusedRowIndex, setFocusedRowIndex, setSelectedIndex }) => {
   const navigate = useNavigate();
   const [isSharing, setIsSharing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [expandedRows, setExpandedRows] = useState<number[]>([]);
   const [inventoryItems, setInventoryItems] = useState<InventoryItemResponse[]>([]);
+  const { isSubscriptionPaid } = useSubscription();
 
   useEffect(() => {
     const fetchInventoryItems = async () => {
@@ -200,6 +203,20 @@ const PurchaseReportTable: React.FC<PurchaseReportTableProps> = ({ purchaseOrder
                           }}
                         >
                           Add Payment
+                        </Button>
+                      )}
+                      {onDelete && (
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          className="ms-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete(po.id);
+                          }}
+                          disabled={isSubscriptionPaid === false}
+                        >
+                          Delete
                         </Button>
                       )}
                     </td>

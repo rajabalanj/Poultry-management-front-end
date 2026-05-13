@@ -4,6 +4,8 @@ import PageHeader from './Layout/PageHeader';
 import { BatchResponse } from '../types/batch';
 import StyledSelect from './Common/StyledSelect';
 import { SingleValue } from 'react-select';
+import { useSubscription } from './context/SubscriptionContext';
+import SubscriptionWarning from './Common/SubscriptionWarning';
 
 const UploadBatch: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -14,7 +16,7 @@ const UploadBatch: React.FC = () => {
   const [batches, setBatches] = useState<BatchResponse[]>([]);
   const [selectedBatchId, setSelectedBatchId] = useState<number | null>(null);
   const [loadingBatches, setLoadingBatches] = useState(true);
-
+  const { isSubscriptionPaid } = useSubscription();
   // Fetch batches on component mount
   useEffect(() => {
     const fetchBatches = async () => {
@@ -96,6 +98,7 @@ const UploadBatch: React.FC = () => {
         title="Upload Reports"
       />
       <div className="container">
+        <SubscriptionWarning />
         <div className="card shadow-sm p-4 mt-3" style={{ maxWidth: 500, margin: '0 auto' }}>
           <div className="mb-4">
             <h5 className="card-title">Select Report Type</h5>
@@ -161,7 +164,7 @@ const UploadBatch: React.FC = () => {
           <button
             className="btn btn-primary w-100"
             onClick={handleUpload}
-            disabled={!selectedFile || (reportType === 'weekly' && !selectedBatchId) || uploading}
+            disabled={!selectedFile || (reportType === 'weekly' && !selectedBatchId) || uploading || isSubscriptionPaid === false}
           >
             {uploading ? 'Uploading...' : 'Upload'}
           </button>

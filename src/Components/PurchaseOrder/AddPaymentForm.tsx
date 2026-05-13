@@ -8,7 +8,8 @@ import { format } from 'date-fns'; // Import format
 import { purchaseOrderApi, s3Upload } from '../../services/api';
 import { PaymentCreate, PurchaseOrderResponse } from '../../types/PurchaseOrder';
 import StyledSelect from '../Common/StyledSelect';
-
+import { useSubscription } from '../context/SubscriptionContext';
+import SubscriptionWarning from '../Common/SubscriptionWarning';
 const paymentModes = ["Cash", "Bank Transfer", "Cheque", "Online Payment", "Other"];
 type OptionType = { value: string; label: string };
 
@@ -35,6 +36,7 @@ const AddPaymentForm: React.FC<AddPaymentFormProps> = ({ poId, onSuccess, onCanc
   const [notes, setNotes] = useState<string>('');
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
 
+  const { isSubscriptionPaid } = useSubscription();
   // Fetch the PO details to display context
   useEffect(() => {
     const fetchPoDetails = async () => {
@@ -148,7 +150,8 @@ const AddPaymentForm: React.FC<AddPaymentFormProps> = ({ poId, onSuccess, onCanc
           buttonIcon="bi-arrow-left"
         />
       )}
-      <div className="container mt-4">
+      <div className="container">
+        <SubscriptionWarning />
         <div className="card shadow-sm">
           <div className="card-body">
             <h5 className="mb-3">Payment Details</h5>
@@ -244,7 +247,7 @@ const AddPaymentForm: React.FC<AddPaymentFormProps> = ({ poId, onSuccess, onCanc
                   <button
                     type="submit"
                     className="btn btn-primary me-2"
-                    disabled={isLoading}
+                    disabled={isLoading || isSubscriptionPaid === false}
                   >
                     {isLoading ? 'Adding Payment...' : 'Add Payment'}
                   </button>

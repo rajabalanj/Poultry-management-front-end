@@ -10,6 +10,10 @@ import { InventoryItemResponse } from "../../types/InventoryItem"; // Add Invent
 import { format } from 'date-fns';
 import { Modal, Button, Form } from 'react-bootstrap';
 import { salesOrderApi, inventoryItemApi, businessPartnerApi } from "../../services/api";
+import SubscriptionWarning from "../Common/SubscriptionWarning";
+
+import { useSubscription } from "../context/SubscriptionContext";
+
 
 const getStatusBadgeClass = (status: SalesOrderStatus | PaymentStatus) => {
   switch (status) {
@@ -48,6 +52,8 @@ const SalesOrderDetails: React.FC = () => {
     reference_number: '',
     notes: '',
   });
+
+  const { isSubscriptionPaid } = useSubscription(); // Get subscription status from context
 
   const fetchSalesOrderDetails = async () => {
     const fetchSalesOrder = async () => {
@@ -280,7 +286,8 @@ const SalesOrderDetails: React.FC = () => {
   return (
     <>
       <PageHeader title={`Sales Details: ${salesOrder.so_number}`} buttonVariant="secondary" buttonLabel="Back" buttonIcon="bi-arrow-left" />
-      <div className="container mt-4">
+      <div className="container">
+        <SubscriptionWarning />
         <div className="card shadow-sm mb-4">
           <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h5 className="mb-0">Sales Order Information</h5>
@@ -444,12 +451,14 @@ const SalesOrderDetails: React.FC = () => {
                           <Button
                             variant="info" size="sm" className="me-2"
                             onClick={() => handleEditPayment(payment)}
+                            disabled={isSubscriptionPaid === false}
                           >
                             <i className="bi bi-pencil"></i>
                           </Button>
                           <Button
                             variant="danger" size="sm"
                             onClick={() => handleDeletePayment(payment)}
+                            disabled={isSubscriptionPaid === false}
                           >
                             <i className="bi bi-trash"></i>
                           </Button>
@@ -474,6 +483,7 @@ const SalesOrderDetails: React.FC = () => {
                 type="button"
                 className="btn btn-primary btn-sm"
                 onClick={() => navigate(`/sales-orders/${so_id}/add-payment`)}
+                disabled={isSubscriptionPaid === false}
               >
                 <i className="bi bi-wallet-fill me-1"></i> Add Payment
               </button>
@@ -486,6 +496,7 @@ const SalesOrderDetails: React.FC = () => {
             type="button"
             className="btn btn-primary"
             onClick={() => navigate(`/sales-orders/${salesOrder.id}/edit`)}
+            disabled={isSubscriptionPaid === false}
           >
             <i className="bi bi-pencil-square me-1"></i>
             Edit
@@ -506,6 +517,7 @@ const SalesOrderDetails: React.FC = () => {
                   });
               }
             }}
+            disabled={isSubscriptionPaid === false}
           >
             <i className="bi bi-trash me-1"></i>
             Delete
@@ -581,7 +593,7 @@ const SalesOrderDetails: React.FC = () => {
             <Button variant="secondary" onClick={() => setShowEditPaymentModal(false)}>
               Cancel
             </Button>
-            <Button variant="primary" type="submit">
+            <Button variant="primary" type="submit" disabled={isSubscriptionPaid === false}>
               Save Changes
             </Button>
           </Modal.Footer>
@@ -596,7 +608,7 @@ const SalesOrderDetails: React.FC = () => {
         <Modal.Body>Are you sure you want to delete this payment?</Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowDeletePaymentModal(false)}>Cancel</Button>
-          <Button variant="danger" onClick={confirmDeletePayment}>Delete</Button>
+          <Button variant="danger" onClick={confirmDeletePayment} disabled={isSubscriptionPaid === false}>Delete</Button>
         </Modal.Footer>
       </Modal>
     </>

@@ -7,6 +7,8 @@ import { salesOrderApi, inventoryItemApi, businessPartnerApi, inventoryItemVaria
 import CustomDatePicker from '../Common/CustomDatePicker';
 import CreateBusinessPartnerForm from '../BusinessPartner/CreateBusinessPartnerForm';
 import CreateInventoryItemForm from '../InventoryItem/CreateInventoryItemForm';
+import SubscriptionWarning from '../Common/SubscriptionWarning';
+
 import type {
   SalesOrderCreate,
   SalesOrderResponse,
@@ -18,6 +20,7 @@ import { InventoryItemResponse, InventoryItemCategory } from '../../types/Invent
 import { InventoryItemVariant } from '../../types/inventoryItemVariant';
 import { format } from 'date-fns'; // Import format for date formatting
 import StyledSelect from '../Common/StyledSelect';
+import { useSubscription } from '../context/SubscriptionContext';
 
 interface FormSalesOrderItem extends SalesOrderItemCreate {
   tempId: number;
@@ -64,6 +67,8 @@ const CreateSalesOrderForm: React.FC = () => {
   const grandTotal = useMemo(() => {
     return items.reduce((sum, item) => sum + (item.quantity * item.price_per_unit), 0);
   }, [items]);
+
+  const { isSubscriptionPaid } = useSubscription();
 
   // ... (rest of the useEffect for fetching initial data remains the same)
   useEffect(() => {
@@ -306,7 +311,8 @@ const CreateSalesOrderForm: React.FC = () => {
         buttonLink="/sales-orders"
         buttonIcon="bi-arrow-left"
       />
-      <div className="container mt-4">
+      <div className="container">
+        <SubscriptionWarning />
         <div className="card shadow-sm">
           <div className="card-body">
             {formStep === "createOrder" ? (
@@ -420,7 +426,7 @@ const CreateSalesOrderForm: React.FC = () => {
                             type="button"
                             className="btn btn-outline-danger btn-sm"
                             onClick={() => handleRemoveItem(item.tempId)}
-                            disabled={isLoading}
+                            disabled={isLoading || isSubscriptionPaid === false}
                           >
                             <i className="bi bi-x-lg"></i> Remove
                           </button>
@@ -561,7 +567,7 @@ const CreateSalesOrderForm: React.FC = () => {
                       type="button"
                       className="btn btn-outline-primary btn-sm"
                       onClick={handleAddItem}
-                      disabled={isLoading}
+                      disabled={isLoading || isSubscriptionPaid === false}
                     >
                       <i className="bi bi-plus-circle me-1"></i> Add Item
                     </button>
@@ -571,7 +577,7 @@ const CreateSalesOrderForm: React.FC = () => {
                     <button
                       type="submit"
                       className="btn btn-primary me-2"
-                      disabled={isLoading}
+                      disabled={isLoading || isSubscriptionPaid === false}
                     >
                       {isLoading ? "Creating..." : "Proceed to Add Payment"}
                     </button>
@@ -691,7 +697,7 @@ const CreateSalesOrderForm: React.FC = () => {
                   <button
                     type="submit"
                     className="btn btn-primary me-2"
-                    disabled={isLoading}
+                    disabled={isLoading || isSubscriptionPaid === false}
                   >
                     {isLoading ? "Saving Payment..." : "Save Payment"}
                   </button>

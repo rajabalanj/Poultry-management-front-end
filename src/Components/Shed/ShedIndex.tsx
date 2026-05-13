@@ -6,6 +6,7 @@ import { Modal, Button } from "react-bootstrap";
 import { shedApi } from "../../services/api";
 import { ShedResponse } from "../../types/shed";
 import { toast } from 'react-toastify';
+import { useSubscription } from '../context/SubscriptionContext';
 import ShedTable from "./ShedTable";
 
 
@@ -16,6 +17,7 @@ const ShedIndexPage: React.FC = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<number | null>(null);
   const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(null);
+  const { isSubscriptionPaid } = useSubscription();
 
   useEffect(() => {
     const fetchShedList = async () => {
@@ -71,6 +73,7 @@ const ShedIndexPage: React.FC = () => {
         buttonLabel="Add New Shed"
         buttonLink="/sheds/create"
         buttonIcon="bi-plus-lg"
+        buttonDisabled={isSubscriptionPaid === false}
       />
       <div className="container mt-4">
         <ShedTable
@@ -95,7 +98,7 @@ const ShedIndexPage: React.FC = () => {
             <Button variant="secondary" onClick={cancelDelete}>
               Cancel
             </Button>
-            <Button variant="danger" onClick={confirmDelete} disabled={!!deleteErrorMessage}>
+            <Button variant="danger" onClick={confirmDelete} disabled={!!deleteErrorMessage || isSubscriptionPaid === false}>
               Delete
             </Button>
           </Modal.Footer>

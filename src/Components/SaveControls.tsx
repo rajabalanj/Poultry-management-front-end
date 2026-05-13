@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSubscription } from './context/SubscriptionContext';
 
 interface SaveControlsProps {
   editing: boolean;
@@ -15,11 +16,14 @@ export const SaveControls: React.FC<SaveControlsProps> = ({
   className,
   style,
 }) => {
+  const { isSubscriptionPaid } = useSubscription();
+
   return (
+    
     <button
       type="submit"
       className={`btn btn-primary ${className || ''}`}
-      disabled={loading}
+      disabled={loading || isSubscriptionPaid === false}
       onClick={onSave}
       style={{
     minWidth: '140px',

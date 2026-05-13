@@ -5,6 +5,8 @@ import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
 import { shedApi } from '../../services/api';
 import { Shed, ShedResponse } from '../../types/shed';
+import { useSubscription } from '../context/SubscriptionContext';
+import SubscriptionWarning from '../Common/SubscriptionWarning';
 
 const EditShed: React.FC = () => {
     const { shed_id } = useParams<{ shed_id: string }>();
@@ -13,6 +15,7 @@ const EditShed: React.FC = () => {
     const [shedNo, setShedNo] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const { isSubscriptionPaid } = useSubscription();
 
     useEffect(() => {
         const fetchShed = async () => {
@@ -74,7 +77,8 @@ const EditShed: React.FC = () => {
     return (
         <>
             <PageHeader title={`Edit Shed: ${shed.shed_no}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/sheds" buttonIcon='bi-arrow-left'/>
-            <div className="container mt-4">
+            <div className="container">
+                <SubscriptionWarning />
                 <div className="card shadow-sm">
                     <div className="card-body">
                         <form onSubmit={handleSubmit}>
@@ -95,7 +99,7 @@ const EditShed: React.FC = () => {
                                     <button
                                         type="submit"
                                         className="btn btn-primary"
-                                        disabled={isLoading}
+                                        disabled={isLoading || isSubscriptionPaid === false}
                                     >
                                         {isLoading ? 'Saving...' : 'Save Changes'}
                                     </button>

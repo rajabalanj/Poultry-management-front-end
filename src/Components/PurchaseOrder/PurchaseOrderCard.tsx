@@ -3,6 +3,7 @@ import React from "react";
 import { PurchaseOrderResponse, PurchaseOrderStatus, PaymentStatus } from "../../types/PurchaseOrder";
 import { PurchaseOrderItemResponse } from "../../types/PurchaseOrderItem";
 import { BusinessPartner } from "../../types/BusinessPartner";
+import { useSubscription } from '../context/SubscriptionContext';
 
 interface PurchaseOrderCardProps {
   Purchase: PurchaseOrderResponse;
@@ -45,6 +46,8 @@ const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = React.memo(
 
     const showActions = onEdit || onDelete || onAddPayment;
 
+    const { isSubscriptionPaid } = useSubscription();
+
     return (
       <div 
         className="card mb-2 mt-2 border-top-0 border-end-0 border-start-0 border-bottom"
@@ -71,17 +74,17 @@ const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = React.memo(
               {showActions && (
                 <>
                   {onEdit && (
-                    <button className="btn btn-sm btn-outline-primary me-2" onClick={(e) => handleActionClick(e, onEdit, Purchase.id)}>
+                    <button className="btn btn-sm btn-outline-primary me-2" onClick={(e) => handleActionClick(e, onEdit, Purchase.id)} disabled={isSubscriptionPaid === false}>
                       <i className="bi bi-pencil-fill"></i>
                     </button>
                   )}
                   {onDelete && (
-                    <button className="btn btn-sm btn-outline-danger me-2" onClick={(e) => handleActionClick(e, onDelete, Purchase.id)}>
+                    <button className="btn btn-sm btn-outline-danger me-2" onClick={(e) => handleActionClick(e, onDelete, Purchase.id)} disabled={isSubscriptionPaid === false}>
                       <i className="bi bi-trash-fill"></i>
                     </button>
                   )}
                   {onAddPayment && (
-                    <button className="btn btn-sm btn-outline-success" onClick={(e) => handleActionClick(e, onAddPayment, Purchase.id)}>
+                    <button className="btn btn-sm btn-outline-success" onClick={(e) => handleActionClick(e, onAddPayment, Purchase.id)} disabled={isSubscriptionPaid === false}>
                       <i className="bi bi-credit-card-fill"></i>
                     </button>
                   )}

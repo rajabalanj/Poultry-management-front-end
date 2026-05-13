@@ -15,6 +15,8 @@ import { useEscapeKey } from '../hooks/useEscapeKey';
 import { configApi, batchApi, shedApi, dailyBatchApi, reportsApi } from '../services/api';
 import StyledSelect from './Common/StyledSelect';
 import { toYYYYMMDD } from '../utility/date-utils';
+import { useSubscription } from './context/SubscriptionContext';
+import SubscriptionWarning from './Common/SubscriptionWarning';
 
 // Memoized table row component to prevent unnecessary re-renders
 const TableRow = memo(({ 
@@ -76,6 +78,8 @@ const TableRow = memo(({
   const actualFeedValue = row.actual_feed_consumed != null ? Number(row.actual_feed_consumed).toFixed(2) : '';
   const standardFeedValue = row.standard_feed_consumption != null ? Number(row.standard_feed_consumption).toFixed(2) : '';
 
+  const { isSubscriptionPaid } = useSubscription();
+
   return (
     <tr key={rowKey}>
       {!batchIdFromUrl && <td>{row.batch_no}</td>}
@@ -108,7 +112,7 @@ const TableRow = memo(({
           <button
             className="btn btn-sm btn-warning"
             onClick={() => handleEdit(row.batch_id, row.batch_date!)}
-            disabled={row.is_active === false}
+            disabled={row.is_active === false || isSubscriptionPaid === false}
           >Edit</button>
         </td>
       )}
@@ -402,6 +406,7 @@ const PreviousDayReport = () => {
     <>
     <PageHeader title="Batch Reports" buttonLabel='Back' buttonVariant='secondary' buttonIcon="bi-arrow-left"/>
     <div className="container">
+      <SubscriptionWarning />
         <div className="col-12 mb-4">
           <div className="card shadow-sm">
             <div className="card-body">

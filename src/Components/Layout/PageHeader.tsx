@@ -11,6 +11,7 @@ interface PageHeaderProps {
   subtitle?: string;
   buttonLink?: string;
   buttonVariant?: 'secondary' | 'primary';
+  buttonDisabled?: boolean;
   onToggleSidebar?: () => void;
   buttonIcon?: string; // Bootstrap icon class name (e.g., "bi-arrow-left", "bi-plus")
 }
@@ -21,6 +22,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   buttonLabel,
   buttonLink,
   buttonVariant = 'secondary',
+  buttonDisabled,
   onToggleSidebar,
   buttonIcon,
 }) => {
@@ -60,7 +62,12 @@ const PageHeader: React.FC<PageHeaderProps> = ({
           {buttonLabel && (
             <button
               className={`btn btn-${buttonVariant} btn-sm d-flex align-items-center justify-content-center text-sm me-3`}
-              onClick={() => (buttonLink ? navigate(buttonLink) : navigate(-1))}
+              onClick={() => {
+                if (buttonDisabled) return;
+                if (buttonLink) navigate(buttonLink);
+                else navigate(-1);
+              }}
+              disabled={buttonDisabled}
               style={{ minWidth: isDesktop ? 'auto' : '32px', height: isDesktop ? 'auto' : '32px', padding: isDesktop ? '' : '0' }}
               aria-label={buttonLabel}
             >

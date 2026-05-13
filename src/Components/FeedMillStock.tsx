@@ -10,6 +10,8 @@ import StyledSelect from './Common/StyledSelect';
 import { toast } from "react-toastify";
 import { useNavigate } from 'react-router-dom';
 import CustomDatePicker from "./Common/CustomDatePicker";
+import { useSubscription } from "./context/SubscriptionContext";
+import SubscriptionWarning from "./Common/SubscriptionWarning";
 
 function FeedMillStock() {
   type ViewState = "view" | "edit" | "add" | "use-composition";
@@ -31,6 +33,7 @@ function FeedMillStock() {
   const [selectedBatchNo, setSelectedBatchNo] = useState<string>('');
   const [batchDate, setBatchDate] = useState<string>('');
   const navigate = useNavigate();
+  const { isSubscriptionPaid } = useSubscription();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -228,7 +231,8 @@ function FeedMillStock() {
   };
 
   return (
-    <div className="container py-3">
+    <div className="container">
+      <SubscriptionWarning />
       <div className="row mb-3">
         <div className="col-12 col-md-4 mb-2 mb-md-0">
           {viewState !== "add" && (
@@ -246,6 +250,7 @@ function FeedMillStock() {
             <button
               onClick={handleEdit}
               className="btn btn-success"
+              disabled={isSubscriptionPaid === false}
             >
               <i className="bi bi-pencil me-1"></i>Edit
             </button>
@@ -255,6 +260,7 @@ function FeedMillStock() {
             <button
               onClick={handleAddComposition}
               className="btn btn-primary"
+              disabled={isSubscriptionPaid === false}
             >
               <i className="bi bi-plus-lg me-1"></i>Create
             </button>
@@ -311,6 +317,7 @@ function FeedMillStock() {
             <button
               className="btn btn-primary"
               onClick={() => setViewState("use-composition")}
+              disabled={isSubscriptionPaid === false}
             >
               Use Composition
             </button>
@@ -401,6 +408,7 @@ function FeedMillStock() {
                   toast.error("Failed to use composition");
                 }
               }}
+              disabled={isSubscriptionPaid === false}
             >
               Confirm
             </button>

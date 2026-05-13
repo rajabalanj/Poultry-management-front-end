@@ -19,6 +19,9 @@ import {
 import { BusinessPartner } from '../../types/BusinessPartner';
 import { InventoryItemResponse } from '../../types/InventoryItem';
 import StyledSelect from '../Common/StyledSelect';
+import { useSubscription } from '../context/SubscriptionContext';
+import SubscriptionWarning from "../Common/SubscriptionWarning"; // adjust path as needed
+
 
 interface FormPurchaseOrderItem extends PurchaseOrderItemResponse {
   tempId: number; // For new items, to uniquely identify them before they have a backend ID
@@ -60,6 +63,8 @@ const EditPurchaseOrder: React.FC = () => {
   const grandTotal = useMemo(() => {
     return items.filter(item => !item.isDeleted).reduce((sum, item) => sum + (item.quantity * item.price_per_unit), 0);
   }, [items]);
+
+  const { isSubscriptionPaid } = useSubscription();
 
   // --- Initial Data Fetch (Purchase, Vendors, Inventory Items) ---
   useEffect(() => {
@@ -309,7 +314,8 @@ const EditPurchaseOrder: React.FC = () => {
   return (
     <>
       <PageHeader title={`Edit Purchase: ${poNumber || 'Loading...'}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/purchase-orders" buttonIcon='bi-arrow-left' />
-      <div className="container mt-4">
+      <div className="container">
+        <SubscriptionWarning />
         <div className="card shadow-sm">
           <div className="card-body">
             <form onSubmit={handleSubmit}>
@@ -500,7 +506,7 @@ const EditPurchaseOrder: React.FC = () => {
                   <button
                     type="submit"
                     className="btn btn-primary me-2"
-                    disabled={isLoading}
+                    disabled={isLoading || isSubscriptionPaid === false}
                   >
                     {isLoading ? 'Updating...' : 'Update Purchase'}
                   </button>

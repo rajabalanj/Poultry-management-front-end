@@ -7,6 +7,9 @@ import { ChartOfAccountsResponse } from '../../types/chartOfAccounts';
 import PageHeader from '../Layout/PageHeader';
 import CustomDatePicker from '../Common/CustomDatePicker';
 import './JournalEntry.css';
+import { useSubscription } from '../context/SubscriptionContext';
+import SubscriptionWarning from '../Common/SubscriptionWarning';
+
 
 const JournalEntryCreate: React.FC = () => {
   const navigate = useNavigate();
@@ -19,6 +22,8 @@ const JournalEntryCreate: React.FC = () => {
   ]);
   const [accounts, setAccounts] = useState<ChartOfAccountsResponse[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { isSubscriptionPaid } = useSubscription();
+  
 
   useEffect(() => {
     const fetchAccounts = async () => {
@@ -107,6 +112,7 @@ const JournalEntryCreate: React.FC = () => {
         buttonIcon="bi-arrow-left"
       />
       <div className="container">
+        <SubscriptionWarning />
         <form onSubmit={handleSubmit} className="p-3 border shadow-sm">
           <div className="row mb-3">
             <div className="col-md-4">
@@ -230,7 +236,7 @@ const JournalEntryCreate: React.FC = () => {
             <button type="button" className="btn btn-secondary" onClick={addItem}>
               Add Row
             </button>
-            <button type="submit" className="btn btn-primary" disabled={!isBalanced || isSubmitting}>
+            <button type="submit" className="btn btn-primary" disabled={!isBalanced || isSubmitting || isSubscriptionPaid === false}>
               {isSubmitting ? 'Saving...' : 'Save Entry'}
             </button>
           </div>
