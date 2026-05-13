@@ -4,6 +4,8 @@ import { toast } from "react-toastify";
 import PageHeader from "../Layout/PageHeader";
 import { businessPartnerApi } from "../../services/api";
 import { BusinessPartner } from "../../types/BusinessPartner";
+import { useSubscription } from "../context/SubscriptionContext";
+import SubscriptionWarning from "../Common/SubscriptionWarning"; // adjust path as needed
 
 const BusinessPartnerDetails: React.FC = () => {
   const { partner_id } = useParams<{ partner_id: string }>();
@@ -11,6 +13,7 @@ const BusinessPartnerDetails: React.FC = () => {
   const [partner, setPartner] = useState<BusinessPartner | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { isSubscriptionPaid } = useSubscription();
 
   useEffect(() => {
     const fetchPartner = async () => {
@@ -57,7 +60,8 @@ const BusinessPartnerDetails: React.FC = () => {
   return (
     <>
       <PageHeader title="People Details" buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/business-partners" buttonIcon="bi-arrow-left"/>
-      <div className="container mt-4">
+      <div className="container">
+        <SubscriptionWarning />
         <div className="card shadow-sm">
           <div className="card-header bg-primary text-white">
             <h5 className="mb-0">
@@ -112,6 +116,7 @@ const BusinessPartnerDetails: React.FC = () => {
           <button
             type="button"
             className="btn btn-primary"
+            disabled={isSubscriptionPaid === false}
             onClick={() => navigate(`/business-partners/${partner.id}/edit`)}
           >
             <i className="bi bi-pencil-square me-1"></i>
@@ -120,6 +125,7 @@ const BusinessPartnerDetails: React.FC = () => {
           <button
             type="button"
             className="btn btn-danger"
+            disabled={isSubscriptionPaid === false}
             onClick={() => {
               if (window.confirm('Are you sure you want to delete this business partner?')) {
                 // Add delete functionality here

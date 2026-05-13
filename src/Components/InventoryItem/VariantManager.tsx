@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { InventoryItemVariant } from '../../types/inventoryItemVariant';
+import { useSubscription } from '../context/SubscriptionContext';
 
 interface VariantManagerProps {
     variants: InventoryItemVariant[];
@@ -14,6 +15,7 @@ const VariantManager: React.FC<VariantManagerProps> = ({ variants, onVariantsCha
     const [variantName, setVariantName] = useState('');
     const [editingId, setEditingId] = useState<number | null>(null);
     const [editingName, setEditingName] = useState('');
+    const { isSubscriptionPaid } = useSubscription();
 
     const handleAddVariant = async () => {
         if (variantName.trim() !== '') {
@@ -67,7 +69,7 @@ const VariantManager: React.FC<VariantManagerProps> = ({ variants, onVariantsCha
                     value={variantName}
                     onChange={(e) => setVariantName(e.target.value)}
                 />
-                <button className="btn btn-outline-secondary" type="button" onClick={handleAddVariant}>
+                <button className="btn btn-secondary" type="button" onClick={handleAddVariant} disabled={isSubscriptionPaid === false}>
                     Add Variant
                 </button>
             </div>

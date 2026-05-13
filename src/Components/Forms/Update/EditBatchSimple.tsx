@@ -6,6 +6,8 @@ import { toast } from 'react-toastify';
 import PageHeader from '../../Layout/PageHeader';
 import Loading from '../../Common/Loading';
 import CustomDatePicker from '../../Common/CustomDatePicker';
+import { useSubscription } from '../../context/SubscriptionContext';
+import SubscriptionWarning from "../../Common/SubscriptionWarning"; // adjust path as needed
 
 const EditBatchSimple: React.FC = () => {
   const { batchId } = useParams<{ batchId: string }>();
@@ -16,9 +18,10 @@ const EditBatchSimple: React.FC = () => {
   const [date, setDate] = useState('');
   const [shedChangeDate, setShedChangeDate] = useState('');
   const [initialBatch, setInitialBatch] = useState<BatchResponse | null>(null);
-  // const [standardHenDay, setStandardHenDay] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { isSubscriptionPaid } = useSubscription();
+
 
   useEffect(() => {
     const fetchBatch = async () => {
@@ -107,6 +110,7 @@ const EditBatchSimple: React.FC = () => {
         buttonIcon="bi-arrow-left"
       />
     <div className="container">
+      <SubscriptionWarning />
       <div className="p-4">
         <form onSubmit={handleSubmit}>
           <div className="row g-3">
@@ -187,7 +191,7 @@ const EditBatchSimple: React.FC = () => {
               <button
                 type="submit"
                 className="btn btn-primary"
-                disabled={loading}
+                disabled={loading || isSubscriptionPaid === false}
               >
                 {loading ? 'Saving...' : 'Save Changes'}
               </button>

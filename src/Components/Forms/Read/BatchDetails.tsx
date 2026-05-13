@@ -14,6 +14,8 @@ import Loading from '../../Common/Loading';
 import { useEscapeKey } from '../../../hooks/useEscapeKey';
 import { InventoryItemUsageResponse } from '../../../types/InventoryItemUsage';
 import { Bird, Package, Egg } from 'lucide-react';
+import { useSubscription } from '../../context/SubscriptionContext';
+import SubscriptionWarning from "../../Common/SubscriptionWarning"; // adjust path as needed
 
 interface UsageHistoryItem {
   id: number;
@@ -47,6 +49,8 @@ const BatchDetails: React.FC = () => {
   const [showFeedModal, setShowFeedModal] = useState(false);
   const [feedModalTitle, setFeedModalTitle] = useState('');
   const [feedModalItems, setFeedModalItems] = useState<string[]>([]);
+
+  const { isSubscriptionPaid } = useSubscription();
 
   useEffect(() => {
     const fetchHenDayDeviation = async () => {
@@ -192,6 +196,7 @@ const BatchDetails: React.FC = () => {
         buttonIcon="bi-arrow-left"
       />
       <div className="container">
+        <SubscriptionWarning />
         <div className="card shadow-sm mb-4">
           <div className="card-body p-4">
             <div className="mb-4">
@@ -370,10 +375,10 @@ const BatchDetails: React.FC = () => {
                       </div>
                     </div>
                     <div className="mt-4 d-flex justify-content-start">
-                      <button type="button" className="btn btn-primary me-2" onClick={() => navigate(`/batch/${batch_id}/${batch_date}/edit`)} disabled={batch.is_active === false}>
+                      <button type="button" className="btn btn-primary me-2" onClick={() => navigate(`/batch/${batch_id}/${batch_date}/edit`)} disabled={batch.is_active === false || isSubscriptionPaid === false}>
                         Update
                       </button>
-                      <button type="button" className="btn btn-info me-2" onClick={() => navigate(`/batch/${batch_id}/move-shed`)}>
+                      <button type="button" className="btn btn-info me-2" onClick={() => navigate(`/batch/${batch_id}/move-shed`)} disabled={batch.is_active === false || isSubscriptionPaid === false}>
                         Move Shed
                       </button>
                       <button type="button" className="btn btn-secondary me-2" onClick={() => navigate(-1)}>

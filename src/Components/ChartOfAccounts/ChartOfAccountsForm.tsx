@@ -10,11 +10,14 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ChartOfAccountsRequest } from '../../types/chartOfAccounts';
 import { chartOfAccountsApi } from '../../services/api';
 import PageHeader from "../Layout/PageHeader";
+import { useSubscription } from '../context/SubscriptionContext';
+import SubscriptionWarning from '../Common/SubscriptionWarning';
 
 const ChartOfAccountsForm: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id?: string }>();
   const isEdit = Boolean(id);
+  const {isSubscriptionPaid} = useSubscription();
 
   const [formData, setFormData] = useState<ChartOfAccountsRequest>({
     account_code: '',
@@ -122,7 +125,8 @@ const ChartOfAccountsForm: React.FC = () => {
         </Alert>
       )}
 
-      <div className="container mt-4">
+      <div className="container">
+        <SubscriptionWarning />
         <div className="card shadow-sm">
           <div className="card-body">
             <form onSubmit={handleSubmit}>
@@ -209,7 +213,7 @@ const ChartOfAccountsForm: React.FC = () => {
                   <button
                     type="submit"
                     className="btn btn-primary"
-                    disabled={loading}
+                    disabled={loading || isSubscriptionPaid === false}
                   >
                     {loading ? (
                       <>

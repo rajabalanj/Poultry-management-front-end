@@ -4,6 +4,8 @@ import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
 import { businessPartnerApi } from '../../services/api';
 import { BusinessPartnerCreate, BusinessPartner } from '../../types/BusinessPartner';
+import { useSubscription } from '../context/SubscriptionContext';
+import SubscriptionWarning from '../Common/SubscriptionWarning';
 
 interface CreateBusinessPartnerFormProps {
     onCreated?: (partner: BusinessPartner) => void;
@@ -21,6 +23,7 @@ const CreateBusinessPartnerForm: React.FC<CreateBusinessPartnerFormProps> = ({ o
     const [isCustomer, setIsCustomer] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
+    const { isSubscriptionPaid } = useSubscription();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -68,7 +71,8 @@ const CreateBusinessPartnerForm: React.FC<CreateBusinessPartnerFormProps> = ({ o
             {!hideHeader && (
               <PageHeader title="Create New People" buttonVariant="secondary" buttonLabel="Back" buttonLink="/business-partners" buttonIcon='bi-arrow-left' />
             )}
-            <div className={hideHeader ? undefined : 'container mt-4'}>
+            <div className={hideHeader ? undefined : 'container'}>
+                <SubscriptionWarning />
                 <div className="card shadow-sm">
                     <div className="card-body">
                         <form onSubmit={handleSubmit}>
@@ -167,7 +171,7 @@ const CreateBusinessPartnerForm: React.FC<CreateBusinessPartnerFormProps> = ({ o
                                     <button
                                         type="submit"
                                         className="btn btn-primary"
-                                        disabled={isLoading}
+                                        disabled={isLoading || isSubscriptionPaid === false}
                                     >
                                         {isLoading ? 'Creating...' : 'Add People'}
                                     </button>

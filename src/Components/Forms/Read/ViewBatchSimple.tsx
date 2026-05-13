@@ -7,6 +7,8 @@ import Loading from '../../Common/Loading';
 import { Modal, Button } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import CustomDatePicker from '../../Common/CustomDatePicker';
+import { useSubscription } from '../../context/SubscriptionContext';
+import SubscriptionWarning from "../../Common/SubscriptionWarning"; // adjust path as needed
 
 const ViewBatchSimple: React.FC = () => {
   const { batchId } = useParams<{ batchId: string }>();
@@ -16,6 +18,9 @@ const ViewBatchSimple: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showCloseModal, setShowCloseModal] = useState(false);
   const [closingDate, _setClosingDate] = useState(new Date().toISOString().split('T')[0]);
+
+  const { isSubscriptionPaid } = useSubscription();
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -59,6 +64,7 @@ const ViewBatchSimple: React.FC = () => {
         buttonIcon="bi-arrow-left"
       />
       <div className="container">
+        <SubscriptionWarning />
         <div className="p-4">
           <div className="row g-3">
             <div className="col-md-6">
@@ -115,7 +121,7 @@ const ViewBatchSimple: React.FC = () => {
               type="button"
               className="btn btn-primary me-2"
               onClick={() => navigate(`/batch/${batchId}/edit-simple`)}
-              disabled={batch?.is_active === false}
+              disabled={batch?.is_active === false || isSubscriptionPaid === false}
             >
               Edit
             </button>
@@ -123,7 +129,7 @@ const ViewBatchSimple: React.FC = () => {
               type="button"
               className="btn btn-danger me-2"
               onClick={() => setShowCloseModal(true)}
-              disabled={batch?.is_active === false}
+              disabled={batch?.is_active === false || isSubscriptionPaid === false}
             >
               Close
             </button>

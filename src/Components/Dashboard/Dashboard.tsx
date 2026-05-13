@@ -11,6 +11,7 @@ import EggProductionCostGraph from './EggProductionCostGraph';
 import CompositionUsagePieChart from './CompositionUsagePieChart';
 import FeedConsumptionPerEggGraph from './FeedConsumptionPerEggGraph';
 import EggPriceCard from './EggPriceCard';
+import SubscriptionWarning from '../Common/SubscriptionWarning';
 
 const BATCH_DATE_KEY = 'dashboard_batch_date';
 
@@ -59,6 +60,7 @@ const Dashboard: React.FC = () => {
 
   // Effect for daily stats
   useEffect(() => {
+
     const fetchBatches = async () => {
       setLoading(true);
       try {
@@ -239,6 +241,9 @@ const Dashboard: React.FC = () => {
   return (
     <>
       <PageHeader title="Dashboard" />
+      
+      <SubscriptionWarning />
+
       <div className="mb-3">
         <div className="col-auto d-flex align-items-center bg-white p-2 rounded shadow-sm" style={{maxWidth: '250px'}}>
             <label className="form-label me-2 mb-0 fw-bold">Daily Stats Date</label>

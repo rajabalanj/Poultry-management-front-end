@@ -11,6 +11,8 @@ import Loading from '../Common/Loading';
 import CustomDatePicker from '../Common/CustomDatePicker';
 import AdjustInventoryModal from './AdjustInventoryModal'; // Import the modal
 import UseInventoryItemModal from './UseInventoryItemModal';
+import { useSubscription } from '../context/SubscriptionContext';
+import SubscriptionWarning from "../Common/SubscriptionWarning";
 
 const InventoryItemDetails: React.FC = () => {
   const { item_id } = useParams<{ item_id: string }>();
@@ -28,6 +30,7 @@ const InventoryItemDetails: React.FC = () => {
   const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false); // State for modal
   const [isUseModalOpen, setIsUseModalOpen] = useState(false);
   const [variants, setVariants] = useState<InventoryItemVariant[]>([]);
+  const { isSubscriptionPaid } = useSubscription();
 
   useEffect(() => {
     const fetchItemDetails = async () => {
@@ -102,7 +105,8 @@ const handleUseSuccess = () => {
   return (
     <>
       <PageHeader title="Inventory Item Details" buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/inventory-items" buttonIcon="bi-arrow-left"/>
-      <div className="container mt-4">
+      <div className="container">
+        <SubscriptionWarning />
         <div className="card shadow-sm">
           <div className="card-header bg-primary text-white">
             <h5 className="mb-0">Item Information: {item.name}</h5>
@@ -163,6 +167,7 @@ const handleUseSuccess = () => {
             type="button"
             className="btn btn-warning"
             onClick={() => setIsUseModalOpen(true)}
+            disabled={isSubscriptionPaid === false}
           >
             <i className="bi bi-box-arrow-right me-1"></i>
             Use Item
@@ -171,6 +176,7 @@ const handleUseSuccess = () => {
             type="button"
             className="btn btn-warning"
             onClick={() => setIsAdjustModalOpen(true)}
+            disabled={isSubscriptionPaid === false}
           >
             <i className="bi bi-gear me-1"></i>
             Adjust Inventory
@@ -186,6 +192,7 @@ const handleUseSuccess = () => {
           <button
             type="button"
             className="btn btn-danger"
+            disabled={isSubscriptionPaid === false}
             onClick={() => {
               if (window.confirm('Are you sure you want to delete this inventory item?')) {
                 // Add delete functionality here

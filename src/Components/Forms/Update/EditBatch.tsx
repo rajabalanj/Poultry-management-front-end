@@ -12,6 +12,8 @@ import CustomDatePicker from "../../Common/CustomDatePicker";
 import StyledSelect from "../../Common/StyledSelect";
 import { InventoryItemUsageResponse } from "../../../types/InventoryItemUsage";
 import { InventoryItemResponse } from "../../../types/InventoryItem";
+import { useSubscription } from '../../context/SubscriptionContext';
+import SubscriptionWarning from "../../Common/SubscriptionWarning";
 
 interface UsageHistoryItem {
   id: number;
@@ -40,7 +42,9 @@ const EditBatch: React.FC = () => {
   const [showRevertModal, setShowRevertModal] = useState(false);
   const [usageToRevert, setUsageToRevert] = useState<number | null>(null);
   const [revertType, setRevertType] = useState<'composition' | 'item' | null>(null);
-
+  const { isSubscriptionPaid } = useSubscription();
+  const [showUsageHistoryModal, setShowUsageHistoryModal] = useState(false);
+  
   useEffect(() => {
     const fetchData = async () => {
       if (!batchId || !batch_date) return;
@@ -91,67 +95,12 @@ const EditBatch: React.FC = () => {
     }
   };
 
-  const handleUseComposition = async () => {
-    if (!batch || !selectedCompositionId) return;
-    const selectedComposition = compositions.find(c => c.id === selectedCompositionId);
-    if (!selectedComposition) return;
-
-    try {
-      const usedAtDate = batch.batch_date.split('T')[0];
-      const usedAt = `${usedAtDate}T00:00:00`;
-      await compositionApi.useComposition({
-        compositionId: selectedComposition.id,
-        times: timesToUse,
-        usedAt,
-        batch_no: batch.batch_no,
-      });
-      toast.success("Composition used successfully");
-      
-      if (batchId && batch_date) {
-        const history = await compositionApi.getFilteredCompositionUsageHistory(batch_date, Number(batchId));
-        setUsageHistory(history);
-      }
-      
-      setSelectedCompositionId(null);
-      setTimesToUse(1);
-    } catch (err: any) {
-      toast.error(err.message || "Failed to use composition");
-    }
-  };
-
-  const handleUseItem = async () => {
-    if (!batch || !selectedItemId || !itemQuantityToUse) return;
-    const selectedItem = inventoryItems.find(i => i.id === selectedItemId);
-    if (!selectedItem) return;
-
-    try {
-      const usedAtDate = batch.batch_date.split('T')[0];
-      const usedAt = `${usedAtDate}T00:00:00`;
-      await inventoryItemApi.useInventoryItem({
-        inventory_item_id: selectedItem.id,
-        batch_no: batch.batch_no,
-        used_quantity: Number(itemQuantityToUse),
-        usedAt,
-        unit: (selectedItemUnit || selectedItem.unit) as any,
-      });
-      toast.success("Inventory item used successfully");
-      
-      if (batchId && batch_date) {
-        const history = await inventoryItemApi.getFilteredInventoryUsageHistory(batch_date, Number(batchId));
-        setItemUsageHistory(history);
-      }
-      
-      setSelectedItemId(null);
-      setItemQuantityToUse("");
-      setSelectedItemUnit("");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to use inventory item");
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!batch || !initialBatch || !batchId || !batch_date) return;
+
+    let hasErrors = false;
+    let madeChanges = false;
 
     const hasBatchChanges = 
       batch.mortality !== initialBatch.mortality ||
@@ -162,31 +111,92 @@ const EditBatch: React.FC = () => {
       batch.cr !== initialBatch.cr ||
       (batch.notes || "") !== (initialBatch.notes || "");
 
-    if (!hasBatchChanges) {
+    // Handle Use Composition
+    if (selectedCompositionId) {
+      const selectedComposition = compositions.find(c => c.id === selectedCompositionId);
+      if (selectedComposition) {
+        try {
+          const usedAtDate = batch.batch_date.split('T')[0];
+          const usedAt = `${usedAtDate}T00:00:00`;
+          await compositionApi.useComposition({
+            compositionId: selectedComposition.id,
+            times: timesToUse,
+            usedAt,
+            batch_no: batch.batch_no,
+          });
+          toast.success("Composition used successfully");
+          madeChanges = true;
+        } catch (err: any) {
+          toast.error(err.message || "Failed to use composition");
+          hasErrors = true;
+        }
+      }
+    }
+
+    // Handle Use Item
+    if (selectedItemId && itemQuantityToUse) {
+      const selectedItem = inventoryItems.find(i => i.id === selectedItemId);
+      if (selectedItem) {
+        try {
+          const usedAtDate = batch.batch_date.split('T')[0];
+          const usedAt = `${usedAtDate}T00:00:00`;
+          await inventoryItemApi.useInventoryItem({
+            inventory_item_id: selectedItem.id,
+            batch_no: batch.batch_no,
+            used_quantity: Number(itemQuantityToUse),
+            usedAt,
+            unit: (selectedItemUnit || selectedItem.unit) as any,
+          });
+          toast.success("Inventory item used successfully");
+          madeChanges = true;
+        } catch (err: any) {
+          toast.error(err.message || "Failed to use inventory item");
+          hasErrors = true;
+        }
+      }
+    }
+
+    if (hasBatchChanges) {
+      try {
+        const payload: Partial<DailyBatch> = {
+          mortality: batch.mortality,
+          culls: batch.culls,
+          table_eggs: batch.table_eggs,
+          jumbo: batch.jumbo,
+          cr: batch.cr,
+          notes: batch.notes || "",
+          standard_hen_day_percentage: batch.standard_hen_day_percentage ?? 0,
+          birds_added: batch.birds_added,
+        };
+        
+        await dailyBatchApi.updateDailyBatch(Number(batchId), batch_date, payload);
+        toast.success("Batch details updated successfully");
+        madeChanges = true;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Failed to update batch";
+        console.error("Error updating daily batch:", err);
+        setError(message);
+        toast.error(message);
+        hasErrors = true;
+      }
+    }
+
+    if (!hasBatchChanges && !selectedCompositionId && (!selectedItemId || !itemQuantityToUse)) {
       toast.info("No changes to update.");
       return;
     }
 
-    try {
-      const payload: Partial<DailyBatch> = {
-        mortality: batch.mortality,
-        culls: batch.culls,
-        table_eggs: batch.table_eggs,
-        jumbo: batch.jumbo,
-        cr: batch.cr,
-        notes: batch.notes || "",
-        standard_hen_day_percentage: batch.standard_hen_day_percentage ?? 0,
-        birds_added: batch.birds_added,
-      };
-      
-      await dailyBatchApi.updateDailyBatch(Number(batchId), batch_date, payload);
-      toast.success("Updated successfully");
+    if (!hasErrors && madeChanges) {
       navigate(-1);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to update batch";
-      console.error("Error updating daily batch:", err);
-      setError(message);
-      toast.error(message);
+    } else if (hasErrors) {
+      if (batchId && batch_date) {
+        compositionApi.getFilteredCompositionUsageHistory(batch_date, Number(batchId))
+          .then(setUsageHistory)
+          .catch(console.warn);
+        inventoryItemApi.getFilteredInventoryUsageHistory(batch_date, Number(batchId))
+          .then(setItemUsageHistory)
+          .catch(console.warn);
+      }
     }
   };
 
@@ -221,7 +231,8 @@ const EditBatch: React.FC = () => {
         buttonLabel="Back"
         buttonIcon="bi-arrow-left"
       />
-      <div className="container mt-4">
+      <div className="container">
+        <SubscriptionWarning />
         <div className="card shadow-sm mb-4">
           <div className="card-body">
             <div className="mb-4">
@@ -345,7 +356,122 @@ const EditBatch: React.FC = () => {
                 )}
               </div>
               
-              {/* Notes Section (Moved Up to keep batch details grouped together) */}
+              {/* Record Feed & Items Usage Section */}
+              <div className="row">
+                <div className="col-12">
+              <div className="card shadow-sm mb-4">
+                    <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                      <h5 className="mb-0">Record Feed & Items Usage</h5>
+                      <Button variant="light" size="sm" onClick={() => setShowUsageHistoryModal(true)}>
+                        <i className="bi bi-clock-history me-1"></i>
+                        Usage History
+                      </Button>
+                    </div>
+                    <div className="card-body">
+                      <div className="row">
+                        <div className="col-md-6 border-end">
+                          <h6>Use Composition</h6>
+                          <div className="mb-3">
+                            <label htmlFor="compositionSelect" className="form-label">
+                              Select Composition:
+                            </label>
+                            <StyledSelect
+                              id="compositionSelect"
+                              value={
+                                selectedCompositionId
+                                  ? compositions.find((c) => c.id === selectedCompositionId)
+                                    ? {
+                                        value: selectedCompositionId,
+                                        label: compositions.find((c) => c.id === selectedCompositionId)?.name || "",
+                                      }
+                                    : null
+                                  : null
+                              }
+                              onChange={(option) => setSelectedCompositionId(option ? Number(option.value) : null)}
+                              options={compositions.map((c) => ({ value: c.id, label: c.name }))}
+                              placeholder="Select a Composition"
+                              isClearable
+                            />
+                          </div>
+                          <div className="d-flex align-items-center gap-2 mb-4">
+                            <span>Times:</span>
+                            <button type="button" className="btn btn-danger btn-sm" onClick={() => setTimesToUse((prev) => Math.max(1, prev - 1))}>
+                              -
+                            </button>
+                            <span>{timesToUse}</span>
+                            <button type="button" className="btn btn-success btn-sm" onClick={() => setTimesToUse((prev) => prev + 1)}>
+                              +
+                            </button>
+                          </div>
+                        </div>
+                        
+                        <div className="col-md-6">
+                          <h6>Use Inventory Item</h6>
+                          <div className="mb-3">
+                            <label htmlFor="itemSelect" className="form-label">
+                              Select Inventory Item:
+                            </label>
+                            <StyledSelect
+                              id="itemSelect"
+                              value={
+                                selectedItemId
+                                  ? inventoryItems.find((i) => i.id === selectedItemId)
+                                    ? {
+                                        value: selectedItemId,
+                                        label: `${inventoryItems.find((i) => i.id === selectedItemId)?.name} (${inventoryItems.find((i) => i.id === selectedItemId)?.unit})`,
+                                      }
+                                    : null
+                                  : null
+                              }
+                              onChange={(option) => {
+                                const id = option ? Number(option.value) : null;
+                                setSelectedItemId(id);
+                                if (id) {
+                                  setSelectedItemUnit(inventoryItems.find((i) => i.id === id)?.unit || "");
+                                } else {
+                                  setSelectedItemUnit("");
+                                }
+                              }}
+                              options={inventoryItems.map((i) => ({ value: i.id, label: `${i.name} (${i.unit})` }))}
+                              placeholder="Select an Item"
+                              isClearable
+                            />
+                          </div>
+                          <div className="d-flex align-items-center gap-2 mb-4">
+                            <input
+                              type="number"
+                              className="form-control"
+                              placeholder="Quantity"
+                              value={itemQuantityToUse}
+                              onChange={(e) => setItemQuantityToUse(e.target.value ? Number(e.target.value) : "")}
+                              min="0"
+                              step="any"
+                            />
+                            <div style={{ minWidth: '100px' }}>
+                              <StyledSelect
+                                value={
+                                  selectedItemUnit
+                                    ? { value: selectedItemUnit, label: selectedItemUnit }
+                                    : null
+                                }
+                                onChange={(option) => setSelectedItemUnit(option ? String(option.value) : "")}
+                                options={[
+                                  { value: "gram", label: "gram" },
+                                  { value: "kg", label: "kg" },
+                                  { value: "ton", label: "ton" },
+                                ]}
+                                isClearable={false}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Notes Section (Moved to Bottom) */}
               <div className="row">
                 <div className="col-12">
                   <div className="card shadow-sm mb-4">
@@ -370,8 +496,8 @@ const EditBatch: React.FC = () => {
               </div>
 
               <div className="mt-3 mb-5 d-flex justify-content-center">
-                <button type="submit" className="btn btn-primary me-2">
-                  Save Batch Details
+                <button type="submit" className="btn btn-primary me-2" disabled={isSubscriptionPaid === false}>
+                  Save All Changes
                 </button>
                 <button
                   type="button"
@@ -382,205 +508,95 @@ const EditBatch: React.FC = () => {
                 </button>
               </div>
             </form>
-
-            {/* Standalone Update Feed & Items Section */}
-              <div className="card shadow-sm mb-4">
-                <div className="card-header bg-primary text-white">
-                  <h5 className="mb-0">Record Feed & Items Usage</h5>
-                </div>
-                <div className="card-body">
-                  <div className="row">
-                    <div className="col-md-6">
-                                            <div className="mb-3">
-                        <label htmlFor="compositionSelect" className="form-label">
-                          Select Composition:
-                        </label>
-                        <StyledSelect
-                          id="compositionSelect"
-                          value={
-                            selectedCompositionId
-                              ? compositions.find((c) => c.id === selectedCompositionId)
-                                ? {
-                                    value: selectedCompositionId,
-                                    label: compositions.find((c) => c.id === selectedCompositionId)?.name || "",
-                                  }
-                                : null
-                              : null
-                          }
-                          onChange={(option) => setSelectedCompositionId(option ? Number(option.value) : null)}
-                          options={compositions.map((c) => ({ value: c.id, label: c.name }))}
-                          placeholder="Select a Composition"
-                          isClearable
-                        />
-                      </div>
-                      <div className="d-flex align-items-center gap-2 mb-4">
-                        <span>Times:</span>
-                        <button type="button" className="btn btn-danger btn-sm" onClick={() => setTimesToUse((prev) => Math.max(1, prev - 1))}>
-                          -
-                        </button>
-                        <span>{timesToUse}</span>
-                        <button type="button" className="btn btn-success btn-sm" onClick={() => setTimesToUse((prev) => prev + 1)}>
-                          +
-                        </button>
-                        <button
-                          type="button"
-                          className="btn btn-outline-primary btn-sm ms-auto"
-                          onClick={handleUseComposition}
-                          disabled={!selectedCompositionId}
-                        >
-                          Use
-                        </button>
-                      </div>
-
-                      <hr />
-                      
-                      <div className="mb-3 mt-3">
-                        <label htmlFor="itemSelect" className="form-label">
-                          Select Inventory Item:
-                        </label>
-                        <StyledSelect
-                          id="itemSelect"
-                          value={
-                            selectedItemId
-                              ? inventoryItems.find((i) => i.id === selectedItemId)
-                                ? {
-                                    value: selectedItemId,
-                                    label: `${inventoryItems.find((i) => i.id === selectedItemId)?.name} (${inventoryItems.find((i) => i.id === selectedItemId)?.unit})`,
-                                  }
-                                : null
-                              : null
-                          }
-                          onChange={(option) => {
-                            const id = option ? Number(option.value) : null;
-                            setSelectedItemId(id);
-                            if (id) {
-                              setSelectedItemUnit(inventoryItems.find((i) => i.id === id)?.unit || "");
-                            } else {
-                              setSelectedItemUnit("");
-                            }
-                          }}
-                          options={inventoryItems.map((i) => ({ value: i.id, label: `${i.name} (${i.unit})` }))}
-                          placeholder="Select an Item"
-                          isClearable
-                        />
-                      </div>
-                      <div className="d-flex align-items-center gap-2 mb-4">
-                        <input
-                          type="number"
-                          className="form-control"
-                          placeholder="Quantity"
-                          value={itemQuantityToUse}
-                          onChange={(e) => setItemQuantityToUse(e.target.value ? Number(e.target.value) : "")}
-                          min="0"
-                          step="any"
-                        />
-                        <div style={{ minWidth: '100px' }}>
-                          <StyledSelect
-                            value={
-                              selectedItemUnit
-                                ? { value: selectedItemUnit, label: selectedItemUnit }
-                                : null
-                            }
-                            onChange={(option) => setSelectedItemUnit(option ? String(option.value) : "")}
-                            options={[
-                              { value: "gram", label: "gram" },
-                              { value: "kg", label: "kg" },
-                              { value: "ton", label: "ton" },
-                            ]}
-                            isClearable={false}
-                          />
-                        </div>
-                        <button
-                          type="button"
-                          className="btn btn-outline-primary ms-auto text-nowrap"
-                          onClick={handleUseItem}
-                          disabled={!selectedItemId || !itemQuantityToUse}
-                        >
-                          Use Item
-                        </button>
-                      </div>
-                    </div>
-                    <div className="col-md-6">
-                      {usageHistory.length > 0 && (
-                        <div className="mt-3 mt-md-0">
-                          <h6 className="mb-3">Feed Usage for this day</h6>
-                          <div className="table-responsive">
-                            <table className="table table-sm table-bordered">
-                              <thead>
-                                <tr>
-                                  <th>Composition</th>
-                                  <th>Times Used</th>
-                                  <th>Actions</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {usageHistory.map((item) => (
-                                  <tr key={item.id}>
-                                    <td>{item.composition_name}</td>
-                                    <td>{item.times}</td>
-                                    <td>
-                                      <button
-                                        type="button"
-                                        className="btn btn-sm btn-outline-danger"
-                                        onClick={() => {
-                                          setUsageToRevert(item.id);
-                                          setShowRevertModal(true);
-                                        }}
-                                      >
-                                        Revert
-                                      </button>
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      )}
-                      {itemUsageHistory.length > 0 && (
-                        <div className="mt-4">
-                          <h6 className="mb-3">Individual Item Usage for this day</h6>
-                          <div className="table-responsive">
-                            <table className="table table-sm table-bordered">
-                              <thead>
-                                <tr>
-                                  <th>Item</th>
-                                  <th>Quantity</th>
-                                  <th>Actions</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {itemUsageHistory.map((item) => (
-                                  <tr key={item.id}>
-                                    <td>{item.inventory_item_name || `Item ID: ${item.inventory_item_id}`}</td>
-                                    <td>{item.used_quantity} {item.unit}</td>
-                                    <td>
-                                      <button
-                                        type="button"
-                                        className="btn btn-sm btn-outline-danger"
-                                        onClick={() => {
-                                          setUsageToRevert(item.id);
-                                          setRevertType('item');
-                                          setShowRevertModal(true);
-                                        }}
-                                      >
-                                        Revert
-                                      </button>
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
           </div>
         </div>
       </div>
+
+      <Modal show={showUsageHistoryModal} onHide={() => setShowUsageHistoryModal(false)} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>Usage History for {batch_date}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {usageHistory.length > 0 && (
+            <div className="mb-4">
+              <h6 className="mb-3">Feed Usage</h6>
+              <div className="table-responsive">
+                <table className="table table-sm table-bordered">
+                  <thead>
+                    <tr>
+                      <th>Composition</th>
+                      <th>Times Used</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {usageHistory.map((item) => (
+                      <tr key={item.id}>
+                        <td>{item.composition_name}</td>
+                        <td>{item.times}</td>
+                        <td>
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-danger"
+                            onClick={() => {
+                              setUsageToRevert(item.id);
+                              setRevertType('composition');
+                              setShowRevertModal(true);
+                            }}
+                          >
+                            Revert
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+          {usageHistory.length === 0 && <p className="text-muted">No composition usage recorded.</p>}
+
+          {itemUsageHistory.length > 0 && (
+            <div className="mt-4">
+              <h6 className="mb-3">Individual Item Usage</h6>
+              <div className="table-responsive">
+                <table className="table table-sm table-bordered">
+                  <thead>
+                    <tr>
+                      <th>Item</th>
+                      <th>Quantity</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {itemUsageHistory.map((item) => (
+                      <tr key={item.id}>
+                        <td>{item.inventory_item_name || `Item ID: ${item.inventory_item_id}`}</td>
+                        <td>{item.used_quantity} {item.unit}</td>
+                        <td>
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-danger"
+                            onClick={() => {
+                              setUsageToRevert(item.id);
+                              setRevertType('item');
+                              setShowRevertModal(true);
+                            }}
+                          >
+                            Revert
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+          {itemUsageHistory.length === 0 && <p className="text-muted">No individual item usage recorded.</p>}
+        </Modal.Body>
+      </Modal>
+
       <Modal show={showRevertModal} onHide={() => setShowRevertModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Confirm Revert</Modal.Title>

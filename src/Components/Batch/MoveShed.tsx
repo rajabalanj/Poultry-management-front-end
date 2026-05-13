@@ -9,6 +9,8 @@ import CustomDatePicker from '../Common/CustomDatePicker';
 import StyledSelect from '../Common/StyledSelect';
 import { DailyBatch } from '../../types/daily_batch';
 import { toYYYYMMDD } from '../../utility/date-utils';
+import { useSubscription } from '../context/SubscriptionContext';
+import SubscriptionWarning from "../Common/SubscriptionWarning"; // adjust path as needed
 
 const MoveShed: React.FC = () => {
   const { batch_id } = useParams<{ batch_id: string }>();
@@ -23,6 +25,7 @@ const MoveShed: React.FC = () => {
   
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { isSubscriptionPaid } = useSubscription();
 
   useEffect(() => {
     const fetchShedData = async () => {
@@ -104,6 +107,7 @@ const MoveShed: React.FC = () => {
         buttonIcon="bi-arrow-left"
       />
       <div className="container">
+        <SubscriptionWarning />
         <div className="card shadow-sm">
           <div className="card-body">
             <form onSubmit={handleSubmit}>
@@ -144,7 +148,7 @@ const MoveShed: React.FC = () => {
                   required
                 />
               </div>
-              <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+              <button type="submit" className="btn btn-primary" disabled={isSubmitting || isSubscriptionPaid === false}>
                 {isSubmitting ? 'Moving...' : 'Move Batch'}
               </button>
             </form>

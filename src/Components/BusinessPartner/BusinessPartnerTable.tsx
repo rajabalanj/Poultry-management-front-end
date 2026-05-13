@@ -7,10 +7,9 @@ interface BusinessPartnerTableProps {
   partners: BusinessPartner[];
   loading: boolean;
   error: string | null;
-  onDelete: (id: number) => void;
 }
 
-const BusinessPartnerTable: React.FC<BusinessPartnerTableProps> = ({ partners, loading, error, onDelete }) => {
+const BusinessPartnerTable: React.FC<BusinessPartnerTableProps> = ({ partners, loading, error }) => {
   const navigate = useNavigate();
 
   const handleViewDetails = useCallback(
@@ -24,28 +23,15 @@ const BusinessPartnerTable: React.FC<BusinessPartnerTableProps> = ({ partners, l
     [navigate]
   );
 
-  const handleEdit = useCallback(
-    (id: number) => {
-      if (!id) {
-        console.error("Partner ID is required");
-        return;
-      }
-      navigate(`/business-partners/${id}/edit`);
-    },
-    [navigate]
-  );
-
   const partnerCards = useMemo(() => {
     return partners.map((partner) => (
       <BusinessPartnerCard
         key={partner.id}
         partner={partner}
         onView={handleViewDetails}
-        onEdit={handleEdit}
-        onDelete={onDelete}
       />
     ));
-  }, [partners, handleViewDetails, handleEdit, onDelete]);
+  }, [partners, handleViewDetails]);
 
   if (loading) return <div className="text-center">Loading business partners...</div>;
   if (error) return <div className="text-center text-danger">{error}</div>;

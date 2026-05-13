@@ -13,12 +13,14 @@ import { ChartOfAccountsResponse } from '../../types/chartOfAccounts';
 import { chartOfAccountsApi } from '../../services/api';
 import { toast } from 'react-toastify';
 import PageHeader from "../Layout/PageHeader";
+import { useSubscription } from '../context/SubscriptionContext';
 
 const ChartOfAccountsList: React.FC = () => {
   const [accounts, setAccounts] = useState<ChartOfAccountsResponse[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { isSubscriptionPaid } = useSubscription();
 
   useEffect(() => {
     const fetchAccounts = async () => {
@@ -93,6 +95,7 @@ const ChartOfAccountsList: React.FC = () => {
         buttonLabel="Add New Account"
         buttonLink="/chart-of-accounts/new"
         buttonIcon="bi-plus-lg"
+        buttonDisabled={isSubscriptionPaid === false}
       />
       <div className="container mt-4">
         {accounts.length === 0 ? (
@@ -138,6 +141,7 @@ const ChartOfAccountsList: React.FC = () => {
                             size="sm"
                             onClick={() => handleEdit(account.id)}
                             className="me-1"
+                            disabled={isSubscriptionPaid === false}
                           >
                             <i className="bi bi-pencil"></i>
                           </Button>
@@ -173,7 +177,7 @@ const ChartOfAccountsList: React.FC = () => {
             <Button variant="secondary" onClick={cancelDelete}>
               Cancel
             </Button>
-            <Button variant="danger" onClick={confirmDelete} disabled={!!deleteErrorMessage}>
+            <Button variant="danger" onClick={confirmDelete} disabled={!!deleteErrorMessage || isSubscriptionPaid === false}>
               Delete
             </Button>
           </Modal.Footer>

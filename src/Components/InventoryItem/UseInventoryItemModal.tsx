@@ -6,6 +6,8 @@ import { InventoryItemResponse, InventoryItemUnit } from '../../types/InventoryI
 import { BatchResponse } from '../../types/batch';
 import StyledSelect from '../Common/StyledSelect';
 import CustomDatePicker from '../Common/CustomDatePicker';
+import { useSubscription } from '../context/SubscriptionContext';
+import SubscriptionWarning from '../Common/SubscriptionWarning';
 
 interface UseInventoryItemModalProps {
   item: InventoryItemResponse;
@@ -18,6 +20,7 @@ const UseInventoryItemModal: React.FC<UseInventoryItemModalProps> = ({ item, sho
   const [batches, setBatches] = useState<BatchResponse[]>([]);
   const [loadingBatches, setLoadingBatches] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const { isSubscriptionPaid } = useSubscription();
   
   const [formData, setFormData] = useState<{
     batch_no: string;
@@ -99,6 +102,7 @@ const UseInventoryItemModal: React.FC<UseInventoryItemModalProps> = ({ item, sho
       <Modal.Header closeButton>
         <Modal.Title>Use Inventory Item: {item.name}</Modal.Title>
       </Modal.Header>
+      <SubscriptionWarning />
       <Form onSubmit={handleSubmit}>
         <Modal.Body>
           <Form.Group className="mb-3">
@@ -150,7 +154,7 @@ const UseInventoryItemModal: React.FC<UseInventoryItemModalProps> = ({ item, sho
           <Button variant="secondary" onClick={onClose} disabled={submitting}>
             Cancel
           </Button>
-          <Button variant="primary" type="submit" disabled={submitting}>
+          <Button variant="primary" type="submit" disabled={submitting || isSubscriptionPaid === false}>
             {submitting ? (
               <>
                 <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="me-2" />

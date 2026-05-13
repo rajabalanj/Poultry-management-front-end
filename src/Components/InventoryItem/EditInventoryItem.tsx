@@ -8,6 +8,8 @@ import { InventoryItemResponse, InventoryItemUpdate, InventoryItemUnit, Inventor
 import { InventoryItemVariant } from "../../types/inventoryItemVariant";
 import StyledSelect from "../Common/StyledSelect";
 import VariantManager from "./VariantManager";
+import { useSubscription } from "../context/SubscriptionContext";
+import SubscriptionWarning from "../Common/SubscriptionWarning"; // adjust path as needed
 
 const EditInventoryItem: React.FC = () => {
   const { item_id } = useParams<{ item_id: string }>();
@@ -15,6 +17,7 @@ const EditInventoryItem: React.FC = () => {
   const [item, setItem] = useState<InventoryItemResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { isSubscriptionPaid } = useSubscription();
 
   // States for form fields
   const [name, setName] = useState('');
@@ -137,7 +140,8 @@ const EditInventoryItem: React.FC = () => {
   return (
     <>
       <PageHeader title={`Edit Item: ${item.name}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/inventory-items" buttonIcon="bi-arrow-left"/>
-      <div className="container mt-4">
+      <div className="container">
+        <SubscriptionWarning />
         <div className="card shadow-sm mb-4">
           <div className="card-body">
             <form onSubmit={handleSubmit}>
@@ -208,7 +212,7 @@ const EditInventoryItem: React.FC = () => {
                   <button
                     type="submit"
                     className="btn btn-primary"
-                    disabled={loading}
+                    disabled={loading || isSubscriptionPaid === false}
                   >
                     {loading ? 'Saving...' : 'Save Changes'}
                   </button>

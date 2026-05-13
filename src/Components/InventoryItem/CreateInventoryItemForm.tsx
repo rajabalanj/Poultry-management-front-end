@@ -8,6 +8,8 @@ import { InventoryItemCreate, InventoryItemUnit, InventoryItemCategory, Inventor
 import StyledSelect from '../Common/StyledSelect';
 import VariantManager from './VariantManager';
 import { InventoryItemVariant } from '../../types/inventoryItemVariant';
+import { useSubscription } from '../context/SubscriptionContext';
+import SubscriptionWarning from "../Common/SubscriptionWarning"; // adjust path as needed
 
 interface CreateInventoryItemFormProps {
     onCreated?: (item: InventoryItemResponse) => void;
@@ -23,6 +25,7 @@ const CreateInventoryItemForm: React.FC<CreateInventoryItemFormProps> = ({ onCre
     const [variants, setVariants] = useState<InventoryItemVariant[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
+    const { isSubscriptionPaid } = useSubscription();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -75,7 +78,8 @@ const CreateInventoryItemForm: React.FC<CreateInventoryItemFormProps> = ({ onCre
             {!hideHeader && (
               <PageHeader title="Create New Inventory Item" buttonVariant="secondary" buttonLabel="Back" buttonLink="/inventory-items" buttonIcon='bi-arrow-left'/>
             )}
-            <div className={hideHeader ? undefined : 'container mt-4'}>
+            <div className ={hideHeader ? undefined : 'container'}>
+                <SubscriptionWarning />
                 <div className="card shadow-sm">
                     <div className="card-body">
                         <form onSubmit={handleSubmit}>
@@ -141,7 +145,7 @@ const CreateInventoryItemForm: React.FC<CreateInventoryItemFormProps> = ({ onCre
                                     <button
                                         type="submit"
                                         className="btn btn-primary"
-                                        disabled={isLoading}
+                                        disabled={isLoading || isSubscriptionPaid === false}
                                     >
                                         {isLoading ? 'Creating...' : 'Create Item'}
                                     </button>

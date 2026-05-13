@@ -4,12 +4,10 @@ import { BusinessPartner } from "../../types/BusinessPartner";
 interface BusinessPartnerCardProps {
   partner: BusinessPartner;
   onView: (id: number) => void;
-  onEdit: (id: number) => void;
-  onDelete: (id: number) => void;
 }
 
 const BusinessPartnerCard: React.FC<BusinessPartnerCardProps> = React.memo(
-  ({ partner, onView}) => {
+  ({ partner, onView }) => {
     const getPartnerType = () => {
       if (partner.is_vendor && partner.is_customer) return "Vendor & Customer";
       if (partner.is_vendor) return "Vendor";

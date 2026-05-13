@@ -1,5 +1,6 @@
 import React from "react";
 import { InventoryItemResponse, InventoryItemCategory } from "../../types/InventoryItem";
+import { useSubscription } from "../context/SubscriptionContext";
 
 interface InventoryItemCardProps {
   item: InventoryItemResponse;
@@ -21,6 +22,7 @@ const InventoryItemCard: React.FC<InventoryItemCardProps> = React.memo(
     const stockInfo = stockData && selectedDate ? stockData[item.id] : null;
     const displayStock = stockInfo ? stockInfo.stock : item.current_stock;
     const displayUnit = stockInfo ? stockInfo.unit : item.unit;
+    const { isSubscriptionPaid } = useSubscription();
     
     const getCardBackground = () => {
       const currentStock = parseFloat(String(displayStock));
@@ -62,11 +64,12 @@ const InventoryItemCard: React.FC<InventoryItemCardProps> = React.memo(
             {onUse && item.category.toString() !== 'Supplies' && (
               <div>
                 <button
-                  className="btn btn-outline-primary btn-sm"
+                  className="btn btn-primary btn-sm"
                   onClick={(e) => {
                     e.stopPropagation();
                     onUse(item);
                   }}
+                  disabled={isSubscriptionPaid === false}
                 >
                   Use
                 </button>

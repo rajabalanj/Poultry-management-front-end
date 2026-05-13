@@ -7,6 +7,8 @@ import PageHeader from '../Layout/PageHeader';
 import Loading from '../Common/Loading';
 import CustomDatePicker from '../Common/CustomDatePicker';
 import StyledSelect from '../Common/StyledSelect';
+import { useSubscription } from '../context/SubscriptionContext';
+import SubscriptionWarning from "../Common/SubscriptionWarning"; // adjust path as needed
 
 const SwapSheds: React.FC = () => {
   const navigate = useNavigate();
@@ -16,6 +18,7 @@ const SwapSheds: React.FC = () => {
   const [swapDate, setSwapDate] = useState<Date | null>(new Date());
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { isSubscriptionPaid } = useSubscription();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -70,6 +73,7 @@ const SwapSheds: React.FC = () => {
         title="Swap Sheds Between Batches"
       />
       <div className="container">
+        <SubscriptionWarning />
         <div className="card shadow-sm">
           <div className="card-body">
             <form onSubmit={handleSubmit}>
@@ -117,7 +121,7 @@ const SwapSheds: React.FC = () => {
                   required
                 />
               </div>
-              <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+              <button type="submit" className="btn btn-primary" disabled={isSubmitting || isSubscriptionPaid === false}>
                 {isSubmitting ? 'Swapping...' : 'Swap Sheds'}
               </button>
             </form>

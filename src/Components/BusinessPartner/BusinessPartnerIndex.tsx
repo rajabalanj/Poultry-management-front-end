@@ -1,12 +1,13 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import PageHeader from "../Layout/PageHeader";
-import { Modal, Button } from "react-bootstrap";
 import { businessPartnerApi } from "../../services/api";
 import { BusinessPartner } from "../../types/BusinessPartner";
 import { toast } from 'react-toastify';
 import BusinessPartnerTable from "./BusinessPartnerTable";
 import StyledSelect from "../Common/StyledSelect";
+import { useSubscription } from "../context/SubscriptionContext";
+import SubscriptionWarning from "../Common/SubscriptionWarning";
 
 const getFilterLabel = (value: 'all' | 'vendors' | 'customers'): string => {
   switch (value) {
@@ -21,10 +22,8 @@ const BusinessPartnerIndexPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [partners, setPartners] = useState<BusinessPartner[]>([]);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [partnerToDelete, setPartnerToDelete] = useState<number | null>(null);
-  const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(null);
   const [filterType, setFilterType] = useState<'all' | 'vendors' | 'customers'>('all');
+  const { isSubscriptionPaid } = useSubscription();
 
   useEffect(() => {
     const fetchPartners = async () => {
@@ -52,39 +51,19 @@ const BusinessPartnerIndexPage = () => {
     fetchPartners();
   }, [filterType]);
 
-  const handleDelete = useCallback((id: number) => {
-    setPartnerToDelete(id);
-    setDeleteErrorMessage(null);
-    setShowDeleteModal(true);
-  }, []);
-
-  const confirmDelete = async () => {
-    if (partnerToDelete !== null) {
-      try {
-        await businessPartnerApi.deleteBusinessPartner(partnerToDelete);
-        setPartners((prev) => prev.filter((partner) => partner.id !== partnerToDelete));
-        toast.success("People deleted successfully!");
-        setPartnerToDelete(null);
-        setShowDeleteModal(false);
-      } catch (error: any) {
-        const message = error?.message || 'Failed to delete people';
-        setDeleteErrorMessage(message);
-        toast.error(message);
-      }
-    }
-  };
-
-  const cancelDelete = () => {
-    setPartnerToDelete(null);
-    setShowDeleteModal(false);
-    setDeleteErrorMessage(null);
-  };
-
   return (
     <>
-      <div className="container">
-      <PageHeader title="People" buttonVariant="primary" buttonLabel="Add People" buttonLink="/business-partners/create" buttonIcon="bi-plus-lg" />
+      <PageHeader
+        title="People"
+        buttonVariant="primary"
+        buttonLabel="Add People"
+        buttonLink="/business-partners/create"
+        buttonIcon="bi-plus-lg"
+        buttonDisabled={isSubscriptionPaid === false}
+      />
       
+      <div className="container">
+      <SubscriptionWarning />
       <div className="mb-3">
         <div className="card shadow-sm">
           <div className="card-header d-md-none p-3">
@@ -128,29 +107,7 @@ const BusinessPartnerIndexPage = () => {
         partners={partners}
         loading={loading}
         error={error}
-        onDelete={handleDelete}
       />
-
-      <Modal show={showDeleteModal} onHide={cancelDelete}>
-        <Modal.Header closeButton>
-          <Modal.Title>Confirm Delete</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {deleteErrorMessage ? (
-            <div className="text-danger mb-3">{deleteErrorMessage}</div>
-          ) : (
-            "Are you sure you want to delete this people?"
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={cancelDelete}>
-            Cancel
-          </Button>
-          <Button variant="danger" onClick={confirmDelete} disabled={!!deleteErrorMessage}>
-            Delete
-          </Button>
-        </Modal.Footer>
-      </Modal>
       </div>
     </>
   );

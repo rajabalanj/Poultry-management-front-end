@@ -14,6 +14,8 @@ import StyledSelect from "../Common/StyledSelect";
 import CustomDatePicker from "../Common/CustomDatePicker";
 import UseInventoryItemModal from "./UseInventoryItemModal";
 import { toPng } from 'html-to-image';
+import { useSubscription } from '../context/SubscriptionContext';
+import SubscriptionWarning from "../Common/SubscriptionWarning"; // adjust path as needed
 
 const InventoryItemResponsive: React.FC = () => {
   const navigate = useNavigate();
@@ -36,6 +38,7 @@ const InventoryItemResponsive: React.FC = () => {
   const [itemToUse, setItemToUse] = useState<InventoryItemResponse | null>(null);
   const [isSharing, setIsSharing] = useState(false);
   const tableRef = useRef<HTMLDivElement>(null);
+  const { isSubscriptionPaid } = useSubscription();
 
   const isMobile = useMediaQuery({ maxWidth: 768 });
 
@@ -274,13 +277,14 @@ const InventoryItemResponsive: React.FC = () => {
               <td className="no-export">
                 {item.category.toString() !== 'Supplies' && (
                   <Button 
-                    variant="outline-primary" 
+                    variant="primary" 
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation();
                       setItemToUse(item);
                       setShowUseModal(true);
                     }}
+                    disabled={isSubscriptionPaid === false}
                   >
                     Use
                   </Button>
@@ -338,8 +342,10 @@ const InventoryItemResponsive: React.FC = () => {
             buttonLabel="Add New Item"
             buttonLink="/inventory-items/create"
             buttonIcon="bi-plus-lg"
+            buttonDisabled={isSubscriptionPaid === false}
           />
-          <div className="container mt-4">
+          <div className="container">
+            <SubscriptionWarning />
             {/* Filter Section */}
             <div className="mb-4 d-flex gap-3 align-items-center flex-wrap">
               <StyledSelect
@@ -436,7 +442,7 @@ const InventoryItemResponsive: React.FC = () => {
                 <Button variant="secondary" onClick={cancelDelete}>
                   Cancel
                 </Button>
-                <Button variant="danger" onClick={confirmDelete} disabled={!!deleteErrorMessage}>
+                <Button variant="danger" onClick={confirmDelete} disabled={!!deleteErrorMessage || isSubscriptionPaid === false}>
                   Delete
                 </Button>
               </Modal.Footer>
@@ -464,8 +470,10 @@ const InventoryItemResponsive: React.FC = () => {
           buttonLabel="Add New Item"
           buttonLink="/inventory-items/create"
           buttonIcon="bi-plus-lg"
+          buttonDisabled={isSubscriptionPaid === false}
         />
-        <div className="container mt-4">
+        <div className="container">
+          <SubscriptionWarning />
           {/* Filter Section */}
           <div className="mb-4 d-flex gap-3 align-items-center flex-wrap">
             <StyledSelect
@@ -538,7 +546,7 @@ const InventoryItemResponsive: React.FC = () => {
               <Button variant="secondary" onClick={cancelDelete}>
                 Cancel
               </Button>
-              <Button variant="danger" onClick={confirmDelete} disabled={!!deleteErrorMessage}>
+              <Button variant="danger" onClick={confirmDelete} disabled={!!deleteErrorMessage || isSubscriptionPaid === false}>
                 Delete
               </Button>
             </Modal.Footer>

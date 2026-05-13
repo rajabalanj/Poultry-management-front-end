@@ -6,6 +6,8 @@ import PageHeader from '../../Layout/PageHeader';
 import { useLocation } from 'react-router-dom';
 import CustomDatePicker from '../../Common/CustomDatePicker';
 import { ShedResponse } from '../../../types/shed';
+import { useSubscription } from '../../context/SubscriptionContext';
+import SubscriptionWarning from "../../Common/SubscriptionWarning"; // adjust path as needed
 
 const AddBatch: React.FC = () => {
   const [batch_no, setBatchNo] = useState('');
@@ -19,6 +21,7 @@ const AddBatch: React.FC = () => {
   const [isLoadingSheds, setIsLoadingSheds] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
+  const { isSubscriptionPaid } = useSubscription();
 
   // Prefill fields from query params when opened from a pending request
   useEffect(() => {
@@ -121,6 +124,7 @@ const AddBatch: React.FC = () => {
     <>
       <PageHeader title="Add New Batch" />
       <div className="container">
+        <SubscriptionWarning />
         <div className="p-4">
           <form onSubmit={handleSubmit}>
             <div className="row g-3">
@@ -215,7 +219,7 @@ const AddBatch: React.FC = () => {
                 <button
                   type="submit"
                   className="btn btn-primary"
-                  disabled={isLoading}
+                  disabled={isLoading || isSubscriptionPaid === false} // Disable if loading or subscription is not paid
                 >
                   {isLoading ? "Adding..." : "Add Batch"}
                 </button>

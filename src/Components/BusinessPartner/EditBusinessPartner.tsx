@@ -4,6 +4,8 @@ import { toast } from "react-toastify";
 import PageHeader from "../Layout/PageHeader";
 import { businessPartnerApi } from "../../services/api";
 import { BusinessPartner, BusinessPartnerUpdate } from "../../types/BusinessPartner";
+import { useSubscription } from "../context/SubscriptionContext";
+import SubscriptionWarning from "../Common/SubscriptionWarning";
 
 const EditBusinessPartner: React.FC = () => {
   const { partner_id } = useParams<{ partner_id: string }>();
@@ -19,6 +21,8 @@ const EditBusinessPartner: React.FC = () => {
   const [email, setEmail] = useState('');
   const [isVendor, setIsVendor] = useState(false);
   const [isCustomer, setIsCustomer] = useState(false);
+
+  const { isSubscriptionPaid } = useSubscription();
 
   useEffect(() => {
     const fetchPartner = async () => {
@@ -99,7 +103,8 @@ const EditBusinessPartner: React.FC = () => {
   return (
     <>
       <PageHeader title={`Edit Partner: ${partner.name}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/business-partners" buttonIcon="bi-arrow-left"/>
-      <div className="container mt-4">
+      <div className="container">
+        <SubscriptionWarning />
         <div className="card shadow-sm">
           <div className="card-body">
             <form onSubmit={handleSubmit}>
@@ -193,7 +198,7 @@ const EditBusinessPartner: React.FC = () => {
                   <button
                     type="submit"
                     className="btn btn-primary"
-                    disabled={loading}
+                    disabled={loading || isSubscriptionPaid === false}
                   >
                     {loading ? 'Saving...' : 'Save Changes'}
                   </button>

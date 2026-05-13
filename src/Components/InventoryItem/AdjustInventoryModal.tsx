@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Modal, Form, Button, Alert } from 'react-bootstrap';
 import { inventoryItemApi } from '../../services/api';
 import { InventoryItemResponse } from '../../types/InventoryItem';
+import { useSubscription } from '../context/SubscriptionContext';
+import SubscriptionWarning from '../Common/SubscriptionWarning';
 
 interface AdjustInventoryModalProps {
   item: InventoryItemResponse;
@@ -15,6 +17,7 @@ const AdjustInventoryModal: React.FC<AdjustInventoryModalProps> = ({ item, onClo
   const [note, setNote] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { isSubscriptionPaid } = useSubscription();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,6 +55,7 @@ const AdjustInventoryModal: React.FC<AdjustInventoryModalProps> = ({ item, onClo
         <Modal.Title>Adjust Inventory for {item.name}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
+        <SubscriptionWarning />
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3" controlId="adjustmentType">
             <Form.Label>Adjustment Type</Form.Label>
@@ -110,7 +114,7 @@ const AdjustInventoryModal: React.FC<AdjustInventoryModalProps> = ({ item, onClo
         <Button variant="secondary" onClick={onClose}>
           Cancel
         </Button>
-        <Button variant="primary" onClick={handleSubmit} disabled={isSubmitting}>
+        <Button variant="primary" onClick={handleSubmit} disabled={isSubmitting || isSubscriptionPaid === false}>
           {isSubmitting ? 'Submitting...' : 'Submit Adjustment'}
         </Button>
       </Modal.Footer>
