@@ -601,15 +601,31 @@ export const compositionApi = {
     },
 };
 
+export enum AppConfigKey {
+  LOW_KG_THRESHOLD = "lowKgThreshold",
+  LOW_TON_THRESHOLD = "lowTonThreshold",
+  MEDICINE_LOW_KG_THRESHOLD = "medicineLowKgThreshold",
+  MEDICINE_LOW_GRAM_THRESHOLD = "medicineLowGramThreshold",
+  HEN_DAY_DEVIATION = "henDayDeviation",
+  EGG_STOCK_TOLERANCE = "EGG_STOCK_TOLERANCE",
+  TABLE_OPENING = "table_opening",
+  JUMBO_OPENING = "jumbo_opening",
+  GRADE_C_OPENING = "grade_c_opening",
+  SYSTEM_START_DATE = "system_start_date",
+  GENERAL_LEDGER_OPENING_BALANCE = "general_ledger_opening_balance",
+  PERFORMANCE_STANDARD_SOURCE = "performance_standard_source",
+  SELLER_ADDRESS = "seller_address"
+}
+
 // Configuration API for key-value settings
 export interface AppConfigKV {
   id?: number;
-  name: string;
+  name: AppConfigKey | string;
   value: string;
 }
 
 export interface StandardPerformanceConfig {
-  name: string;
+  name: AppConfigKey | string;
   value: string;
   tenant_id: string;
   id: number;
@@ -619,7 +635,7 @@ export interface StandardPerformanceConfig {
 
 export const configApi = {
   // Get all configurations (GET)
-  getAllConfigs: async (name?: string): Promise<AppConfigKV[]> => {
+  getAllConfigs: async (name?: AppConfigKey): Promise<AppConfigKV[]> => {
     try {
       const response = await api.get<AppConfigKV[]>('/configurations', {
         params: name ? { name } : undefined,
@@ -631,7 +647,7 @@ export const configApi = {
   },
 
   // Save or update a configuration (PATCH)
-  saveConfig: async (name: string, value: string): Promise<AppConfigKV> => {
+  saveConfig: async (name: AppConfigKey, value: string): Promise<AppConfigKV> => {
     try {
       const response = await api.patch<AppConfigKV>(`/configurations/${name}`, { value });
       return response.data;
@@ -680,7 +696,7 @@ export const configApi = {
 
   getSellerAddress: async (): Promise<StandardPerformanceConfig> => {
     try {
-      const response = await api.get<StandardPerformanceConfig>('/configurations/seller-address');
+      const response = await api.get<StandardPerformanceConfig>(`/configurations/${AppConfigKey.SELLER_ADDRESS}`);
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch seller address configuration'));
@@ -689,7 +705,7 @@ export const configApi = {
 
   updateSellerAddress: async (value: string): Promise<StandardPerformanceConfig> => {
     try {
-      const response = await api.patch<StandardPerformanceConfig>('/configurations/seller-address', { value });
+      const response = await api.patch<StandardPerformanceConfig>(`/configurations/${AppConfigKey.SELLER_ADDRESS}`, { value });
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to update seller address configuration'));
