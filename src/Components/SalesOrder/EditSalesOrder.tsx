@@ -16,7 +16,7 @@ import {
   SalesOrderItemResponse,
 } from '../../types/SalesOrderItem';
 import { BusinessPartner } from '../../types/BusinessPartner';
-import { InventoryItemResponse, InventoryItemCategory } from '../../types/InventoryItem';
+import { InventoryItemResponse } from '../../types/InventoryItem';
 import { InventoryItemVariant } from '../../types/inventoryItemVariant';
 import { format } from 'date-fns';
 import StyledSelect from '../Common/StyledSelect';
@@ -79,7 +79,7 @@ const EditSalesOrder: React.FC = () => {
         const [soData, customersData, inventoryItemsData] = await Promise.all([
           salesOrderApi.getSalesOrder(Number(so_id)),
           businessPartnerApi.getCustomers(),
-          inventoryItemApi.getInventoryItems(0, 1000, InventoryItemCategory.SUPPLIES),
+          inventoryItemApi.getInventoryItems(0, 1000),
         ]);
 
         // Set main SO details
@@ -119,7 +119,11 @@ const EditSalesOrder: React.FC = () => {
         setVariantsByItem(variantsMap);
 
         setCustomers(customersData);
-        setInventoryItems(inventoryItemsData);
+        
+        // Ensure already selected items remain in the list even if they are no longer sellable
+        const existingItemIds = new Set(soData.items?.map(i => i.inventory_item_id) || []);
+        const itemsToSet = inventoryItemsData.filter(item => item.is_sellable || existingItemIds.has(item.id));
+        setInventoryItems(itemsToSet);
 
       } catch (err: any) {
         console.error('Error fetching data for edit:', err);

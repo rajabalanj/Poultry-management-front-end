@@ -41,6 +41,7 @@ const CreateSalesOrderForm = lazy(() => import('./Components/SalesOrder/CreateSa
 const SalesOrderDetails = lazy(() => import('./Components/SalesOrder/SalesOrderDetails'));
 const EditSalesOrder = lazy(() => import('./Components/SalesOrder/EditSalesOrder'));
 const AddSalesPaymentForm = lazy(() => import('./Components/SalesOrder/AddSalesPaymentForm'));
+const ManageSellableItems = lazy(() => import('./Components/InventoryItem/ManageSellableItems'));
 const BusinessPartnerIndexPage = lazy(() => import('./Components/BusinessPartner/BusinessPartnerIndex'));
 const BusinessPartnerDetails = lazy(() => import('./Components/BusinessPartner/BusinessPartnerDetails'));
 const CreateBusinessPartnerForm = lazy(() => import('./Components/BusinessPartner/CreateBusinessPartnerForm'));
@@ -162,6 +163,7 @@ const App: React.FC = () => {
                 <Route path="/sales-orders/:so_id/details" element={<SalesOrderDetails />} />
                 <Route path="/sales-orders/:so_id/edit" element={<EditSalesOrder />} />
                 <Route path="/sales-orders/:so_id/add-payment" element={<AddSalesPaymentForm />} />
+                <Route path="/inventory-items/manage-sellable" element={<ManageSellableItems />} />
                 <Route path="/business-partners" element={<BusinessPartnerIndexPage />} />
                 <Route path="/business-partners/create" element={<CreateBusinessPartnerForm />} />
                 <Route path="/business-partners/:partner_id/details" element={<BusinessPartnerDetails />} />

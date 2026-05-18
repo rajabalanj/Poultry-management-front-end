@@ -265,8 +265,11 @@ const SalesOrderTable: React.FC<SalesOrderTableProps> = ({ salesOrders, loading,
                   'bg-secondary'
                 }`}>{so.status}</span></td>
                 <td>
-                    {so.items?.map(item => getItemName(item.inventory_item_id)).join(', ') || 'N/A'}
-                  </td>
+                  {so.items?.map(item => {
+                    const name = getItemName(item.inventory_item_id);
+                    return item.variant_name ? `${name} (${item.variant_name})` : name;
+                  }).join(', ') || 'N/A'}
+                </td>
                   </tr>
                 );
               })}

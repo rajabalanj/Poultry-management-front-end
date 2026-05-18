@@ -22,6 +22,7 @@ const CreateInventoryItemForm: React.FC<CreateInventoryItemFormProps> = ({ onCre
     const [unit, setUnit] = useState<InventoryItemUnit>(InventoryItemUnit.KG);
     const [category, setCategory] = useState<InventoryItemCategory>(InventoryItemCategory.FEED);
     const [defaultWastagePercentage, setDefaultWastagePercentage] = useState<number | undefined>();
+    const [isSellable, setIsSellable] = useState<boolean>(false);
     const [variants, setVariants] = useState<InventoryItemVariant[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
@@ -42,7 +43,8 @@ const CreateInventoryItemForm: React.FC<CreateInventoryItemFormProps> = ({ onCre
             name,
             unit,
             category,
-            default_wastage_percentage: defaultWastagePercentage
+            default_wastage_percentage: defaultWastagePercentage,
+            is_sellable: isSellable
         };
 
         try {
@@ -135,6 +137,21 @@ const CreateInventoryItemForm: React.FC<CreateInventoryItemFormProps> = ({ onCre
                                         onChange={(e) => setDefaultWastagePercentage(e.target.value ? parseFloat(e.target.value) : undefined)}
                                         placeholder="e.g., 1.5"
                                     />
+                                </div>
+                                <div className="col-md-6 d-flex align-items-center mt-4 pt-2">
+                                    <div className="form-check form-switch">
+                                        <input
+                                            className="form-check-input"
+                                            type="checkbox"
+                                            role="switch"
+                                            id="isSellableSwitch"
+                                            checked={isSellable}
+                                            onChange={(e) => setIsSellable(e.target.checked)}
+                                        />
+                                        <label className="form-check-label ms-2" htmlFor="isSellableSwitch">
+                                            Is Sellable (Available for Sales Orders)
+                                        </label>
+                                    </div>
                                 </div>
 
                                 <div className="col-12 mt-4">

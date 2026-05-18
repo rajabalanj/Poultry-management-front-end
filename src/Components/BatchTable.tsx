@@ -4,7 +4,7 @@ import { Circle, Birdhouse } from "lucide-react";
 import { DailyBatch } from "../types/daily_batch";
 import ListModal from './Common/ListModal';
 import Loading from './Common/Loading';
-import { configApi } from "../services/api";
+import { configApi, AppConfigKey } from "../services/api";
 
 const getPerformanceIndicator = (
   actual: number | undefined,
@@ -97,7 +97,7 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
   useEffect(() => {
     const fetchHenDayDeviation = async () => {
       try {
-        const config = await configApi.getAllConfigs('henDayDeviation');
+        const config = await configApi.getAllConfigs(AppConfigKey.HEN_DAY_DEVIATION);
         if (config && config.length > 0) {
           setHenDayDeviation(parseFloat(config[0].value) || 0);
         }

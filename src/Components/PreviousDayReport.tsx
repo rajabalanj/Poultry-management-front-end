@@ -12,7 +12,7 @@ import { BatchResponse } from '../types/batch';
 import { ShedResponse } from '../types/shed';
 import CustomDatePicker from './Common/CustomDatePicker';
 import { useEscapeKey } from '../hooks/useEscapeKey';
-import { configApi, batchApi, shedApi, dailyBatchApi, reportsApi } from '../services/api';
+import { configApi, batchApi, shedApi, dailyBatchApi, reportsApi, AppConfigKey } from '../services/api';
 import StyledSelect from './Common/StyledSelect';
 import { toYYYYMMDD } from '../utility/date-utils';
 import { useSubscription } from './context/SubscriptionContext';
@@ -187,7 +187,7 @@ const PreviousDayReport = () => {
         const validSheds = Array.isArray(shedData) ? shedData : [];
         setSheds(validSheds);
 
-        const hdConfig = configs.find(c => c.name === 'henDayDeviation');
+        const hdConfig = configs.find(c => c.name === AppConfigKey.HEN_DAY_DEVIATION);
         setHenDayDeviation(hdConfig ? Number(hdConfig.value) : 10);
 
         const validBatches = Array.isArray(batchData) ? batchData : [];

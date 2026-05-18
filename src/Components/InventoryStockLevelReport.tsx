@@ -211,6 +211,7 @@ const InventoryStockLevelReport = () => {
                     <th>Unit</th>
                     <th>Average Cost</th>
                     <th>Reorder Level</th>
+                    <th>Sellable</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
@@ -223,6 +224,13 @@ const InventoryStockLevelReport = () => {
                       <td>{item.unit}</td>
                       <td>{item.average_cost_str || item.average_cost}</td>
                       <td>{item.reorder_level}</td>
+                      <td>
+                        {item.is_sellable ? (
+                          <span className="badge bg-success">Yes</span>
+                        ) : (
+                          <span className="badge bg-secondary">No</span>
+                        )}
+                      </td>
                       <td>
                         <button 
                           className="btn btn-sm btn-info text-white"

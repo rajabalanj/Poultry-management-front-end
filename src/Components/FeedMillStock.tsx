@@ -156,7 +156,7 @@ function FeedMillStock() {
   };
 
   const handleOpenCreateItem = () => {
-    navigate('/inventory/create');
+    navigate('/inventory-items/create');
   };
 
   const handleConfirmAddComposition = async () => {

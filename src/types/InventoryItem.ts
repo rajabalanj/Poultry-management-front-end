@@ -23,6 +23,7 @@ export interface InventoryItemBase {
   category: InventoryItemCategory;
   reorder_level?: number;
   default_wastage_percentage?: number;
+  is_sellable?: boolean;
 }
 
 export interface InventoryItemCreate extends InventoryItemBase {}
@@ -34,6 +35,7 @@ export interface InventoryItemUpdate {
   category?: InventoryItemCategory;
   reorder_level?: number;
   default_wastage_percentage?: number;
+  is_sellable?: boolean;
 }
 
 // Response from backend will include ID and timestamps

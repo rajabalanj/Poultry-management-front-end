@@ -14,6 +14,7 @@ import { useEscapeKey } from '../../hooks/useEscapeKey';
 import { useSubscription } from '../context/SubscriptionContext';
 import SubscriptionWarning from '../Common/SubscriptionWarning';
 import { useTableKeyboardNavigation } from '../../hooks/useTableKeyboardNavigation';
+import KeyboardShortcutsIndicator from '../Common/KeyboardShortcutsIndicator';
 
 const PurchaseResponsive: React.FC = () => {
   const {
@@ -126,6 +127,8 @@ const PurchaseResponsive: React.FC = () => {
             <SubscriptionWarning />
             <PurchaseFilter vendors={vendors} filters={filters} setFilters={setFilters} />
 
+            <KeyboardShortcutsIndicator hasPayment />
+
             <PurchaseOrderTable
               purchaseOrders={paginatedPurchaseOrders}
               loading={loading}
@@ -200,6 +203,8 @@ const PurchaseResponsive: React.FC = () => {
         <div className="container">
           <SubscriptionWarning />
           <PurchaseFilter vendors={vendors} filters={filters} setFilters={setFilters} />
+
+          <KeyboardShortcutsIndicator hasPayment />
 
           <PurchaseReportTable
             purchaseOrders={paginatedPurchaseOrders}

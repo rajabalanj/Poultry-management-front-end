@@ -14,6 +14,7 @@ import AddPaymentForm from '../PurchaseOrder/AddPaymentForm';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
 import { useTableKeyboardNavigation } from '../../hooks/useTableKeyboardNavigation';
 import { financialReportsApi } from '../../services/api';
+import KeyboardShortcutsIndicator from '../Common/KeyboardShortcutsIndicator';
 
 type OptionType = { value: string; label: string };
 
@@ -285,6 +286,7 @@ const PurchaseLedgerComponent: React.FC = () => {
                             Vendor: {ledgerData.vendor_name ? `${ledgerData.vendor_name} (ID: ${ledgerData.vendor_id})` : ledgerData.vendor_id}
                             {ledgerData.total_records !== undefined && ` | Total records: ${ledgerData.total_records}`}
                         </p>
+                        <KeyboardShortcutsIndicator hasPayment />
                         <div className="table-responsive">
                             <table className="table table-striped table-hover">
                                 <thead>

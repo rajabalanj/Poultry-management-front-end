@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import PageHeader from "./Layout/PageHeader";
-import { configApi, batchApi, bovansApi, eggRoomReportApi, financialSettingsApi, chartOfAccountsApi } from "../services/api";
+import { configApi, batchApi, bovansApi, eggRoomReportApi, financialSettingsApi, chartOfAccountsApi, AppConfigKey } from "../services/api";
 import { toast } from "react-toastify";
 import CustomDatePicker from "./Common/CustomDatePicker";
 import BatchConfig from "./BatchConfig";
@@ -81,12 +81,12 @@ const Configurations: React.FC = () => {
       setBovansLoading(true);
       try {
         const configs = await configApi.getAllConfigs();
-        const kgConfig = configs.find((c) => c.name === "lowKgThreshold");
-        const tonConfig = configs.find((c) => c.name === "lowTonThreshold");
-        const henDayDeviationConfig = configs.find((c) => c.name === "henDayDeviation");
-        const medicineKgConfig = configs.find((c) => c.name === "medicineLowKgThreshold");
-        const medicineGramConfig = configs.find((c) => c.name === "medicineLowGramThreshold");
-        const eggRoomStartDateConfig = configs.find((c) => c.name === "system_start_date");
+        const kgConfig = configs.find((c) => c.name === AppConfigKey.LOW_KG_THRESHOLD);
+        const tonConfig = configs.find((c) => c.name === AppConfigKey.LOW_TON_THRESHOLD);
+        const henDayDeviationConfig = configs.find((c) => c.name === AppConfigKey.HEN_DAY_DEVIATION);
+        const medicineKgConfig = configs.find((c) => c.name === AppConfigKey.MEDICINE_LOW_KG_THRESHOLD);
+        const medicineGramConfig = configs.find((c) => c.name === AppConfigKey.MEDICINE_LOW_GRAM_THRESHOLD);
+        const eggRoomStartDateConfig = configs.find((c) => c.name === AppConfigKey.SYSTEM_START_DATE);
         setKg(kgConfig ? Number(kgConfig.value) : 3000);
         setTon(tonConfig ? Number(tonConfig.value) : 3);
         setHenDayDeviation(henDayDeviationConfig ? Number(henDayDeviationConfig.value) : 0);
@@ -198,24 +198,24 @@ const Configurations: React.FC = () => {
 
       let dateChanged = false;
       if (eggRoomStartDate !== originalEggRoomStartDate.current) {
-        await configApi.saveConfig('system_start_date', eggRoomStartDate);
+        await configApi.saveConfig(AppConfigKey.SYSTEM_START_DATE, eggRoomStartDate);
         originalEggRoomStartDate.current = eggRoomStartDate;
         dateChanged = true;
       }
       
       const currentTableOpening = initialTableOpening === '' ? 0 : initialTableOpening;
       if (dateChanged || currentTableOpening !== originalTableOpening.current) {
-        await configApi.saveConfig('table_opening', String(currentTableOpening));
+        await configApi.saveConfig(AppConfigKey.TABLE_OPENING, String(currentTableOpening));
         originalTableOpening.current = currentTableOpening;
       }
       const currentJumboOpening = initialJumboOpening === '' ? 0 : initialJumboOpening;
       if (dateChanged || currentJumboOpening !== originalJumboOpening.current) {
-        await configApi.saveConfig('jumbo_opening', String(currentJumboOpening));
+        await configApi.saveConfig(AppConfigKey.JUMBO_OPENING, String(currentJumboOpening));
         originalJumboOpening.current = currentJumboOpening;
       }
       const currentGradeCOpening = initialGradeCOpening === '' ? 0 : initialGradeCOpening;
       if (dateChanged || currentGradeCOpening !== originalGradeCOpening.current) {
-        await configApi.saveConfig('grade_c_opening', String(currentGradeCOpening));
+        await configApi.saveConfig(AppConfigKey.GRADE_C_OPENING, String(currentGradeCOpening));
         originalGradeCOpening.current = currentGradeCOpening;
       }
       toast.success(`Egg Room setup completed for ${eggRoomStartDate}.`);
@@ -289,11 +289,11 @@ const Configurations: React.FC = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await configApi.saveConfig("lowKgThreshold", String(kg === '' ? 0 : kg));
-      await configApi.saveConfig("lowTonThreshold", String(ton === '' ? 0 : ton));
-      await configApi.saveConfig("henDayDeviation", String(henDayDeviation === '' ? 0 : henDayDeviation));
-      await configApi.saveConfig("medicineLowKgThreshold", String(medicineKg === '' ? 0 : medicineKg));
-      await configApi.saveConfig("medicineLowGramThreshold", String(medicineGram === '' ? 0 : medicineGram));
+      await configApi.saveConfig(AppConfigKey.LOW_KG_THRESHOLD, String(kg === '' ? 0 : kg));
+      await configApi.saveConfig(AppConfigKey.LOW_TON_THRESHOLD, String(ton === '' ? 0 : ton));
+      await configApi.saveConfig(AppConfigKey.HEN_DAY_DEVIATION, String(henDayDeviation === '' ? 0 : henDayDeviation));
+      await configApi.saveConfig(AppConfigKey.MEDICINE_LOW_KG_THRESHOLD, String(medicineKg === '' ? 0 : medicineKg));
+      await configApi.saveConfig(AppConfigKey.MEDICINE_LOW_GRAM_THRESHOLD, String(medicineGram === '' ? 0 : medicineGram));
       toast.success("Configurations saved successfully!");
     } catch (err: any) {
       toast.error(err.message || "Failed to save configurations.");

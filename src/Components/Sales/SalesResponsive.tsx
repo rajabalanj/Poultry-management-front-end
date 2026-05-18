@@ -17,6 +17,7 @@ import AddSalesPaymentForm from '../SalesOrder/AddSalesPaymentForm';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
 import { useTableKeyboardNavigation } from '../../hooks/useTableKeyboardNavigation';
 import SubscriptionWarning from '../Common/SubscriptionWarning'; // adjust path as needed
+import KeyboardShortcutsIndicator from '../Common/KeyboardShortcutsIndicator';
 
 const SalesResponsive: React.FC = () => {
   const {
@@ -190,6 +191,8 @@ const SalesResponsive: React.FC = () => {
                 </div>
             )}
 
+            <KeyboardShortcutsIndicator hasPayment />
+
             <SalesOrderTable
               salesOrders={paginatedSalesOrders}
               loading={loading}
@@ -287,6 +290,8 @@ const SalesResponsive: React.FC = () => {
                 </Button>
               </div>
           )}
+
+          <KeyboardShortcutsIndicator hasPayment />
 
           <SalesReportTable
             salesOrders={paginatedSalesOrders}

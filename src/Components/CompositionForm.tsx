@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { InventoryItemResponse } from '../types/InventoryItem';
 import { InventoryItemInComposition } from '../types/compositon';
 import { useSubscription } from './context/SubscriptionContext';
 import SubscriptionWarning from './Common/SubscriptionWarning';
+import { Pagination } from 'react-bootstrap';
 
 interface CompositionFormProps {
   title: string;
@@ -46,6 +47,18 @@ function CompositionForm({
   onOpenCreateItem,
 }: CompositionFormProps) {
   const { isSubscriptionPaid } = useSubscription();
+  
+  // Pagination logic
+  const ITEMS_PER_PAGE = 10;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Reset to page 1 when search changes
+  useEffect(() => setCurrentPage(1), [search]);
+
+  // Filter items out that are already in the composition, then paginate
+  const availableItems = filteredItems.filter((i) => !editItems.some((ei) => ei.inventory_item_id === i.id));
+  const totalPages = Math.ceil(availableItems.length / ITEMS_PER_PAGE);
+  const paginatedAvailableItems = availableItems.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   return (
     <div className="card shadow-sm mb-4">
@@ -149,14 +162,12 @@ function CompositionForm({
               </button>
             )}
           </div>
-          <div className="card" style={{ maxHeight: '200px' }}>
+          <div className="card d-flex flex-column" style={{ height: '240px' }}>
             <div
               className="list-group list-group-flush"
-              style={{ maxHeight: '150px', overflowY: 'auto' }}
+              style={{ overflowY: 'auto', flexGrow: 1 }}
             >
-            {filteredItems
-              .filter((i) => !editItems.some((ei) => ei.inventory_item_id === i.id))
-              .map((item) => (
+            {paginatedAvailableItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => handleAddItem(item)}
@@ -170,6 +181,15 @@ function CompositionForm({
                 </button>
               ))}
           </div>
+          {totalPages > 1 && (
+            <div className="card-footer bg-white d-flex justify-content-center border-top py-2">
+              <Pagination size="sm" className="mb-0">
+                <Pagination.Prev onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} />
+                <Pagination.Item disabled>{currentPage} / {totalPages}</Pagination.Item>
+                <Pagination.Next onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} />
+              </Pagination>
+            </div>
+          )}
         </div>
       </div>
       <div className="d-flex gap-2 mt-3">

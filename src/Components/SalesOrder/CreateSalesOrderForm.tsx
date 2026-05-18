@@ -16,7 +16,7 @@ import type {
 } from '../../types/SalesOrder';
 import { SalesOrderItemCreate } from '../../types/SalesOrderItem';
 import { BusinessPartner } from '../../types/BusinessPartner';
-import { InventoryItemResponse, InventoryItemCategory } from '../../types/InventoryItem';
+import { InventoryItemResponse } from '../../types/InventoryItem';
 import { InventoryItemVariant } from '../../types/inventoryItemVariant';
 import { format } from 'date-fns'; // Import format for date formatting
 import StyledSelect from '../Common/StyledSelect';
@@ -77,10 +77,10 @@ const CreateSalesOrderForm: React.FC = () => {
       try {
         const [customersData, inventoryItemsData] = await Promise.all([
           businessPartnerApi.getCustomers(),
-          inventoryItemApi.getInventoryItems(0, 1000, InventoryItemCategory.SUPPLIES),
+          inventoryItemApi.getInventoryItems(0, 1000),
         ]);
         setCustomers(customersData);
-        setInventoryItems(inventoryItemsData);
+        setInventoryItems(inventoryItemsData.filter(item => item.is_sellable));
 
         if (customersData.length > 0) {
           setCustomerId(customersData[0].id);

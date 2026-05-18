@@ -14,6 +14,7 @@ import AddSalesPaymentForm from '../SalesOrder/AddSalesPaymentForm';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
 import { useTableKeyboardNavigation } from '../../hooks/useTableKeyboardNavigation';
 import { financialReportsApi } from '../../services/api';
+import KeyboardShortcutsIndicator from '../Common/KeyboardShortcutsIndicator';
 
 type OptionType = { value: string; label: string };
 
@@ -333,6 +334,7 @@ const SalesLedgerComponent: React.FC = () => {
                             Customer: {ledgerData.customer_name ? `${ledgerData.customer_name} (ID: ${ledgerData.customer_id})` : ledgerData.customer_id}
                             {ledgerData.total_records !== undefined && ` | Total records: ${ledgerData.total_records}`}
                         </p>
+                        <KeyboardShortcutsIndicator hasPayment />
                         <div className="table-responsive">
                             <table className="table table-striped table-hover">
                                 <thead>

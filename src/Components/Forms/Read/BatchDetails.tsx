@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { dailyBatchApi, shedApi, configApi, inventoryItemApi, compositionApi } from '../../../services/api';
+import { dailyBatchApi, shedApi, configApi, inventoryItemApi, compositionApi, AppConfigKey } from '../../../services/api';
 import { DailyBatch } from '../../../types/daily_batch';
 import { ShedResponse } from '../../../types/shed';
 import { InventoryUsageSummary } from '../../../types/InventoryUsageSummary';
@@ -55,7 +55,7 @@ const BatchDetails: React.FC = () => {
   useEffect(() => {
     const fetchHenDayDeviation = async () => {
       try {
-        const config = await configApi.getAllConfigs('henDayDeviation');
+        const config = await configApi.getAllConfigs(AppConfigKey.HEN_DAY_DEVIATION);
         if (config && config.length > 0) {
           setHenDayDeviation(parseFloat(config[0].value) || 0);
         }

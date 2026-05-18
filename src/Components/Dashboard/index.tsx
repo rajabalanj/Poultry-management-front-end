@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import HeaderCardGroup from './HeaderCardGroup';
 import GraphsSection from './GraphsSection';
 import BatchTable from '../BatchTable';
-import { dailyBatchApi, compositionApi, shedApi, configApi, inventoryItemApi } from '../../services/api';
+import { dailyBatchApi, compositionApi, shedApi, configApi, inventoryItemApi, AppConfigKey } from '../../services/api';
 import { DailyBatch } from '../../types/daily_batch';
 import { ShedResponse } from '../../types/shed';
 import CustomDatePicker from '../Common/CustomDatePicker';
@@ -42,7 +42,7 @@ const DashboardIndex = () => {
   useEffect(() => {
     const fetchHenDayDeviation = async () => {
       try {
-        const config = await configApi.getAllConfigs('henDayDeviation');
+        const config = await configApi.getAllConfigs(AppConfigKey.HEN_DAY_DEVIATION);
         if (config && config.length > 0) {
           setHenDayDeviation(parseFloat(config[0].value) || 0);
         }

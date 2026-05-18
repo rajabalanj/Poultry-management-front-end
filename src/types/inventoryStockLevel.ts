@@ -13,6 +13,7 @@ export interface InventoryStockLevel {
   updated_at: string;
   average_cost_str?: string;
   average_cost_words?: string;
+  is_sellable?: boolean;
 }
 
 export interface DailyStockReportEntry {

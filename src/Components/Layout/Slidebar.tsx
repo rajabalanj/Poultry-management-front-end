@@ -306,6 +306,19 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     </li>
                     <li className="sub-menu-item">
                       <Link
+                        to="/inventory-items/manage-sellable"
+                        className={`nav-menu-link ${
+                          location.pathname === "/inventory-items/manage-sellable"
+                            ? "active-link"
+                            : ""
+                        }`}
+                        onClick={closeSidebarMobile}
+                      >
+                        <span className="sidebar-text">Manage Sellable</span>
+                      </Link>
+                    </li>
+                    <li className="sub-menu-item">
+                      <Link
                         to="/inventory-items/stock-level-report"
                         className={`nav-menu-link ${
                           location.pathname === "/inventory-items/stock-level-report"
