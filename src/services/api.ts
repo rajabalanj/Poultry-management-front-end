@@ -453,7 +453,7 @@ export const dailyBatchApi = {
 
   getDailyBatches: async (batch_date: string): Promise<DailyBatch[]> => {
     try {
-      const response = await api.get<DailyBatch[]>(`/daily-batch/?batch_date=${batch_date}`);
+      const response = await api.get<DailyBatch[]>(`/daily-batch?batch_date=${batch_date}`);
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch daily batches'));
