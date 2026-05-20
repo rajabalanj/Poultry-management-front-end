@@ -16,29 +16,43 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          // React core - keep together
-          'react-vendor': ['react', 'react-dom'],
-          
-          // React ecosystem
-          'react-router': ['react-router-dom'],
-          
-          // UI Libraries
-          'ui-bootstrap': ['react-bootstrap'],
-          'ui-toast': ['react-toastify'],
-          'ui-components': ['react-select', 'react-datepicker', 'react-responsive'],
-          
-          // Charts - largest library
-          'charts': ['recharts'],
-          
-          // Utilities
-          'utils': ['axios', 'date-fns', 'file-saver', 'html-to-image'],
-          
-          // Icons
-          'icons': ['lucide-react'],
-          
-          // Auth
-          'auth': ['oidc-client-ts', 'react-oidc-context'],
+        manualChunks: (id) => {
+          if (id.includes('node_modules')) {
+            // React core - keep together
+            if (id.includes('/react/') || id.includes('/react-dom/') || id.includes('/scheduler/')) {
+              return 'react-vendor';
+            }
+            // React ecosystem
+            if (id.includes('/react-router') || id.includes('/@remix-run/')) {
+              return 'react-router';
+            }
+            // UI Libraries
+            if (id.includes('/react-bootstrap/') || id.includes('/bootstrap/')) {
+              return 'ui-bootstrap';
+            }
+            if (id.includes('/react-toastify/')) {
+              return 'ui-toast';
+            }
+            if (id.includes('/react-select/') || id.includes('/react-datepicker/') || id.includes('/react-responsive/')) {
+              return 'ui-components';
+            }
+            // Charts
+            if (id.includes('/recharts/') || id.includes('/d3-') || id.includes('/lodash/')) {
+              return 'charts';
+            }
+            // Utilities
+            if (id.includes('/axios/') || id.includes('/date-fns/') || id.includes('/file-saver/') || id.includes('/html-to-image/')) {
+              return 'utils';
+            }
+            // Icons
+            if (id.includes('/lucide-react/')) {
+              return 'icons';
+            }
+            // Auth
+            if (id.includes('/oidc-client-ts/') || id.includes('/react-oidc-context/')) {
+              return 'auth';
+            }
+          }
         }
       }
     },
