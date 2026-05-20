@@ -5,6 +5,7 @@ import "./Sidebar.css"; // Import custom sidebar styles
 import { useAuth } from "../../hooks/useAuth";
 import { useSidebar } from "../../hooks/useSidebar";
 import annamalaiyarlogo from "../../styles/annamalaiyarlogo.png"; // Import the image
+import { getTenantId } from "../../services/api";
 
 // Using Bootstrap's lg breakpoint (≥992px) instead of hardcoded value
 
@@ -19,6 +20,12 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
   const organization = user?.profile?.['custom:organization'];
   const { isOpen, toggle, isDesktop } = useSidebar();
   const location = useLocation();
+
+  // Check if current tenant is restricted from seeing Batch and Shed modules
+  const restrictedTenantsStr = import.meta.env.VITE_RESTRICTED_BATCH_TENANTS || "";
+  const restrictedTenants = restrictedTenantsStr.split(',').map((t: string) => t.trim()).filter(Boolean);
+  const currentTenantId = getTenantId() || "";
+  const isBatchRestricted = restrictedTenants.includes(currentTenantId);
 
   // State to manage which sub-menu is open
   const [openMenu, setOpenMenu] = useState<string | null>(null); // 'batch', 'egg', 'feed', 'finance' etc.
@@ -182,6 +189,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                 </li>
                 
                 {/* Batch Management - Expandable Item */}
+                {!isBatchRestricted && (
                 <li className="nav-menu-item">
                   <div
                     className={`nav-menu-link expandable ${
@@ -241,6 +249,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     </li>
                   </ul>
                 </li>
+                )}
                 <li className="nav-menu-item">
                   <Link
                     to="/egg-room-stock"
@@ -405,6 +414,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                 </li>
                 
                 {/* Shed Management - Expandable Item */}
+                {!isBatchRestricted && (
                 <li className="nav-menu-item">
                   <div
                     className={`nav-menu-link expandable ${
@@ -449,6 +459,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     </li>
                   </ul>
                 </li>
+                )}
                 
                 {/* Finance - Expandable Item */}
                 <li className="nav-menu-item">

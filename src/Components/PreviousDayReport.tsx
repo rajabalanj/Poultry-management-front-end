@@ -177,20 +177,28 @@ const PreviousDayReport = () => {
 
   useEffect(() => {
     const fetchInitialData = async () => {
-      try {
-        const [shedData, configs, batchData] = await Promise.all([
-          shedApi.getSheds(),
-          configApi.getAllConfigs(),
-          batchApi.getBatches(0, 1000)
-        ]);
+      const [shedResult, configsResult, batchResult] = await Promise.allSettled([
+        shedApi.getSheds(),
+        configApi.getAllConfigs(),
+        batchApi.getBatches(0, 1000)
+      ]);
 
-        const validSheds = Array.isArray(shedData) ? shedData : [];
+      if (shedResult.status === 'fulfilled') {
+        const validSheds = Array.isArray(shedResult.value) ? shedResult.value : [];
         setSheds(validSheds);
+      } else {
+        console.error('Failed to load sheds', shedResult.reason);
+      }
 
-        const hdConfig = configs.find(c => c.name === AppConfigKey.HEN_DAY_DEVIATION);
+      if (configsResult.status === 'fulfilled') {
+        const hdConfig = configsResult.value.find(c => c.name === AppConfigKey.HEN_DAY_DEVIATION);
         setHenDayDeviation(hdConfig ? Number(hdConfig.value) : 10);
+      } else {
+        console.error('Failed to load configs', configsResult.reason);
+      }
 
-        const validBatches = Array.isArray(batchData) ? batchData : [];
+      if (batchResult.status === 'fulfilled') {
+        const validBatches = Array.isArray(batchResult.value) ? batchResult.value : [];
         setBatches(validBatches);
         if (effectiveBatchId) {
           const foundBatch = validBatches.find(b => String(b.id) === effectiveBatchId);
@@ -198,8 +206,8 @@ const PreviousDayReport = () => {
             setBatchNo(foundBatch.batch_no);
           }
         }
-      } catch (err: any) {
-        toast.error(err.message || "Failed to load initial data.");
+      } else {
+        console.error('Failed to load batches', batchResult.reason);
       }
     };
     fetchInitialData();

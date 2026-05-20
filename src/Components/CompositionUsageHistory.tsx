@@ -62,15 +62,22 @@ const CompositionUsageHistory = () => {
 
   useEffect(() => {
     const fetchStaticData = async () => {
-      try {
-        const batchPromise = batchApi.getBatches();
-        const compositionPromise = compositionId ? compositionApi.getComposition(Number(compositionId)) : Promise.resolve(null);
-        const [availableBatches, compositionData] = await Promise.all([batchPromise, compositionPromise]);
-        setBatches(availableBatches);
-        setComposition(compositionData);
-      } catch (error) {
-        console.error('Failed to fetch static data:', error);
-        toast.error('Failed to load static data.');
+      const batchPromise = batchApi.getBatches();
+      const compositionPromise = compositionId ? compositionApi.getComposition(Number(compositionId)) : Promise.resolve(null);
+      
+      const [batchesResult, compositionResult] = await Promise.allSettled([batchPromise, compositionPromise]);
+      
+      if (batchesResult.status === 'fulfilled') {
+        setBatches(batchesResult.value);
+      } else {
+        console.error('Failed to fetch batches data:', batchesResult.reason);
+      }
+
+      if (compositionResult.status === 'fulfilled') {
+        setComposition(compositionResult.value);
+      } else {
+        console.error('Failed to fetch composition data:', compositionResult.reason);
+        toast.error('Failed to load composition data.');
       }
     };
     fetchStaticData();

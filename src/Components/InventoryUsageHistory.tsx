@@ -63,14 +63,21 @@ const InventoryUsageHistory = () => {
 
   useEffect(() => {
     const fetchStaticData = async () => {
-      try {
-        const batchPromise = batchApi.getBatches();
-        const itemPromise = item_id ? inventoryItemApi.getInventoryItem(Number(item_id)) : Promise.resolve(null);
-        const [availableBatches, itemData] = await Promise.all([batchPromise, itemPromise]);
-        setBatches(availableBatches);
-        setInventoryItem(itemData);
-      } catch (error) {
-        console.error('Failed to fetch static data:', error);
+      const batchPromise = batchApi.getBatches();
+      const itemPromise = item_id ? inventoryItemApi.getInventoryItem(Number(item_id)) : Promise.resolve(null);
+      
+      const [batchesResult, itemResult] = await Promise.allSettled([batchPromise, itemPromise]);
+      
+      if (batchesResult.status === 'fulfilled') {
+        setBatches(batchesResult.value);
+      } else {
+        console.error('Failed to fetch batches data:', batchesResult.reason);
+      }
+
+      if (itemResult.status === 'fulfilled') {
+        setInventoryItem(itemResult.value);
+      } else {
+        console.error('Failed to fetch item data:', itemResult.reason);
       }
     };
     fetchStaticData();

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import HeaderCardGroup from './HeaderCardGroup';
 import GraphsSection from './GraphsSection';
@@ -171,36 +171,41 @@ const DashboardIndex = () => {
     sessionStorage.setItem(BATCH_DATE_KEY, batchDate);
   }, [batchDate]);
 
-  const processedBatches = batches.map(batch => ({
-    ...batch,
-    shed_no: sheds.find(s => s.id === batch.shed_id)?.shed_no || batch.shed_no
-  }));
+  const filteredBatches = useMemo(() => {
+    const processed = batches.map(batch => ({
+      ...batch,
+      shed_no: sheds.find(s => s.id === batch.shed_id)?.shed_no || batch.shed_no
+    }));
+    return selectedShedNo
+      ? processed.filter(b => b.shed_no === selectedShedNo)
+      : processed;
+  }, [batches, sheds, selectedShedNo]);
 
-  const filteredBatches = selectedShedNo
-    ? processedBatches.filter(b => b.shed_no === selectedShedNo)
-    : processedBatches;
-
-  const totalBirds = filteredBatches.reduce((sum, b) => sum + (b.closing_count || 0), 0);
-  const totalEggs = filteredBatches.reduce((sum, b) => sum + ((b.table_eggs || 0) + (b.jumbo || 0) + (b.cr || 0)), 0);
-  const openingCount = filteredBatches.reduce((sum, b) => sum + (b.opening_count || 0), 0);
-  const mortality = filteredBatches.reduce((sum, b) => sum + (b.mortality || 0), 0);
-  const culls = filteredBatches.reduce((sum, b) => sum + (b.culls || 0), 0);
-  const layerBatches = filteredBatches.filter(b => b.batch_type === 'Layer');
-  const avgHD = layerBatches.length > 0 ? Number(((layerBatches.reduce((sum, b) => sum + (b.hd || 0), 0) / layerBatches.length) * 100).toFixed(2)) : 0;
-  const avgStandardHD = layerBatches.length > 0 
-    ? layerBatches.reduce((sum, b) => sum + (b.standard_hen_day_percentage || 0), 0) / layerBatches.length
-    : 0;
+  const stats = useMemo(() => {
+    const totalBirds = filteredBatches.reduce((sum, b) => sum + (b.closing_count || 0), 0);
+    const totalEggs = filteredBatches.reduce((sum, b) => sum + ((b.table_eggs || 0) + (b.jumbo || 0) + (b.cr || 0)), 0);
+    const openingCount = filteredBatches.reduce((sum, b) => sum + (b.opening_count || 0), 0);
+    const mortality = filteredBatches.reduce((sum, b) => sum + (b.mortality || 0), 0);
+    const culls = filteredBatches.reduce((sum, b) => sum + (b.culls || 0), 0);
+    const birdsAdded = filteredBatches.reduce((sum, b) => sum + (b.birds_added || 0), 0);
+    const layerBatches = filteredBatches.filter(b => b.batch_type === 'Layer');
+    const avgHD = layerBatches.length > 0 ? Number(((layerBatches.reduce((sum, b) => sum + (b.hd || 0), 0) / layerBatches.length) * 100).toFixed(2)) : 0;
+    const avgStandardHD = layerBatches.length > 0 
+      ? layerBatches.reduce((sum, b) => sum + (b.standard_hen_day_percentage || 0), 0) / layerBatches.length
+      : 0;
+    return { totalBirds, totalEggs, openingCount, mortality, culls, birdsAdded, avgHD, avgStandardHD };
+  }, [filteredBatches]);
 
   const cards = [
     {
       title: "Total Birds",
-      mainValue: totalBirds,
+      mainValue: stats.totalBirds,
       icon: Bird,
       subValues: [
-        { label: "Opening", value: openingCount },
-        { label: "Mortality", value: mortality },
-        { label: "Culls", value: culls },
-        { label: "Birds Added", value: filteredBatches.reduce((sum, b) => sum + (b.birds_added || 0), 0) }
+        { label: "Opening", value: stats.openingCount },
+        { label: "Mortality", value: stats.mortality },
+        { label: "Culls", value: stats.culls },
+        { label: "Birds Added", value: stats.birdsAdded }
       ]
     },
     {
@@ -228,7 +233,7 @@ const DashboardIndex = () => {
 },
     {
       title: "Total Eggs",
-      mainValue: totalEggs,
+      mainValue: stats.totalEggs,
       icon: Egg,
       subValues: [
         { label: "Normal", value: filteredBatches.reduce((sum, b) => sum + (b.table_eggs || 0), 0) },
@@ -282,8 +287,8 @@ const DashboardIndex = () => {
           </div>
           <div className="mb-4">
             <GraphsSection 
-              henDayValue={avgHD} 
-              standardHenDayPercentage={avgStandardHD}
+              henDayValue={stats.avgHD} 
+              standardHenDayPercentage={stats.avgStandardHD}
               henDayDeviation={henDayDeviation}
               loading={loading} 
               error={error} 

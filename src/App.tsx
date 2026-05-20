@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Container } from 'react-bootstrap';
@@ -9,6 +9,7 @@ import ProtectedRoute from './Components/Auth/ProtectedRoute';
 import ScrollToTop from './Components/Common/ScrollToTop';
 import ErrorBoundary from './Components/ErrorBoundary';
 import { SubscriptionProvider } from './Components/context/SubscriptionContext';
+import { getTenantId } from './services/api';
 
 const AddBatch = lazy(() => import('./Components/Forms/Create/AddBatch'));
 const BatchDetails = lazy(() => import('./Components/Forms/Read/BatchDetails'));
@@ -77,6 +78,18 @@ const ProtectedRoutes = () => (
   </ProtectedRoute>
 );
 
+// Layout Route to restrict access to Batch/Shed modules if tenant is restricted
+const FeatureProtectedRoute = () => {
+  const restrictedTenantsStr = import.meta.env.VITE_RESTRICTED_BATCH_TENANTS || "";
+  const restrictedTenants = restrictedTenantsStr.split(',').map((t: string) => t.trim()).filter(Boolean);
+  const tenantId = getTenantId() || "";
+  
+  if (restrictedTenants.includes(tenantId)) {
+    return <Navigate to="/" replace />;
+  }
+  return <Outlet />;
+};
+
 const App: React.FC = () => {
   return (
     <Container fluid>
@@ -87,6 +100,7 @@ const App: React.FC = () => {
             <Routes>
               <Route element={<ProtectedRoutes />}>
                 <Route path="/" element={<Dashboard />} />
+                <Route element={<FeatureProtectedRoute />}>
                 <Route
                   path="/production"
                   element={
@@ -116,6 +130,7 @@ const App: React.FC = () => {
                   element={<EditBatchSimple />}
                 />
                 <Route path="/upload-batch" element={<UploadBatch />} />
+                </Route>
                 <Route
                   path="/feed-mill-stock"
                   element={
@@ -173,10 +188,12 @@ const App: React.FC = () => {
                 <Route path="/operational-expenses/create" element={<CreateOperationalExpenseForm />} />
                 <Route path="/operational-expenses/:expense_id/edit" element={<EditOperationalExpense />} />
                 <Route path="/operational-expenses/:expense_id/details" element={<ViewOperationalExpense />} />
+                <Route element={<FeatureProtectedRoute />}>
                 <Route path="/sheds" element={<ShedIndexPage />} />
                 <Route path="/sheds/create" element={<CreateShedForm />} />
                 <Route path="/sheds/:shed_id/details" element={<ShedDetails />} />
                 <Route path="/sheds/:shed_id/edit" element={<EditShed />} />
+                </Route>
                 <Route path="/reports/purchases" element={<PurchaseResponsive />} />
                 <Route path="/reports/sales" element={<SalesResponsive />} />
                 <Route path="/chart-of-accounts" element={<ChartOfAccountsList />} />

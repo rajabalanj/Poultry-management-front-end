@@ -37,15 +37,21 @@ function FeedMillStock() {
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const [items, comps, fetchedBatches] = await Promise.all([
-          inventoryItemApi.getInventoryItems(0, 1000, InventoryItemCategory.FEED),
-          compositionApi.getCompositions(),
-          batchApi.getBatches()
-        ]);
+      const [itemsResult, compsResult, batchesResult] = await Promise.allSettled([
+        inventoryItemApi.getInventoryItems(0, 1000, InventoryItemCategory.FEED),
+        compositionApi.getCompositions(),
+        batchApi.getBatches()
+      ]);
 
-        setInventoryItems(items);
+      if (itemsResult.status === 'fulfilled') {
+        setInventoryItems(itemsResult.value);
+      } else {
+        console.error("Error loading feed mill inventory items:", itemsResult.reason);
+        toast.error("Failed to load inventory items.");
+      }
 
+      if (compsResult.status === 'fulfilled') {
+        const comps = compsResult.value;
         if (Array.isArray(comps)) {
           const mappedComps = comps.map((comp) => ({
             ...comp,
@@ -58,14 +64,20 @@ function FeedMillStock() {
         } else {
           setCompositions([]);
         }
+      } else {
+        console.error("Error loading feed mill compositions:", compsResult.reason);
+        toast.error("Failed to load compositions.");
+      }
 
+      if (batchesResult.status === 'fulfilled') {
+        const fetchedBatches = batchesResult.value;
         setBatches(fetchedBatches);
         if (fetchedBatches.length > 0) {
           setSelectedBatchNo(fetchedBatches[0].batch_no);
         }
-      } catch (error) {
-        console.error("Error loading feed mill data:", error);
-        toast.error("Failed to load data.");
+      } else {
+        console.error("Error loading batches:", batchesResult.reason);
+        // Note: No toast error here so restricted tenants don't get annoyed with "Forbidden" popups
       }
     };
     fetchData();
