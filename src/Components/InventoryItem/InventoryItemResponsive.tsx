@@ -16,6 +16,7 @@ import UseInventoryItemModal from "./UseInventoryItemModal";
 import { toPng } from 'html-to-image';
 import { useSubscription } from '../context/SubscriptionContext';
 import SubscriptionWarning from "../Common/SubscriptionWarning"; // adjust path as needed
+import CustomPagination from '../Common/CustomPagination';
 
 const InventoryItemResponsive: React.FC = () => {
   const navigate = useNavigate();
@@ -39,6 +40,8 @@ const InventoryItemResponsive: React.FC = () => {
   const [isSharing, setIsSharing] = useState(false);
   const tableRef = useRef<HTMLDivElement>(null);
   const { isSubscriptionPaid } = useSubscription();
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 15;
 
   const isMobile = useMediaQuery({ maxWidth: 768 });
 
@@ -84,6 +87,7 @@ const InventoryItemResponsive: React.FC = () => {
     fetchInventoryItemList();
     fetchThresholds();
     fetchInventoryValue();
+    setCurrentPage(1);
   }, [filterCategory]);
 
   const handleDelete = useCallback((id: number) => {
@@ -230,7 +234,10 @@ const InventoryItemResponsive: React.FC = () => {
     }
   };
 
-  const renderInventoryTable = (id?: string) => (
+  const totalPages = Math.ceil(inventoryItems.length / ITEMS_PER_PAGE);
+  const paginatedInventoryItems = inventoryItems.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
+  const renderInventoryTable = (id?: string, itemsList: InventoryItemResponse[] = paginatedInventoryItems) => (
     <div ref={tableRef} className="table-responsive">
       <Table id={id} striped bordered hover responsive className="table-hover shadow-sm">
         <thead className="table-primary">
@@ -250,7 +257,7 @@ const InventoryItemResponsive: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {inventoryItems.map((item) => (
+          {itemsList.map((item) => (
             <tr 
               key={item.id} 
             onClick={() => navigate(`/inventory-items/${item.id}/details`)}
@@ -297,7 +304,7 @@ const InventoryItemResponsive: React.FC = () => {
     </div>
   );
 
-  const groupedItems = inventoryItems.reduce((acc, item) => {
+  const groupedItems = paginatedInventoryItems.reduce((acc, item) => {
     const category = item.category;
     if (!acc[category]) {
       acc[category] = [];
@@ -420,10 +427,14 @@ const InventoryItemResponsive: React.FC = () => {
               </div>
             ))}
 
+            {!loading && !error && inventoryItems.length > 0 && (
+              <CustomPagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+            )}
+
             {/* Hidden table for export functionality on mobile */}
             {!loading && !error && inventoryItems.length > 0 && (
               <div className="d-none">
-                {renderInventoryTable("inventory-items-table")}
+                {renderInventoryTable("inventory-items-table", inventoryItems)}
               </div>
             )}
 
@@ -529,7 +540,12 @@ const InventoryItemResponsive: React.FC = () => {
           {!loading && !error && inventoryItems.length === 0 && <div className="alert alert-info text-center">No inventory items found</div>}
           {loadingStock && <div className="alert alert-info"><i className="bi bi-hourglass-split me-2"></i>Fetching stock data for selected date...</div>}
 
-          {!loading && !error && inventoryItems.length > 0 && renderInventoryTable("inventory-items-table")}
+          {!loading && !error && inventoryItems.length > 0 && (
+            <>
+              {renderInventoryTable("inventory-items-table")}
+              <CustomPagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+            </>
+          )}
 
           <Modal show={showDeleteModal} onHide={cancelDelete}>
             <Modal.Header closeButton>

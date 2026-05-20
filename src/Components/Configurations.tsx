@@ -77,8 +77,6 @@ const Configurations: React.FC = () => {
   useEffect(() => {
     const fetchAllConfigsAndBovans = async () => {
       setLoading(true);
-      setBatchLoading(true);
-      setBovansLoading(true);
       try {
         const configs = await configApi.getAllConfigs();
         const kgConfig = configs.find((c) => c.name === AppConfigKey.LOW_KG_THRESHOLD);
@@ -137,21 +135,26 @@ const Configurations: React.FC = () => {
         } catch (error) {
           console.error("Failed to fetch financial settings:", error);
         }
+      } catch (err: any) {
+        toast.error(err.message || "Failed to load configurations.");
+      } finally {
+        setLoading(false);
+      }
 
+      // Fetch batches independently so a restriction here doesn't crash everything else
+      setBatchLoading(true);
+      try {
         const batchData = await batchApi.getBatches(0, 1000);
         setBatches(Array.isArray(batchData) ? batchData : []);
         setBatchError(null);
-
-        await fetchBovansPerformance(bovansCurrentPage);
       } catch (err: any) {
-        toast.error(err.message || "Failed to load configurations.");
         setBatchError(err.message || "Failed to load batch configurations.");
-        setBovansError(err.message || "Failed to load Bovans performance data.");
       } finally {
-        setLoading(false);
         setBatchLoading(false);
-        setBovansLoading(false);
       }
+
+      // Fetch Bovans independently (this function handles its own try/catch and loading state)
+      await fetchBovansPerformance(bovansCurrentPage);
     };
     fetchAllConfigsAndBovans();
     // eslint-disable-next-line

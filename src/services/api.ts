@@ -414,7 +414,7 @@ export const dailyBatchApi = {
   // Upload Excel file for daily batches
   uploadExcel: async (formData: FormData): Promise<void> => {
     try {
-      await api.post('/daily-batch/upload-excel/', formData, {
+      await api.post('/daily-batch/upload-excel', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
     } catch (error) {
@@ -467,7 +467,7 @@ export const dailyBatchApi = {
 export const compositionApi = {
   createComposition: async (composition: { name: string, wastage_percentage: number, inventory_items: { inventory_item_id: number, weight: number, wastage_percentage: number, tenant_id: string }[], tenant_id: string }): Promise<CompositionResponse> => {
     try {
-      const response = await api.post<CompositionResponse>('/compositions/', composition);
+      const response = await api.post<CompositionResponse>('/compositions', composition);
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to create composition'));
@@ -475,7 +475,7 @@ export const compositionApi = {
   },
   getCompositions: async (): Promise<CompositionResponse[]> => {
     try {
-      const response = await api.get<CompositionResponse[]>('/compositions/');
+      const response = await api.get<CompositionResponse[]>('/compositions');
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch compositions'));
@@ -579,7 +579,7 @@ export const compositionApi = {
      */
       getFeedUsageByDate: async (usageDate: string, batchId?: number): Promise<{ total_feed: number, feed_breakdown: { feed_type: string, amount: number }[] }> => {
       try {
-        const response = await api.get(`/compositions/usage-by-date/`, {
+        const response = await api.get(`/compositions/usage-by-date`, {
           params: {
             usage_date: usageDate,
             batch_id: batchId || undefined,
@@ -727,7 +727,7 @@ export const batchApi = {
     }
 
     try {
-      const response = await api.post<CreateBatchResponse>('/batches/', batchData);
+      const response = await api.post<CreateBatchResponse>('/batches', batchData);
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to create batch'));
@@ -735,7 +735,7 @@ export const batchApi = {
   },
   getBatches: async (skip: number = 0, limit: number = 100): Promise<BatchResponse[]> => {
     try {
-      const response = await api.get<BatchResponse[]>(`/batches/all/?skip=${skip}&limit=${limit}`);
+      const response = await api.get<BatchResponse[]>(`/batches/all?skip=${skip}&limit=${limit}`);
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch batches'));
@@ -796,7 +796,7 @@ export const eggRoomReportApi = {
     return response.data;
   },
   createReport: async (report: EggRoomReportCreate): Promise<EggRoomReportResponse> => {
-    const response = await api.post<EggRoomReportResponse>('/egg-room-report/', report);
+    const response = await api.post<EggRoomReportResponse>('/egg-room-report', report);
     return response.data;
   },
   updateReport: async (report_date: string, reportData: EggRoomReportUpdate) => {
@@ -818,7 +818,7 @@ export const eggRoomReportApi = {
 
 
   getReports: async (start_date: string, end_date: string): Promise<EggRoomReportResponse> => {
-    const response = await api.get<EggRoomReportResponse>(`/egg-room-report/`, {
+    const response = await api.get<EggRoomReportResponse>(`/egg-room-report`, {
       params: { start_date, end_date }
     });
     return response.data;
@@ -830,7 +830,7 @@ export const bovansApi = {
  getAllBovansPerformance: async (skip: number = 0, limit: number = 10): Promise<PaginatedBovansPerformanceResponse> => {
     try {
       // The response from the API will now be of type PaginatedBovansPerformanceResponse
-      const response = await api.get<PaginatedBovansPerformanceResponse>(`/bovans/?skip=${skip}&limit=${limit}`);
+      const response = await api.get<PaginatedBovansPerformanceResponse>(`/bovans?skip=${skip}&limit=${limit}`);
       return response.data; // This 'response.data' will now contain { data: [...], total_count: ... }
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch Bovans performance data'));
@@ -849,7 +849,7 @@ export const bovansApi = {
 export const businessPartnerApi = {
   createBusinessPartner: async (partnerData: BusinessPartnerCreate): Promise<BusinessPartner> => {
     try {
-      const response = await api.post<BusinessPartner>("/business-partners/", partnerData);
+      const response = await api.post<BusinessPartner>("/business-partners", partnerData);
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to create people'));
@@ -869,7 +869,7 @@ export const businessPartnerApi = {
       if (isVendor !== undefined) params.is_vendor = isVendor;
       if (isCustomer !== undefined) params.is_customer = isCustomer;
       
-      const response = await api.get<BusinessPartner[]>(`/business-partners/`, { params });
+      const response = await api.get<BusinessPartner[]>(`/business-partners`, { params });
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch peoples'));
@@ -926,7 +926,7 @@ const parseInventoryItemResponse = (item: any): InventoryItemResponse => {
 export const inventoryItemApi = {
   createInventoryItem: async (itemData: InventoryItemCreate): Promise<InventoryItemResponse> => {
     try {
-      const response = await api.post<InventoryItemResponse>("/inventory-items/", itemData);
+      const response = await api.post<InventoryItemResponse>("/inventory-items", itemData);
       return parseInventoryItemResponse(response.data);
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to create inventory item'));
@@ -943,7 +943,7 @@ export const inventoryItemApi = {
       if (category) {
         params.category = category;
       }
-      const response = await api.get<InventoryItemResponse[]>(`/inventory-items/`, { params });
+      const response = await api.get<InventoryItemResponse[]>(`/inventory-items`, { params });
       return response.data.map(parseInventoryItemResponse);
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch inventory items'));
@@ -1148,7 +1148,7 @@ export const inventoryItemApi = {
    */
   getInventoryUsageByDate: async (usageDate: string, batchId?: number): Promise<InventoryUsageSummary> => {
     try {
-      const response = await api.get('/inventory-items/usage-by-date/', {
+      const response = await api.get('/inventory-items/usage-by-date', {
         params: {
           usage_date: usageDate,
           batch_id: batchId || undefined,
@@ -1223,7 +1223,7 @@ export const purchaseOrderApi = {
   },
   createPurchaseOrder: async (poData: PurchaseOrderCreate): Promise<PurchaseOrderResponse> => {
     try {
-      const response = await api.post<PurchaseOrderResponse>("/purchase-orders/", poData);
+      const response = await api.post<PurchaseOrderResponse>("/purchase-orders", poData);
       return parsePurchaseOrderResponse(response.data);
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to create Purchase'));
@@ -1245,7 +1245,7 @@ export const purchaseOrderApi = {
       if (startDate) params.start_date = startDate;
       if (endDate) params.end_date = endDate;
 
-      const response = await api.get<PurchaseOrderResponse[]>(`/purchase-orders/`, { params });
+      const response = await api.get<PurchaseOrderResponse[]>(`/purchase-orders`, { params });
       return response.data.map(parsePurchaseOrderResponse);
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch Purchase'));
@@ -1311,7 +1311,7 @@ export const purchaseOrderApi = {
 
   addPaymentToPurchaseOrder: async (payment: PaymentCreate): Promise<PaymentResponse> => {
     try {
-      const response = await api.post<PaymentResponse>(`/payments/`, payment);
+      const response = await api.post<PaymentResponse>(`/payments`, payment);
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to add payment to Purchase'));
@@ -1445,7 +1445,7 @@ export const salesOrderApi = {
   },
   createSalesOrder: async (soData: SalesOrderCreate): Promise<SalesOrderResponse> => {
     try {
-      const response = await api.post<SalesOrderResponse>("/sales-orders/", soData);
+      const response = await api.post<SalesOrderResponse>("/sales-orders", soData);
       return parseSalesOrderResponse(response.data);
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to create sales order'));
@@ -1467,7 +1467,7 @@ export const salesOrderApi = {
       if (startDate) params.start_date = startDate;
       if (endDate) params.end_date = endDate;
 
-      const response = await api.get<SalesOrderResponse[]>(`/sales-orders/`, { params });
+      const response = await api.get<SalesOrderResponse[]>(`/sales-orders`, { params });
       return response.data.map(parseSalesOrderResponse);
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch sales'));
@@ -1533,7 +1533,7 @@ export const salesOrderApi = {
 
   addPaymentToSalesOrder: async (payment: SalesPaymentCreate): Promise<PaymentResponse> => {
     try {
-      const response = await api.post<PaymentResponse>(`/sales-payments/`, payment);
+      const response = await api.post<PaymentResponse>(`/sales-payments`, payment);
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to add payment to Sales'));
@@ -1704,7 +1704,7 @@ export const financialReportsApi = {
 export const operationalExpenseApi = {
   createOperationalExpense: async (expenseData: Omit<OperationalExpense, 'id' | 'tenant_id'>): Promise<OperationalExpense> => {
     try {
-      const response = await api.post<OperationalExpense>("/operational-expenses/", expenseData);
+      const response = await api.post<OperationalExpense>("/operational-expenses", expenseData);
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to create operational expense'));
@@ -1713,7 +1713,7 @@ export const operationalExpenseApi = {
 
   getOperationalExpenses: async (startDate: string, endDate: string): Promise<OperationalExpense[]> => {
     try {
-      const response = await api.get<OperationalExpense[]>("/operational-expenses/", {
+      const response = await api.get<OperationalExpense[]>("/operational-expenses", {
         params: { start_date: startDate, end_date: endDate },
       });
       return response.data;
@@ -1806,7 +1806,7 @@ export const ledgerApi = {
 export const shedApi = {
   createShed: async (shedData: Shed): Promise<ShedResponse> => {
     try {
-      const response = await api.post<ShedResponse>('/sheds/', shedData);
+      const response = await api.post<ShedResponse>('/sheds', shedData);
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to create shed'));
@@ -1887,7 +1887,7 @@ export const inventoryItemVariantApi = {
 export const chartOfAccountsApi = {
   createChartOfAccount: async (accountData: ChartOfAccountsRequest): Promise<ChartOfAccountsResponse> => {
     try {
-      const response = await api.post<ChartOfAccountsResponse>("/chart-of-accounts/", accountData);
+      const response = await api.post<ChartOfAccountsResponse>("/chart-of-accounts", accountData);
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, "Failed to create chart of account"));
@@ -1896,7 +1896,7 @@ export const chartOfAccountsApi = {
 
   getChartOfAccounts: async (): Promise<ChartOfAccountsResponse[]> => {
     try {
-      const response = await api.get<ChartOfAccountsResponse[]>("/chart-of-accounts/");
+      const response = await api.get<ChartOfAccountsResponse[]>("/chart-of-accounts");
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, "Failed to fetch chart of accounts"));
@@ -1933,7 +1933,7 @@ export const chartOfAccountsApi = {
 export const financialSettingsApi = {
   getFinancialSettings: async (): Promise<FinancialSettings> => {
     try {
-      const response = await api.get<FinancialSettings>("/financial-settings/");
+      const response = await api.get<FinancialSettings>("/financial-settings");
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, "Failed to fetch financial settings"));
@@ -1942,7 +1942,7 @@ export const financialSettingsApi = {
 
   updateFinancialSettings: async (settings: UpdateFinancialSettings): Promise<FinancialSettings> => {
     try {
-      const response = await api.patch<FinancialSettings>("/financial-settings/", settings);
+      const response = await api.patch<FinancialSettings>("/financial-settings", settings);
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, "Failed to update financial settings"));
@@ -1953,7 +1953,7 @@ export const financialSettingsApi = {
 export const journalEntryApi = {
   createJournalEntry: async (entryData: JournalEntryCreate): Promise<JournalEntryResponse> => {
     try {
-      const response = await api.post<JournalEntryResponse>("/journal-entries/", entryData);
+      const response = await api.post<JournalEntryResponse>("/journal-entries", entryData);
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, "Failed to create journal entry"));
@@ -1971,7 +1971,7 @@ export const journalEntryApi = {
       if (startDate) params.start_date = startDate;
       if (endDate) params.end_date = endDate;
       
-      const response = await api.get<JournalEntryResponse[]>("/journal-entries/", { params });
+      const response = await api.get<JournalEntryResponse[]>("/journal-entries", { params });
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, "Failed to fetch journal entries"));
@@ -1991,7 +1991,7 @@ export const journalEntryApi = {
 export const subscriptionApi = {
   createSubscription: async (subscription: SubscriptionCreate): Promise<SubscriptionStatusResponse> => {
     try {
-      const response = await api.post<SubscriptionStatusResponse>('/subscriptions/', subscription);
+      const response = await api.post<SubscriptionStatusResponse>('/subscriptions', subscription);
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, "Failed to create subscription"));
@@ -2018,7 +2018,7 @@ export const subscriptionApi = {
 
   getSubscriptions: async (skip: number = 0, limit: number = 100): Promise<SubscriptionStatusResponse[]> => {
     try {
-      const response = await api.get<SubscriptionStatusResponse[]>('/subscriptions/', {
+      const response = await api.get<SubscriptionStatusResponse[]>('/subscriptions', {
         params: { skip, limit }
       });
       return response.data;

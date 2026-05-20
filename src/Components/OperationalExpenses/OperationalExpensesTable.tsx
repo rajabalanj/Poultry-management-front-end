@@ -1,9 +1,10 @@
 // src/components/OperationalExpenses/OperationalExpensesTable.tsx
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { OperationalExpense } from "../../types/operationalExpense";
 import { Button } from "react-bootstrap";
 import { useSubscription } from "../context/SubscriptionContext";
+import CustomPagination from "../Common/CustomPagination";
 
 interface OperationalExpensesTableProps {
   expenses: OperationalExpense[];
@@ -14,6 +15,15 @@ interface OperationalExpensesTableProps {
 
 const OperationalExpensesTable: React.FC<OperationalExpensesTableProps> = ({ expenses, loading, error, onDelete }) => {
   const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 15;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [expenses]);
+
+  const totalPages = Math.ceil(expenses.length / ITEMS_PER_PAGE);
+  const paginatedExpenses = expenses.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   const handleEdit = (id: number) => {
     navigate(`/operational-expenses/${id}/edit`);
@@ -39,7 +49,8 @@ const OperationalExpensesTable: React.FC<OperationalExpensesTableProps> = ({ exp
   if (expenses.length === 0) return <div className="text-center">No operational expenses found.</div>;
 
   return (
-    <div className="table-responsive">
+    <div>
+      <div className="table-responsive">
       <table className="table table-striped table-hover">
         <thead className="thead-dark">
           <tr>
@@ -50,7 +61,7 @@ const OperationalExpensesTable: React.FC<OperationalExpensesTableProps> = ({ exp
           </tr>
         </thead>
         <tbody>
-          {expenses.map((expense) => (
+          {paginatedExpenses.map((expense) => (
             <tr key={expense.id} onClick={() => handleView(expense.id)} style={{ cursor: 'pointer' }}>
               <td>{formatDate(expense.expense_date)}</td>
               <td>{expense.expense_type}</td>
@@ -67,6 +78,8 @@ const OperationalExpensesTable: React.FC<OperationalExpensesTableProps> = ({ exp
           ))}
         </tbody>
       </table>
+      </div>
+      <CustomPagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
     </div>
   );
 };
