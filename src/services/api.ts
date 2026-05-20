@@ -404,7 +404,7 @@ export const dailyBatchApi = {
   // Create a new daily batch record
   createDailyBatch: async (batchData: Omit<DailyBatch, 'batch_id' | 'total_eggs' | 'hd'>): Promise<DailyBatch> => {
     try {
-      const response = await api.post<DailyBatch>(`/daily-batch/`, batchData);
+      const response = await api.post<DailyBatch>(`/daily-batch`, batchData);
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to create daily batch'));
