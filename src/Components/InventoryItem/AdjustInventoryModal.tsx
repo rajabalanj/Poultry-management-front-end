@@ -15,6 +15,7 @@ const AdjustInventoryModal: React.FC<AdjustInventoryModalProps> = ({ item, onClo
   const [changeAmount, setChangeAmount] = useState<number>(0);
   const [isIncrease, setIsIncrease] = useState<boolean>(true);
   const [note, setNote] = useState('');
+  const [unitCost, setUnitCost] = useState<number | ''>('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { isSubscriptionPaid } = useSubscription();
@@ -38,6 +39,7 @@ const AdjustInventoryModal: React.FC<AdjustInventoryModalProps> = ({ item, onClo
         change_amount: finalAmount,
         change_type: 'manual' as const,
         note: note,
+        ...(unitCost !== '' ? { unit_cost: Number(unitCost) } : {}),
       };
       const updatedItem = await inventoryItemApi.adjustInventoryItem(item.id, adjustment);
       onSuccess(updatedItem);
@@ -88,11 +90,25 @@ const AdjustInventoryModal: React.FC<AdjustInventoryModalProps> = ({ item, onClo
               value={Math.abs(changeAmount)}
               onChange={(e) => setChangeAmount(parseFloat(e.target.value))}
               min="0"
-              step="1"
+              step="any"
               required
             />
             <Form.Text className="text-muted">
               Enter the amount to {isIncrease ? "increase" : "decrease"} the stock by.
+            </Form.Text>
+          </Form.Group>
+
+          <Form.Group className="mb-3" controlId="unitCost">
+            <Form.Label>Unit Cost (Optional)</Form.Label>
+            <Form.Control
+              type="number"
+              value={unitCost}
+              onChange={(e) => setUnitCost(e.target.value === '' ? '' : parseFloat(e.target.value))}
+              min="0"
+              step="any"
+            />
+            <Form.Text className="text-muted">
+              Specify the unit cost for this adjustment if applicable.
             </Form.Text>
           </Form.Group>
 
@@ -123,4 +139,3 @@ const AdjustInventoryModal: React.FC<AdjustInventoryModalProps> = ({ item, onClo
 };
 
 export default AdjustInventoryModal;
-

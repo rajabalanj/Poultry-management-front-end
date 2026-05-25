@@ -1106,6 +1106,7 @@ export const inventoryItemApi = {
       change_amount: number;
       change_type: "manual";
       note: string;
+      unit_cost?: number;
     }
   ): Promise<InventoryItemResponse> => {
     try {
