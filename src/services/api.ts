@@ -52,6 +52,7 @@ import {
   SubscriptionCreate, 
   SubscriptionUpdate 
 } from '../types/subscription';
+import { TenantFeatureCreate, TenantFeatureUpdate, TenantFeatureResponse } from '../types/tenantFeature';
 // Define types for our data
 // Define types for our data
 
@@ -2027,6 +2028,48 @@ export const subscriptionApi = {
       throw new Error(getApiErrorMessage(error, "Failed to fetch subscriptions"));
     }
   },
+};
+
+export const tenantFeatureApi = {
+  getTenantFeatures: async (skip: number = 0, limit: number = 100): Promise<TenantFeatureResponse[]> => {
+    try {
+      const response = await api.get<TenantFeatureResponse[]>('/tenant-features', { params: { skip, limit } });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, "Failed to fetch tenant features"));
+    }
+  },
+  getTenantFeaturesByTenantId: async (tenant_id: string): Promise<TenantFeatureResponse[]> => {
+    try {
+      const response = await api.get<TenantFeatureResponse[]>(`/tenant-features/${tenant_id}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, "Failed to fetch tenant features by tenant id"));
+    }
+  },
+  createTenantFeature: async (data: TenantFeatureCreate): Promise<TenantFeatureResponse> => {
+    try {
+      const response = await api.post<TenantFeatureResponse>('/tenant-features', data);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, "Failed to create tenant feature restriction"));
+    }
+  },
+  updateTenantFeature: async (id: number, data: TenantFeatureUpdate): Promise<TenantFeatureResponse> => {
+    try {
+      const response = await api.patch<TenantFeatureResponse>(`/tenant-features/${id}`, data);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, "Failed to update tenant feature restriction"));
+    }
+  },
+  deleteTenantFeature: async (id: number): Promise<void> => {
+    try {
+      await api.delete(`/tenant-features/${id}`);
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, "Failed to delete tenant feature restriction"));
+    }
+  }
 };
 
 export default api;

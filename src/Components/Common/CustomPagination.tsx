@@ -5,9 +5,17 @@ interface CustomPaginationProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  className?: string;
+  size?: 'sm' | 'lg';
 }
 
-const CustomPagination: React.FC<CustomPaginationProps> = ({ currentPage, totalPages, onPageChange }) => {
+const CustomPagination: React.FC<CustomPaginationProps> = ({
+  currentPage,
+  totalPages,
+  onPageChange,
+  className = "justify-content-center mt-3",
+  size
+}) => {
   if (totalPages <= 1) return null;
 
   const items = [];
@@ -73,7 +81,11 @@ const CustomPagination: React.FC<CustomPaginationProps> = ({ currentPage, totalP
     />
   );
 
-  return <Pagination className="justify-content-center mt-3">{items}</Pagination>;
+  return (
+    <Pagination className={className} size={size}>
+      {items}
+    </Pagination>
+  );
 };
 
 export default CustomPagination;

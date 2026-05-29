@@ -6,7 +6,7 @@ import { inventoryItemApi } from '../../services/api';
 import { InventoryItemResponse } from '../../types/InventoryItem';
 import { useSubscription } from '../context/SubscriptionContext';
 import SubscriptionWarning from '../Common/SubscriptionWarning';
-import { Pagination } from 'react-bootstrap';
+import CustomPagination from '../Common/CustomPagination';
 
 const ManageSellableItems: React.FC = () => {
   const navigate = useNavigate();
@@ -151,11 +151,13 @@ const ManageSellableItems: React.FC = () => {
                     </div>
                     {totalSellablePages > 1 && (
                       <div className="card-footer bg-white d-flex justify-content-center border-top py-2">
-                        <Pagination size="sm" className="mb-0">
-                          <Pagination.Prev onClick={() => setSellablePage(p => Math.max(1, p - 1))} disabled={sellablePage === 1} />
-                          <Pagination.Item disabled>{sellablePage} / {totalSellablePages}</Pagination.Item>
-                          <Pagination.Next onClick={() => setSellablePage(p => Math.min(totalSellablePages, p + 1))} disabled={sellablePage === totalSellablePages} />
-                        </Pagination>
+                        <CustomPagination
+                          currentPage={sellablePage}
+                          totalPages={totalSellablePages}
+                          onPageChange={setSellablePage}
+                          className="mb-0"
+                          size="sm"
+                        />
                       </div>
                     )}
                   </div>
@@ -185,11 +187,13 @@ const ManageSellableItems: React.FC = () => {
                     </div>
                     {totalNonSellablePages > 1 && (
                       <div className="card-footer bg-white d-flex justify-content-center border-top py-2">
-                        <Pagination size="sm" className="mb-0">
-                          <Pagination.Prev onClick={() => setNonSellablePage(p => Math.max(1, p - 1))} disabled={nonSellablePage === 1} />
-                          <Pagination.Item disabled>{nonSellablePage} / {totalNonSellablePages}</Pagination.Item>
-                          <Pagination.Next onClick={() => setNonSellablePage(p => Math.min(totalNonSellablePages, p + 1))} disabled={nonSellablePage === totalNonSellablePages} />
-                        </Pagination>
+                        <CustomPagination
+                          currentPage={nonSellablePage}
+                          totalPages={totalNonSellablePages}
+                          onPageChange={setNonSellablePage}
+                          className="mb-0"
+                          size="sm"
+                        />
                       </div>
                     )}
                   </div>

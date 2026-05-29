@@ -3,7 +3,7 @@ import { InventoryItemResponse } from '../types/InventoryItem';
 import { InventoryItemInComposition } from '../types/compositon';
 import { useSubscription } from './context/SubscriptionContext';
 import SubscriptionWarning from './Common/SubscriptionWarning';
-import { Pagination } from 'react-bootstrap';
+import CustomPagination from './Common/CustomPagination';
 
 interface CompositionFormProps {
   title: string;
@@ -183,11 +183,13 @@ function CompositionForm({
           </div>
           {totalPages > 1 && (
             <div className="card-footer bg-white d-flex justify-content-center border-top py-2">
-              <Pagination size="sm" className="mb-0">
-                <Pagination.Prev onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} />
-                <Pagination.Item disabled>{currentPage} / {totalPages}</Pagination.Item>
-                <Pagination.Next onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} />
-              </Pagination>
+          <CustomPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            className="mb-0"
+            size="sm"
+          />
             </div>
           )}
         </div>

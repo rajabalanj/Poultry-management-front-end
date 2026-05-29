@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Button, Form, Spinner } from 'react-bootstrap';
 import { toast } from 'react-toastify';
-import { inventoryItemApi, batchApi } from '../../services/api';
+import { inventoryItemApi, batchApi, getTenantId, tenantFeatureApi } from '../../services/api';
 import { InventoryItemResponse, InventoryItemUnit } from '../../types/InventoryItem';
 import { BatchResponse } from '../../types/batch';
 import StyledSelect from '../Common/StyledSelect';
@@ -21,6 +21,8 @@ const UseInventoryItemModal: React.FC<UseInventoryItemModalProps> = ({ item, sho
   const [loadingBatches, setLoadingBatches] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const { isSubscriptionPaid } = useSubscription();
+  const [isBatchRestricted, setIsBatchRestricted] = useState(false);
+  const [isInventoryRestricted, setIsInventoryRestricted] = useState(false);
   
   const [formData, setFormData] = useState<{
     batch_no: string;
@@ -37,15 +39,27 @@ const UseInventoryItemModal: React.FC<UseInventoryItemModalProps> = ({ item, sho
   useEffect(() => {
     const fetchBatches = async () => {
       setLoadingBatches(true);
+      let restricted = false;
       try {
-        const response = await batchApi.getBatches(0, 100);
-        setBatches(response);
-      } catch (error) {
-        console.error('Failed to fetch batches:', error);
-        toast.error('Failed to load batches');
-      } finally {
-        setLoadingBatches(false);
+        const tenantId = getTenantId();
+        if (tenantId) {
+          const features = await tenantFeatureApi.getTenantFeaturesByTenantId(tenantId);
+          restricted = features.some(f => f.feature_name === 'BATCH_MANAGEMENT' && f.is_restricted);
+          setIsBatchRestricted(restricted);
+          setIsInventoryRestricted(features.some(f => f.feature_name === 'INVENTORY_USAGE' && f.is_restricted));
+        }
+      } catch (e) {}
+
+      if (!restricted) {
+        try {
+          const response = await batchApi.getBatches(0, 100);
+          setBatches(response);
+        } catch (error) {
+          console.error('Failed to fetch batches:', error);
+          toast.error('Failed to load batches');
+        }
       }
+      setLoadingBatches(false);
     };
 
     if (show) {
@@ -55,8 +69,13 @@ const UseInventoryItemModal: React.FC<UseInventoryItemModalProps> = ({ item, sho
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isInventoryRestricted) {
+      toast.error('Inventory usage is restricted for this tenant.');
+      return;
+    }
+
     if (
-      !formData.batch_no || 
+      (!isBatchRestricted && !formData.batch_no) || 
       !formData.used_quantity || 
       parseFloat(formData.used_quantity) <= 0 || 
       !formData.usedAt
@@ -75,7 +94,7 @@ const UseInventoryItemModal: React.FC<UseInventoryItemModalProps> = ({ item, sho
 
       await inventoryItemApi.useInventoryItem({
         inventory_item_id: item.id,
-        batch_no: formData.batch_no,
+        batch_no: (isBatchRestricted ? undefined : formData.batch_no) as string,
         used_quantity: parseFloat(formData.used_quantity),
         usedAt: formattedDate,
         unit: formData.unit,
@@ -105,6 +124,13 @@ const UseInventoryItemModal: React.FC<UseInventoryItemModalProps> = ({ item, sho
       <SubscriptionWarning />
       <Form onSubmit={handleSubmit}>
         <Modal.Body>
+          {isInventoryRestricted ? (
+            <div className="alert alert-danger mb-0">
+              Inventory usage is restricted for this tenant.
+            </div>
+          ) : (
+            <>
+          {!isBatchRestricted && (
           <Form.Group className="mb-3">
             <Form.Label>Select Batch</Form.Label>
             <StyledSelect
@@ -116,6 +142,7 @@ const UseInventoryItemModal: React.FC<UseInventoryItemModalProps> = ({ item, sho
               required
             />
           </Form.Group>
+          )}
 
           <Form.Group className="mb-3">
             <Form.Label>Quantity</Form.Label>
@@ -149,12 +176,14 @@ const UseInventoryItemModal: React.FC<UseInventoryItemModalProps> = ({ item, sho
               required
             />
           </Form.Group>
+            </>
+          )}
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={onClose} disabled={submitting}>
             Cancel
           </Button>
-          <Button variant="primary" type="submit" disabled={submitting || isSubscriptionPaid === false}>
+          <Button variant="primary" type="submit" disabled={submitting || isSubscriptionPaid === false || isInventoryRestricted}>
             {submitting ? (
               <>
                 <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="me-2" />

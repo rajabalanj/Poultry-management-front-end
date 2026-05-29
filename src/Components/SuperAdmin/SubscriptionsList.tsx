@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Card, Table, Spinner, Alert, Button, Modal, Form } from 'react-bootstrap';
-import { subscriptionApi } from '../../services/api';
+import { Card, Table, Spinner, Alert, Button, Modal, Form } from 'react-bootstrap';
+import { subscriptionApi, tenantFeatureApi } from '../../services/api';
 import { SubscriptionStatusResponse } from '../../types/subscription';
+import { TenantFeatureResponse } from '../../types/tenantFeature';
 import PageHeader from '../Layout/PageHeader';
 
 const SubscriptionsList: React.FC = () => {
@@ -20,6 +21,18 @@ const SubscriptionsList: React.FC = () => {
   });
   const [submitting, setSubmitting] = useState<boolean>(false);
 
+  // Feature Restriction states
+  const [features, setFeatures] = useState<TenantFeatureResponse[]>([]);
+  const [featuresLoading, setFeaturesLoading] = useState<boolean>(true);
+  const [showFeatureModal, setShowFeatureModal] = useState<boolean>(false);
+  const [isEditingFeature, setIsEditingFeature] = useState<boolean>(false);
+  const [currentFeatureId, setCurrentFeatureId] = useState<number | null>(null);
+  const [featureFormData, setFeatureFormData] = useState({
+    tenant_id: '',
+    feature_name: 'BATCH_MANAGEMENT',
+    is_restricted: true
+  });
+
   const fetchSubscriptions = async () => {
     try {
       const data = await subscriptionApi.getSubscriptions(0, 100);
@@ -31,8 +44,20 @@ const SubscriptionsList: React.FC = () => {
     }
   };
 
+  const fetchFeatures = async () => {
+    try {
+      const data = await tenantFeatureApi.getTenantFeatures(0, 100);
+      setFeatures(data);
+    } catch (err) {
+      console.error('Failed to fetch features:', err);
+    } finally {
+      setFeaturesLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchSubscriptions();
+    fetchFeatures();
   }, []);
 
   const handleOpenCreate = () => {
@@ -81,15 +106,67 @@ const SubscriptionsList: React.FC = () => {
     }
   };
 
+  // Feature actions
+  const handleOpenCreateFeature = () => {
+    setIsEditingFeature(false);
+    setFeatureFormData({ tenant_id: '', feature_name: 'BATCH_MANAGEMENT', is_restricted: true });
+    setShowFeatureModal(true);
+  };
+
+  const handleOpenEditFeature = (feat: TenantFeatureResponse) => {
+    setIsEditingFeature(true);
+    setCurrentFeatureId(feat.id);
+    setFeatureFormData({
+      tenant_id: feat.tenant_id,
+      feature_name: feat.feature_name,
+      is_restricted: feat.is_restricted
+    });
+    setShowFeatureModal(true);
+  };
+
+  const handleDeleteFeature = async (id: number) => {
+    if (window.confirm("Are you sure you want to delete this restriction?")) {
+      try {
+        await tenantFeatureApi.deleteTenantFeature(id);
+        fetchFeatures();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to delete feature restriction');
+      }
+    }
+  };
+
+  const handleFeatureSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setError(null);
+    try {
+      if (isEditingFeature && currentFeatureId !== null) {
+        await tenantFeatureApi.updateTenantFeature(currentFeatureId, {
+          is_restricted: featureFormData.is_restricted
+        });
+      } else {
+        await tenantFeatureApi.createTenantFeature({ ...featureFormData });
+      }
+      setShowFeatureModal(false);
+      fetchFeatures();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save feature');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
-    <Container>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <PageHeader title="All Tenant Subscriptions" />
-        <Button variant="primary" onClick={handleOpenCreate}>
-          Add Subscription
-        </Button>
-      </div>
+    <>
+      <PageHeader 
+        title="All Tenant Subscriptions" 
+        buttonLabel="Add Subscription" 
+        buttonVariant="primary" 
+        onButtonClick={handleOpenCreate}
+        buttonIcon='bi bi-plus-lg' 
+      />
       
+      <div className="container">
       {loading && <div className="text-center p-5"><Spinner animation="border" /></div>}
       {error && <Alert variant="danger">{error}</Alert>}
       
@@ -141,6 +218,61 @@ const SubscriptionsList: React.FC = () => {
         </Card>
       )}
 
+      <div className="d-flex justify-content-between align-items-center mb-4 mt-5">
+        <h4 className="mb-0">Tenant Features</h4>
+        <Button variant="primary" onClick={handleOpenCreateFeature}>
+          Add Feature Restriction
+        </Button>
+      </div>
+
+      {featuresLoading ? <div className="text-center p-5"><Spinner animation="border" /></div> : (
+        <Card className="shadow-sm mb-4">
+          <Card.Header>
+            <h5 className="mb-0">Feature Restrictions</h5>
+          </Card.Header>
+          <Card.Body className="p-0">
+            <Table responsive striped hover className="mb-0">
+              <thead className="bg-light">
+                <tr>
+                  <th>Tenant ID</th>
+                  <th>Feature Name</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {features.length > 0 ? (
+                  features.map((feat) => (
+                    <tr key={feat.id}>
+                      <td>{feat.tenant_id}</td>
+                      <td>{feat.feature_name}</td>
+                      <td>
+                        <span className={`badge bg-${feat.is_restricted ? 'danger' : 'success'}`}>
+                          {feat.is_restricted ? 'Restricted' : 'Allowed'}
+                        </span>
+                      </td>
+                      <td>
+                        <Button variant="outline-primary" size="sm" className="me-2" onClick={() => handleOpenEditFeature(feat)}>
+                          Edit
+                        </Button>
+                        <Button variant="outline-danger" size="sm" onClick={() => handleDeleteFeature(feat.id)}>
+                          Delete
+                        </Button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={4} className="text-center py-4">No feature restrictions found</td>
+                  </tr>
+                )}
+              </tbody>
+            </Table>
+          </Card.Body>
+        </Card>
+      )}
+
+      {/* Subscription Modal */}
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>{isEditing ? 'Edit Subscription' : 'Create Subscription'}</Modal.Title>
@@ -193,7 +325,54 @@ const SubscriptionsList: React.FC = () => {
           </Modal.Footer>
         </Form>
       </Modal>
-    </Container>
+
+      {/* Feature Restriction Modal */}
+      <Modal show={showFeatureModal} onHide={() => setShowFeatureModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>{isEditingFeature ? 'Edit Feature Restriction' : 'Create Feature Restriction'}</Modal.Title>
+        </Modal.Header>
+        <Form onSubmit={handleFeatureSubmit}>
+          <Modal.Body>
+            <Form.Group className="mb-3">
+              <Form.Label>Tenant ID</Form.Label>
+              <Form.Control
+                type="text"
+                required
+                disabled={isEditingFeature}
+                value={featureFormData.tenant_id}
+                onChange={(e) => setFeatureFormData({ ...featureFormData, tenant_id: e.target.value })}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Feature Name</Form.Label>
+              <Form.Control
+                type="text"
+                required
+                disabled={isEditingFeature}
+                value={featureFormData.feature_name}
+                onChange={(e) => setFeatureFormData({ ...featureFormData, feature_name: e.target.value })}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Check
+                type="switch"
+                id="is_restricted_switch"
+                label="Is Restricted?"
+                checked={featureFormData.is_restricted}
+                onChange={(e) => setFeatureFormData({ ...featureFormData, is_restricted: e.target.checked })}
+              />
+            </Form.Group>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowFeatureModal(false)}>Cancel</Button>
+            <Button variant="primary" type="submit" disabled={submitting}>
+              {submitting ? <Spinner size="sm" animation="border" /> : 'Save'}
+            </Button>
+          </Modal.Footer>
+        </Form>
+      </Modal>
+      </div>
+    </>
   );
 };
 

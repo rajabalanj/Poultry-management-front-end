@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -9,7 +9,7 @@ import ProtectedRoute from './Components/Auth/ProtectedRoute';
 import ScrollToTop from './Components/Common/ScrollToTop';
 import ErrorBoundary from './Components/ErrorBoundary';
 import { SubscriptionProvider } from './Components/context/SubscriptionContext';
-import { getTenantId } from './services/api';
+import { getTenantId, tenantFeatureApi } from './services/api';
 
 const AddBatch = lazy(() => import('./Components/Forms/Create/AddBatch'));
 const BatchDetails = lazy(() => import('./Components/Forms/Read/BatchDetails'));
@@ -80,13 +80,31 @@ const ProtectedRoutes = () => (
 
 // Layout Route to restrict access to Batch/Shed modules if tenant is restricted
 const FeatureProtectedRoute = () => {
-  const restrictedTenantsStr = import.meta.env.VITE_RESTRICTED_BATCH_TENANTS || "";
-  const restrictedTenants = restrictedTenantsStr.split(',').map((t: string) => t.trim()).filter(Boolean);
+  const [loading, setLoading] = useState(true);
+  const [isRestricted, setIsRestricted] = useState(false);
   const tenantId = getTenantId() || "";
   
-  if (restrictedTenants.includes(tenantId)) {
-    return <Navigate to="/" replace />;
-  }
+  useEffect(() => {
+    const checkRestriction = async () => {
+      if (!tenantId) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const features = await tenantFeatureApi.getTenantFeaturesByTenantId(tenantId);
+        const restricted = features.some(f => f.feature_name === 'BATCH_MANAGEMENT' && f.is_restricted);
+        setIsRestricted(restricted);
+      } catch (error) {
+        console.error("Failed to fetch feature restrictions", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    checkRestriction();
+  }, [tenantId]);
+
+  if (loading) return <div className="text-center p-5">Checking access...</div>;
+  if (isRestricted) return <Navigate to="/" replace />;
   return <Outlet />;
 };
 

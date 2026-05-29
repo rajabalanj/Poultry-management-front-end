@@ -9,7 +9,7 @@ import CustomDatePicker from '../Common/CustomDatePicker';
 import StyledSelect from '../Common/StyledSelect';
 import {financialReportsApi} from '../../services/api';
 import { format } from 'date-fns';
-import { Pagination } from 'react-bootstrap';
+import CustomPagination from '../Common/CustomPagination';
 
 type OptionType = { value: string; label: string };
 
@@ -121,73 +121,6 @@ const InventoryLedgerComponent: React.FC = () => {
     const paginatedEntries = ledgerData?.entries.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE) || [];
     const totalPages = Math.ceil((ledgerData?.entries.length || 0) / ITEMS_PER_PAGE);
 
-    const renderPaginationItems = () => {
-        const items = [];
-        
-        items.push(
-            <Pagination.Prev
-                key="prev"
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-            />
-        );
-
-        if (totalPages <= 7) {
-            for (let number = 1; number <= totalPages; number++) {
-                items.push(
-                    <Pagination.Item key={number} active={number === currentPage} onClick={() => setCurrentPage(number)}>
-                        {number}
-                    </Pagination.Item>
-                );
-            }
-        } else {
-            items.push(
-                <Pagination.Item key={1} active={1 === currentPage} onClick={() => setCurrentPage(1)}>
-                    1
-                </Pagination.Item>
-            );
-
-            if (currentPage > 4) items.push(<Pagination.Ellipsis key="start-ellipsis" disabled />);
-
-            let startPage = Math.max(2, currentPage - 1);
-            let endPage = Math.min(totalPages - 1, currentPage + 1);
-
-            if (currentPage <= 4) {
-                endPage = 5;
-                startPage = 2;
-            } else if (currentPage >= totalPages - 3) {
-                startPage = totalPages - 4;
-                endPage = totalPages - 1;
-            }
-
-            for (let number = startPage; number <= endPage; number++) {
-                items.push(
-                    <Pagination.Item key={number} active={number === currentPage} onClick={() => setCurrentPage(number)}>
-                        {number}
-                    </Pagination.Item>
-                );
-            }
-
-            if (currentPage < totalPages - 3) items.push(<Pagination.Ellipsis key="end-ellipsis" disabled />);
-
-            items.push(
-                <Pagination.Item key={totalPages} active={totalPages === currentPage} onClick={() => setCurrentPage(totalPages)}>
-                    {totalPages}
-                </Pagination.Item>
-            );
-        }
-
-        items.push(
-            <Pagination.Next
-                key="next"
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-            />
-        );
-
-        return items;
-    };
-
     const itemOptions: OptionType[] = inventoryItems.map((item) => ({
         value: String(item.id),
         label: `${item.id} - ${item.name}`,
@@ -279,11 +212,11 @@ const InventoryLedgerComponent: React.FC = () => {
                             </tbody>
                         </table>
                     </div>
-                    {totalPages > 1 && (
-                        <Pagination className="justify-content-center mt-3">
-                            {renderPaginationItems()}
-                        </Pagination>
-                    )}
+                    <CustomPagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={setCurrentPage}
+                    />
                     <p className="text-muted">Closing Quantity on Hand: {Number(ledgerData.closing_quantity_on_hand || 0).toFixed(2)}</p>
                 </div>
             )}

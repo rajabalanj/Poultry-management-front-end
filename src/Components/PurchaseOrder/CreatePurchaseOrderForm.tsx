@@ -363,20 +363,6 @@ const CreatePurchaseOrderForm: React.FC = () => {
                     />
                   </div>
                   <div className="col-12">
-                    <label htmlFor="notes" className="form-label">
-                      Notes
-                    </label>
-                    <textarea
-                      className="form-control"
-                      id="notes"
-                      rows={3}
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      placeholder="Any additional notes for the purchase"
-                      disabled={isLoading}
-                    ></textarea>
-                  </div>
-                  <div className="col-12">
                     <label htmlFor="receiptFile" className="form-label">
                       Payment Receipt (Optional)
                     </label>
@@ -547,6 +533,21 @@ const CreatePurchaseOrderForm: React.FC = () => {
                     </button>
                   </div>
 
+                  <div className="col-12">
+                    <label htmlFor="notes" className="form-label">
+                      Notes
+                    </label>
+                    <textarea
+                      className="form-control"
+                      id="notes"
+                      rows={3}
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder="Any additional notes for the purchase"
+                      disabled={isLoading}
+                    ></textarea>
+                  </div>
+
                   <div className="col-12 mt-4">
                     <button
                       type="submit"
@@ -654,19 +655,6 @@ const CreatePurchaseOrderForm: React.FC = () => {
                     />
                   </div>
                   <div className="col-12">
-                    <label htmlFor="paymentNotes" className="form-label">
-                      Notes
-                    </label>
-                    <textarea
-                      className="form-control"
-                      id="paymentNotes"
-                      rows={3}
-                      value={paymentNotes}
-                      onChange={(e) => setPaymentNotes(e.target.value)}
-                      disabled={isLoading}
-                    ></textarea>
-                  </div>
-                  <div className="col-12">
                     <label htmlFor="paymentReceiptFile" className="form-label">
                       Payment Receipt (Optional)
                     </label>
@@ -679,6 +667,19 @@ const CreatePurchaseOrderForm: React.FC = () => {
                       }
                       disabled={isLoading}
                     />
+                  </div>
+                  <div className="col-12">
+                    <label htmlFor="paymentNotes" className="form-label">
+                      Notes
+                    </label>
+                    <textarea
+                      className="form-control"
+                      id="paymentNotes"
+                      rows={3}
+                      value={paymentNotes}
+                      onChange={(e) => setPaymentNotes(e.target.value)}
+                      disabled={isLoading}
+                    ></textarea>
                   </div>
                 </div>
                 <div className="col-12 mt-4">

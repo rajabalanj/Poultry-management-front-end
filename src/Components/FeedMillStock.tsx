@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { compositionApi, batchApi, inventoryItemApi, getTenantId } from "../services/api";
+import { compositionApi, batchApi, inventoryItemApi, getTenantId, tenantFeatureApi } from "../services/api";
 import { format } from 'date-fns';
 import { InventoryItemResponse, InventoryItemCategory } from "../types/InventoryItem";
 import { BatchResponse } from "../types/batch";
@@ -34,13 +34,24 @@ function FeedMillStock() {
   const [batchDate, setBatchDate] = useState<string>('');
   const navigate = useNavigate();
   const { isSubscriptionPaid } = useSubscription();
+  const [isBatchRestricted, setIsBatchRestricted] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
+      let restricted = false;
+      try {
+        const tenantId = getTenantId();
+        if (tenantId) {
+          const features = await tenantFeatureApi.getTenantFeaturesByTenantId(tenantId);
+          restricted = features.some(f => f.feature_name === 'BATCH_MANAGEMENT' && f.is_restricted);
+          setIsBatchRestricted(restricted);
+        }
+      } catch (e) {}
+
       const [itemsResult, compsResult, batchesResult] = await Promise.allSettled([
         inventoryItemApi.getInventoryItems(0, 1000, InventoryItemCategory.FEED),
         compositionApi.getCompositions(),
-        batchApi.getBatches()
+        restricted ? Promise.resolve([]) : batchApi.getBatches()
       ]);
 
       if (itemsResult.status === 'fulfilled') {
@@ -355,21 +366,35 @@ function FeedMillStock() {
           </div>
           <div className="card-body">
           <div className="d-flex align-items-center gap-2 mb-2">
-            <span>Times:</span>
+            <span title="Number of mixes for this composition">Mixes:</span>
             <button
               className="btn btn-danger btn-sm"
-              onClick={() => setTimesToUse((prev) => Math.max(1, prev - 1))}
+              onClick={() => setTimesToUse((prev) => Math.max(1, Number(prev) - 1))}
             >
               -
             </button>
-            <span>{timesToUse}</span>
+            <input 
+              type="number" 
+              className="form-control form-control-sm text-center" 
+              style={{ width: '80px' }}
+              value={timesToUse}
+              onChange={(e) => setTimesToUse(e.target.value === "" ? "" as any : parseInt(e.target.value, 10))}
+              min="1"
+              step="1"
+            />
             <button
               className="btn btn-success btn-sm"
-              onClick={() => setTimesToUse((prev) => prev + 1)}
+              onClick={() => setTimesToUse((prev) => Number(prev) + 1)}
             >
               +
             </button>
+            <span className="ms-2 text-muted fw-bold">
+              Total Feed: {(
+                selectedComposition.inventory_items.reduce((sum: number, i: any) => sum + Number(i.weight || 0), 0) * timesToUse
+              ).toFixed(2)} kg
+            </span>
           </div>
+          {!isBatchRestricted && (
           <div className="mb-3">
             <label htmlFor="batchNoSelect" className="form-label">Select Batch Number:</label>
             <StyledSelect
@@ -382,8 +407,9 @@ function FeedMillStock() {
               isClearable
             />
           </div>
+          )}
           <div className="mb-3">
-            <label htmlFor="batchDate" className="form-label">Batch Date:</label>
+            <label htmlFor="batchDate" className="form-label">Usage Date:</label>
             <CustomDatePicker
               id="batchDate"
               selected={batchDate ? new Date(batchDate) : null}
@@ -397,7 +423,7 @@ function FeedMillStock() {
             <button
               className="btn btn-primary"
               onClick={async () => {
-                if (!selectedBatchNo) {
+                if (!isBatchRestricted && !selectedBatchNo) {
                   toast.error("Please select a Batch Number");
                   return;
                 }
@@ -408,11 +434,11 @@ function FeedMillStock() {
                 try {
                   await compositionApi.useComposition({
                     compositionId: selectedComposition.id,
-                    times: timesToUse,
+                    times: Number(timesToUse) || 1,
                     usedAt: `${batchDate}T00:00:00`,
-                    batch_no: selectedBatchNo,
+                    batch_no: isBatchRestricted ? undefined : selectedBatchNo,
                   });
-                  toast.success(`Used composition ${selectedComposition.name} ${timesToUse} time(s) for Batch ${selectedBatchNo}`);
+                  toast.success(`Used composition ${selectedComposition.name} ${timesToUse} time(s)`);
                   const updated = await compositionApi.getCompositions();
                   setCompositions(updated);
                   setViewState("view");

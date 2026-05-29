@@ -5,11 +5,12 @@ import { SalesOrderResponse } from "../../types/SalesOrder";
 import { SalesOrderItemResponse } from "../../types/SalesOrderItem";
 import { BusinessPartner } from "../../types/BusinessPartner";
 import SalesOrderCard from "../SalesOrder/SalesOrderCard";
-import { Button, Pagination } from 'react-bootstrap';
+import { Button } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import ItemsModal from '../Common/ItemsModal';
 import { inventoryItemApi, salesOrderApi } from "../../services/api";
 import { InventoryItemResponse } from "../../types/InventoryItem";
+import CustomPagination from '../Common/CustomPagination';
 
 interface SalesOrderTableProps {
   salesOrders: SalesOrderResponse[];
@@ -63,76 +64,6 @@ const SalesOrderTable: React.FC<SalesOrderTableProps> = ({ salesOrders, loading,
     setSelectedSOId(so_number);
     setShowItemsModal(true);
   }, []);
-
-  const renderPaginationItems = () => {
-    if (!pagination) return null;
-    const { currentPage, totalPages, setCurrentPage } = pagination;
-    const items = [];
-
-    items.push(
-      <Pagination.Prev
-        key="prev"
-        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-        disabled={currentPage === 1}
-      />
-    );
-
-    if (totalPages <= 7) {
-      for (let number = 1; number <= totalPages; number++) {
-        items.push(
-          <Pagination.Item key={number} active={number === currentPage} onClick={() => setCurrentPage(number)}>
-            {number}
-          </Pagination.Item>
-        );
-      }
-    } else {
-      items.push(
-        <Pagination.Item key={1} active={1 === currentPage} onClick={() => setCurrentPage(1)}>
-          1
-        </Pagination.Item>
-      );
-
-      if (currentPage > 4) items.push(<Pagination.Ellipsis key="start-ellipsis" disabled />);
-
-      let startPage = Math.max(2, currentPage - 1);
-      let endPage = Math.min(totalPages - 1, currentPage + 1);
-
-      if (currentPage <= 4) {
-        endPage = 5;
-        startPage = 2;
-      } else if (currentPage >= totalPages - 3) {
-        startPage = totalPages - 4;
-        endPage = totalPages - 1;
-      }
-
-      for (let number = startPage; number <= endPage; number++) {
-        items.push(
-          <Pagination.Item key={number} active={number === currentPage} onClick={() => setCurrentPage(number)}>
-            {number}
-          </Pagination.Item>
-        );
-      }
-
-      if (currentPage < totalPages - 3) items.push(<Pagination.Ellipsis key="end-ellipsis" disabled />);
-
-      items.push(
-        <Pagination.Item key={totalPages} active={totalPages === currentPage} onClick={() => setCurrentPage(totalPages)}>
-          {totalPages}
-        </Pagination.Item>
-      );
-    }
-
-    items.push(
-      <Pagination.Next
-        key="next"
-        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-        disabled={currentPage === totalPages}
-      />
-    );
-
-    return items;
-  };
-
 
   const handleShareAsImage = async () => {
     if (!navigator.share) {
@@ -277,11 +208,13 @@ const SalesOrderTable: React.FC<SalesOrderTableProps> = ({ salesOrders, loading,
           </table>
         </div>
       </div>
-      {pagination && pagination.totalPages > 1 && (
-        <Pagination className="justify-content-center mt-3">
-            {renderPaginationItems()}
-        </Pagination>
-      )}
+  {pagination && (
+    <CustomPagination
+      currentPage={pagination.currentPage}
+      totalPages={pagination.totalPages}
+      onPageChange={pagination.setCurrentPage}
+    />
+  )}
       <ItemsModal
         show={showItemsModal}
         onHide={() => setShowItemsModal(false)}

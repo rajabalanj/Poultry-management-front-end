@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Container, Spinner, Alert, Row, Col } from 'react-bootstrap';
+import { Card, Spinner, Alert, Row, Col } from 'react-bootstrap';
 import { subscriptionApi } from '../../services/api.ts'; // Adjust the import path as needed
 import { SubscriptionStatusResponse } from '../../types/subscription.ts';
 import PageHeader from '../Layout/PageHeader.tsx'; // Adjust the import path as needed
@@ -24,9 +24,10 @@ const AdminDashboard: React.FC = () => {
   }, []);
 
   return (
-    <Container>
+    <>
       <PageHeader title="Admin Dashboard" />
       
+      <div className="container">
       {loading && <div className="text-center p-5"><Spinner animation="border" /></div>}
       
       {error && <Alert variant="danger">{error}</Alert>}
@@ -67,7 +68,8 @@ const AdminDashboard: React.FC = () => {
           </Col>
         </Row>
       )}
-    </Container>
+      </div>
+    </>
   );
 };
 

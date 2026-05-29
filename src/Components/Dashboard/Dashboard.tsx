@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import PageHeader from '../Layout/PageHeader';
-import { dailyBatchApi, compositionApi, inventoryItemApi, reportsApi } from '../../services/api';
+import { dailyBatchApi, compositionApi, inventoryItemApi, reportsApi, getTenantId, tenantFeatureApi } from '../../services/api';
 import { DailyBatch } from '../../types/daily_batch';
 import { InventoryUsageSummary } from '../../types/InventoryUsageSummary';
 import CustomDatePicker from '../Common/CustomDatePicker';
@@ -57,11 +57,37 @@ const Dashboard: React.FC = () => {
   const [feedConsumptionLoading, setFeedConsumptionLoading] = useState(true);
   const [feedConsumptionError, setFeedConsumptionError] = useState<string | null>(null);
 
+  // State for Feature Restrictions
+  const [isBatchRestricted, setIsBatchRestricted] = useState(false);
+  const [checkingRestriction, setCheckingRestriction] = useState(true);
+
+  useEffect(() => {
+    const checkRestriction = async () => {
+      try {
+        const tenantId = getTenantId();
+        if (tenantId) {
+          const features = await tenantFeatureApi.getTenantFeaturesByTenantId(tenantId);
+          const restricted = features.some(f => f.feature_name === 'BATCH_MANAGEMENT' && f.is_restricted);
+          setIsBatchRestricted(restricted);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setCheckingRestriction(false);
+      }
+    };
+    checkRestriction();
+  }, []);
 
   // Effect for daily stats
   useEffect(() => {
-
+    if (checkingRestriction) return;
+    
     const fetchBatches = async () => {
+      if (isBatchRestricted) {
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       try {
         const data = await dailyBatchApi.getDailyBatches(batchDate);
@@ -104,7 +130,7 @@ const Dashboard: React.FC = () => {
 
     fetchBatches();
     fetchUsageData();
-  }, [batchDate]);
+  }, [batchDate, checkingRestriction, isBatchRestricted]);
 
   useEffect(() => {
     sessionStorage.setItem(BATCH_DATE_KEY, batchDate);
@@ -112,6 +138,8 @@ const Dashboard: React.FC = () => {
 
     // Effect for Graphs
     useEffect(() => {
+      if (checkingRestriction) return;
+      
       const start = new Date(startDate);
       const end = new Date(endDate);
 
@@ -119,6 +147,10 @@ const Dashboard: React.FC = () => {
         setDateRangeError('End Date cannot be before Start Date.');
         setEggTrendData([]);
         setCompositionUsageData([]); // Clear data for pie chart as well
+        setEggTrendLoading(false);
+        setCompositionUsageLoading(false);
+        setEggCostLoading(false);
+        setFeedConsumptionLoading(false);
         return;
       }
       setDateRangeError(null);
@@ -215,12 +247,18 @@ const Dashboard: React.FC = () => {
           }
       };
 
-      fetchEggTrendData();
+      if (!isBatchRestricted) {
+        fetchEggTrendData();
+        fetchEggCostData();
+        fetchFeedConsumptionData();
+      } else {
+        setEggTrendLoading(false);
+        setEggCostLoading(false);
+        setFeedConsumptionLoading(false);
+      }
       fetchCompositionUsageData();
-      fetchEggCostData();
-      fetchFeedConsumptionData();
 
-    }, [startDate, endDate]);
+    }, [startDate, endDate, checkingRestriction, isBatchRestricted]);
 
 
   const { totalBirds, totalEggs, avgHD } = useMemo(() => {
@@ -232,10 +270,14 @@ const Dashboard: React.FC = () => {
   }, [batches]);
 
   const dashboardStats = [
-    { title: "Total Birds", value: totalBirds, unit: '', icon: Bird },
-    { title: "Total Eggs", value: totalEggs, unit: '', icon: Egg },
+    ...(isBatchRestricted ? [] : [
+      { title: "Total Birds", value: totalBirds, unit: '', icon: Bird },
+      { title: "Total Eggs", value: totalEggs, unit: '', icon: Egg },
+    ]),
     { title: "Material Usage", value: (feedUsage?.total_feed || 0) + (inventoryUsage?.total_used || 0), unit: ' kg', icon: Package },
-    { title: "Hen Day %", value: avgHD, unit: '%', icon: Percent }
+    ...(isBatchRestricted ? [] : [
+      { title: "Hen Day %", value: avgHD, unit: '%', icon: Percent }
+    ])
   ];
 
   return (
@@ -246,7 +288,7 @@ const Dashboard: React.FC = () => {
 
       <div className="mb-3">
         <div className="col-auto d-flex align-items-center bg-white p-2 rounded shadow-sm" style={{maxWidth: '250px'}}>
-            <label className="form-label me-2 mb-0 fw-bold">Daily Stats Date</label>
+            <label className="form-label me-2 mb-0 fw-bold">Usage Stats Date</label>
             <CustomDatePicker
               selected={batchDate ? new Date(batchDate) : null}
               maxDate={new Date()}
@@ -287,11 +329,13 @@ const Dashboard: React.FC = () => {
           })}
         </div>
 
-        <div className="row mt-4">
-          <div className="col-12">
-            <EggPriceCard />
+        {!isBatchRestricted && (
+          <div className="row mt-4">
+            <div className="col-12">
+              <EggPriceCard />
+            </div>
           </div>
-        </div>
+        )}
 
 
         <div className="card shadow-sm my-4">
@@ -312,25 +356,31 @@ const Dashboard: React.FC = () => {
         </div>
 
         <div className="row g-4">
-            <div className="col-12 col-xl-8">
-                <EggProductionGraph data={eggTrendData} loading={eggTrendLoading} error={eggTrendError} />
-            </div>
-            <div className="col-12 col-xl-4">
+            {!isBatchRestricted && (
+              <div className="col-12 col-xl-8">
+                  <EggProductionGraph data={eggTrendData} loading={eggTrendLoading} error={eggTrendError} />
+              </div>
+            )}
+            <div className={`col-12 ${isBatchRestricted ? 'col-xl-12' : 'col-xl-4'}`}>
                 <CompositionUsagePieChart data={compositionUsageData} loading={compositionUsageLoading} error={compositionUsageError} />
             </div>
         </div>
 
-        <div className="row g-4 mt-2">
-            <div className="col-12">
-                <EggProductionCostGraph data={eggCostData} loading={eggCostLoading} error={eggCostError} />
+        {!isBatchRestricted && (
+          <>
+            <div className="row g-4 mt-2">
+                <div className="col-12">
+                    <EggProductionCostGraph data={eggCostData} loading={eggCostLoading} error={eggCostError} />
+                </div>
             </div>
-        </div>
 
-        <div className="row g-4 mt-2">
-            <div className="col-12">
-                <FeedConsumptionPerEggGraph data={feedConsumptionData} loading={feedConsumptionLoading} error={feedConsumptionError} />
+            <div className="row g-4 mt-2">
+                <div className="col-12">
+                    <FeedConsumptionPerEggGraph data={feedConsumptionData} loading={feedConsumptionLoading} error={feedConsumptionError} />
+                </div>
             </div>
-        </div>
+          </>
+        )}
 
       </div>
     </>

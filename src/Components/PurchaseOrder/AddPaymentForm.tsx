@@ -218,18 +218,7 @@ const AddPaymentForm: React.FC<AddPaymentFormProps> = ({ poId, onSuccess, onCanc
                     disabled={isLoading}
                   />
                 </div>
-                <div className="col-12">
-                  <label htmlFor="notes" className="form-label">Notes (Optional)</label>
-                  <textarea
-                    className="form-control"
-                    id="notes"
-                    rows={3}
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Any additional notes about this payment"
-                    disabled={isLoading}
-                  ></textarea>
-                </div>
+                
                 <div className="col-12">
                   <label htmlFor="receiptFile" className="form-label">Payment Receipt (Optional)</label>
                   <input
@@ -241,6 +230,19 @@ const AddPaymentForm: React.FC<AddPaymentFormProps> = ({ poId, onSuccess, onCanc
                     disabled={isLoading}
                   />
                   <div className="form-text">Upload payment receipt (PDF, JPG, PNG)</div>
+                </div>
+
+                <div className="col-12">
+                  <label htmlFor="notes" className="form-label">Notes (Optional)</label>
+                  <textarea
+                    className="form-control"
+                    id="notes"
+                    rows={3}
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Any additional notes about this payment"
+                    disabled={isLoading}
+                  ></textarea>
                 </div>
 
                 <div className="col-12 mt-4">

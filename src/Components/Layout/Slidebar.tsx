@@ -5,7 +5,7 @@ import "./Sidebar.css"; // Import custom sidebar styles
 import { useAuth } from "../../hooks/useAuth";
 import { useSidebar } from "../../hooks/useSidebar";
 import annamalaiyarlogo from "../../styles/annamalaiyarlogo.png"; // Import the image
-import { getTenantId } from "../../services/api";
+import { getTenantId, tenantFeatureApi } from "../../services/api";
 
 // Using Bootstrap's lg breakpoint (≥992px) instead of hardcoded value
 
@@ -22,10 +22,29 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
   const location = useLocation();
 
   // Check if current tenant is restricted from seeing Batch and Shed modules
-  const restrictedTenantsStr = import.meta.env.VITE_RESTRICTED_BATCH_TENANTS || "";
-  const restrictedTenants = restrictedTenantsStr.split(',').map((t: string) => t.trim()).filter(Boolean);
   const currentTenantId = getTenantId() || "";
-  const isBatchRestricted = restrictedTenants.includes(currentTenantId);
+  const [isBatchRestricted, setIsBatchRestricted] = useState(false);
+  const [checkingRestriction, setCheckingRestriction] = useState(true);
+
+  useEffect(() => {
+    const fetchRestrictions = async () => {
+      if (currentTenantId) {
+        try {
+          const features = await tenantFeatureApi.getTenantFeaturesByTenantId(currentTenantId);
+          const restricted = features.some(f => f.feature_name === 'BATCH_MANAGEMENT' && f.is_restricted);
+          setIsBatchRestricted(restricted);
+        } catch (error) {
+          console.error("Failed to check batch restriction:", error);
+        } finally {
+          setCheckingRestriction(false);
+        }
+      } else {
+        setCheckingRestriction(false);
+      }
+    };
+    fetchRestrictions();
+  }, [currentTenantId]);
+
 
   // State to manage which sub-menu is open
   const [openMenu, setOpenMenu] = useState<string | null>(null); // 'batch', 'egg', 'feed', 'finance' etc.
@@ -189,7 +208,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                 </li>
                 
                 {/* Batch Management - Expandable Item */}
-                {!isBatchRestricted && (
+                {!checkingRestriction && !isBatchRestricted && (
                 <li className="nav-menu-item">
                   <div
                     className={`nav-menu-link expandable ${
@@ -414,7 +433,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                 </li>
                 
                 {/* Shed Management - Expandable Item */}
-                {!isBatchRestricted && (
+                {!checkingRestriction && !isBatchRestricted && (
                 <li className="nav-menu-item">
                   <div
                     className={`nav-menu-link expandable ${

@@ -1,6 +1,6 @@
 ﻿﻿import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { dailyBatchApi, compositionApi, inventoryItemApi } from "../../../services/api";
+import { dailyBatchApi, compositionApi, inventoryItemApi, getTenantId, tenantFeatureApi } from "../../../services/api";
 import { DailyBatch } from "../../../types/daily_batch";
 import { toast } from "react-toastify";
 import PageHeader from "../../Layout/PageHeader";
@@ -44,17 +44,28 @@ const EditBatch: React.FC = () => {
   const [revertType, setRevertType] = useState<'composition' | 'item' | null>(null);
   const { isSubscriptionPaid } = useSubscription();
   const [showUsageHistoryModal, setShowUsageHistoryModal] = useState(false);
+  const [isInventoryRestricted, setIsInventoryRestricted] = useState(false);
   
   useEffect(() => {
     const fetchData = async () => {
       if (!batchId || !batch_date) return;
       setLoading(true);
       try {
+        const tenantId = getTenantId();
+        let invRestricted = false;
+        if (tenantId) {
+          try {
+            const features = await tenantFeatureApi.getTenantFeaturesByTenantId(tenantId);
+            invRestricted = features.some(f => f.feature_name === 'INVENTORY_USAGE' && f.is_restricted);
+            setIsInventoryRestricted(invRestricted);
+          } catch (e) {}
+        }
+
         const [batches, history, itemHistory] = await Promise.all([
           dailyBatchApi.getDailyBatches(batch_date),
           compositionApi.getFilteredCompositionUsageHistory(batch_date, Number(batchId))
             .catch(err => { console.warn("Composition history failed:", err); return []; }),
-          inventoryItemApi.getFilteredInventoryUsageHistory(batch_date, Number(batchId))
+          invRestricted ? Promise.resolve([]) : inventoryItemApi.getFilteredInventoryUsageHistory(batch_date, Number(batchId))
             .catch(err => { console.warn("Inventory history failed:", err); return []; })
         ]);
 
@@ -120,7 +131,7 @@ const EditBatch: React.FC = () => {
           const usedAt = `${usedAtDate}T00:00:00`;
           await compositionApi.useComposition({
             compositionId: selectedComposition.id,
-            times: timesToUse,
+            times: Number(timesToUse) || 1,
             usedAt,
             batch_no: batch.batch_no,
           });
@@ -134,7 +145,7 @@ const EditBatch: React.FC = () => {
     }
 
     // Handle Use Item
-    if (selectedItemId && itemQuantityToUse) {
+    if (!isInventoryRestricted && selectedItemId && itemQuantityToUse) {
       const selectedItem = inventoryItems.find(i => i.id === selectedItemId);
       if (selectedItem) {
         try {
@@ -369,7 +380,7 @@ const EditBatch: React.FC = () => {
                     </div>
                     <div className="card-body">
                       <div className="row">
-                        <div className="col-md-6 border-end">
+                        <div className={`col-md-${isInventoryRestricted ? '12' : '6'} ${isInventoryRestricted ? '' : 'border-end'}`}>
                           <h6>Use Composition</h6>
                           <div className="mb-3">
                             <label htmlFor="compositionSelect" className="form-label">
@@ -394,17 +405,35 @@ const EditBatch: React.FC = () => {
                             />
                           </div>
                           <div className="d-flex align-items-center gap-2 mb-4">
-                            <span>Times:</span>
-                            <button type="button" className="btn btn-danger btn-sm" onClick={() => setTimesToUse((prev) => Math.max(1, prev - 1))}>
+                            <span title="Number of mixes for this composition">Mixes:</span>
+                            <button type="button" className="btn btn-danger btn-sm" onClick={() => setTimesToUse((prev) => Math.max(1, Number(prev) - 1))}>
                               -
                             </button>
-                            <span>{timesToUse}</span>
-                            <button type="button" className="btn btn-success btn-sm" onClick={() => setTimesToUse((prev) => prev + 1)}>
+                            <input 
+                              type="number" 
+                              className="form-control form-control-sm text-center" 
+                              style={{ width: '80px' }}
+                              value={timesToUse}
+                              onChange={(e) => setTimesToUse(e.target.value === "" ? "" as any : parseInt(e.target.value, 10))}
+                              min="1"
+                              step="1"
+                            />
+                            <button type="button" className="btn btn-success btn-sm" onClick={() => setTimesToUse((prev) => Number(prev) + 1)}>
                               +
                             </button>
+                            {selectedCompositionId && (
+                              <span className="ms-2 text-muted fw-bold">
+                                Total Feed: {(() => {
+                                  const comp = compositions.find((c) => c.id === selectedCompositionId);
+                                  const totalWeight = (comp as any)?.inventory_items?.reduce((sum: number, i: any) => sum + Number(i.weight || 0), 0) || 0;
+                                  return (totalWeight * timesToUse).toFixed(2);
+                                })()} kg
+                              </span>
+                            )}
                           </div>
                         </div>
                         
+                        {!isInventoryRestricted && (
                         <div className="col-md-6">
                           <h6>Use Inventory Item</h6>
                           <div className="mb-3">
@@ -465,6 +494,7 @@ const EditBatch: React.FC = () => {
                             </div>
                           </div>
                         </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -556,7 +586,7 @@ const EditBatch: React.FC = () => {
           )}
           {usageHistory.length === 0 && <p className="text-muted">No composition usage recorded.</p>}
 
-          {itemUsageHistory.length > 0 && (
+          {!isInventoryRestricted && itemUsageHistory.length > 0 && (
             <div className="mt-4">
               <h6 className="mb-3">Individual Item Usage</h6>
               <div className="table-responsive">
@@ -593,7 +623,7 @@ const EditBatch: React.FC = () => {
               </div>
             </div>
           )}
-          {itemUsageHistory.length === 0 && <p className="text-muted">No individual item usage recorded.</p>}
+          {!isInventoryRestricted && itemUsageHistory.length === 0 && <p className="text-muted">No individual item usage recorded.</p>}
         </Modal.Body>
       </Modal>
 

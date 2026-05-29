@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import PageHeader from "./Layout/PageHeader";
-import { configApi, batchApi, bovansApi, eggRoomReportApi, financialSettingsApi, chartOfAccountsApi, AppConfigKey } from "../services/api";
+import { configApi, batchApi, bovansApi, eggRoomReportApi, financialSettingsApi, chartOfAccountsApi, AppConfigKey, getTenantId, tenantFeatureApi } from "../services/api";
 import { toast } from "react-toastify";
 import CustomDatePicker from "./Common/CustomDatePicker";
 import BatchConfig from "./BatchConfig";
@@ -11,6 +11,7 @@ import type { ChartOfAccountsResponse } from "../types/chartOfAccounts";
 import { toYYYYMMDD } from '../utility/date-utils';
 import { useSubscription } from './context/SubscriptionContext';
 import SubscriptionWarning from './Common/SubscriptionWarning';
+import CustomPagination from "./Common/CustomPagination";
 
 
 const KG_PER_TON = 1000;
@@ -70,6 +71,7 @@ const Configurations: React.FC = () => {
   });
   const [financialSettingsSaving, setFinancialSettingsSaving] = useState(false);
   const { isSubscriptionPaid } = useSubscription();
+  const [isBatchRestricted, setIsBatchRestricted] = useState(false);
 
   // Function to fetch Bovans performance data with pagination
 
@@ -142,14 +144,28 @@ const Configurations: React.FC = () => {
       }
 
       // Fetch batches independently so a restriction here doesn't crash everything else
-      setBatchLoading(true);
-      try {
-        const batchData = await batchApi.getBatches(0, 1000);
-        setBatches(Array.isArray(batchData) ? batchData : []);
-        setBatchError(null);
-      } catch (err: any) {
-        setBatchError(err.message || "Failed to load batch configurations.");
-      } finally {
+      const tenantId = getTenantId();
+      let restricted = false;
+      if (tenantId) {
+        try {
+          const features = await tenantFeatureApi.getTenantFeaturesByTenantId(tenantId);
+          restricted = features.some(f => f.feature_name === 'BATCH_MANAGEMENT' && f.is_restricted);
+          setIsBatchRestricted(restricted);
+        } catch (e) {}
+      }
+
+      if (!restricted) {
+        setBatchLoading(true);
+        try {
+          const batchData = await batchApi.getBatches(0, 1000);
+          setBatches(Array.isArray(batchData) ? batchData : []);
+          setBatchError(null);
+        } catch (err: any) {
+          setBatchError(err.message || "Failed to load batch configurations.");
+        } finally {
+          setBatchLoading(false);
+        }
+      } else {
         setBatchLoading(false);
       }
 
@@ -871,6 +887,7 @@ return (
         </div>
 
         {/* Batch Configuration Accordion Item */}
+        {!isBatchRestricted && (
         <div className="accordion-item">
           <h2 className="accordion-header text-light bg-primary" id="batch-config-heading">
             <button
@@ -899,6 +916,7 @@ return (
             </div>
           </div>
         </div>
+        )}
 
         {/* Bovans White Layer Performance Accordion Item */}
         <div className="accordion-item mt-3 border-top">
@@ -961,38 +979,11 @@ return (
                   </div>
 
                   {/* Pagination Controls */}
-                  <nav aria-label="Bovans Performance Pagination">
-                    <ul className="pagination justify-content-center">
-                      <li className={`page-item ${bovansCurrentPage === 1 ? 'disabled' : ''}`}>
-                        <button
-                          className="page-link"
-                          onClick={() => handleBovansPageChange(bovansCurrentPage - 1)}
-                          disabled={bovansCurrentPage === 1}
-                        >
-                          Previous
-                        </button>
-                      </li>
-                      {Array.from({ length: bovansTotalPages }, (_, i) => i + 1).map((page) => (
-                        <li key={page} className={`page-item ${bovansCurrentPage === page ? 'active' : ''}`}>
-                          <button
-                            className="page-link"
-                            onClick={() => handleBovansPageChange(page)}
-                          >
-                            {page}
-                          </button>
-                        </li>
-                      ))}
-                      <li className={`page-item ${bovansCurrentPage === bovansTotalPages ? 'disabled' : ''}`}>
-                        <button
-                          className="page-link"
-                          onClick={() => handleBovansPageChange(bovansCurrentPage + 1)}
-                          disabled={bovansCurrentPage === bovansTotalPages}
-                        >
-                          Next
-                        </button>
-                      </li>
-                    </ul>
-                  </nav>
+                  <CustomPagination
+                    currentPage={bovansCurrentPage}
+                    totalPages={bovansTotalPages}
+                    onPageChange={handleBovansPageChange}
+                  />
                 </>
               )}
             </div>

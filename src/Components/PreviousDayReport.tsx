@@ -17,6 +17,7 @@ import StyledSelect from './Common/StyledSelect';
 import { toYYYYMMDD } from '../utility/date-utils';
 import { useSubscription } from './context/SubscriptionContext';
 import SubscriptionWarning from './Common/SubscriptionWarning';
+import CustomPagination from './Common/CustomPagination';
 
 // Memoized table row component to prevent unnecessary re-renders
 const TableRow = memo(({ 
@@ -24,7 +25,6 @@ const TableRow = memo(({
   index, 
   batchIdFromUrl, 
   henDayDeviation, 
-  reportType, 
   handleEdit 
 }: { 
   row: any; 
@@ -60,7 +60,7 @@ const TableRow = memo(({
     }
 
     // Apply conditional styling for Feed cell
-    if (reportType !== 'daily' && row.actual_feed_consumed !== undefined && row.standard_feed_consumption !== undefined) {
+    if (row.actual_feed_consumed != null && row.standard_feed_consumption != null) {
       const actualFeed = Number(row.actual_feed_consumed);
       const standardFeed = Number(row.standard_feed_consumption);
 
@@ -99,14 +99,12 @@ const TableRow = memo(({
         {hdValue}
       </td>
       <td>{standardHDValue}</td>
-      {reportType !== 'daily' && <>
-        <td className={feedCellClassName}>
-          {actualFeedValue}
-        </td>
-        <td>
-          {standardFeedValue}
-        </td>
-      </>}
+      <td className={feedCellClassName}>
+        {actualFeedValue}
+      </td>
+      <td>
+        {standardFeedValue}
+      </td>
       {batchIdFromUrl && (
         <td>
           <button
@@ -604,12 +602,10 @@ const PreviousDayReport = () => {
                 <th>Jumbo</th>
                 <th>Crack</th>
                 <th>Total Eggs</th>
-                <th>HD</th>
-                <th>Standard</th>
-                {reportType !== 'daily' && <>
-                  <th>Actual Feed</th>
-                  <th>Standard Feed</th>
-                </>}
+                <th>HD (%)</th>
+                <th>Standard (%)</th>
+                <th>Actual Feed</th>
+                <th>Standard Feed</th>
                 {effectiveBatchId && <th>Edit</th>}
               </tr>
             </thead>
@@ -630,27 +626,11 @@ const PreviousDayReport = () => {
             </tbody>
           </table>
           </div>
-          {totalPages > 1 && (
-            <div className="d-flex justify-content-between align-items-center mt-3">
-              <button
-                className="btn btn-secondary"
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-              >
-                Previous
-              </button>
-              <span>
-                Page {currentPage} of {totalPages}
-              </span>
-              <button
-                className="btn btn-secondary"
-                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-              >
-                Next
-              </button>
-            </div>
-          )}
+          <CustomPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
           {summaryData && weekData && (
             <div className="mt-4 p-3 border bg-light">
               <h5 className="mb-3">Report Summary</h5>
@@ -705,6 +685,8 @@ const PreviousDayReport = () => {
                 <div className="col-md-3"><span className="fw-bold">Total Eggs:</span> {summaryData.total_eggs}</div>
                 <div className="col-md-3"><span className="fw-bold">Avg HD:</span> {summaryData.hd != null ? (Number(summaryData.hd) * 100).toFixed(2) : 'N/A'}%</div>
                 <div className="col-md-3"><span className="fw-bold">Avg Std HD:</span> {summaryData.standard_hen_day_percentage != null ? Number(summaryData.standard_hen_day_percentage).toFixed(2) : 'N/A'}%</div>
+                <div className="col-md-3"><span className="fw-bold">Actual Feed:</span> {summaryData.actual_feed_consumed != null ? Number(summaryData.actual_feed_consumed).toFixed(2) : 'N/A'}</div>
+                <div className="col-md-3"><span className="fw-bold">Standard Feed:</span> {summaryData.standard_feed_consumption != null ? Number(summaryData.standard_feed_consumption).toFixed(2) : 'N/A'}</div>
               </div>
             </div>
           )}

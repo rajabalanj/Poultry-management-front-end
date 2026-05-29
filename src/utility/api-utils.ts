@@ -43,7 +43,7 @@ export interface CumulativeReport {
   };
 }
 
-export const fetchWeeklyLayerReport = async (batchId: string, week: string): Promise<{ details: GridRow[], summary: DailyBatch | null, week: number, age_range?: string, hen_housing?: number, cumulative_report: CumulativeReport | null }> => {
+export const fetchWeeklyLayerReport = async (batchId: string, week: string): Promise<{ details: GridRow[], summary: GridRow | null, week: number, age_range?: string, hen_housing?: number, cumulative_report: CumulativeReport | null }> => {
   try {
     const response = await reportsApi.getWeeklyLayerReport(
       Number(batchId),
@@ -92,7 +92,7 @@ export const fetchWeeklyLayerReport = async (batchId: string, week: string): Pro
       }
     }
 
-    return { details: mappedDetails, summary: summary as DailyBatch | null, week: responseWeek, age_range, hen_housing, cumulative_report: normalizedCumulative };
+    return { details: mappedDetails, summary: summary ? mapBatchToGridRow(summary) : null, week: responseWeek, age_range, hen_housing, cumulative_report: normalizedCumulative };
   } catch (error: any) {
     console.error('Error fetching data:', error);
     throw new Error(error.message || 'Failed to fetch data');
@@ -133,6 +133,7 @@ export const fetchBatchData = async (start_date: string, end_date: string, batch
     culls_percent: batch.culls_percent,
     closing_percent: batch.closing_percent,
     feed_per_bird_per_day_grams: batch.feed_per_bird_per_day_grams,
+    birds_added: batch.birds_added || 0,
   });
 
   // If API returned the snapshot structure with details & summary
@@ -142,7 +143,7 @@ export const fetchBatchData = async (start_date: string, end_date: string, batch
 
     return {
       details: mappedDetails,
-      summary: summary as DailyBatch | null,
+      summary: summary ? mapBatchToGridRow(summary) : null,
     };
   }
 

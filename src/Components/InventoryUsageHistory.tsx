@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { inventoryItemApi, batchApi } from "../services/api";
+import { inventoryItemApi, batchApi, getTenantId, tenantFeatureApi } from "../services/api";
 import PageHeader from "./Layout/PageHeader";
-import { Modal, Button, Pagination, Card, Row, Col } from "react-bootstrap";
+import { Modal, Button, Card, Row, Col } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { InventoryItemResponse } from "../types/InventoryItem";
 import { InventoryItemUsageResponse } from "../types/InventoryItemUsage";
@@ -14,6 +14,7 @@ import CustomDatePicker from './Common/CustomDatePicker';
 import { toYYYYMMDD } from '../utility/date-utils';
 import { useSubscription } from "./context/SubscriptionContext";
 import SubscriptionWarning from "./Common/SubscriptionWarning";
+import CustomPagination from "./Common/CustomPagination";
 
 
 const InventoryUsageHistory = () => {
@@ -33,6 +34,7 @@ const InventoryUsageHistory = () => {
   const [endDate, setEndDate] = useState<Date | null>(null);
   const ITEMS_PER_PAGE = 10;
   const { isSubscriptionPaid } = useSubscription();
+  const [isBatchRestricted, setIsBatchRestricted] = useState(false);
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -63,7 +65,17 @@ const InventoryUsageHistory = () => {
 
   useEffect(() => {
     const fetchStaticData = async () => {
-      const batchPromise = batchApi.getBatches();
+      let restricted = false;
+      try {
+        const tenantId = getTenantId();
+        if (tenantId) {
+          const features = await tenantFeatureApi.getTenantFeaturesByTenantId(tenantId);
+          restricted = features.some(f => f.feature_name === 'BATCH_MANAGEMENT' && f.is_restricted);
+          setIsBatchRestricted(restricted);
+        }
+      } catch (e) {}
+
+      const batchPromise = restricted ? Promise.resolve([]) : batchApi.getBatches();
       const itemPromise = item_id ? inventoryItemApi.getInventoryItem(Number(item_id)) : Promise.resolve(null);
       
       const [batchesResult, itemResult] = await Promise.allSettled([batchPromise, itemPromise]);
@@ -171,7 +183,7 @@ const InventoryUsageHistory = () => {
                       <th>Date & Time</th>
                       {!item_id && <th>Item Name</th>}
                       <th>Quantity</th>
-                      <th>Batch</th>
+                      {!isBatchRestricted && <th>Batch</th>}
                       <th>Performed By</th>
                       <th className="text-center">Actions</th>
                     </tr>
@@ -179,7 +191,7 @@ const InventoryUsageHistory = () => {
                   <tbody>
                     {history.length === 0 ? (
                       <tr>
-                        <td colSpan={item_id ? 5 : 6} className="text-center py-4 text-muted">No usage records found for this period.</td>
+                        <td colSpan={item_id ? (isBatchRestricted ? 4 : 5) : (isBatchRestricted ? 5 : 6)} className="text-center py-4 text-muted">No usage records found for this period.</td>
                       </tr>
                     ) : (
                       history.map((item) => (
@@ -191,7 +203,7 @@ const InventoryUsageHistory = () => {
                               {item.used_quantity} {item.unit}
                             </span>
                           </td>
-                          <td>{getBatchNumber(item.batch_id)}</td>
+                          {!isBatchRestricted && <td>{getBatchNumber(item.batch_id)}</td>}
                           <td><small className="text-muted">{item.changed_by}</small></td>
                           <td className="text-center">
                             <Button
@@ -214,17 +226,12 @@ const InventoryUsageHistory = () => {
               </div>
             </div>
 
-            {totalPages > 1 && (
-              <Pagination className="justify-content-center mt-4">
-                <Pagination.Prev onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} />
-                {[...Array(totalPages)].map((_, i) => (
-                  <Pagination.Item key={i+1} active={i+1 === currentPage} onClick={() => setCurrentPage(i+1)}>
-                    {i+1}
-                  </Pagination.Item>
-                ))}
-                <Pagination.Next onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} />
-              </Pagination>
-            )}
+            <CustomPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              className="justify-content-center mt-4"
+            />
           </>
         )}
       </div>

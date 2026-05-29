@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { compositionApi, batchApi } from "../services/api";
+import { compositionApi, batchApi, getTenantId, tenantFeatureApi } from "../services/api";
 import PageHeader from "./Layout/PageHeader";
-import { Modal, Button, Pagination, Card, Row, Col } from "react-bootstrap";
+import { Modal, Button, Card, Row, Col } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { CompositionResponse, CompositionUsage } from "../types/compositon";
 import { BatchResponse } from "../types/batch";
@@ -13,6 +13,7 @@ import CustomDatePicker from './Common/CustomDatePicker';
 import { toYYYYMMDD } from '../utility/date-utils';
 import { useSubscription } from "./context/SubscriptionContext";
 import SubscriptionWarning from "./Common/SubscriptionWarning";
+import CustomPagination from "./Common/CustomPagination";
 
 const CompositionUsageHistory = () => {
   const { compositionId } = useParams<{ compositionId: string }>();
@@ -31,6 +32,7 @@ const CompositionUsageHistory = () => {
   const [endDate, setEndDate] = useState<Date | null>(null);
   const ITEMS_PER_PAGE = 10;
   const { isSubscriptionPaid } = useSubscription();
+  const [isBatchRestricted, setIsBatchRestricted] = useState(false);
 
 
   useEffect(() => {
@@ -62,7 +64,17 @@ const CompositionUsageHistory = () => {
 
   useEffect(() => {
     const fetchStaticData = async () => {
-      const batchPromise = batchApi.getBatches();
+      let restricted = false;
+      try {
+        const tenantId = getTenantId();
+        if (tenantId) {
+          const features = await tenantFeatureApi.getTenantFeaturesByTenantId(tenantId);
+          restricted = features.some(f => f.feature_name === 'BATCH_MANAGEMENT' && f.is_restricted);
+          setIsBatchRestricted(restricted);
+        }
+      } catch (e) {}
+
+      const batchPromise = restricted ? Promise.resolve([]) : batchApi.getBatches();
       const compositionPromise = compositionId ? compositionApi.getComposition(Number(compositionId)) : Promise.resolve(null);
       
       const [batchesResult, compositionResult] = await Promise.allSettled([batchPromise, compositionPromise]);
@@ -145,73 +157,6 @@ const CompositionUsageHistory = () => {
 
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
 
-  const renderPaginationItems = () => {
-    const items = [];
-    
-    items.push(
-      <Pagination.Prev
-        key="prev"
-        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-        disabled={currentPage === 1}
-      />
-    );
-
-    if (totalPages <= 7) {
-      for (let number = 1; number <= totalPages; number++) {
-        items.push(
-          <Pagination.Item key={number} active={number === currentPage} onClick={() => setCurrentPage(number)}>
-            {number}
-          </Pagination.Item>
-        );
-      }
-    } else {
-      items.push(
-        <Pagination.Item key={1} active={1 === currentPage} onClick={() => setCurrentPage(1)}>
-          1
-        </Pagination.Item>
-      );
-
-      if (currentPage > 4) items.push(<Pagination.Ellipsis key="start-ellipsis" disabled />);
-
-      let startPage = Math.max(2, currentPage - 1);
-      let endPage = Math.min(totalPages - 1, currentPage + 1);
-
-      if (currentPage <= 4) {
-        endPage = 5;
-        startPage = 2;
-      } else if (currentPage >= totalPages - 3) {
-        startPage = totalPages - 4;
-        endPage = totalPages - 1;
-      }
-
-      for (let number = startPage; number <= endPage; number++) {
-        items.push(
-          <Pagination.Item key={number} active={number === currentPage} onClick={() => setCurrentPage(number)}>
-            {number}
-          </Pagination.Item>
-        );
-      }
-
-      if (currentPage < totalPages - 3) items.push(<Pagination.Ellipsis key="end-ellipsis" disabled />);
-
-      items.push(
-        <Pagination.Item key={totalPages} active={totalPages === currentPage} onClick={() => setCurrentPage(totalPages)}>
-          {totalPages}
-        </Pagination.Item>
-      );
-    }
-
-    items.push(
-      <Pagination.Next
-        key="next"
-        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-        disabled={currentPage === totalPages}
-      />
-    );
-
-    return items;
-  };
-
   return (
     <>
     <PageHeader
@@ -276,14 +221,14 @@ const CompositionUsageHistory = () => {
                 {!compositionId && <th>Composition</th>}
                 <th>Times Used</th>
                 <th>Total Weight (kg)</th>
-                <th>Batch</th>
+                {!isBatchRestricted && <th>Batch</th>}
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {history.length === 0 ? (
                 <tr>
-                  <td colSpan={compositionId ? 5 : 6} className="text-center">No usage history found.</td>
+                  <td colSpan={compositionId ? (isBatchRestricted ? 4 : 5) : (isBatchRestricted ? 5 : 6)} className="text-center">No usage history found.</td>
                 </tr>
               ) : (
                 history.map((item) => (
@@ -292,7 +237,7 @@ const CompositionUsageHistory = () => {
                     {!compositionId && <td>{item.composition_name}</td>}
                     <td>{item.times}</td>
                     <td>{getCompositionWeight(item) * item.times}</td>
-                    <td>{getBatchNumber(item.batch_id)}</td>
+                    {!isBatchRestricted && <td>{getBatchNumber(item.batch_id)}</td>}
                     <td>
                       <button
                         className="btn btn-sm btn-danger"
@@ -312,11 +257,12 @@ const CompositionUsageHistory = () => {
 
           </table>
         </div>
-        {totalPages > 1 && (
-            <Pagination className="justify-content-center">
-                {renderPaginationItems()}
-            </Pagination>
-        )}
+        <CustomPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          className="justify-content-center"
+        />
         </>)}
       <Modal show={showRevertModal} onHide={() => setShowRevertModal(false)}>
   <Modal.Header closeButton>

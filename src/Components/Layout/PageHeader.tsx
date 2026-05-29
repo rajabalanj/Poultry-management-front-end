@@ -14,6 +14,7 @@ interface PageHeaderProps {
   buttonDisabled?: boolean;
   onToggleSidebar?: () => void;
   buttonIcon?: string; // Bootstrap icon class name (e.g., "bi-arrow-left", "bi-plus")
+  onButtonClick?: () => void;
 }
 
 const PageHeader: React.FC<PageHeaderProps> = ({
@@ -25,6 +26,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   buttonDisabled,
   onToggleSidebar,
   buttonIcon,
+  onButtonClick,
 }) => {
   const navigate = useNavigate();
   const auth = useAuth();
@@ -64,8 +66,13 @@ const PageHeader: React.FC<PageHeaderProps> = ({
               className={`btn btn-${buttonVariant} btn-sm d-flex align-items-center justify-content-center text-sm me-3`}
               onClick={() => {
                 if (buttonDisabled) return;
-                if (buttonLink) navigate(buttonLink);
-                else navigate(-1);
+                if (onButtonClick) {
+                  onButtonClick();
+                } else if (buttonLink) {
+                  navigate(buttonLink);
+                } else {
+                  navigate(-1);
+                }
               }}
               disabled={buttonDisabled}
               style={{ minWidth: isDesktop ? 'auto' : '32px', height: isDesktop ? 'auto' : '32px', padding: isDesktop ? '' : '0' }}

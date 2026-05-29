@@ -5,6 +5,7 @@ import { DailyBatch } from "../types/daily_batch";
 import ListModal from './Common/ListModal';
 import Loading from './Common/Loading';
 import { configApi, AppConfigKey } from "../services/api";
+import { useSubscription } from './context/SubscriptionContext';
 
 const getPerformanceIndicator = (
   actual: number | undefined,
@@ -37,8 +38,21 @@ const BatchCard: React.FC<{
   onView: (batch_id: number, batchDate: string) => void;
   henDayDeviation: number;
 }> = React.memo(({ batch, onView, henDayDeviation }) => {
+  const navigate = useNavigate();
+  const { isSubscriptionPaid } = useSubscription();
+
   const handleCardClick = () => {
     onView(batch.batch_id, batch.batch_date);
+  };
+
+  const handleUpdateClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/batch/${batch.batch_id}/${batch.batch_date}/edit`);
+  };
+
+  const handleMoveShedClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/batch/${batch.batch_id}/move-shed`);
   };
 
   const cardStyle: React.CSSProperties = {
@@ -77,6 +91,24 @@ const BatchCard: React.FC<{
               {getPerformanceIndicator(batch.hd * 100, batch.standard_hen_day_percentage, false, henDayDeviation)}
             </div>
           </div>
+        </div>
+        <div className="d-flex justify-content-end gap-2 mt-3 pt-2 border-top">
+          <button 
+            type="button" 
+            className="btn btn-sm btn-primary" 
+            onClick={handleUpdateClick} 
+            disabled={batch.is_active === false || isSubscriptionPaid === false}
+          >
+            Update
+          </button>
+          <button 
+            type="button" 
+            className="btn btn-sm btn-info text-white" 
+            onClick={handleMoveShedClick} 
+            disabled={batch.is_active === false || isSubscriptionPaid === false}
+          >
+            Move Shed
+          </button>
         </div>
       </div>
     </div>
