@@ -1,6 +1,13 @@
 import axios, { AxiosError } from 'axios';
 import { format } from 'date-fns';
-import { CompositionResponse, PaginatedCompositionUsageHistoryResponse } from '../types/compositon';
+import {
+  CompositionResponse,
+  PaginatedCompositionUsageHistoryResponse,
+  CompositionCreate,
+  CompositionUpdate,
+  UseCompositionPayload,
+  CompositionUsage
+} from '../types/compositon';
 import { DailyBatch, WeeklyLayerReportResponse } from '../types/daily_batch';
 import { TopSellingItem } from '../types/topSellingItem';import { BatchResponse, BatchUpdate, CreateBatchPayload, CreateBatchResponse } from '../types/batch';
 import { EggRoomReportResponse, EggRoomReportCreate, EggRoomReportUpdate, EggRoomSingleReportResponse } from '../types/eggRoomReport.ts';
@@ -466,7 +473,7 @@ export const dailyBatchApi = {
 // Composition API for create, read, update, delete
 
 export const compositionApi = {
-  createComposition: async (composition: { name: string, wastage_percentage: number, inventory_items: { inventory_item_id: number, weight: number, wastage_percentage: number, tenant_id: string }[], tenant_id: string }): Promise<CompositionResponse> => {
+  createComposition: async (composition: CompositionCreate): Promise<CompositionResponse> => {
     try {
       const response = await api.post<CompositionResponse>('/compositions', composition);
       return response.data;
@@ -490,7 +497,7 @@ export const compositionApi = {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch composition'));
     }
   },
-  updateComposition: async (id: number, composition: { name: string, wastage_percentage: number, inventory_items: { inventory_item_id: number, weight: number, wastage_percentage?: number, tenant_id: string }[], tenant_id: string }): Promise<CompositionResponse> => {
+  updateComposition: async (id: number, composition: CompositionUpdate): Promise<CompositionResponse> => {
     try {
       const response = await api.patch<CompositionResponse>(`/compositions/${id}`, composition);
       return response.data;
@@ -506,20 +513,15 @@ export const compositionApi = {
     }
   },
 
-  useComposition: async ({ compositionId, times, usedAt, batch_no }: { compositionId: number, times: number, usedAt: string, batch_no?: string }) => {
+  useComposition: async (payload: UseCompositionPayload) => {
     try {
-      await api.post('/compositions/use-composition', {
-        compositionId,
-        times,
-        usedAt,
-        batch_no,
-      });
+      await api.post('/compositions/use-composition', payload);
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Failed to use composition'));
     }
   },
 
-  getFilteredCompositionUsageHistory: async (batchDate: string, batchId?: number): Promise<any[]> => {
+  getFilteredCompositionUsageHistory: async (batchDate: string, batchId?: number): Promise<CompositionUsage[]> => {
     try {
       const response = await api.get('/compositions/usage-history/filtered', {
         params: {
@@ -563,43 +565,37 @@ export const compositionApi = {
       throw new Error(getApiErrorMessage(error, 'Failed to fetch composition usage history'));
     }
   },
-  revertCompositionUsage: async (usageId: number): Promise<{ message: string }> => {
-  try {
-    const response = await api.post<{ message: string }>(`/compositions/revert-usage/${usageId}`);
-    return response.data;
-  } catch (error) {
-    throw new Error(getApiErrorMessage(error, 'Failed to revert composition usage'));
-  }
-},
 
-    /**
-     * Get feed usage summary by date (and optional batch_id)
-     * @param usageDate - string (YYYY-MM-DD)
-     * @param batchId - optional number
-     * @returns { total_feed: number, feed_breakdown: Array<{feed_type: string, amount: number, composition_name?: string, composition_items?: Array<{inventory_item_id: number, weight: number}>}> }
-     */
-      getFeedUsageByDate: async (usageDate: string, batchId?: number): Promise<{ total_feed: number, feed_breakdown: { feed_type: string, amount: number }[] }> => {
-      try {
-        const response = await api.get(`/compositions/usage-by-date`, {
-          params: {
-            usage_date: usageDate,
-            batch_id: batchId || undefined,
-          },
-        });
-        // The backend now returns total_feed and amount as strings.
-        // We parse them into numbers for frontend use.
-        const rawData = response.data as { total_feed: string, feed_breakdown: { feed_type: string, amount: string }[] };
-        return {
-          total_feed: parseFloat(rawData.total_feed) || 0,
-          feed_breakdown: rawData.feed_breakdown.map(item => ({
-            ...item,
-            amount: parseFloat(item.amount) || 0,
-          })),
-        };
-      } catch (error) {
-        throw new Error(getApiErrorMessage(error, 'Failed to fetch feed usage by date'));
-      }
-    },
+  revertCompositionUsage: async (usageId: number): Promise<{ message: string }> => {
+    try {
+      const response = await api.post<{ message: string }>(`/compositions/revert-usage/${usageId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to revert composition usage'));
+    }
+  },
+  getFeedUsageByDate: async (usageDate: string, batchId?: number): Promise<{ total_feed: number, feed_breakdown: { feed_type: string, amount: number }[] }> => {
+    try {
+      const response = await api.get(`/compositions/usage-by-date`, {
+        params: {
+          usage_date: usageDate,
+          batch_id: batchId || undefined,
+        },
+      });
+      // The backend now returns total_feed and amount as strings.
+      // We parse them into numbers for frontend use.
+      const rawData = response.data as { total_feed: string, feed_breakdown: { feed_type: string, amount: string }[] };
+      return {
+        total_feed: parseFloat(rawData.total_feed) || 0,
+        feed_breakdown: rawData.feed_breakdown.map(item => ({
+          ...item,
+          amount: parseFloat(item.amount) || 0,
+        })),
+      };
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Failed to fetch feed usage by date'));
+    }
+  },
 };
 
 export enum AppConfigKey {

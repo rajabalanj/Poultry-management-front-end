@@ -742,6 +742,7 @@ const PreviousDayReport = () => {
                   </div>
                 </div>
                 <div className="col-md-6">
+                  <div className="table-responsive">
                   <table className="table table-bordered">
                     <thead>
                       <tr>
@@ -766,6 +767,7 @@ const PreviousDayReport = () => {
                       </tr>
                     </tbody>
                   </table>
+                  </div>
                 </div>
               </div>
             </div>

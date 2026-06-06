@@ -144,7 +144,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
 
   return (
     <>
-      <div className={`sidebar ${isOpen ? "open" : ""}`} style={sidebarStyle}>
+      <div className={`sidebar pt-2 pt-xl-0 ${isOpen ? "open" : ""}`} style={sidebarStyle}>
         <div>
           {!isDesktop && (
             <div

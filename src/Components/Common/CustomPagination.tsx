@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Pagination } from 'react-bootstrap';
 
 interface CustomPaginationProps {
@@ -16,6 +16,25 @@ const CustomPagination: React.FC<CustomPaginationProps> = ({
   className = "justify-content-center mt-3",
   size
 }) => {
+
+   // Keyboard navigation for pagination (Left/Right Arrows)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      const isInputFocused = ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable;
+      if (isInputFocused) return;
+
+      if (e.key === 'ArrowLeft') {
+        if (currentPage > 1) onPageChange(currentPage - 1);
+      } else if (e.key === 'ArrowRight') {
+        if (currentPage < totalPages) onPageChange(currentPage + 1);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentPage, totalPages, onPageChange]);
+  
   if (totalPages <= 1) return null;
 
   const items = [];

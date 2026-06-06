@@ -15,6 +15,7 @@ import { useSubscription } from '../context/SubscriptionContext';
 import SubscriptionWarning from '../Common/SubscriptionWarning';
 import { useTableKeyboardNavigation } from '../../hooks/useTableKeyboardNavigation';
 import KeyboardShortcutsIndicator from '../Common/KeyboardShortcutsIndicator';
+import { usePageShortcuts } from '../../hooks/usePageShortcuts';
 
 const PurchaseResponsive: React.FC = () => {
   const {
@@ -96,12 +97,24 @@ const PurchaseResponsive: React.FC = () => {
       }
     },
     onRowAction: (index, key) => {
-      if (key === 'p' && paginatedPurchaseOrders[index]) {
-        setSelectedPoId(paginatedPurchaseOrders[index].id);
+      const order = paginatedPurchaseOrders[index];
+      if (!order) return;
+      const k = key.toLowerCase();
+      if (k === 'p') {
+        setSelectedPoId(order.id);
         setShowPaymentModal(true);
+      } else if (k === 'd') {
+        if (isSubscriptionPaid !== false) {
+          deleteModal.handleDelete(order.id);
+        }
+      } else if (k === 'v') {
+        const row = document.querySelector(`tr[data-row-index="${index}"]`);
+        const viewBtn = row?.querySelector('.btn-outline-info') as HTMLElement;
+        viewBtn?.click();
       }
     },
     enabled: !showPaymentModal && !loading && paginatedPurchaseOrders.length > 0,
+    actionKeys: ['p', 'P', 'd', 'D', 'v', 'V'],
   });
 
   // Reset keyboard navigation when page changes
@@ -109,6 +122,15 @@ const PurchaseResponsive: React.FC = () => {
     resetSelection();
     setFocusedRowIndex(-1);
   }, [currentPage, resetSelection]);
+
+  // Page level shortcuts
+  usePageShortcuts({
+    createNewPath: isSubscriptionPaid !== false ? '/purchase-orders/create' : undefined,
+    onSearchFocus: () => {
+      const filterInput = document.querySelector('.filter-section input') as HTMLElement;
+      if (filterInput) filterInput.focus();
+    }
+  });
 
   const renderContent = () => {
     if (isMobile) {
@@ -125,9 +147,11 @@ const PurchaseResponsive: React.FC = () => {
           />
           <div className="container">
             <SubscriptionWarning />
-            <PurchaseFilter vendors={vendors} filters={filters} setFilters={setFilters} />
+            <div className="filter-section">
+              <PurchaseFilter vendors={vendors} filters={filters} setFilters={setFilters} />
+            </div>
 
-            <KeyboardShortcutsIndicator hasPayment />
+            <KeyboardShortcutsIndicator hasPayment hasDelete hasViewItems hasSearch hasNew />
 
             <PurchaseOrderTable
               purchaseOrders={paginatedPurchaseOrders}
@@ -202,9 +226,11 @@ const PurchaseResponsive: React.FC = () => {
         />
         <div className="container">
           <SubscriptionWarning />
-          <PurchaseFilter vendors={vendors} filters={filters} setFilters={setFilters} />
+          <div className="filter-section">
+            <PurchaseFilter vendors={vendors} filters={filters} setFilters={setFilters} />
+          </div>
 
-          <KeyboardShortcutsIndicator hasPayment />
+          <KeyboardShortcutsIndicator hasPayment hasDelete hasViewItems hasSearch hasNew hasExport hasShare />
 
           <PurchaseReportTable
             purchaseOrders={paginatedPurchaseOrders}

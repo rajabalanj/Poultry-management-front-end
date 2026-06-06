@@ -105,8 +105,9 @@ const CreateSalesOrderForm: React.FC = () => {
 
   // --- Item Management Functions ---
   const handleAddItem = useCallback(() => {
+    const tempId = Date.now();
     const newItem: FormSalesOrderItem = {
-      tempId: Date.now(),
+      tempId,
       inventory_item_id: 0,
       quantity: 1,
       price_per_unit: 0,
@@ -114,6 +115,17 @@ const CreateSalesOrderForm: React.FC = () => {
       variant_name: '',
     };
     setItems((prevItems) => [...prevItems, newItem]);
+
+    // Focus the first input (Inventory Item select) of the newly added row
+    setTimeout(() => {
+      const row = document.getElementById(`item-row-${tempId}`);
+      if (row) {
+        const firstInput = row.querySelector('input');
+        if (firstInput) {
+          firstInput.focus();
+        }
+      }
+    }, 50);
   }, []);
 
   const handleCustomerCreatedInline = (customer: BusinessPartner) => {
@@ -418,7 +430,14 @@ const CreateSalesOrderForm: React.FC = () => {
                     return (
                       <div
                         key={item.tempId}
+                        id={`item-row-${item.tempId}`}
                         className="col-12 border p-3 mb-3 bg-light"
+                        onKeyDown={(e) => {
+                          if (e.altKey && (e.key === 'Delete' || e.key === 'Backspace')) {
+                            e.preventDefault();
+                            handleRemoveItem(item.tempId);
+                          }
+                        }}
                       >
                         <div className="d-flex justify-content-between align-items-center mb-2">
                           <h6>Item {index + 1}</h6>
@@ -427,6 +446,7 @@ const CreateSalesOrderForm: React.FC = () => {
                             className="btn btn-outline-danger btn-sm"
                             onClick={() => handleRemoveItem(item.tempId)}
                             disabled={isLoading || isSubscriptionPaid === false}
+                            title="Remove Item (Alt + Backspace)"
                           >
                             <i className="bi bi-x-lg"></i> Remove
                           </button>

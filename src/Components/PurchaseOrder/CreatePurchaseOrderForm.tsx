@@ -118,13 +118,25 @@ const CreatePurchaseOrderForm: React.FC = () => {
 
   // --- Item Management Functions ---
   const handleAddItem = useCallback(() => {
+    const tempId = Date.now();
     const newItem: FormPurchaseOrderItem = {
-      tempId: Date.now(),
+      tempId,
       inventory_item_id: 0,
       quantity: 1,
       price_per_unit: 0,
     };
     setItems((prevItems) => [...prevItems, newItem]);
+
+    // Focus the first input (Inventory Item select) of the newly added row
+    setTimeout(() => {
+      const row = document.getElementById(`item-row-${tempId}`);
+      if (row) {
+        const firstInput = row.querySelector('input');
+        if (firstInput) {
+          firstInput.focus();
+        }
+      }
+    }, 50);
   }, []);
 
   const handleVendorCreatedInline = (vendor: BusinessPartner) => {
@@ -393,7 +405,14 @@ const CreatePurchaseOrderForm: React.FC = () => {
                   {items.map((item, index) => (
                     <div
                       key={item.tempId}
+                      id={`item-row-${item.tempId}`}
                       className="col-12 border p-3 mb-3 bg-light"
+                      onKeyDown={(e) => {
+                        if (e.altKey && (e.key === 'Delete' || e.key === 'Backspace')) {
+                          e.preventDefault();
+                          handleRemoveItem(item.tempId);
+                        }
+                      }}
                     >
                       <div className="d-flex justify-content-between align-items-center mb-2">
                         <h6>Item {index + 1}</h6>
@@ -402,6 +421,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
                           className="btn btn-outline-danger btn-sm"
                           onClick={() => handleRemoveItem(item.tempId)}
                           disabled={isLoading}
+                          title="Remove Item (Alt + Backspace)"
                         >
                           <i className="bi bi-x-lg"></i> Remove
                         </button>

@@ -25,7 +25,7 @@ const LayoutInner: React.FC<LayoutProps> = ({ children }) => {
   return (
     <div style={{ minHeight: '100vh' }} className="d-flex flex-column position-relative">
       <Row className="flex-grow-1 w-100">
-        <Col className='sidebar d-none d-xl-block position-fixed' xl={2} style={{
+        <Col className='sidebar pt-2 pt-xl-0 d-none d-xl-block position-fixed' xl={2} style={{
           paddingRight: 0,
           paddingLeft: 0,
           height: '100vh',

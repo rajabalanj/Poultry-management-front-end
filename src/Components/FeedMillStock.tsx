@@ -27,6 +27,7 @@ function FeedMillStock() {
   const [search, setSearch] = useState("");
   const [newCompName, setNewCompName] = useState("");
   const [timesToUse, setTimesToUse] = useState(1);
+  const [usageWastagePercentage, setUsageWastagePercentage] = useState<number | string>(0);
   const [editCompName, setEditCompName] = useState("");
   const [wastagePercentage, setWastagePercentage] = useState<number | string>(0);
   const [batches, setBatches] = useState<BatchResponse[]>([]);
@@ -153,22 +154,26 @@ function FeedMillStock() {
       toast.error("Tenant ID not found. Please log in again.");
       return;
     }
-    await compositionApi.updateComposition(
-      selectedComposition.id,
-      {
-        name: editCompName,
-        wastage_percentage: Number(wastagePercentage),
-        inventory_items: editItems.map(item => ({
-          ...item,
-          wastage_percentage: item.wastage_percentage || 0,
+    try {
+      await compositionApi.updateComposition(
+        selectedComposition.id,
+        {
+          name: editCompName,
+          wastage_percentage: Number(wastagePercentage),
+          inventory_items: editItems.map(item => ({
+            ...item,
+            wastage_percentage: item.wastage_percentage || 0,
+            tenant_id: tenantId,
+          })),
           tenant_id: tenantId,
-        })),
-        tenant_id: tenantId,
-      }
-    );
-    const updated = await compositionApi.getCompositions();
-    setCompositions(updated);
-    setViewState("view");
+        }
+      );
+      const updated = await compositionApi.getCompositions();
+      setCompositions(updated);
+      setViewState("view");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update composition");
+    }
   };
 
   const handleAddComposition = async () => {
@@ -192,23 +197,27 @@ function FeedMillStock() {
       toast.error("Tenant ID not found. Please log in again.");
       return;
     }
-    await compositionApi.createComposition({
-      name: newCompName,
-      wastage_percentage: Number(wastagePercentage),
-      inventory_items: editItems.map(item => ({
-        ...item,
-        wastage_percentage: item.wastage_percentage || 0,
+    try {
+      await compositionApi.createComposition({
+        name: newCompName,
+        wastage_percentage: Number(wastagePercentage),
+        inventory_items: editItems.map(item => ({
+          ...item,
+          wastage_percentage: item.wastage_percentage || 0,
+          tenant_id: tenantId,
+        })),
         tenant_id: tenantId,
-      })),
-      tenant_id: tenantId,
-    });
-    const updated = await compositionApi.getCompositions();
-    setCompositions(updated);
-    setSelectedCompositionId(updated[updated.length - 1]?.id || null);
-    setNewCompName("");
-    setEditItems([]);
-    setViewState("view");
-    setWastagePercentage(0);
+      });
+      const updated = await compositionApi.getCompositions();
+      setCompositions(updated);
+      setSelectedCompositionId(updated[updated.length - 1]?.id || null);
+      setNewCompName("");
+      setEditItems([]);
+      setViewState("view");
+      setWastagePercentage(0);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create composition");
+    }
   };
 
   type OptionType = { value: number | string; label: string };
@@ -339,7 +348,10 @@ function FeedMillStock() {
           <div className="mt-3 d-flex align-items-center gap-2">
             <button
               className="btn btn-primary"
-              onClick={() => setViewState("use-composition")}
+              onClick={() => {
+                setUsageWastagePercentage(selectedComposition.wastage_percentage || 0);
+                setViewState("use-composition");
+              }}
               disabled={isSubscriptionPaid === false}
             >
               Use Composition
@@ -419,6 +431,19 @@ function FeedMillStock() {
             />
           </div>
 
+          <div className="mb-3">
+            <label htmlFor="usageWastage" className="form-label">Wastage Percentage (%):</label>
+            <input
+              id="usageWastage"
+              type="number"
+              className="form-control form-control-sm"
+              value={usageWastagePercentage}
+              onChange={(e) => setUsageWastagePercentage(e.target.value)}
+              min="0"
+              step="any"
+            />
+          </div>
+
           <div className="d-flex gap-2">
             <button
               className="btn btn-primary"
@@ -437,13 +462,14 @@ function FeedMillStock() {
                     times: Number(timesToUse) || 1,
                     usedAt: `${batchDate}T00:00:00`,
                     batch_no: isBatchRestricted ? undefined : selectedBatchNo,
+                    wastage_percentage: Number(usageWastagePercentage) || 0,
                   });
                   toast.success(`Used composition ${selectedComposition.name} ${timesToUse} time(s)`);
                   const updated = await compositionApi.getCompositions();
                   setCompositions(updated);
                   setViewState("view");
-                } catch (err) {
-                  toast.error("Failed to use composition");
+                } catch (err: any) {
+                  toast.error(err.message || "Failed to use composition");
                 }
               }}
               disabled={isSubscriptionPaid === false}

@@ -38,6 +38,7 @@ const sectionConfigs: Array<{
       { key: 'table_received', label: 'Received', readOnly: true },
       { key: 'table_transfer', label: 'Sold(Transfer)', readOnly: true },
       { key: 'table_damage', label: 'Damage' },
+      { key: 'table_untrayed', label: 'Untrayed' },
       { key: 'table_out', label: 'Out (To Jumbo)' },
       { key: 'table_in', label: 'In (From Jumbo)', readOnly: true, controlledBy: 'jumbo_out' },
     ],
@@ -52,6 +53,7 @@ const sectionConfigs: Array<{
       { key: 'jumbo_received', label: 'Received', readOnly: true },
       { key: 'jumbo_transfer', label: 'Sold(Transfer)', readOnly: true },
       { key: 'jumbo_waste', label: 'Waste' },
+      { key: 'jumbo_untrayed', label: 'Untrayed' },
       { key: 'jumbo_in', label: 'In (From Table)', readOnly: true, controlledBy: 'table_out' },
       { key: 'jumbo_out', label: 'Out (To Table)' },
     ],
@@ -68,6 +70,7 @@ const sectionConfigs: Array<{
       { key: 'grade_c_transfer', label: 'Sold(Transfer)', readOnly: true },
       { key: 'grade_c_labour', label: 'Labour' },
       { key: 'grade_c_waste', label: 'Waste' },
+      { key: 'grade_c_untrayed', label: 'Untrayed' },
     ],
   },
 ];
@@ -561,41 +564,43 @@ const EggRoomStock: React.FC = () => {
                 </li>
               ))}
             </ul>
-            <table id="egg-room-report-table" className="table table-bordered" ref={tableRef}>
-              <thead>
-                <tr>
-                  <th className="text-center align-middle">Date</th>
-                  {sectionConfigs
-                    .find((c) => c.id === activeTab)
-                    ?.fields.map((field) => (
-                      <th key={field.key} className="text-center">
-                        {field.label}
-                      </th>
-                    ))}
-                  <th className="text-center">Closing</th>
-                </tr>
-              </thead>
-              <tbody>
-                {reports.map((r) => (
-                  <tr key={r.report_date}>
-                    <td>{r.report_date}</td>
+            <div className='table-responsive'>
+              <table id="egg-room-report-table" className="table table-bordered" ref={tableRef}>
+                <thead>
+                  <tr>
+                    <th className="text-center align-middle">Date</th>
                     {sectionConfigs
                       .find((c) => c.id === activeTab)
-                      ?.fields.map((field) => {
-                        const value = r[field.key];
-                        return (
-                          <td key={field.key}>
-                            {typeof value === "number"
-                              ? value
-                              : String(value ?? "")}
-                          </td>
-                        );
-                      })}
-                    <td>{r[closingFields[activeTab]]}</td>
+                      ?.fields.map((field) => (
+                        <th key={field.key} className="text-center">
+                          {field.label}
+                        </th>
+                      ))}
+                    <th className="text-center">Closing</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {reports.map((r) => (
+                    <tr key={r.report_date}>
+                      <td>{r.report_date}</td>
+                      {sectionConfigs
+                        .find((c) => c.id === activeTab)
+                        ?.fields.map((field) => {
+                          const value = r[field.key];
+                          return (
+                            <td key={field.key}>
+                              {typeof value === "number"
+                                ? value
+                                : String(value ?? "")}
+                            </td>
+                          );
+                        })}
+                      <td>{r[closingFields[activeTab]]}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
         {summary && (
@@ -607,6 +612,7 @@ const EggRoomStock: React.FC = () => {
               <div className="col-md-4"><span className="fw-bold">Table Received:</span> {summary.total_table_received}</div>
               <div className="col-md-4"><span className="fw-bold">Table Transfer:</span> {summary.total_table_transfer}</div>
               <div className="col-md-4"><span className="fw-bold">Table Damage:</span> {summary.total_table_damage}</div>
+              <div className="col-md-4"><span className="fw-bold">Table Untrayed:</span> {summary.total_table_untrayed}</div>
               <div className="col-md-4"><span className="fw-bold">Table Out:</span> {summary.total_table_out}</div>
               <div className="col-md-4"><span className="fw-bold">Table In:</span> {summary.total_table_in}</div>
             </div>
@@ -617,6 +623,7 @@ const EggRoomStock: React.FC = () => {
               <div className="col-md-4"><span className="fw-bold">Jumbo Received:</span> {summary.total_jumbo_received}</div>
               <div className="col-md-4"><span className="fw-bold">Jumbo Transfer:</span> {summary.total_jumbo_transfer}</div>
               <div className="col-md-4"><span className="fw-bold">Jumbo Waste:</span> {summary.total_jumbo_waste}</div>
+              <div className="col-md-4"><span className="fw-bold">Jumbo Untrayed:</span> {summary.total_jumbo_untrayed}</div>
               <div className="col-md-4"><span className="fw-bold">Jumbo In:</span> {summary.total_jumbo_in}</div>
               <div className="col-md-4"><span className="fw-bold">Jumbo Out:</span> {summary.total_jumbo_out}</div>
             </div>
@@ -629,6 +636,7 @@ const EggRoomStock: React.FC = () => {
               <div className="col-md-4"><span className="fw-bold">Grade C Transfer:</span> {summary.total_grade_c_transfer}</div>
               <div className="col-md-4"><span className="fw-bold">Grade C Labour:</span> {summary.total_grade_c_labour}</div>
               <div className="col-md-4"><span className="fw-bold">Grade C Waste:</span> {summary.total_grade_c_waste}</div>
+              <div className="col-md-4"><span className="fw-bold">Grade C Untrayed:</span> {summary.total_grade_c_untrayed}</div>
             </div>
           </div>
         )}

@@ -16,12 +16,7 @@ import { InventoryItemUsageResponse } from '../../../types/InventoryItemUsage';
 import { Bird, Package, Egg } from 'lucide-react';
 import { useSubscription } from '../../context/SubscriptionContext';
 import SubscriptionWarning from "../../Common/SubscriptionWarning"; // adjust path as needed
-
-interface UsageHistoryItem {
-  id: number;
-  composition_name: string;
-  times: number;
-}
+import { CompositionUsage } from '../../../types/compositon';
 
 const BatchDetails: React.FC = () => {
   const navigate = useNavigate();
@@ -35,7 +30,7 @@ const BatchDetails: React.FC = () => {
   const [endDate, setEndDate] = useState<string>(batch_date || '');
   const [reportType, setReportType] = useState('daily'); // 'daily' or 'weekly'
   const [week, setWeek] = useState('');
-  const [usageHistory, setUsageHistory] = useState<UsageHistoryItem[]>([]);
+  const [usageHistory, setUsageHistory] = useState<CompositionUsage[]>([]);
   const [itemUsageHistory, setItemUsageHistory] = useState<InventoryItemUsageResponse[]>([]);
   const [henDayDeviation, setHenDayDeviation] = useState(0);
   const [inventoryUsage, setInventoryUsage] = useState<InventoryUsageSummary | null>(null);
@@ -340,7 +335,7 @@ const BatchDetails: React.FC = () => {
                                           <tbody>
                                               {usageHistory.map((item) => (
                                                   <tr key={item.id}>
-                                                      <td>{item.composition_name}</td>
+                                                      <td>{item.composition_name || 'Unknown Composition'}</td>
                                                       <td>{item.times}</td>
                                                   </tr>
                                               ))}

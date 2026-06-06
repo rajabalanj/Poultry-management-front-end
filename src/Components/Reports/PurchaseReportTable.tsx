@@ -10,6 +10,7 @@ import { purchaseOrderApi, inventoryItemApi } from '../../services/api';
 import { InventoryItemResponse } from '../../types/InventoryItem';
 import { useSubscription } from '../context/SubscriptionContext';
 import CustomPagination from '../Common/CustomPagination';
+import { usePageShortcuts } from '../../hooks/usePageShortcuts';
 
 interface PurchaseReportTableProps {
   purchaseOrders: PurchaseOrderResponse[];
@@ -113,6 +114,11 @@ const PurchaseReportTable: React.FC<PurchaseReportTableProps> = ({ purchaseOrder
       setIsExporting(false);
     }
   };
+
+  usePageShortcuts({
+    onExport: (!isExporting && purchaseOrders.length > 0) ? handleExport : undefined,
+    onShare: (!isSharing && purchaseOrders.length > 0) ? handleShareAsImage : undefined
+  });
 
   if (loading) return <div className="text-center">Loading Purchase Orders...</div>;
   if (error) return <div className="text-center text-danger">{error}</div>;
@@ -226,6 +232,7 @@ const PurchaseReportTable: React.FC<PurchaseReportTableProps> = ({ purchaseOrder
                     <tr>
                       <td colSpan={8}>
                         <div className="p-2">
+                          <div className="table-responsive">
                           <table className="table mb-0">
                             <thead>
                               <tr>
@@ -250,6 +257,7 @@ const PurchaseReportTable: React.FC<PurchaseReportTableProps> = ({ purchaseOrder
                               )}
                             </tbody>
                           </table>
+                          </div>
                         </div>
                       </td>
                     </tr>

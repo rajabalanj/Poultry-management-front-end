@@ -1,6 +1,5 @@
 // Types for Egg Room Report API
 export interface EggRoomStockEntry {
-  // id?: number;
   report_date: string; // Changed from 'date' to 'report_date' for consistency
   table_opening: number;
   table_received: number;
@@ -9,6 +8,7 @@ export interface EggRoomStockEntry {
   table_out: number;
   table_in: number; // Added to match EggRoomStockEntry
   table_closing: number;
+  table_untrayed: number;
   grade_c_opening: number;
   grade_c_shed_received: number;
   grade_c_room_received: number;
@@ -16,6 +16,7 @@ export interface EggRoomStockEntry {
   grade_c_labour: number;
   grade_c_waste: number;
   grade_c_closing: number;
+  grade_c_untrayed: number;
   jumbo_opening: number;
   jumbo_received: number;
   jumbo_transfer: number;
@@ -23,6 +24,12 @@ export interface EggRoomStockEntry {
   jumbo_in: number;
   jumbo_out: number; // Added to match EggRoomStockEntry
   jumbo_closing: number;
+  jumbo_untrayed: number;
+  created_at?: string;
+  updated_at?: string;
+  created_by?: string;
+  updated_by?: string;
+  tenant_id?: string;
 }
 
 // For single entry responses
@@ -42,17 +49,20 @@ export interface EggRoomSummary {
   total_table_transfer: number;
   total_table_damage: number;
   total_table_out: number;
+  total_table_untrayed: number;
   total_table_in: number;
   total_jumbo_received: number;
   total_jumbo_transfer: number;
   total_jumbo_waste: number;
   total_jumbo_in: number;
   total_jumbo_out: number;
+  total_jumbo_untrayed: number;
   total_grade_c_shed_received: number;
   total_grade_c_room_received: number;
   total_grade_c_transfer: number;
   total_grade_c_labour: number;
   total_grade_c_waste: number;
+  total_grade_c_untrayed: number;
 }
 
 export interface EggRoomReportResponse {
@@ -62,51 +72,25 @@ export interface EggRoomReportResponse {
 
 export interface EggRoomReportCreate {
   report_date: string;
-  table_opening: number;
-  table_received: number;
-  table_transfer: number;
   table_damage: number;
   table_out: number;
-  table_in: number;
-  table_closing: number;
-  grade_c_opening: number;
-  grade_c_shed_received: number;
-  grade_c_room_received: number;
-  grade_c_transfer: number;
+  table_untrayed: number;
   grade_c_labour: number;
   grade_c_waste: number;
-  grade_c_closing: number;
-  jumbo_opening: number;
-  jumbo_received: number;
-  jumbo_transfer: number;
+  grade_c_untrayed: number;
   jumbo_waste: number;
-  jumbo_in: number;
   jumbo_out: number;
-  jumbo_closing: number;
+  jumbo_untrayed: number;
 }
 
 export interface EggRoomReportUpdate {
-  report_date: string; // Changed from 'date' to 'report_date'
-  table_opening: number;
-  table_received: number;
-  table_transfer: number;
-  table_damage: number;
-  table_out: number;
-  table_in: number;
-  table_closing: number;
-  grade_c_opening: number;
-  grade_c_shed_received: number;
-  grade_c_room_received: number;
-  grade_c_transfer: number;
-  grade_c_labour: number;
-  grade_c_waste: number;
-  grade_c_closing: number;
-  jumbo_opening: number;
-  jumbo_received: number;
-  jumbo_transfer: number;
-  jumbo_waste: number;
-  jumbo_in: number;
-  jumbo_closing: number;
-  jumbo_out: number;
-
+  table_damage?: number;
+  table_out?: number;
+  table_untrayed?: number;
+  grade_c_labour?: number;
+  grade_c_waste?: number;
+  grade_c_untrayed?: number;
+  jumbo_waste?: number;
+  jumbo_out?: number;
+  jumbo_untrayed?: number;
 }

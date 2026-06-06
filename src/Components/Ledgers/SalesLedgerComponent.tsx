@@ -181,12 +181,13 @@ const SalesLedgerComponent: React.FC = () => {
             }
         },
         onRowAction: (index, key) => {
-            if (key === 'p' && paginatedEntries && paginatedEntries[index]) {
+            if (key.toLowerCase() === 'p' && paginatedEntries && paginatedEntries[index]) {
                 setSelectedSoId(paginatedEntries[index].so_id);
                 setShowPaymentModal(true);
             }
         },
         enabled: !showPaymentModal && paginatedEntries.length > 0,
+        actionKeys: ['p', 'P'],
     });
 
     // Reset keyboard navigation when ledger data changes

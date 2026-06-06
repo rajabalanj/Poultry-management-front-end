@@ -4,6 +4,42 @@ export interface InventoryItemInComposition {
   wastage_percentage?: number; // Optional to handle empty UI state, defaults to 0 on save
 }
 
+export interface CompositionCreateItem {
+  inventory_item_id: number;
+  weight: number;
+  wastage_percentage: number;
+  tenant_id: string;
+}
+
+export interface CompositionCreate {
+  name: string;
+  wastage_percentage: number;
+  inventory_items: CompositionCreateItem[];
+  tenant_id: string;
+}
+
+export interface CompositionUpdateItem {
+  inventory_item_id: number;
+  weight: number;
+  wastage_percentage?: number;
+  tenant_id: string;
+}
+
+export interface CompositionUpdate {
+  name: string;
+  wastage_percentage: number;
+  inventory_items: CompositionUpdateItem[];
+  tenant_id: string;
+}
+
+export interface UseCompositionPayload {
+  compositionId: number;
+  times: number;
+  usedAt: string;
+  batch_no?: string;
+  wastage_percentage?: number;
+}
+
 export interface CompositionInventoryItem {
   inventory_item_id: number;
   weight: number;

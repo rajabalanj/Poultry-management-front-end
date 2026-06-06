@@ -6,6 +6,7 @@ interface UseTableKeyboardNavigationOptions {
   onRowEnter: (index: number) => void;
   onRowAction?: (index: number, key: string) => void;
   enabled?: boolean;
+  actionKeys?: string[];
 }
 
 export const useTableKeyboardNavigation = ({
@@ -14,6 +15,7 @@ export const useTableKeyboardNavigation = ({
   onRowEnter,
   onRowAction,
   enabled = true,
+  actionKeys = [],
 }: UseTableKeyboardNavigationOptions) => {
   const selectedIndexRef = useRef<number>(-1);
   const handlersRef = useRef({ onRowSelect, onRowEnter, onRowAction, rowCount });
@@ -38,7 +40,7 @@ export const useTableKeyboardNavigation = ({
 
       const { onRowSelect: select, onRowEnter: enter, onRowAction: action, rowCount: count } = handlersRef.current;
 
-      const navigationKeys = ['ArrowUp', 'ArrowDown', 'Enter', 'p', 'P'];
+      const navigationKeys = ['ArrowUp', 'ArrowDown', 'Enter', ...actionKeys];
 
       if (count > 0 && navigationKeys.includes(event.key)) {
         if (event.key === 'ArrowDown') {
@@ -56,9 +58,9 @@ export const useTableKeyboardNavigation = ({
         } else if (event.key === 'Enter' && selectedIndexRef.current >= 0) {
           event.preventDefault();
           enter(selectedIndexRef.current);
-        } else if (['p', 'P'].includes(event.key) && selectedIndexRef.current >= 0) {
+        } else if (actionKeys.includes(event.key) && selectedIndexRef.current >= 0) {
           event.preventDefault();
-          action?.(selectedIndexRef.current, event.key.toLowerCase());
+          action?.(selectedIndexRef.current, event.key);
         }
       }
     };

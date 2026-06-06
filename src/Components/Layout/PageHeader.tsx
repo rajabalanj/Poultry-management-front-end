@@ -38,7 +38,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   const toggleSidebar = onToggleSidebar ?? sidebar.toggle;
 
   return (
-    <div className="page-header p-md-3 py-3 text-primary fw-bold shadow-sm border-bottom mb-4">
+    <div className="page-header position-relative z-1 p-2 p-md-0 p-md-3 py-3 text-primary fw-bold shadow-sm border-bottom mb-4">
       <div className="d-flex justify-content-between align-items-center w-100">
         <div className="d-flex align-items-center">
           {!isDesktop && toggleSidebar && (

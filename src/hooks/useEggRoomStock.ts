@@ -10,6 +10,7 @@ const defaultEntry = (reportDate?: string): EggRoomStockEntry => ({
   table_received: 0,
   table_transfer: 0,
   table_damage: 0,
+  table_untrayed: 0,
   table_out: 0,
   table_in: 0, // Added to match EggRoomStockEntry
   table_closing: 0,
@@ -17,6 +18,7 @@ const defaultEntry = (reportDate?: string): EggRoomStockEntry => ({
   jumbo_received: 0,
   jumbo_transfer: 0,
   jumbo_waste: 0,
+  jumbo_untrayed: 0,
   jumbo_in: 0,
   jumbo_closing: 0,
   grade_c_opening: 0,
@@ -25,6 +27,7 @@ const defaultEntry = (reportDate?: string): EggRoomStockEntry => ({
   grade_c_transfer: 0,
   grade_c_labour: 0,
   grade_c_waste: 0,
+  grade_c_untrayed: 0,
   grade_c_closing: 0,
   jumbo_out: 0, // Added to match EggRoomStockEntry
 });
@@ -47,21 +50,24 @@ export const useEggRoomStock = () => {
       entry.table_transfer -
       entry.table_damage -
       entry.table_out +
-      entry.table_in,
+      entry.table_in +
+      entry.table_untrayed,
     jumbo_closing:
       entry.jumbo_opening +
       entry.jumbo_received +
       entry.jumbo_in -
       entry.jumbo_transfer -
       entry.jumbo_waste -
-      entry.jumbo_out,
+      entry.jumbo_out +
+      entry.jumbo_untrayed,
     grade_c_closing:
       entry.grade_c_opening +
       entry.grade_c_shed_received +
       entry.grade_c_room_received -
       entry.grade_c_transfer -
       entry.grade_c_labour -
-      entry.grade_c_waste,
+      entry.grade_c_waste +
+      entry.grade_c_untrayed,
   }), []);
 
   // Simplified to directly map from EggRoomSingleReportResponse, now expecting 'report_date'
@@ -72,6 +78,7 @@ export const useEggRoomStock = () => {
       table_received: entry.table_received ?? 0,
       table_transfer: entry.table_transfer ?? 0,
       table_damage: entry.table_damage ?? 0,
+      table_untrayed: entry.table_untrayed ?? 0,
       table_out: entry.table_out ?? 0,
       table_in: entry.table_in ?? 0, // Added to match EggRoomStockEntry
       table_closing: entry.table_closing ?? 0,
@@ -79,6 +86,7 @@ export const useEggRoomStock = () => {
       jumbo_received: entry.jumbo_received ?? 0,
       jumbo_transfer: entry.jumbo_transfer ?? 0,
       jumbo_waste: entry.jumbo_waste ?? 0,
+      jumbo_untrayed: entry.jumbo_untrayed ?? 0,
       jumbo_in: entry.jumbo_in ?? 0,
       jumbo_closing: entry.jumbo_closing ?? 0,
       jumbo_out: entry.jumbo_out ?? 0, // Added to match EggRoomStockEntry
@@ -88,6 +96,7 @@ export const useEggRoomStock = () => {
       grade_c_transfer: entry.grade_c_transfer ?? 0,
       grade_c_labour: entry.grade_c_labour ?? 0,
       grade_c_waste: entry.grade_c_waste ?? 0,
+      grade_c_untrayed: entry.grade_c_untrayed ?? 0,
       grade_c_closing: entry.grade_c_closing ?? 0,
     };
   };
@@ -181,9 +190,9 @@ export const useEggRoomStock = () => {
 
     // Only validate input fields, not calculated closing values
     const inputFields: (keyof EggRoomStockEntry)[] = [
-      'table_damage', 'table_out', 'table_in',
-      'jumbo_waste', 'jumbo_in', 'jumbo_out',
-      'grade_c_room_received', 'grade_c_labour', 'grade_c_waste'
+      'table_damage', 'table_out', 'table_in', 'table_untrayed',
+      'jumbo_waste', 'jumbo_in', 'jumbo_out', 'jumbo_untrayed',
+      'grade_c_room_received', 'grade_c_labour', 'grade_c_waste', 'grade_c_untrayed'
     ];
 
     for (const field of inputFields) {
@@ -200,12 +209,15 @@ export const useEggRoomStock = () => {
       table_damage: form.table_damage,
       table_out: form.table_out,
       table_in: form.table_in,
+      table_untrayed: form.table_untrayed,
       jumbo_waste: form.jumbo_waste,
       jumbo_out: form.jumbo_out,
       jumbo_in: form.jumbo_in,
+      jumbo_untrayed: form.jumbo_untrayed,
       grade_c_labour: form.grade_c_labour,
       grade_c_waste: form.grade_c_waste,
       grade_c_room_received: form.grade_c_room_received,
+      grade_c_untrayed: form.grade_c_untrayed,
     };
 
     // Debug log to verify the date

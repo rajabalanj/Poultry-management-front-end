@@ -159,8 +159,9 @@ const EditPurchaseOrder: React.FC = () => {
       toast.error("Cannot add item without a purchase order ID.");
       return;
     }
+    const tempId = Date.now();
     const newItem: FormPurchaseOrderItem = {
-      tempId: Date.now(),
+      tempId,
       id: 0, // Placeholder for new item
       purchase_order_id: Number(po_id),
       inventory_item_id: 0,
@@ -172,6 +173,17 @@ const EditPurchaseOrder: React.FC = () => {
       inventory_item: undefined
     };
     setItems((prevItems) => [...prevItems, newItem]);
+
+    // Focus the first input (Inventory Item select) of the newly added row
+    setTimeout(() => {
+      const row = document.getElementById(`item-row-${tempId}`);
+      if (row) {
+        const firstInput = row.querySelector('input');
+        if (firstInput) {
+          firstInput.focus();
+        }
+      }
+    }, 50);
   }, [po_id]);
 
   const handleRemoveItem = useCallback((tempId: number) => {
@@ -405,7 +417,18 @@ const EditPurchaseOrder: React.FC = () => {
                 {items.filter(item => !item.isDeleted).length === 0 && <p className="col-12 text-muted">No active items. Click "Add Item" to add new ones.</p>}
 
                 {items.map((item, index) => (
-                  <div key={item.tempId} className={`col-12 border p-3 mb-3 ${item.isDeleted ? 'bg-danger-subtle border-danger' : 'bg-light'}`}>
+                  <div 
+                    key={item.tempId} 
+                    id={`item-row-${item.tempId}`}
+                    className={`col-12 border p-3 mb-3 ${item.isDeleted ? 'bg-danger-subtle border-danger' : 'bg-light'}`}
+                    onKeyDown={(e) => {
+                      if (e.altKey && (e.key === 'Delete' || e.key === 'Backspace')) {
+                        e.preventDefault();
+                        if (item.isDeleted) handleUndoRemoveItem(item.tempId);
+                        else handleRemoveItem(item.tempId);
+                      }
+                    }}
+                  >
                     <div className="d-flex justify-content-between align-items-center mb-2">
                       <h6>Item {index + 1} {item.isDeleted && <span className="badge bg-danger ms-2">Marked for Deletion</span>}</h6>
                       {!item.isDeleted ? (
@@ -414,6 +437,7 @@ const EditPurchaseOrder: React.FC = () => {
                           className="btn btn-outline-danger btn-sm"
                           onClick={() => handleRemoveItem(item.tempId)}
                           disabled={isLoading}
+                          title="Mark for Remove (Alt + Backspace)"
                         >
                           <i className="bi bi-x-lg"></i> Mark for Remove
                         </button>
@@ -423,6 +447,7 @@ const EditPurchaseOrder: React.FC = () => {
                           className="btn btn-outline-primary btn-sm fw-bold"
                           onClick={() => handleUndoRemoveItem(item.tempId)}
                           disabled={isLoading}
+                          title="Undo Remove (Alt + Backspace)"
                         >
                           <i className="bi bi-arrow-counterclockwise"></i> Undo Remove
                         </button>

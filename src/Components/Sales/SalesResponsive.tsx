@@ -18,6 +18,7 @@ import { useEscapeKey } from '../../hooks/useEscapeKey';
 import { useTableKeyboardNavigation } from '../../hooks/useTableKeyboardNavigation';
 import SubscriptionWarning from '../Common/SubscriptionWarning'; // adjust path as needed
 import KeyboardShortcutsIndicator from '../Common/KeyboardShortcutsIndicator';
+import { usePageShortcuts } from '../../hooks/usePageShortcuts';
 
 const SalesResponsive: React.FC = () => {
   const {
@@ -130,12 +131,24 @@ const SalesResponsive: React.FC = () => {
       }
     },
     onRowAction: (index, key) => {
-      if (key === 'p' && paginatedSalesOrders[index]) {
-        setSelectedSoId(paginatedSalesOrders[index].id);
+      const order = paginatedSalesOrders[index];
+      if (!order) return;
+      const k = key.toLowerCase();
+      if (k === 'p') {
+        setSelectedSoId(order.id);
         setShowPaymentModal(true);
+      } else if (k === 'd') {
+        if (isSubscriptionPaid !== false) {
+          deleteModal.handleDelete(order.id);
+        }
+      } else if (k === 'v') {
+        const row = document.querySelector(`tr[data-row-index="${index}"]`);
+        const viewBtn = row?.querySelector('.btn-outline-info') as HTMLElement;
+        viewBtn?.click();
       }
     },
     enabled: !showPaymentModal && !loading && paginatedSalesOrders.length > 0,
+    actionKeys: ['p', 'P', 'd', 'D', 'v', 'V'],
   });
 
   // Reset keyboard navigation when page changes
@@ -143,6 +156,16 @@ const SalesResponsive: React.FC = () => {
     resetSelection();
     setFocusedRowIndex(-1);
   }, [currentPage, resetSelection]);
+
+  // Page level shortcuts
+  usePageShortcuts({
+    createNewPath: isSubscriptionPaid !== false ? '/sales-orders/create' : undefined,
+    onSearchFocus: () => {
+      const filterInput = document.querySelector('.filter-section input') as HTMLElement;
+      if (filterInput) filterInput.focus();
+    },
+    onDownloadBill: (filters.customerId && !downloadingBill) ? () => handleDownloadBill(billType) : undefined
+  });
 
   const renderContent = () => {
     // On desktop, always show the report view.
@@ -166,7 +189,9 @@ const SalesResponsive: React.FC = () => {
           <div className="container">
             <SubscriptionWarning />
 
-            <SalesFilter customers={customers} filters={filters} setFilters={setFilters} />
+            <div className="filter-section">
+              <SalesFilter customers={customers} filters={filters} setFilters={setFilters} />
+            </div>
 
             {filters.customerId && (
                 <div className="d-flex justify-content-end align-items-center gap-2 mb-3">
@@ -191,7 +216,7 @@ const SalesResponsive: React.FC = () => {
                 </div>
             )}
 
-            <KeyboardShortcutsIndicator hasPayment />
+            <KeyboardShortcutsIndicator hasPayment hasDelete hasViewItems hasSearch hasNew hasBill={!!filters.customerId} />
 
             <SalesOrderTable
               salesOrders={paginatedSalesOrders}
@@ -266,7 +291,9 @@ const SalesResponsive: React.FC = () => {
         />
         <div className="container">
           <SubscriptionWarning />
-          <SalesFilter customers={customers} filters={filters} setFilters={setFilters} />
+          <div className="filter-section">
+            <SalesFilter customers={customers} filters={filters} setFilters={setFilters} />
+          </div>
 
           {filters.customerId && (
               <div className="d-flex justify-content-end align-items-center gap-2 mb-3">
@@ -291,7 +318,7 @@ const SalesResponsive: React.FC = () => {
               </div>
           )}
 
-          <KeyboardShortcutsIndicator hasPayment />
+          <KeyboardShortcutsIndicator hasPayment hasDelete hasViewItems hasSearch hasNew hasBill={!!filters.customerId} hasExport hasShare />
 
           <SalesReportTable
             salesOrders={paginatedSalesOrders}

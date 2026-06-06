@@ -177,25 +177,3 @@
   background-color: var(--sidebar-border);
   margin: 1rem 0.5rem;
 }
-
-@media (max-width: 1199px) {
-  .sidebar {
-    padding-top: 10px; /* More space for mobile header */
-  }
-  
-  .hamburger-button {
-    border-radius: 6px;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--sidebar-bg);
-    border: 1px solid var(--sidebar-border);
-    color: var(--sidebar-icon);
-  }
-  
-  .hamburger-button i {
-    font-size: 1.3rem;
-  }
-}

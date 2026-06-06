@@ -230,6 +230,7 @@ const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, custom
                     <tr>
                       <td colSpan={8}>
                         <div className="p-2">
+                          <div className="table-responsive">
                           <table className="table mb-0">
                             <thead>
                               <tr>
@@ -254,6 +255,7 @@ const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, custom
                               )}
                             </tbody>
                           </table>
+                          </div>
                         </div>
                       </td>
                     </tr>

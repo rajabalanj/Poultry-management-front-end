@@ -168,8 +168,9 @@ const EditSalesOrder: React.FC = () => {
       toast.error("Cannot add item without a sales order ID.");
       return;
     }
+    const tempId = Date.now();
     const newItem: FormSalesOrderItem = {
-      tempId: Date.now(),
+      tempId,
       id: 0, // Placeholder for new item
       sales_order_id: Number(so_id),
       inventory_item_id: 0,
@@ -183,6 +184,17 @@ const EditSalesOrder: React.FC = () => {
       variant_name: '',
     };
     setItems((prevItems) => [...prevItems, newItem]);
+
+    // Focus the first input (Inventory Item select) of the newly added row
+    setTimeout(() => {
+      const row = document.getElementById(`item-row-${tempId}`);
+      if (row) {
+        const firstInput = row.querySelector('input');
+        if (firstInput) {
+          firstInput.focus();
+        }
+      }
+    }, 50);
   }, [so_id]);
 
   const handleRemoveItem = useCallback((tempId: number) => {
@@ -435,7 +447,18 @@ const EditSalesOrder: React.FC = () => {
                   const selectedVariantOption = variantOptions.find(o => o.value === item.variant_id);
 
                   return (
-                  <div key={item.tempId} className={`col-12 border p-3 mb-3 ${item.isDeleted ? 'bg-danger-subtle border-danger' : 'bg-light'}`}>
+                  <div 
+                    key={item.tempId} 
+                    id={`item-row-${item.tempId}`}
+                    className={`col-12 border p-3 mb-3 ${item.isDeleted ? 'bg-danger-subtle border-danger' : 'bg-light'}`}
+                    onKeyDown={(e) => {
+                      if (e.altKey && (e.key === 'Delete' || e.key === 'Backspace')) {
+                        e.preventDefault();
+                        if (item.isDeleted) handleUndoRemoveItem(item.tempId);
+                        else handleRemoveItem(item.tempId);
+                      }
+                    }}
+                  >
                     <div className="d-flex justify-content-between align-items-center mb-2">
                       <h6>Item {index + 1} {item.isDeleted && <span className="badge bg-danger ms-2">Marked for Deletion</span>}</h6>
                       {!item.isDeleted ? (
@@ -444,6 +467,7 @@ const EditSalesOrder: React.FC = () => {
                           className="btn btn-outline-danger btn-sm"
                           onClick={() => handleRemoveItem(item.tempId)}
                           disabled={isLoading || isSubscriptionPaid === false}
+                          title="Mark for Remove (Alt + Backspace)"
                         >
                           <i className="bi bi-x-lg"></i> Mark for Remove
                         </button>
@@ -453,6 +477,7 @@ const EditSalesOrder: React.FC = () => {
                           className="btn btn-outline-primary btn-sm fw-bold"
                           onClick={() => handleUndoRemoveItem(item.tempId)}
                           disabled={isLoading || isSubscriptionPaid === false}
+                          title="Undo Remove (Alt + Backspace)"
                         >
                           <i className="bi bi-arrow-counterclockwise"></i> Undo Remove
                         </button>

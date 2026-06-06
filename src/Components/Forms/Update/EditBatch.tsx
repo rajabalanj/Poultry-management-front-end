@@ -5,7 +5,7 @@ import { DailyBatch } from "../../../types/daily_batch";
 import { toast } from "react-toastify";
 import PageHeader from "../../Layout/PageHeader";
 import { Modal, Button } from "react-bootstrap";
-import { CompositionResponse } from "../../../types/compositon";
+import { CompositionResponse, CompositionUsage } from "../../../types/compositon";
 import Loading from '../../Common/Loading';
 import { useEscapeKey } from '../../../hooks/useEscapeKey';
 import CustomDatePicker from "../../Common/CustomDatePicker";
@@ -14,12 +14,6 @@ import { InventoryItemUsageResponse } from "../../../types/InventoryItemUsage";
 import { InventoryItemResponse } from "../../../types/InventoryItem";
 import { useSubscription } from '../../context/SubscriptionContext';
 import SubscriptionWarning from "../../Common/SubscriptionWarning";
-
-interface UsageHistoryItem {
-  id: number;
-  composition_name: string;
-  times: number;
-}
 
 const EditBatch: React.FC = () => {
   const navigate = useNavigate();
@@ -37,7 +31,8 @@ const EditBatch: React.FC = () => {
   const [selectedItemUnit, setSelectedItemUnit] = useState<string>("");
   const [itemQuantityToUse, setItemQuantityToUse] = useState<number | "">("");
   const [timesToUse, setTimesToUse] = useState(1);
-  const [usageHistory, setUsageHistory] = useState<UsageHistoryItem[]>([]);
+  const [usageWastagePercentage, setUsageWastagePercentage] = useState<number | string>("");
+  const [usageHistory, setUsageHistory] = useState<CompositionUsage[]>([]);
   const [itemUsageHistory, setItemUsageHistory] = useState<InventoryItemUsageResponse[]>([]);
   const [showRevertModal, setShowRevertModal] = useState(false);
   const [usageToRevert, setUsageToRevert] = useState<number | null>(null);
@@ -134,6 +129,7 @@ const EditBatch: React.FC = () => {
             times: Number(timesToUse) || 1,
             usedAt,
             batch_no: batch.batch_no,
+            wastage_percentage: Number(usageWastagePercentage) || 0,
           });
           toast.success("Composition used successfully");
           madeChanges = true;
@@ -398,7 +394,16 @@ const EditBatch: React.FC = () => {
                                     : null
                                   : null
                               }
-                              onChange={(option) => setSelectedCompositionId(option ? Number(option.value) : null)}
+                              onChange={(option) => {
+                                const id = option ? Number(option.value) : null;
+                                setSelectedCompositionId(id);
+                                if (id) {
+                                  const comp = compositions.find((c) => c.id === id);
+                                  setUsageWastagePercentage(comp?.wastage_percentage || 0);
+                                } else {
+                                  setUsageWastagePercentage("");
+                                }
+                              }}
                               options={compositions.map((c) => ({ value: c.id, label: c.name }))}
                               placeholder="Select a Composition"
                               isClearable
@@ -497,6 +502,22 @@ const EditBatch: React.FC = () => {
                         )}
                       </div>
                     </div>
+                          {selectedCompositionId && (
+                            <div className="mb-4">
+                              <label htmlFor="compWastage" className="form-label">
+                                Wastage Percentage (%):
+                              </label>
+                              <input
+                                id="compWastage"
+                                type="number"
+                                className="form-control"
+                                value={usageWastagePercentage}
+                                onChange={(e) => setUsageWastagePercentage(e.target.value)}
+                                min="0"
+                                step="any"
+                              />
+                            </div>
+                          )}
                   </div>
                 </div>
               </div>
@@ -562,7 +583,7 @@ const EditBatch: React.FC = () => {
                   <tbody>
                     {usageHistory.map((item) => (
                       <tr key={item.id}>
-                        <td>{item.composition_name}</td>
+                        <td>{item.composition_name || 'Unknown Composition'}</td>
                         <td>{item.times}</td>
                         <td>
                           <button

@@ -7,13 +7,15 @@ import { exportTableToExcel } from '../../utility/export-utils';
 import PageHeader from '../Layout/PageHeader';
 import { toast } from 'react-toastify';
 import { toPng } from 'html-to-image';
+import CustomDatePicker from '../Common/CustomDatePicker';
+import { toYYYYMMDD } from '../../utility/date-utils';
 
 const TopSellingItems = () => {
   const [items, setItems] = useState<TopSellingItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
   const [limit, setLimit] = useState(10);
   const [isSharing, setIsSharing] = useState(false);
   const reportRef = useRef<HTMLDivElement>(null);
@@ -22,7 +24,9 @@ const TopSellingItems = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await reportsApi.getTopSellingItems(startDate, endDate, limit);
+      const startDateStr = startDate ? toYYYYMMDD(startDate) : '';
+      const endDateStr = endDate ? toYYYYMMDD(endDate) : '';
+      const data = await reportsApi.getTopSellingItems(startDateStr, endDateStr, limit);
       setItems(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
@@ -117,18 +121,24 @@ const TopSellingItems = () => {
               <Row className="mb-3">
                 <Form.Group as={Col} controlId="startDate">
                   <Form.Label>Start Date</Form.Label>
-                  <Form.Control
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
+                  <CustomDatePicker
+                    id="startDate"
+                    selected={startDate}
+                    onChange={(date) => setStartDate(date)}
+                    placeholderText="Select start date"
+                    isClearable
+                    maxDate={endDate ?? undefined}
                   />
                 </Form.Group>
                 <Form.Group as={Col} controlId="endDate">
                   <Form.Label>End Date</Form.Label>
-                  <Form.Control
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
+                  <CustomDatePicker
+                    id="endDate"
+                    selected={endDate}
+                    onChange={(date) => setEndDate(date)}
+                    placeholderText="Select end date"
+                    isClearable
+                    minDate={startDate ?? undefined}
                   />
                 </Form.Group>
                 <Form.Group as={Col} controlId="limit">
