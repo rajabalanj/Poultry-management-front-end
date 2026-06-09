@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { Modal, Button } from 'react-bootstrap';
 import PageHeader from './Layout/PageHeader';
-import { financialReportsApi } from '../services/api';
+import { financialReportsApi, financialSettingsApi } from '../services/api';
+import { FinancialSettings } from '../types/financialSettings';
 import CustomDatePicker from './Common/CustomDatePicker';
 import { BalanceSheet, ProfitAndLoss, OperatingExpenseByAccount } from '../types/financialReports';
 import { FinancialSummary } from '../types/financialSummary';
@@ -14,7 +15,7 @@ import InventoryLedgerComponent from './Ledgers/InventoryLedgerComponent';
 import StyledSelect from './Common/StyledSelect';
 import { toYYYYMMDD } from '../utility/date-utils';
 
-type ReportType = 'pnl' | 'balance-sheet' | 'general-ledger' | 'purchase-ledger' | 'sales-ledger' | 'inventory-ledger' | 'financial-summary';
+type ReportType = 'pnl' | 'balance-sheet' | 'general-ledger' | 'purchase-ledger' | 'sales-ledger' | 'inventory-ledger' | 'financial-summary' | 'year-closing';
 
 const getReportLabel = (value: ReportType): string => {
   switch (value) {
@@ -25,6 +26,7 @@ const getReportLabel = (value: ReportType): string => {
     case 'sales-ledger': return 'Sales Ledger';
     case 'inventory-ledger': return 'Inventory Ledger';
     case 'financial-summary': return 'Financial Summary';
+    case 'year-closing': return 'Year Closing';
     default: return '';
   }
 };
@@ -35,9 +37,67 @@ const FinancialReports: React.FC = () => {
     return (sessionStorage.getItem('financial_active_tab') as ReportType) || 'pnl';
   });
 
+  // Year Closing State
+  const [financialSettings, setFinancialSettings] = useState<FinancialSettings | null>(null);
+  const [loadingSettings, setLoadingSettings] = useState(false);
+  const [closingDate, setClosingDate] = useState(() => today);
+  const [closingLoading, setClosingLoading] = useState(false);
+  const [reopeningLoading, setReopeningLoading] = useState(false);
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+  const [showReopenConfirm, setShowReopenConfirm] = useState(false);
+  const [closeResult, setCloseResult] = useState<{ message: string; net_income_transferred: number } | null>(null);
+
   useEffect(() => {
     sessionStorage.setItem('financial_active_tab', activeTab);
   }, [activeTab]);
+
+  const fetchSettings = useCallback(async () => {
+    setLoadingSettings(true);
+    try {
+      const settings = await financialSettingsApi.getFinancialSettings();
+      setFinancialSettings(settings);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to fetch financial settings.');
+    } finally {
+      setLoadingSettings(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'year-closing') {
+      fetchSettings();
+    }
+  }, [activeTab, fetchSettings]);
+
+  const handleCloseFinancialYear = async () => {
+    setClosingLoading(true);
+    setCloseResult(null);
+    try {
+      const result = await financialSettingsApi.closeFinancialYear(closingDate);
+      setCloseResult(result);
+      toast.success(result.message || 'Financial year closed successfully.');
+      await fetchSettings(); // Refresh settings to show new closed date
+      setShowCloseConfirm(false);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to close financial year.');
+    } finally {
+      setClosingLoading(false);
+    }
+  };
+
+  const handleReopenFinancialYear = async () => {
+    setReopeningLoading(true);
+    try {
+      const result = await financialSettingsApi.reopenFinancialYear();
+      toast.success(result.message || 'Financial year reopened successfully.');
+      await fetchSettings(); // Refresh settings to update closed date
+      setShowReopenConfirm(false);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to reopen financial year.');
+    } finally {
+      setReopeningLoading(false);
+    }
+  };
 
   // P&L State
   const [pnlStartDate, setPnlStartDate] = useState(() => sessionStorage.getItem('financial_pnl_start') || today);
@@ -330,6 +390,130 @@ const FinancialReports: React.FC = () => {
     );
   };
 
+  const renderYearClosing = () => {
+    if (loadingSettings) return <Loading message="Loading financial settings..." />;
+
+    const isClosed = !!financialSettings?.last_closed_date;
+    const lastClosed = financialSettings?.last_closed_date;
+
+    // Min date for closing can be one day after last closed date
+    const minClosingDate = lastClosed 
+      ? new Date(new Date(`${lastClosed}T00:00:00`).getTime() + 24 * 60 * 60 * 1000) 
+      : undefined;
+
+    return (
+      <div className="p-3">
+        <div className="row">
+          <div className="col-lg-8">
+            <div className="card border-0 shadow-sm mb-4">
+              <div className="card-body">
+                <h5 className="card-title mb-4 font-weight-bold">Financial Year Lock & Closing</h5>
+                
+                <div className="d-flex align-items-center mb-4 p-3 bg-light rounded">
+                  <div className="me-3">
+                    <span className={`badge p-3 rounded-circle ${isClosed ? 'bg-warning text-dark' : 'bg-success text-white'}`} style={{ fontSize: '1.2rem' }}>
+                      <i className={`bi ${isClosed ? 'bi-lock-fill' : 'bi-unlock-fill'}`}></i>
+                    </span>
+                  </div>
+                  <div>
+                    <h6 className="mb-1">Financial Year Status</h6>
+                    <p className="mb-0 text-muted">
+                      {isClosed ? (
+                        <span>Locked up to <strong>{lastClosed}</strong>. Period is closed for modifications.</span>
+                      ) : (
+                        <span>All periods are currently unlocked. No financial year has been closed.</span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="row g-3">
+                  <div className="col-md-6">
+                    <label htmlFor="closingDate" className="form-label font-weight-bold">Select Year-End Closing Date</label>
+                    <CustomDatePicker
+                      id="closingDate"
+                      selected={closingDate ? new Date(`${closingDate}T00:00:00`) : null}
+                      onChange={(date: Date | null) => date && setClosingDate(toYYYYMMDD(date))}
+                      minDate={minClosingDate}
+                      maxDate={new Date(`${today}T00:00:00`)}
+                      className="form-control"
+                      showMonthDropdown
+                      showYearDropdown
+                      dropdownMode="select"
+                      dateFormat="dd-MM-yyyy"
+                    />
+                    <small className="text-muted d-block mt-1">
+                      Closing date must be after the last closed date and in the past.
+                    </small>
+                  </div>
+
+                  <div className="col-md-6 d-flex align-items-end gap-2">
+                    <button 
+                      className="btn btn-warning w-100" 
+                      onClick={() => {
+                        if (!closingDate) {
+                          toast.error('Please select a closing date.');
+                          return;
+                        }
+                        setCloseResult(null);
+                        setShowCloseConfirm(true);
+                      }}
+                      disabled={closingLoading || reopeningLoading}
+                    >
+                      <i className="bi bi-lock me-1"></i> Close Financial Year
+                    </button>
+
+                    {isClosed && (
+                      <button 
+                        className="btn btn-outline-danger w-100" 
+                        onClick={() => setShowReopenConfirm(true)}
+                        disabled={closingLoading || reopeningLoading}
+                      >
+                        <i className="bi bi-unlock me-1"></i> Reopen Financial Year
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {closeResult && (
+                  <div className="alert alert-success mt-4 mb-0" role="alert">
+                    <h6 className="alert-heading font-weight-bold"><i className="bi bi-check-circle-fill me-2"></i>Year Closed Successfully!</h6>
+                    <p className="mb-1">{closeResult.message}</p>
+                    <p className="mb-0">
+                      Net Income Transferred to Retained Earnings: <strong>{Number(closeResult.net_income_transferred).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="col-lg-4">
+            <div className="card border-0 bg-info bg-opacity-10 text-dark shadow-sm">
+              <div className="card-body">
+                <h6 className="card-title font-weight-bold mb-3">
+                  <i className="bi bi-info-circle-fill me-2 text-info"></i> About Year-End Closing
+                </h6>
+                <p className="small mb-2">
+                  Closing the financial year is an automated procedure that:
+                </p>
+                <ul className="small ps-3 mb-3">
+                  <li className="mb-2">Zeros out all **Revenue** and **Expense** (P&L) accounts up to the selected closing date.</li>
+                  <li className="mb-2">Calculates the **Net Income** (Profit/Loss) for the period.</li>
+                  <li className="mb-2">Automatically posts a balancing transaction to the **Retained Earnings** account.</li>
+                  <li className="mb-2">Locks the period on or before the closing date. No new entries, modifications, or deletions can be made in the locked period.</li>
+                </ul>
+                <p className="small mb-0 text-muted">
+                  <i className="bi bi-exclamation-triangle-fill text-warning me-1"></i> Ensure that all transactions and adjustments for the period have been entered before closing.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <>
       <PageHeader title="Financial Reports" />
@@ -346,7 +530,8 @@ const FinancialReports: React.FC = () => {
                 { value: 'general-ledger', label: 'General Ledger' },
                 { value: 'purchase-ledger', label: 'Purchase Ledger' },
                 { value: 'sales-ledger', label: 'Sales Ledger' },
-                { value: 'inventory-ledger', label: 'Inventory Ledger' }
+                { value: 'inventory-ledger', label: 'Inventory Ledger' },
+                { value: 'year-closing', label: 'Year Closing' }
               ]}
               placeholder="Select Report"
             />
@@ -386,6 +571,11 @@ const FinancialReports: React.FC = () => {
                <li className="nav-item">
                    <button className={`nav-link ${activeTab === 'inventory-ledger' ? 'active' : ''}`} onClick={() => setActiveTab('inventory-ledger')}>
                        Inventory Ledger
+                   </button>
+               </li>
+               <li className="nav-item">
+                   <button className={`nav-link ${activeTab === 'year-closing' ? 'active' : ''}`} onClick={() => setActiveTab('year-closing')}>
+                       Year Closing
                    </button>
                </li>
             </ul>
@@ -512,6 +702,7 @@ const FinancialReports: React.FC = () => {
            {activeTab === 'purchase-ledger' && <PurchaseLedgerComponent />}
            {activeTab === 'sales-ledger' && <SalesLedgerComponent />}
            {activeTab === 'inventory-ledger' && <InventoryLedgerComponent />}
+           {activeTab === 'year-closing' && renderYearClosing()}
           </div>
         </div>
 
@@ -547,6 +738,49 @@ const FinancialReports: React.FC = () => {
           </Modal.Body>
           <Modal.Footer>
             <Button variant="secondary" onClick={() => setShowOpExModal(false)}>Close</Button>
+          </Modal.Footer>
+        </Modal>
+
+        {/* Close Year Confirmation Modal */}
+        <Modal show={showCloseConfirm} onHide={() => setShowCloseConfirm(false)} centered>
+          <Modal.Header closeButton>
+            <Modal.Title className="text-warning">Confirm Financial Year Closing</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <p>Are you sure you want to close the financial year up to <strong>{closingDate}</strong>?</p>
+            <p className="text-danger small">
+              <i className="bi bi-exclamation-triangle-fill me-1"></i> 
+              This will lock the period on or before {closingDate}. You will not be able to add, modify, or delete journal entries in this locked period.
+            </p>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowCloseConfirm(false)} disabled={closingLoading}>
+              Cancel
+            </Button>
+            <Button variant="warning" onClick={handleCloseFinancialYear} disabled={closingLoading}>
+              {closingLoading ? 'Closing...' : 'Confirm Close'}
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+        {/* Reopen Year Confirmation Modal */}
+        <Modal show={showReopenConfirm} onHide={() => setShowReopenConfirm(false)} centered>
+          <Modal.Header closeButton>
+            <Modal.Title className="text-danger">Confirm Reopening Financial Year</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <p>Are you sure you want to reopen the financial year?</p>
+            <p className="text-muted small">
+              This will unlock the posting period prior to <strong>{financialSettings?.last_closed_date}</strong> by deleting the automated closing journal entry.
+            </p>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowReopenConfirm(false)} disabled={reopeningLoading}>
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={handleReopenFinancialYear} disabled={reopeningLoading}>
+              {reopeningLoading ? 'Reopening...' : 'Confirm Reopen'}
+            </Button>
           </Modal.Footer>
         </Modal>
       </div>

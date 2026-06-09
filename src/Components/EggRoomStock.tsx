@@ -12,6 +12,7 @@ import { toast } from 'react-toastify';
 import { exportTableToExcel } from '../utility/export-utils';
 import { toYYYYMMDD } from '../utility/date-utils';
 import SubscriptionWarning from '../Components/Common/SubscriptionWarning';
+import CustomPagination from './Common/CustomPagination';
 
 // Define a common type for the fields to ensure consistency
 type StockFieldConfig = {
@@ -110,6 +111,8 @@ const EggRoomStock: React.FC = () => {
   const [suggestedStartDate, setSuggestedStartDate] = useState<string | null>(null);
 
   const [activeTab, setActiveTab] = useState<string>('table');
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
   const stockFormSectionToShareRef = useRef<HTMLDivElement>(null); // New ref for the stock form section
 
   useEffect(() => {
@@ -167,6 +170,7 @@ const EggRoomStock: React.FC = () => {
         date: item.report_date
       }));
       setReports(reportsData);
+      setCurrentPage(1);
       setSummary(summaryData);
     } catch (err: any) {
       console.error("Error fetching reports:", err);
@@ -580,27 +584,35 @@ const EggRoomStock: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {reports.map((r) => (
-                    <tr key={r.report_date}>
-                      <td>{r.report_date}</td>
-                      {sectionConfigs
-                        .find((c) => c.id === activeTab)
-                        ?.fields.map((field) => {
-                          const value = r[field.key];
-                          return (
-                            <td key={field.key}>
-                              {typeof value === "number"
-                                ? value
-                                : String(value ?? "")}
-                            </td>
-                          );
-                        })}
-                      <td>{r[closingFields[activeTab]]}</td>
-                    </tr>
-                  ))}
+                  {reports
+                    .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
+                    .map((r) => (
+                      <tr key={r.report_date}>
+                        <td>{r.report_date}</td>
+                        {sectionConfigs
+                          .find((c) => c.id === activeTab)
+                          ?.fields.map((field) => {
+                            const value = r[field.key];
+                            return (
+                              <td key={field.key}>
+                                {typeof value === "number"
+                                  ? value
+                                  : String(value ?? "")}
+                              </td>
+                            );
+                          })}
+                        <td>{r[closingFields[activeTab]]}</td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>
+            <CustomPagination
+              currentPage={currentPage}
+              totalPages={Math.ceil(reports.length / ITEMS_PER_PAGE)}
+              onPageChange={setCurrentPage}
+              className="justify-content-center"
+            />
           </div>
         )}
         {summary && (

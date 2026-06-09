@@ -1946,6 +1946,30 @@ export const financialSettingsApi = {
       throw new Error(getApiErrorMessage(error, "Failed to update financial settings"));
     }
   },
+
+  closeFinancialYear: async (closingDate: string): Promise<{ message: string; net_income_transferred: number }> => {
+    try {
+      const response = await api.post<{ message: string; net_income_transferred: number }>(
+        "/financial-settings/close-financial-year",
+        null,
+        {
+          params: { closing_date: closingDate }
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, "Failed to close financial year"));
+    }
+  },
+
+  reopenFinancialYear: async (): Promise<{ message: string }> => {
+    try {
+      const response = await api.post<{ message: string }>("/financial-settings/reopen-financial-year");
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, "Failed to reopen financial year"));
+    }
+  },
 };
 
 export const journalEntryApi = {
