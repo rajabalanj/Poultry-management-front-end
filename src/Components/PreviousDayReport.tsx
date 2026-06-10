@@ -341,24 +341,75 @@ const PreviousDayReport = () => {
       setIsSharing(false);
       return;
     }
+
+    // Save original styles to restore them perfectly after generation
+    const originalContentStyle = {
+      width: contentNode.style.width,
+      minWidth: contentNode.style.minWidth,
+      maxWidth: contentNode.style.maxWidth,
+      overflow: contentNode.style.overflow,
+    };
+
     const originalTableStyle: { width: string; minWidth: string; whiteSpace: string } = {
       width: tableNode.style.width,
       minWidth: tableNode.style.minWidth,
       whiteSpace: tableNode.style.whiteSpace,
     };
 
+    const responsiveContainers = contentNode.querySelectorAll('.table-responsive');
+    const originalResponsiveStyles = Array.from(responsiveContainers).map((container: any) => ({
+      element: container,
+      width: container.style.width,
+      maxWidth: container.style.maxWidth,
+      overflowX: container.style.overflowX,
+      overflow: container.style.overflow,
+    }));
+
+    const colElements = contentNode.querySelectorAll('[class*="col-md-"]');
+    const originalColStyles = Array.from(colElements).map((el: any) => {
+      const colClass = Array.from(el.classList).find((c: any) => c.startsWith('col-md-')) as string;
+      const colWidth = colClass ? parseInt(colClass.replace('col-md-', ''), 10) : 12;
+      return {
+        element: el,
+        colWidth,
+        flex: el.style.flex,
+        maxWidth: el.style.maxWidth,
+      };
+    });
+
     try {
-      tableNode.style.width = 'auto';
-      tableNode.style.minWidth = '1200px';
+      // Temporarily expand the container and table in the real DOM to a wide layout
+      // so htmlToImage renders the full table columns without any cropping on mobile.
+      contentNode.style.width = '1400px';
+      contentNode.style.minWidth = '1400px';
+      contentNode.style.maxWidth = 'none';
+      contentNode.style.overflow = 'visible';
+
+      tableNode.style.width = '100%';
+      tableNode.style.minWidth = '1350px';
       tableNode.style.whiteSpace = 'nowrap';
+
+      responsiveContainers.forEach((container: any) => {
+        container.style.width = '100%';
+        container.style.maxWidth = 'none';
+        container.style.overflow = 'visible';
+        container.style.overflowX = 'visible';
+      });
+
+      // Temporarily set col-md-X items to force their desktop layout widths in the output image
+      originalColStyles.forEach(({ element, colWidth }) => {
+        const pct = (colWidth / 12) * 100;
+        element.style.flex = `0 0 ${pct}%`;
+        element.style.maxWidth = `${pct}%`;
+      });
 
       for (let i = 1; i <= totalPages; i++) {
         flushSync(() => {
           setCurrentPage(i);
         });
 
-        // Get the full content dimensions including summary
-        const contentWidth = Math.max(tableNode.scrollWidth, contentNode.scrollWidth);
+        // Compute width and height dynamically based on the applied layout styles
+        const contentWidth = Math.max(tableNode.scrollWidth, contentNode.scrollWidth, 1400);
         const contentHeight = contentNode.scrollHeight;
         
         const dataUrl = await htmlToImage.toPng(contentNode, {
@@ -393,9 +444,27 @@ const PreviousDayReport = () => {
         toast.error(`Failed to share report: ${error.message}`);
       }
     } finally {
+      // Restore all original styles
+      contentNode.style.width = originalContentStyle.width;
+      contentNode.style.minWidth = originalContentStyle.minWidth;
+      contentNode.style.maxWidth = originalContentStyle.maxWidth;
+      contentNode.style.overflow = originalContentStyle.overflow;
+
       tableNode.style.width = originalTableStyle.width;
       tableNode.style.minWidth = originalTableStyle.minWidth;
       tableNode.style.whiteSpace = originalTableStyle.whiteSpace;
+
+      originalResponsiveStyles.forEach(({ element, width, maxWidth, overflowX, overflow }) => {
+        element.style.width = width;
+        element.style.maxWidth = maxWidth;
+        element.style.overflowX = overflowX;
+        element.style.overflow = overflow;
+      });
+
+      originalColStyles.forEach(({ element, flex, maxWidth }) => {
+        element.style.flex = flex;
+        element.style.maxWidth = maxWidth;
+      });
 
       setCurrentPage(originalPage);
       setIsSharing(false);
@@ -539,7 +608,12 @@ const PreviousDayReport = () => {
               Export to Excel
             </button>
           </div>
-          <div className="d-flex flex-wrap gap-3 mt-2">
+        </div>
+      </div>
+
+      {validGridData.length > 0 && (
+        <div ref={reportContentRef} className="p-3 bg-white border rounded shadow-sm">
+          <div className="d-flex flex-wrap gap-3 mb-4">
             {weekData ? (
               <>
                 <div className="px-3 py-2 bg-white border rounded shadow-sm border-start border-4 border-primary">
@@ -580,11 +654,6 @@ const PreviousDayReport = () => {
               </>
             )}
           </div>
-        </div>
-      </div>
-
-      {validGridData.length > 0 && (
-        <div ref={reportContentRef}>
           <div className='table-responsive'>
           <table id="report-table" className="table table-bordered">
             <thead>
@@ -671,22 +740,87 @@ const PreviousDayReport = () => {
             </div>
           )}
           {summaryData && !weekData && (
-            <div className="mt-4 p-3 border bg-light">
-              <h5 className="mb-3">Report Summary</h5>
+            <div className="mt-4 p-4 border rounded bg-light">
+              <h5 className="mb-3 text-dark fw-bold">Report Summary</h5>
               <div className="row g-3">
-                <div className="col-md-3"><span className="fw-bold">Opening:</span> {summaryData.opening_count}</div>
-                <div className="col-md-3"><span className="fw-bold">Birds Added:</span> {summaryData.birds_added}</div>
-                <div className="col-md-3"><span className="fw-bold">Total Mortality:</span> {summaryData.mortality}</div>
-                <div className="col-md-3"><span className="fw-bold">Total Culls:</span> {summaryData.culls}</div>
-                <div className="col-md-3"><span className="fw-bold">Closing:</span> {summaryData.closing_count}</div>
-                <div className="col-md-3"><span className="fw-bold">Total Table Eggs:</span> {summaryData.table_eggs}</div>
-                <div className="col-md-3"><span className="fw-bold">Total Jumbo:</span> {summaryData.jumbo}</div>
-                <div className="col-md-3"><span className="fw-bold">Total Crack:</span> {summaryData.cr}</div>
-                <div className="col-md-3"><span className="fw-bold">Total Eggs:</span> {summaryData.total_eggs}</div>
-                <div className="col-md-3"><span className="fw-bold">Avg HD:</span> {summaryData.hd != null ? (Number(summaryData.hd) * 100).toFixed(2) : 'N/A'}%</div>
-                <div className="col-md-3"><span className="fw-bold">Avg Std HD:</span> {summaryData.standard_hen_day_percentage != null ? Number(summaryData.standard_hen_day_percentage).toFixed(2) : 'N/A'}%</div>
-                <div className="col-md-3"><span className="fw-bold">Actual Feed:</span> {summaryData.actual_feed_consumed != null ? Number(summaryData.actual_feed_consumed).toFixed(2) : 'N/A'}</div>
-                <div className="col-md-3"><span className="fw-bold">Standard Feed:</span> {summaryData.standard_feed_consumption != null ? Number(summaryData.standard_feed_consumption).toFixed(2) : 'N/A'}</div>
+                <div className="col-6 col-md-3">
+                  <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                    <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Opening</span>
+                    <span className="fw-bold fs-5 text-dark">{summaryData.opening_count}</span>
+                  </div>
+                </div>
+                <div className="col-6 col-md-3">
+                  <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                    <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Birds Added</span>
+                    <span className="fw-bold fs-5 text-dark">{summaryData.birds_added}</span>
+                  </div>
+                </div>
+                <div className="col-6 col-md-3">
+                  <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                    <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Total Mortality</span>
+                    <span className="fw-bold fs-5 text-dark">{summaryData.mortality}</span>
+                  </div>
+                </div>
+                <div className="col-6 col-md-3">
+                  <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                    <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Total Culls</span>
+                    <span className="fw-bold fs-5 text-dark">{summaryData.culls}</span>
+                  </div>
+                </div>
+                <div className="col-6 col-md-3">
+                  <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                    <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Closing</span>
+                    <span className="fw-bold fs-5 text-dark">{summaryData.closing_count}</span>
+                  </div>
+                </div>
+                <div className="col-6 col-md-3">
+                  <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                    <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Total Table Eggs</span>
+                    <span className="fw-bold fs-5 text-dark">{summaryData.table_eggs}</span>
+                  </div>
+                </div>
+                <div className="col-6 col-md-3">
+                  <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                    <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Total Jumbo</span>
+                    <span className="fw-bold fs-5 text-dark">{summaryData.jumbo}</span>
+                  </div>
+                </div>
+                <div className="col-6 col-md-3">
+                  <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                    <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Total Crack</span>
+                    <span className="fw-bold fs-5 text-dark">{summaryData.cr}</span>
+                  </div>
+                </div>
+                <div className="col-6 col-md-3">
+                  <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                    <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Total Eggs</span>
+                    <span className="fw-bold fs-5 text-dark">{summaryData.total_eggs}</span>
+                  </div>
+                </div>
+                <div className="col-6 col-md-3">
+                  <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                    <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Avg HD</span>
+                    <span className="fw-bold fs-5 text-dark">{summaryData.hd != null ? (Number(summaryData.hd) * 100).toFixed(2) : 'N/A'}%</span>
+                  </div>
+                </div>
+                <div className="col-6 col-md-3">
+                  <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                    <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Avg Std HD</span>
+                    <span className="fw-bold fs-5 text-dark">{summaryData.standard_hen_day_percentage != null ? Number(summaryData.standard_hen_day_percentage).toFixed(2) : 'N/A'}%</span>
+                  </div>
+                </div>
+                <div className="col-6 col-md-3">
+                  <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                    <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Actual Feed</span>
+                    <span className="fw-bold fs-5 text-dark">{summaryData.actual_feed_consumed != null ? Number(summaryData.actual_feed_consumed).toFixed(2) : 'N/A'}</span>
+                  </div>
+                </div>
+                <div className="col-6 col-md-3">
+                  <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                    <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Standard Feed</span>
+                    <span className="fw-bold fs-5 text-dark">{summaryData.standard_feed_consumption != null ? Number(summaryData.standard_feed_consumption).toFixed(2) : 'N/A'}</span>
+                  </div>
+                </div>
               </div>
             </div>
           )}
