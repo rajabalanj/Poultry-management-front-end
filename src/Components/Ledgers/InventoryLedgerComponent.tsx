@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { ledgerApi, inventoryItemApi } from '../../services/api';
 import { InventoryLedger } from '../../types/ledgers';
@@ -8,8 +8,10 @@ import { InventoryItemResponse } from '../../types/InventoryItem';
 import CustomDatePicker from '../Common/CustomDatePicker';
 import StyledSelect from '../Common/StyledSelect';
 import {financialReportsApi} from '../../services/api';
-import { format } from 'date-fns';
+import {format} from 'date-fns';
 import CustomPagination from '../Common/CustomPagination';
+import { useTableKeyboardNavigation } from '../../hooks/useTableKeyboardNavigation';
+import { usePageShortcuts } from '../../hooks/usePageShortcuts';
 
 type OptionType = { value: string; label: string };
 
@@ -24,6 +26,8 @@ const InventoryLedgerComponent: React.FC = () => {
     const [isSharing, setIsSharing] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const ITEMS_PER_PAGE = 10;
+    const tableContainerRef = useRef<HTMLDivElement>(null);
+    const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1);
 
     useEffect(() => {
         const fetchItems = async () => {
@@ -118,6 +122,34 @@ const InventoryLedgerComponent: React.FC = () => {
         `Inventory_Ledger_Item_${itemId}_from_${startDate}_to_${endDate}.pdf`, 'Inventory Ledger Report');
     };
 
+    const getPaginatedEntries = useCallback(() => {
+        return ledgerData?.entries.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE) || [];
+    }, [ledgerData, currentPage]);
+
+    const { resetSelection, setSelectedIndex } = useTableKeyboardNavigation({
+        rowCount: getPaginatedEntries().length,
+        containerRef: tableContainerRef,
+        onRowSelect: (index) => {
+            setFocusedRowIndex(index);
+        },
+        onRowEnter: () => {},
+        enabled: getPaginatedEntries().length > 0,
+    });
+
+    usePageShortcuts({
+        onShare: ledgerData ? handleShareInventoryLedgerPDF : undefined,
+        onSearchFocus: () => {
+            const selectContainer = document.getElementById('itemId');
+            const input = selectContainer?.querySelector('input') as HTMLInputElement;
+            if (input) input.focus();
+        }
+    });
+
+    useEffect(() => {
+        resetSelection();
+        setFocusedRowIndex(-1);
+    }, [ledgerData, currentPage, resetSelection]);
+
     const paginatedEntries = ledgerData?.entries.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE) || [];
     const totalPages = Math.ceil((ledgerData?.entries.length || 0) / ITEMS_PER_PAGE);
 
@@ -184,8 +216,8 @@ const InventoryLedgerComponent: React.FC = () => {
                     <h5 className="mb-3">{ledgerData.title}</h5>
                     <p className="text-muted">Item ID: {ledgerData.item_id}</p>
                     <p className="text-muted">Opening Quantity: {Number(ledgerData.opening_quantity || 0).toFixed(2)}</p>
-                    <div className="table-responsive">
-                        <table className="table table-striped">
+                    <div className="table-responsive" ref={tableContainerRef} tabIndex={0} style={{ outline: 'none' }}>
+                        <table className="table table-striped table-hover">
                             <thead>
                                 <tr>
                                     <th>Date</th>
@@ -199,7 +231,15 @@ const InventoryLedgerComponent: React.FC = () => {
                             </thead>
                             <tbody>
                                 {paginatedEntries.map((entry, index) => (
-                                    <tr key={index}>
+                                    <tr 
+                                        key={index}
+                                        data-row-index={index}
+                                        onClick={() => {
+                                            setFocusedRowIndex(index);
+                                            setSelectedIndex(index);
+                                        }}
+                                        className={focusedRowIndex === index ? 'table-primary' : ''}
+                                    >
                                         <td>{entry.date}</td>
                                         <td>{entry.reference}</td>
                                         <td>{entry.quantity_received != null ? Number(entry.quantity_received).toFixed(2) : ''}</td>

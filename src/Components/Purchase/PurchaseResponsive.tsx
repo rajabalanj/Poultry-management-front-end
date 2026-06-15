@@ -1,5 +1,5 @@
 // src/Components/Purchase/PurchaseResponsive.tsx
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useMediaQuery } from 'react-responsive';
 import { useLocation } from 'react-router-dom';
 import PageHeader from '../Layout/PageHeader';
@@ -16,6 +16,7 @@ import SubscriptionWarning from '../Common/SubscriptionWarning';
 import { useTableKeyboardNavigation } from '../../hooks/useTableKeyboardNavigation';
 import KeyboardShortcutsIndicator from '../Common/KeyboardShortcutsIndicator';
 import { usePageShortcuts } from '../../hooks/usePageShortcuts';
+import { useModalScope } from '../../hooks/useModalScope';
 
 const PurchaseResponsive: React.FC = () => {
   const {
@@ -30,7 +31,7 @@ const PurchaseResponsive: React.FC = () => {
 
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const location = useLocation();
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState<number>(1);
   const rowsPerPage = 10;
@@ -41,6 +42,7 @@ const PurchaseResponsive: React.FC = () => {
 
   // Keyboard navigation state
   const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1);
+  const tableContainerRef = useRef<HTMLDivElement>(null);
 
   const setFilters = useMemo(() => ({
     setVendorId: (value: string) => {
@@ -60,7 +62,7 @@ const PurchaseResponsive: React.FC = () => {
       setCurrentPage(1);
     },
   }), [originalSetFilters]);
-  
+
   // Calculate pagination
   const totalPages = purchaseOrders.length > 0 ? Math.ceil(purchaseOrders.length / rowsPerPage) : 0;
   const validPurchaseOrders = purchaseOrders.filter(order => order && Object.keys(order).length > 0);
@@ -82,13 +84,15 @@ const PurchaseResponsive: React.FC = () => {
   // Handle Escape key for payment modal
   useEscapeKey(() => setShowPaymentModal(false), showPaymentModal);
 
+  // Push 'modal' scope to temporarily disable page/table shortcuts while modals are open
+  useModalScope(showPaymentModal || deleteModal.show, 'modal');
+
   // Keyboard navigation for table rows
   const { resetSelection, setSelectedIndex } = useTableKeyboardNavigation({
     rowCount: paginatedPurchaseOrders.length,
+    containerRef: tableContainerRef,
     onRowSelect: (index) => {
       setFocusedRowIndex(index);
-      const row = document.querySelector(`tr[data-row-index="${index}"]`);
-      row?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     },
     onRowEnter: (index) => {
       const order = paginatedPurchaseOrders[index];
@@ -163,13 +167,14 @@ const PurchaseResponsive: React.FC = () => {
               focusedRowIndex={focusedRowIndex}
               setFocusedRowIndex={setFocusedRowIndex}
               setSelectedIndex={setSelectedIndex}
+              containerRef={tableContainerRef}
               pagination={{
                 currentPage,
                 totalPages,
                 setCurrentPage
               }}
             />
-            
+
             <Modal show={deleteModal.show} onHide={deleteModal.cancelDelete}>
               <Modal.Header closeButton>
                 <Modal.Title>Confirm Delete</Modal.Title>
@@ -211,8 +216,8 @@ const PurchaseResponsive: React.FC = () => {
           </div>
         </>
       );
-    } 
-    
+    }
+
     // Desktop view - Report view with PurchaseReportTable
     return (
       <>
@@ -243,6 +248,7 @@ const PurchaseResponsive: React.FC = () => {
             focusedRowIndex={focusedRowIndex}
             setFocusedRowIndex={setFocusedRowIndex}
             setSelectedIndex={setSelectedIndex}
+            containerRef={tableContainerRef}
             pagination={{
               currentPage,
               totalPages,

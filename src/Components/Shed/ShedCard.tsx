@@ -7,9 +7,10 @@ import { useSubscription } from "../context/SubscriptionContext";
 interface ShedCardProps {
   shed: ShedResponse;
   onDelete: (id: number) => void;
+  isFocused?: boolean;
 }
 
-const ShedCard: React.FC<ShedCardProps> = ({ shed, onDelete }) => {
+const ShedCard: React.FC<ShedCardProps> = ({ shed, onDelete, isFocused }) => {
   const navigate = useNavigate();
 
   const handleEdit = (e: React.MouseEvent) => {
@@ -30,7 +31,7 @@ const ShedCard: React.FC<ShedCardProps> = ({ shed, onDelete }) => {
 
   return (
     <div
-      className="card mb-3"
+      className={`card mb-3 ${isFocused ? 'border-primary border-2 shadow-sm' : ''}`}
       style={{ cursor: "pointer" }}
       onClick={handleViewDetails}
     >

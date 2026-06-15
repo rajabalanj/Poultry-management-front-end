@@ -40,9 +40,9 @@ const CreatePurchaseOrderForm: React.FC = () => {
 
   // Purchase states
   const [vendorId, setVendorId] = useState<number | ''>(0);
-  
+
   const [orderDate, setOrderDate] = useState<Date>(new Date()); // ADD THIS STATE: Default to current date
-  
+
   const [notes, setNotes] = useState('');
   const [billNo, setBillNo] = useState<string>('');
   const [items, setItems] = useState<FormPurchaseOrderItem[]>([]);
@@ -160,7 +160,24 @@ const CreatePurchaseOrderForm: React.FC = () => {
   };
 
   const handleRemoveItem = useCallback((tempId: number) => {
-    setItems((prevItems) => prevItems.filter((item) => item.tempId !== tempId));
+    setItems((prevItems) => {
+      const index = prevItems.findIndex(i => i.tempId === tempId);
+      const newItems = prevItems.filter((item) => item.tempId !== tempId);
+
+      setTimeout(() => {
+        if (index > 0 && newItems.length > 0) {
+          const prevItem = newItems[index - 1];
+          const row = document.getElementById(`item-row-${prevItem.tempId}`);
+          const input = row?.querySelector('input[type="number"]') as HTMLElement;
+          if (input) input.focus();
+        } else {
+          const btn = document.getElementById('add-item-btn');
+          if (btn) btn.focus();
+        }
+      }, 50);
+
+      return newItems;
+    });
   }, []);
 
   const handleItemChange = useCallback((tempId: number, field: keyof FormPurchaseOrderItem, value: any) => {
@@ -218,13 +235,13 @@ const CreatePurchaseOrderForm: React.FC = () => {
 
     try {
       const poResponse = await purchaseOrderApi.createPurchaseOrder(newPurchaseOrder);
-      
+
       // Upload receipt if file is selected
       if (receiptFile && poResponse.id) {
         const uploadConfig = await purchaseOrderApi.getPurchaseOrderReceiptUploadUrl(poResponse.id, receiptFile.name);
         await s3Upload(uploadConfig.upload_url, receiptFile);
       }
-      
+
       toast.success('Purchase Order created successfully! Now, add a payment.');
       setNewPurchaseOrder(poResponse); // Save the newly created PO
       setFormStep('addPayment'); // Move to the next step
@@ -270,12 +287,12 @@ const CreatePurchaseOrderForm: React.FC = () => {
 
     try {
       const paymentResponse = await purchaseOrderApi.addPaymentToPurchaseOrder(newPayment);
-      
+
       if (paymentReceiptFile && (paymentResponse as any).id) {
         const uploadConfig = await purchaseOrderApi.getPaymentReceiptUploadUrl((paymentResponse as any).id, paymentReceiptFile.name);
         await s3Upload(uploadConfig.upload_url, paymentReceiptFile);
       }
-      
+
       toast.success('Payment added successfully!');
       navigate(`/purchase-orders/${newPurchaseOrder.id}/details`);
     } catch (error: any) {
@@ -283,6 +300,25 @@ const CreatePurchaseOrderForm: React.FC = () => {
       console.error('Error adding payment:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleFormKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === 'Enter') {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' && target.getAttribute('role') !== 'combobox') {
+        e.preventDefault();
+        const form = e.currentTarget;
+        const focusableElements = Array.from(
+          form.querySelectorAll(
+            'input:not([disabled]):not([type="hidden"]), select:not([disabled]), button:not([disabled]), textarea:not([disabled])'
+          )
+        ) as HTMLElement[];
+        const currentIndex = focusableElements.indexOf(target);
+        if (currentIndex > -1 && currentIndex < focusableElements.length - 1) {
+          focusableElements[currentIndex + 1].focus();
+        }
+      }
     }
   };
 
@@ -304,7 +340,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
         <div className="card shadow-sm">
           <div className="card-body">
             {formStep === "createOrder" ? (
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleSubmit} onKeyDown={handleFormKeyDown}>
                 <div className="row g-3">
                   {/* Purchase Details Section */}
                   <h5 className="mb-3">Step 1: Purchase Details</h5>
@@ -545,6 +581,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
                   <div className="col-12 text-center">
                     <button
                       type="button"
+                      id="add-item-btn"
                       className="btn btn-outline-primary btn-sm"
                       onClick={handleAddItem}
                       disabled={isLoading}
@@ -588,7 +625,7 @@ const CreatePurchaseOrderForm: React.FC = () => {
                 </div>
               </form>
             ) : (
-              <form onSubmit={handlePaymentSubmit}>
+              <form onSubmit={handlePaymentSubmit} onKeyDown={handleFormKeyDown}>
                 <h5 className="mb-3">Step 2: Add Payment</h5>
                 {newPurchaseOrder && (
                   <div className="alert alert-info">

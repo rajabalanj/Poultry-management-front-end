@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { compositionApi, batchApi, inventoryItemApi, getTenantId, tenantFeatureApi } from "../services/api";
 import { format } from 'date-fns';
 import { InventoryItemResponse, InventoryItemCategory } from "../types/InventoryItem";
@@ -12,6 +12,8 @@ import { useNavigate } from 'react-router-dom';
 import CustomDatePicker from "./Common/CustomDatePicker";
 import { useSubscription } from "./context/SubscriptionContext";
 import SubscriptionWarning from "./Common/SubscriptionWarning";
+import { useShortcuts } from './context/KeyboardShortcutContext';
+import KeyboardShortcutsIndicator from './Common/KeyboardShortcutsIndicator';
 
 function FeedMillStock() {
   type ViewState = "view" | "edit" | "add" | "use-composition";
@@ -36,6 +38,10 @@ function FeedMillStock() {
   const navigate = useNavigate();
   const { isSubscriptionPaid } = useSubscription();
   const [isBatchRestricted, setIsBatchRestricted] = useState(false);
+
+  const { registerShortcuts } = useShortcuts();
+  const selectRef = useRef<any>(null);
+  const mixesInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -262,6 +268,140 @@ function FeedMillStock() {
     }
   };
 
+  const handleConfirmUseComposition = async () => {
+    if (!selectedComposition) return;
+    if (!isBatchRestricted && !selectedBatchNo) {
+      toast.error("Please select a Batch Number");
+      return;
+    }
+    if (!batchDate) {
+      toast.error("Please select a Batch Date");
+      return;
+    }
+    try {
+      await compositionApi.useComposition({
+        compositionId: selectedComposition.id,
+        times: Number(timesToUse) || 1,
+        usedAt: `${batchDate}T00:00:00`,
+        batch_no: isBatchRestricted ? undefined : selectedBatchNo,
+        wastage_percentage: Number(usageWastagePercentage) || 0,
+      });
+      toast.success(`Used composition ${selectedComposition.name} ${timesToUse} time(s)`);
+      const updated = await compositionApi.getCompositions();
+      setCompositions(updated);
+      setViewState("view");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to use composition");
+    }
+  };
+
+  useEffect(() => {
+    const shortcuts: any[] = [];
+
+    if (viewState === 'view') {
+      shortcuts.push({
+        key: '/',
+        description: 'Focus Composition Select',
+        category: 'Page Actions',
+        action: () => {
+          selectRef.current?.focus();
+        }
+      });
+
+      if (isSubscriptionPaid !== false) {
+        shortcuts.push({
+          key: 'Alt+n',
+          description: 'Create Composition',
+          category: 'Composition Actions',
+          action: () => handleAddComposition()
+        });
+      }
+
+      if (selectedComposition) {
+        if (isSubscriptionPaid !== false) {
+          shortcuts.push({
+            key: 'Alt+e',
+            description: 'Edit Composition',
+            category: 'Composition Actions',
+            action: () => handleEdit()
+          });
+          
+          shortcuts.push({
+            key: 'Alt+u',
+            description: 'Use Composition',
+            category: 'Composition Actions',
+            action: () => {
+              setUsageWastagePercentage(selectedComposition.wastage_percentage || 0);
+              setViewState('use-composition');
+            }
+          });
+        }
+
+        shortcuts.push({
+          key: 'Alt+y',
+          description: 'Composition Usage History',
+          category: 'Navigation',
+          action: () => {
+            window.location.href = `/compositions/${selectedCompositionId}/usage-history`;
+          }
+        });
+      }
+
+      shortcuts.push({
+        key: 'Alt+h',
+        description: 'All Composition History',
+        category: 'Navigation',
+        action: () => navigate('/compositions/usage-history')
+      });
+
+      shortcuts.push({
+        key: 'Alt+i',
+        description: 'Inventory History',
+        category: 'Navigation',
+        action: () => navigate('/inventory/usage-history')
+      });
+    } else if (viewState === 'use-composition') {
+      shortcuts.push({
+        key: '/',
+        description: 'Focus Mixes Input',
+        category: 'Form Actions',
+        action: () => {
+          mixesInputRef.current?.focus();
+        }
+      });
+
+      shortcuts.push({
+        key: 'Alt+s',
+        description: 'Confirm Use',
+        category: 'Form Actions',
+        action: () => {
+          handleConfirmUseComposition();
+        }
+      });
+
+      shortcuts.push({
+        key: 'Escape',
+        description: 'Cancel',
+        category: 'Form Actions',
+        action: () => setViewState('view')
+      });
+    }
+
+    return registerShortcuts(shortcuts);
+  }, [
+    viewState,
+    selectedCompositionId,
+    isSubscriptionPaid,
+    selectedComposition,
+    registerShortcuts,
+    navigate,
+    timesToUse,
+    batchDate,
+    selectedBatchNo,
+    isBatchRestricted,
+    usageWastagePercentage,
+  ]);
+
   return (
     <div className="container">
       <SubscriptionWarning />
@@ -269,6 +409,7 @@ function FeedMillStock() {
         <div className="col-12 col-md-4 mb-2 mb-md-0">
           {viewState !== "add" && (
             <StyledSelect
+              ref={selectRef}
               value={selectedCompositionOption}
               onChange={handleCompositionSelectChange}
               options={compositionOptions}
@@ -386,6 +527,7 @@ function FeedMillStock() {
               -
             </button>
             <input 
+              ref={mixesInputRef}
               type="number" 
               className="form-control form-control-sm text-center" 
               style={{ width: '80px' }}
@@ -446,32 +588,9 @@ function FeedMillStock() {
 
           <div className="d-flex gap-2">
             <button
+              id="confirm-use-btn"
               className="btn btn-primary"
-              onClick={async () => {
-                if (!isBatchRestricted && !selectedBatchNo) {
-                  toast.error("Please select a Batch Number");
-                  return;
-                }
-                if (!batchDate) {
-                  toast.error("Please select a Batch Date");
-                  return;
-                }
-                try {
-                  await compositionApi.useComposition({
-                    compositionId: selectedComposition.id,
-                    times: Number(timesToUse) || 1,
-                    usedAt: `${batchDate}T00:00:00`,
-                    batch_no: isBatchRestricted ? undefined : selectedBatchNo,
-                    wastage_percentage: Number(usageWastagePercentage) || 0,
-                  });
-                  toast.success(`Used composition ${selectedComposition.name} ${timesToUse} time(s)`);
-                  const updated = await compositionApi.getCompositions();
-                  setCompositions(updated);
-                  setViewState("view");
-                } catch (err: any) {
-                  toast.error(err.message || "Failed to use composition");
-                }
-              }}
+              onClick={handleConfirmUseComposition}
               disabled={isSubscriptionPaid === false}
             >
               Confirm
@@ -527,6 +646,10 @@ function FeedMillStock() {
           onOpenCreateItem={handleOpenCreateItem}
         />
       )}
+      <KeyboardShortcutsIndicator
+        hasSearch={viewState === "add" || viewState === "edit"}
+        hasNew={viewState === "view"}
+      />
     </div>
   );
 }

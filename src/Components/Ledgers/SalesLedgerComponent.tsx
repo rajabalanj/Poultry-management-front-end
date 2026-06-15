@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
@@ -35,6 +35,7 @@ const SalesLedgerComponent: React.FC = () => {
     const [isSharing, setIsSharing] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const ITEMS_PER_PAGE = 10;
+    const tableContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const fetchCustomers = async () => {
@@ -121,40 +122,40 @@ const SalesLedgerComponent: React.FC = () => {
     };
 
     const handleShareOrDownload = async (fetchBlob: () => Promise<Blob>, filename: string, title: string) => {
-                setIsSharing(true);
+        setIsSharing(true);
+        try {
+            const blob = await fetchBlob();
+            const file = new File([blob], filename, { type: 'application/pdf' });
+
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 try {
-                  const blob = await fetchBlob();
-                  const file = new File([blob], filename, { type: 'application/pdf' });
-            
-                  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    try {
-                      await navigator.share({ title, files: [file] });
-                      toast.success(`${title} shared successfully!`);
-                      return;
-                    } catch (shareError: any) {
-                      if (shareError.name === 'AbortError') return;
-                      console.error('Share error:', shareError);
-                    }
-                  }
-                  
-                  // Fallback: direct download
-                  const url = window.URL.createObjectURL(blob);
-                  const link = document.createElement('a');
-                  link.href = url;
-                  link.download = filename;
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-                  window.URL.revokeObjectURL(url);
-                  toast.success(`${title} downloaded successfully!`);
-                } catch (error: any) {
-                  console.error('Failed to export PDF:', error);
-                  toast.error(error.message || `Failed to export ${title}.`);
-                } finally {
-                  setIsSharing(false);
+                    await navigator.share({ title, files: [file] });
+                    toast.success(`${title} shared successfully!`);
+                    return;
+                } catch (shareError: any) {
+                    if (shareError.name === 'AbortError') return;
+                    console.error('Share error:', shareError);
                 }
-              };
-    
+            }
+
+            // Fallback: direct download
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            toast.success(`${title} downloaded successfully!`);
+        } catch (error: any) {
+            console.error('Failed to export PDF:', error);
+            toast.error(error.message || `Failed to export ${title}.`);
+        } finally {
+            setIsSharing(false);
+        }
+    };
+
     const handleShareSalesLedgerPDF = () => handleShareOrDownload(
         () => financialReportsApi.exportSalesLedger(customerId ? parseInt(customerId, 10) : undefined, startDate ? format(startDate, 'yyyy-MM-dd') : undefined, endDate ? format(endDate, 'yyyy-MM-dd') : undefined, 'pdf'),
         `Sales_Ledger_${customerId || 'All'}_${format(new Date(), 'yyyyMMdd')}.pdf`,
@@ -170,10 +171,9 @@ const SalesLedgerComponent: React.FC = () => {
     // Keyboard navigation for table rows
     const { resetSelection, setSelectedIndex } = useTableKeyboardNavigation({
         rowCount: paginatedEntries.length || 0,
+        containerRef: tableContainerRef,
         onRowSelect: (index) => {
             setFocusedRowIndex(index);
-            const row = document.querySelector(`tr[data-row-index="${index}"]`);
-            row?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
         },
         onRowEnter: (index) => {
             if (paginatedEntries && paginatedEntries[index]) {
@@ -243,8 +243,8 @@ const SalesLedgerComponent: React.FC = () => {
                         </button>
                         {customerId && (
                             <div className="d-flex gap-2">
-                                <Form.Select 
-                                    size="sm" 
+                                <Form.Select
+                                    size="sm"
                                     className="w-auto"
                                     value={billType}
                                     onChange={(e) => setBillType(e.target.value as any)}
@@ -270,7 +270,12 @@ const SalesLedgerComponent: React.FC = () => {
                             {ledgerData.total_records !== undefined && ` | Total records: ${ledgerData.total_records}`}
                         </p>
                         <KeyboardShortcutsIndicator hasPayment />
-                        <div className="table-responsive">
+                        <div
+                            className="table-responsive"
+                            ref={tableContainerRef}
+                            tabIndex={0}
+                            style={{ outline: 'none' }}
+                        >
                             <table className="table table-striped table-hover">
                                 <thead>
                                     <tr>
@@ -287,10 +292,10 @@ const SalesLedgerComponent: React.FC = () => {
                                 </thead>
                                 <tbody>
                                     {paginatedEntries.map((entry, index) => (
-                                        <tr 
-                                            key={index} 
+                                        <tr
+                                            key={index}
                                             data-row-index={index}
-                                            onClick={() => handleRowClick(entry, index)} 
+                                            onClick={() => handleRowClick(entry, index)}
                                             className={focusedRowIndex === index ? 'table-primary' : ''}
                                             style={{ cursor: 'pointer' }}
                                         >

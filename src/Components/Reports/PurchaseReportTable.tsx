@@ -28,9 +28,10 @@ interface PurchaseReportTableProps {
   focusedRowIndex?: number;
   setFocusedRowIndex?: (index: number) => void;
   setSelectedIndex?: (index: number) => void;
+  containerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
-const PurchaseReportTable: React.FC<PurchaseReportTableProps> = ({ purchaseOrders, vendors, loading, error, pagination, filters = {}, onAddPayment, onDelete, focusedRowIndex, setFocusedRowIndex, setSelectedIndex }) => {
+const PurchaseReportTable: React.FC<PurchaseReportTableProps> = ({ purchaseOrders, vendors, loading, error, pagination, filters = {}, onAddPayment, onDelete, focusedRowIndex, setFocusedRowIndex, setSelectedIndex, containerRef }) => {
   const navigate = useNavigate();
   const [isSharing, setIsSharing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -134,7 +135,7 @@ const PurchaseReportTable: React.FC<PurchaseReportTableProps> = ({ purchaseOrder
           {isSharing ? 'Generating...' : 'Share as PDF'}
         </Button>
       </div>
-      <div className="table-responsive">
+      <div className="table-responsive" ref={containerRef} tabIndex={0} style={{ outline: 'none' }}>
         <table className="table table-striped table-hover">
           <thead className="thead-dark" id="purchase-report-table">
             <tr>
@@ -182,15 +183,14 @@ const PurchaseReportTable: React.FC<PurchaseReportTableProps> = ({ purchaseOrder
                     <td>{new Date(po.order_date).toLocaleDateString()}</td>
                     <td>{po.total_amount_str}</td>
                     <td>{po.total_amount_paid_str}</td>
-                    <td><span className={`badge ${
-                  po.status === 'Draft' ? 'bg-warning' :
-                  po.status === 'Partially Paid' ? 'bg-info' :
-                  po.status === 'Paid' ? 'bg-success' :
-                  'bg-secondary'
-                }`}>{po.status}</span></td>
+                    <td><span className={`badge ${po.status === 'Draft' ? 'bg-warning' :
+                        po.status === 'Partially Paid' ? 'bg-info' :
+                          po.status === 'Paid' ? 'bg-success' :
+                            'bg-secondary'
+                      }`}>{po.status}</span></td>
                     <td>
-                      <Button 
-                        variant="outline-info" 
+                      <Button
+                        variant="outline-info"
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -233,30 +233,30 @@ const PurchaseReportTable: React.FC<PurchaseReportTableProps> = ({ purchaseOrder
                       <td colSpan={8}>
                         <div className="p-2">
                           <div className="table-responsive">
-                          <table className="table mb-0">
-                            <thead>
-                              <tr>
-                                <th>Item Name</th>
-                                <th>Qty</th>
-                                <th>Unit Price</th>
-                                <th>Line Total</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {Array.isArray(po.items) && po.items.length > 0 ? po.items.map((it: PurchaseOrderItemResponse) => (
-                                <tr key={it.id}>
-                                  <td>{getItemName(it.inventory_item_id)}</td>
-                                  <td>{it.quantity}</td>
-                                  <td>{it.price_per_unit_str}</td>
-                                  <td>{it.line_total_str}</td>
-                                </tr>
-                              )) : (
+                            <table className="table mb-0">
+                              <thead>
                                 <tr>
-                                  <td colSpan={4} className="text-center">No items</td>
+                                  <th>Item Name</th>
+                                  <th>Qty</th>
+                                  <th>Unit Price</th>
+                                  <th>Line Total</th>
                                 </tr>
-                              )}
-                            </tbody>
-                          </table>
+                              </thead>
+                              <tbody>
+                                {Array.isArray(po.items) && po.items.length > 0 ? po.items.map((it: PurchaseOrderItemResponse) => (
+                                  <tr key={it.id}>
+                                    <td>{getItemName(it.inventory_item_id)}</td>
+                                    <td>{it.quantity}</td>
+                                    <td>{it.price_per_unit_str}</td>
+                                    <td>{it.line_total_str}</td>
+                                  </tr>
+                                )) : (
+                                  <tr>
+                                    <td colSpan={4} className="text-center">No items</td>
+                                  </tr>
+                                )}
+                              </tbody>
+                            </table>
                           </div>
                         </div>
                       </td>

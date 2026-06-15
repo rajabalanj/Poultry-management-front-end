@@ -13,6 +13,8 @@ interface PurchaseOrderCardProps {
   onDelete?: (id: number) => void;
   onAddPayment?: (id: number) => void;
   onViewItems: (items: PurchaseOrderItemResponse[], po_number: string) => void;
+  index?: number;
+  isFocused?: boolean;
 }
 
 const getStatusBadgeClass = (status: PurchaseOrderStatus | PaymentStatus) => {
@@ -32,8 +34,8 @@ const getStatusBadgeClass = (status: PurchaseOrderStatus | PaymentStatus) => {
 };
 
 const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = React.memo(
-  ({ Purchase, vendors, onView, onEdit, onDelete, onAddPayment, onViewItems }) => {
-    
+  ({ Purchase, vendors, onView, onEdit, onDelete, onAddPayment, onViewItems, index, isFocused }) => {
+
     const vendorName = vendors.find(v => v.id === Purchase.vendor_id)?.name || 'N/A';
 
     // Stop event propagation for buttons
@@ -49,12 +51,13 @@ const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = React.memo(
     const { isSubscriptionPaid } = useSubscription();
 
     return (
-      <div 
-        className="card mb-2 mt-2 border-top-0 border-end-0 border-start-0 border-bottom"
+      <div
+        className={`card mb-2 mt-2 border-top-0 border-end-0 border-start-0 border-bottom ${isFocused ? 'bg-primary-subtle' : ''}`}
         style={{ cursor: 'pointer', borderRadius: 0 }}
-        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
-        onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+        onMouseOver={(e) => { if (!isFocused) e.currentTarget.style.backgroundColor = '#f0f0f0'; }}
+        onMouseOut={(e) => { if (!isFocused) e.currentTarget.style.backgroundColor = 'transparent'; }}
         onClick={() => onView(Purchase.id)}
+        data-row-index={index}
       >
         <div className="card-body p-2">
           <div className="d-flex justify-content-between align-items-center">
@@ -69,7 +72,7 @@ const PurchaseOrderCard: React.FC<PurchaseOrderCardProps> = React.memo(
             </div>
             <div className="d-flex align-items-center">
               <button className="btn btn-sm btn-outline-info me-2" onClick={(e) => handleActionClick(e, onViewItems, Purchase.items, Purchase.po_number)}>
-                  <i className="bi bi-list-ul"></i>
+                <i className="bi bi-list-ul"></i>
               </button>
               {showActions && (
                 <>

@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { Pagination } from 'react-bootstrap';
+import { isInputFocused } from '../../utils/isInputFocused';
 
 interface CustomPaginationProps {
   currentPage: number;
@@ -21,8 +22,7 @@ const CustomPagination: React.FC<CustomPaginationProps> = ({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
-      const isInputFocused = ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable;
-      if (isInputFocused) return;
+      if (isInputFocused(target)) return;
 
       if (e.key === 'ArrowLeft') {
         if (currentPage > 1) onPageChange(currentPage - 1);

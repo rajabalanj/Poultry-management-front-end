@@ -7,6 +7,11 @@ import { shedApi } from "../../services/api";
 import { ShedResponse } from "../../types/shed";
 import { toast } from 'react-toastify';
 import { useSubscription } from '../context/SubscriptionContext';
+import { usePageShortcuts } from "../../hooks/usePageShortcuts";
+import { useModalScope } from "../../hooks/useModalScope";
+import KeyboardShortcutsIndicator from "../Common/KeyboardShortcutsIndicator";
+import { useTableKeyboardNavigation } from "../../hooks/useTableKeyboardNavigation";
+import { useRef } from "react";
 import ShedTable from "./ShedTable";
 
 
@@ -18,6 +23,46 @@ const ShedIndexPage: React.FC = () => {
   const [itemToDelete, setItemToDelete] = useState<number | null>(null);
   const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(null);
   const { isSubscriptionPaid } = useSubscription();
+
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1);
+
+  usePageShortcuts({
+    createNewPath: isSubscriptionPaid !== false ? '/sheds/create' : undefined,
+  });
+
+  useModalScope(showDeleteModal, 'modal');
+
+  const { resetSelection, setSelectedIndex } = useTableKeyboardNavigation({
+    rowCount: sheds.length,
+    containerRef: tableContainerRef,
+    onRowSelect: (index) => {
+      setFocusedRowIndex(index);
+    },
+    onRowEnter: (index) => {
+      const shed = sheds[index];
+      if (shed) {
+        window.location.href = `/sheds/${shed.id}/details`;
+      }
+    },
+    onRowAction: (index, key) => {
+      const shed = sheds[index];
+      if (!shed) return;
+      const k = key.toLowerCase();
+      if (k === 'e' && isSubscriptionPaid !== false) {
+        window.location.href = `/sheds/${shed.id}/edit`;
+      } else if (k === 'd' && isSubscriptionPaid !== false) {
+        handleDelete(shed.id);
+      }
+    },
+    enabled: sheds.length > 0,
+    actionKeys: ['e', 'E', 'd', 'D'],
+  });
+
+  useEffect(() => {
+    resetSelection();
+    setFocusedRowIndex(-1);
+  }, [sheds, resetSelection]);
 
   useEffect(() => {
     const fetchShedList = async () => {
@@ -81,9 +126,20 @@ const ShedIndexPage: React.FC = () => {
           loading={loading}
           error={error}
           onDelete={handleDelete}
+          focusedRowIndex={focusedRowIndex}
+          setFocusedRowIndex={setFocusedRowIndex}
+          setSelectedIndex={setSelectedIndex}
+          containerRef={tableContainerRef}
         />
 
-        <Modal show={showDeleteModal} onHide={cancelDelete}>
+        <Modal 
+          show={showDeleteModal} 
+          onHide={cancelDelete}
+          onEntered={() => {
+            const btn = document.querySelector('.modal-footer .btn-danger') as HTMLElement;
+            btn?.focus();
+          }}
+        >
           <Modal.Header closeButton>
             <Modal.Title>Confirm Delete</Modal.Title>
           </Modal.Header>
@@ -103,6 +159,7 @@ const ShedIndexPage: React.FC = () => {
             </Button>
           </Modal.Footer>
         </Modal>
+        <KeyboardShortcutsIndicator hasNew hasDelete />
       </div>
     </>
   );

@@ -27,9 +27,10 @@ interface SalesReportTableProps {
   focusedRowIndex?: number;
   setFocusedRowIndex?: (index: number) => void;
   setSelectedIndex?: (index: number) => void;
+  containerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
-const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, customers, loading, error, pagination, filters = {}, onAddPayment, onDelete, focusedRowIndex, setFocusedRowIndex, setSelectedIndex }) => {
+const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, customers, loading, error, pagination, filters = {}, onAddPayment, onDelete, focusedRowIndex, setFocusedRowIndex, setSelectedIndex, containerRef }) => {
   const navigate = useNavigate();
   const [isSharing, setIsSharing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -128,7 +129,7 @@ const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, custom
           {isSharing ? 'Generating...' : 'Share as PDF'}
         </Button>
       </div>
-      <div className="table-responsive">
+      <div className="table-responsive" ref={containerRef} tabIndex={0} style={{ outline: 'none' }}>
         <table className="table table-striped table-hover">
           <thead className="thead-dark" id="sales-report-table">
             <tr>
@@ -176,17 +177,16 @@ const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, custom
                     <td>{new Date(so.order_date).toLocaleDateString()}</td>
                     <td>{so.total_amount_str}</td>
                     <td>{so.total_amount_paid_str}</td>
-                    <td><span className={`badge ${
-                  so.status === 'Draft' ? 'bg-warning' :
-                  so.status === 'Approved' ? 'bg-primary' :
-                  so.status === 'Partially Paid' ? 'bg-info' :
-                  so.status === 'Paid' ? 'bg-success' :
-                  so.status === 'Cancelled' ? 'bg-danger' :
-                  'bg-secondary'
-                }`}>{so.status}</span></td>
+                    <td><span className={`badge ${so.status === 'Draft' ? 'bg-warning' :
+                        so.status === 'Approved' ? 'bg-primary' :
+                          so.status === 'Partially Paid' ? 'bg-info' :
+                            so.status === 'Paid' ? 'bg-success' :
+                              so.status === 'Cancelled' ? 'bg-danger' :
+                                'bg-secondary'
+                      }`}>{so.status}</span></td>
                     <td>
-                      <Button 
-                        variant="outline-info" 
+                      <Button
+                        variant="outline-info"
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -231,30 +231,30 @@ const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, custom
                       <td colSpan={8}>
                         <div className="p-2">
                           <div className="table-responsive">
-                          <table className="table mb-0">
-                            <thead>
-                              <tr>
-                                <th>Item Name</th>
-                                <th>Qty</th>
-                                <th>Unit Price</th>
-                                <th>Line Total</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {Array.isArray(so.items) && so.items.length > 0 ? so.items.map((it: SalesOrderItemResponse) => (
-                                <tr key={it.id}>
-                                  <td>{getItemName(it.inventory_item_id)}</td>
-                                  <td>{it.quantity}</td>
-                                  <td>{it.price_per_unit_str}</td>
-                                  <td>{it.line_total_str}</td>
-                                </tr>
-                              )) : (
+                            <table className="table mb-0">
+                              <thead>
                                 <tr>
-                                  <td colSpan={4} className="text-center">No items</td>
+                                  <th>Item Name</th>
+                                  <th>Qty</th>
+                                  <th>Unit Price</th>
+                                  <th>Line Total</th>
                                 </tr>
-                              )}
-                            </tbody>
-                          </table>
+                              </thead>
+                              <tbody>
+                                {Array.isArray(so.items) && so.items.length > 0 ? so.items.map((it: SalesOrderItemResponse) => (
+                                  <tr key={it.id}>
+                                    <td>{getItemName(it.inventory_item_id)}</td>
+                                    <td>{it.quantity}</td>
+                                    <td>{it.price_per_unit_str}</td>
+                                    <td>{it.line_total_str}</td>
+                                  </tr>
+                                )) : (
+                                  <tr>
+                                    <td colSpan={4} className="text-center">No items</td>
+                                  </tr>
+                                )}
+                              </tbody>
+                            </table>
                           </div>
                         </div>
                       </td>
@@ -273,7 +273,7 @@ const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, custom
           onPageChange={pagination.setCurrentPage}
         />
       )}
-      
+
     </>
   );
 };

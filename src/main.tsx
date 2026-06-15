@@ -8,11 +8,14 @@ import 'bootstrap-icons/font/bootstrap-icons.min.css'
 import './styles/bootstrap.min.css'
 import './styles/global.css';
 import 'react-datepicker/dist/react-datepicker.css';
+import { KeyboardShortcutProvider } from './Components/context/KeyboardShortcutContext.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AuthProvider {...cognitoConfig}>
-      <App />
+      <KeyboardShortcutProvider>
+        <App />
+      </KeyboardShortcutProvider>
     </AuthProvider>
   </StrictMode>,
 )

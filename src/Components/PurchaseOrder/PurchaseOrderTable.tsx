@@ -28,9 +28,10 @@ interface PurchaseOrderTableProps {
   focusedRowIndex?: number;
   setFocusedRowIndex?: (index: number) => void;
   setSelectedIndex?: (index: number) => void;
+  containerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
-const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders, loading, error, onDelete, vendors, onAddPayment, pagination, filters = {} }) => {
+const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders, loading, error, onDelete, vendors, onAddPayment, pagination, filters = {}, focusedRowIndex, containerRef }) => {
   const navigate = useNavigate();
   const tableRef = useRef<HTMLDivElement>(null);
   const [isSharing, setIsSharing] = useState(false);
@@ -133,7 +134,7 @@ const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders,
 
   const poCards = useMemo(() => {
     // The purchaseOrders prop is already filtered and paginated by the parent component.
-    return purchaseOrders.map((Purchase) => (
+    return purchaseOrders.map((Purchase, index) => (
       <PurchaseOrderCard
         key={Purchase.id}
         Purchase={Purchase}
@@ -143,9 +144,11 @@ const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders,
         onDelete={onDelete}
         onAddPayment={onAddPayment}
         onViewItems={handleViewItems}
+        index={index}
+        isFocused={focusedRowIndex === index}
       />
     ));
-  }, [purchaseOrders, vendors, handleViewDetails, handleEdit, onDelete, onAddPayment, handleViewItems]);
+  }, [purchaseOrders, vendors, handleViewDetails, handleEdit, onDelete, onAddPayment, handleViewItems, focusedRowIndex]);
 
   if (loading) return <div className="text-center">Loading Purchase...</div>;
   if (error) return <div className="text-center text-danger">{error}</div>;
@@ -161,7 +164,7 @@ const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders,
           {isSharing ? 'Generating...' : 'Share as PDF'}
         </Button>
       </div>
-      <div className="px-2">{poCards}</div>
+      <div className="px-2" ref={containerRef} tabIndex={0} style={{ outline: 'none' }}>{poCards}</div>
       <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
         <div className="table-responsive" ref={tableRef}>
           <table className="table table-striped table-hover" id="purchase-order-table">
@@ -186,15 +189,14 @@ const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders,
                     <td>{new Date(po.order_date).toLocaleDateString()}</td>
                     <td>{po.total_amount_str}</td>
                     <td>{po.total_amount_paid_str}</td>
-                    <td><span className={`badge ${
-                  po.status === 'Draft' ? 'bg-warning' :
-                  po.status === 'Partially Paid' ? 'bg-info' :
-                  po.status === 'Paid' ? 'bg-success' :
-                  'bg-secondary'
-                }`}>{po.status}</span></td>
-                <td>
-                  {po.items?.map(item => getItemName(item.inventory_item_id)).join(', ') || 'N/A'}
-                </td>
+                    <td><span className={`badge ${po.status === 'Draft' ? 'bg-warning' :
+                      po.status === 'Partially Paid' ? 'bg-info' :
+                        po.status === 'Paid' ? 'bg-success' :
+                          'bg-secondary'
+                      }`}>{po.status}</span></td>
+                    <td>
+                      {po.items?.map(item => getItemName(item.inventory_item_id)).join(', ') || 'N/A'}
+                    </td>
                   </tr>
                 );
               })}
@@ -202,13 +204,13 @@ const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders,
           </table>
         </div>
       </div>
-  {pagination && (
-    <CustomPagination
-      currentPage={pagination.currentPage}
-      totalPages={pagination.totalPages}
-      onPageChange={pagination.setCurrentPage}
-    />
-  )}
+      {pagination && (
+        <CustomPagination
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          onPageChange={pagination.setCurrentPage}
+        />
+      )}
       <ItemsModal
         show={showItemsModal}
         onHide={() => setShowItemsModal(false)}

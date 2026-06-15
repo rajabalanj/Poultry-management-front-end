@@ -10,6 +10,9 @@ import OperationalExpensesTable from "./OperationalExpensesTable";
 import ErrorBoundary from "../Common/ErrorBoundary";
 import CustomDatePicker from '../Common/CustomDatePicker';
 import { useSubscription } from '../context/SubscriptionContext';
+import { usePageShortcuts } from "../../hooks/usePageShortcuts";
+import { useModalScope } from "../../hooks/useModalScope";
+import KeyboardShortcutsIndicator from "../Common/KeyboardShortcutsIndicator";
 
 const OperationalExpensesIndexPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -21,6 +24,16 @@ const OperationalExpensesIndexPage: React.FC = () => {
   const [startDate, setStartDate] = useState(new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
   const { isSubscriptionPaid } = useSubscription();
+
+  usePageShortcuts({
+    createNewPath: isSubscriptionPaid !== false ? '/operational-expenses/create' : undefined,
+    onSearchFocus: () => {
+      const input = document.getElementById('opExStartDate') as HTMLInputElement;
+      if (input) input.focus();
+    }
+  });
+
+  useModalScope(showDeleteModal, 'modal');
 
   const fetchOperationalExpenses = async (start: string, end: string) => {
     setLoading(true);
@@ -138,7 +151,14 @@ const OperationalExpensesIndexPage: React.FC = () => {
           />
         </ErrorBoundary>
 
-        <Modal show={showDeleteModal} onHide={cancelDelete}>
+        <Modal 
+          show={showDeleteModal} 
+          onHide={cancelDelete}
+          onEntered={() => {
+            const btn = document.querySelector('.modal-footer .btn-danger') as HTMLElement;
+            btn?.focus();
+          }}
+        >
           <Modal.Header closeButton>
             <Modal.Title>Confirm Delete</Modal.Title>
           </Modal.Header>
@@ -158,6 +178,7 @@ const OperationalExpensesIndexPage: React.FC = () => {
             </Button>
           </Modal.Footer>
         </Modal>
+        <KeyboardShortcutsIndicator hasNew hasSearch hasDelete />
       </div>
     </>
   );

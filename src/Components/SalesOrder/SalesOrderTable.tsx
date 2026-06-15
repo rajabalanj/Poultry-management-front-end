@@ -28,9 +28,10 @@ interface SalesOrderTableProps {
   focusedRowIndex?: number;
   setFocusedRowIndex?: (index: number) => void;
   setSelectedIndex?: (index: number) => void;
+  containerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
-const SalesOrderTable: React.FC<SalesOrderTableProps> = ({ salesOrders, loading, error, onDelete, customers, onAddPayment, pagination, filters = {} }) => {
+const SalesOrderTable: React.FC<SalesOrderTableProps> = ({ salesOrders, loading, error, onDelete, customers, onAddPayment, pagination, filters = {}, focusedRowIndex, containerRef }) => {
   const navigate = useNavigate();
   const tableRef = useRef<HTMLDivElement>(null);
   const [isSharing, setIsSharing] = useState(false);
@@ -134,7 +135,7 @@ const SalesOrderTable: React.FC<SalesOrderTableProps> = ({ salesOrders, loading,
 
   const soCards = useMemo(() => {
     // The salesOrders prop is already filtered and paginated by the parent component.
-    return salesOrders.map((so) => (
+    return salesOrders.map((so, index) => (
       <SalesOrderCard
         key={so.id}
         so={so}
@@ -144,9 +145,11 @@ const SalesOrderTable: React.FC<SalesOrderTableProps> = ({ salesOrders, loading,
         onDelete={onDelete}
         onAddPayment={onAddPayment}
         onViewItems={handleViewItems}
+        index={index}
+        isFocused={focusedRowIndex === index}
       />
     ));
-  }, [salesOrders, customers, handleViewDetails, handleEdit, onDelete, onAddPayment, handleViewItems]);
+  }, [salesOrders, customers, handleViewDetails, handleEdit, onDelete, onAddPayment, handleViewItems, focusedRowIndex]);
 
   if (loading) return <div className="text-center">Loading sales...</div>;
   if (error) return <div className="text-center text-danger">{error}</div>;
@@ -162,7 +165,7 @@ const SalesOrderTable: React.FC<SalesOrderTableProps> = ({ salesOrders, loading,
           {isSharing ? 'Generating...' : 'Share as PDF'}
         </Button>
       </div>
-      <div className="px-2">{soCards}</div>
+      <div className="px-2" ref={containerRef} tabIndex={0} style={{ outline: 'none' }}>{soCards}</div>
       <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
         <div className="table-responsive" ref={tableRef}>
           <table className="table table-striped table-hover" id="sales-order-table">
@@ -187,20 +190,19 @@ const SalesOrderTable: React.FC<SalesOrderTableProps> = ({ salesOrders, loading,
                     <td>{new Date(so.order_date).toLocaleDateString()}</td>
                     <td>{so.total_amount_str}</td>
                     <td>{so.total_amount_paid_str}</td>
-                    <td><span className={`badge ${
-                  so.status === 'Draft' ? 'bg-warning' :
-                  so.status === 'Approved' ? 'bg-primary' :
-                  so.status === 'Partially Paid' ? 'bg-info' :
-                  so.status === 'Paid' ? 'bg-success' :
-                  so.status === 'Cancelled' ? 'bg-danger' :
-                  'bg-secondary'
-                }`}>{so.status}</span></td>
-                <td>
-                  {so.items?.map(item => {
-                    const name = getItemName(item.inventory_item_id);
-                    return item.variant_name ? `${name} (${item.variant_name})` : name;
-                  }).join(', ') || 'N/A'}
-                </td>
+                    <td><span className={`badge ${so.status === 'Draft' ? 'bg-warning' :
+                      so.status === 'Approved' ? 'bg-primary' :
+                        so.status === 'Partially Paid' ? 'bg-info' :
+                          so.status === 'Paid' ? 'bg-success' :
+                            so.status === 'Cancelled' ? 'bg-danger' :
+                              'bg-secondary'
+                      }`}>{so.status}</span></td>
+                    <td>
+                      {so.items?.map(item => {
+                        const name = getItemName(item.inventory_item_id);
+                        return item.variant_name ? `${name} (${item.variant_name})` : name;
+                      }).join(', ') || 'N/A'}
+                    </td>
                   </tr>
                 );
               })}
@@ -208,13 +210,13 @@ const SalesOrderTable: React.FC<SalesOrderTableProps> = ({ salesOrders, loading,
           </table>
         </div>
       </div>
-  {pagination && (
-    <CustomPagination
-      currentPage={pagination.currentPage}
-      totalPages={pagination.totalPages}
-      onPageChange={pagination.setCurrentPage}
-    />
-  )}
+      {pagination && (
+        <CustomPagination
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          onPageChange={pagination.setCurrentPage}
+        />
+      )}
       <ItemsModal
         show={showItemsModal}
         onHide={() => setShowItemsModal(false)}

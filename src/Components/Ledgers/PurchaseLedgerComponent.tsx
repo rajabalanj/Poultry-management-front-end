@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
@@ -33,6 +33,7 @@ const PurchaseLedgerComponent: React.FC = () => {
     const [isSharing, setIsSharing] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const ITEMS_PER_PAGE = 10;
+    const tableContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const fetchVendors = async () => {
@@ -82,40 +83,40 @@ const PurchaseLedgerComponent: React.FC = () => {
     };
 
     const handleShareOrDownload = async (fetchBlob: () => Promise<Blob>, filename: string, title: string) => {
-            setIsSharing(true);
-            try {
-              const blob = await fetchBlob();
-              const file = new File([blob], filename, { type: 'application/pdf' });
-        
-              if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        setIsSharing(true);
+        try {
+            const blob = await fetchBlob();
+            const file = new File([blob], filename, { type: 'application/pdf' });
+
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 try {
-                  await navigator.share({ title, files: [file] });
-                  toast.success(`${title} shared successfully!`);
-                  return;
+                    await navigator.share({ title, files: [file] });
+                    toast.success(`${title} shared successfully!`);
+                    return;
                 } catch (shareError: any) {
-                  if (shareError.name === 'AbortError') return;
-                  console.error('Share error:', shareError);
+                    if (shareError.name === 'AbortError') return;
+                    console.error('Share error:', shareError);
                 }
-              }
-              
-              // Fallback: direct download
-              const url = window.URL.createObjectURL(blob);
-              const link = document.createElement('a');
-              link.href = url;
-              link.download = filename;
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-              window.URL.revokeObjectURL(url);
-              toast.success(`${title} downloaded successfully!`);
-            } catch (error: any) {
-              console.error('Failed to export PDF:', error);
-              toast.error(error.message || `Failed to export ${title}.`);
-            } finally {
-              setIsSharing(false);
             }
-          };
-    
+
+            // Fallback: direct download
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            toast.success(`${title} downloaded successfully!`);
+        } catch (error: any) {
+            console.error('Failed to export PDF:', error);
+            toast.error(error.message || `Failed to export ${title}.`);
+        } finally {
+            setIsSharing(false);
+        }
+    };
+
     const handleSharePurchaseLedgerPDF = () => handleShareOrDownload(
         () => financialReportsApi.exportPurchaseLedger(vendorId ? parseInt(vendorId, 10) : undefined, startDate ? format(startDate, 'yyyy-MM-dd') : undefined, endDate ? format(endDate, 'yyyy-MM-dd') : undefined, 'pdf'),
         `Purchase_Ledger_${vendorId || 'All'}_${startDate ? format(startDate, 'yyyy-MM-dd') : 'start'}_to_${endDate ? format(endDate, 'yyyy-MM-dd') : 'end'}.pdf`,
@@ -139,10 +140,9 @@ const PurchaseLedgerComponent: React.FC = () => {
     // Keyboard navigation for table rows
     const { resetSelection, setSelectedIndex } = useTableKeyboardNavigation({
         rowCount: paginatedEntries.length || 0,
+        containerRef: tableContainerRef,
         onRowSelect: (index) => {
             setFocusedRowIndex(index);
-            const row = document.querySelector(`tr[data-row-index="${index}"]`);
-            row?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
         },
         onRowEnter: (index) => {
             if (paginatedEntries && paginatedEntries[index]) {
@@ -222,7 +222,12 @@ const PurchaseLedgerComponent: React.FC = () => {
                             {ledgerData.total_records !== undefined && ` | Total records: ${ledgerData.total_records}`}
                         </p>
                         <KeyboardShortcutsIndicator hasPayment />
-                        <div className="table-responsive">
+                        <div
+                            className="table-responsive"
+                            ref={tableContainerRef}
+                            tabIndex={0}
+                            style={{ outline: 'none' }}
+                        >
                             <table className="table table-striped table-hover">
                                 <thead>
                                     <tr>
@@ -239,10 +244,10 @@ const PurchaseLedgerComponent: React.FC = () => {
                                 </thead>
                                 <tbody>
                                     {paginatedEntries.map((entry, index) => (
-                                        <tr 
-                                            key={index} 
+                                        <tr
+                                            key={index}
                                             data-row-index={index}
-                                            onClick={() => handleRowClick(entry, index)} 
+                                            onClick={() => handleRowClick(entry, index)}
                                             className={focusedRowIndex === index ? 'table-primary' : ''}
                                             style={{ cursor: 'pointer' }}
                                         >
@@ -255,7 +260,7 @@ const PurchaseLedgerComponent: React.FC = () => {
                                             <td>{entry.balance_amount_str || entry.balance_amount.toFixed(2)}</td>
                                             <td>{entry.payment_status}</td>
                                             <td>
-                                                <button 
+                                                <button
                                                     className="btn btn-sm btn-outline-primary"
                                                     onClick={(e) => handleOpenPayment(e, entry.po_id)}
                                                 >
@@ -282,8 +287,8 @@ const PurchaseLedgerComponent: React.FC = () => {
                 </Modal.Header>
                 <Modal.Body>
                     {selectedPoId && (
-                        <AddPaymentForm 
-                            poId={selectedPoId} 
+                        <AddPaymentForm
+                            poId={selectedPoId}
                             onSuccess={() => {
                                 setShowPaymentModal(false);
                                 handleFetchLedger(); // Refresh ledger data

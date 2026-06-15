@@ -1,5 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useShortcuts } from '../Components/context/KeyboardShortcutContext';
+import { Shortcut } from '../types/shortcuts';
 
 interface UsePageShortcutsOptions {
   onSearchFocus?: () => void;
@@ -17,30 +19,93 @@ export const usePageShortcuts = ({
   onDownloadBill
 }: UsePageShortcutsOptions) => {
   const navigate = useNavigate();
+  const { registerShortcuts } = useShortcuts();
+
+  // Use a mutable ref to always hold the latest callbacks without re-binding the listener
+  const callbacksRef = useRef({
+    onSearchFocus,
+    createNewPath,
+    onExport,
+    onShare,
+    onDownloadBill,
+    navigate
+  });
+
+  // Update the ref in a layout effect so it's always current before events fire
+  useLayoutEffect(() => {
+    callbacksRef.current = {
+      onSearchFocus,
+      createNewPath,
+      onExport,
+      onShare,
+      onDownloadBill,
+      navigate
+    };
+  });
 
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement;
-      const isInputFocused = ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable;
+    const shortcuts: Shortcut[] = [];
 
-      // "/" to focus search/filter (only if not already typing in an input)
-      if (event.key === '/' && !isInputFocused) {
-        event.preventDefault();
-        if (onSearchFocus) onSearchFocus();
-        return;
-      }
+    if (onSearchFocus) {
+      shortcuts.push({
+        key: '/',
+        description: 'Focus Search/Filter',
+        category: 'Page Actions',
+        action: () => callbacksRef.current.onSearchFocus?.()
+      });
+    }
 
-      // Modifier shortcuts (Alt + Key) for page actions
-      if (event.altKey) {
-        const key = event.key.toLowerCase();
-        if (key === 'n' && createNewPath) { event.preventDefault(); navigate(createNewPath); }
-        if (key === 'e' && onExport) { event.preventDefault(); onExport(); }
-        if (key === 's' && onShare) { event.preventDefault(); onShare(); }
-        if (key === 'b' && onDownloadBill) { event.preventDefault(); onDownloadBill(); }
-      }
+    if (createNewPath) {
+      shortcuts.push({
+        key: 'Alt+n',
+        description: 'Create New',
+        category: 'Page Actions',
+        action: () => {
+          if (callbacksRef.current.createNewPath) {
+            callbacksRef.current.navigate(callbacksRef.current.createNewPath);
+          }
+        }
+      });
+    }
+
+    if (onExport) {
+      shortcuts.push({
+        key: 'Alt+e',
+        description: 'Export',
+        category: 'Page Actions',
+        action: () => callbacksRef.current.onExport?.()
+      });
+    }
+
+    if (onShare) {
+      shortcuts.push({
+        key: 'Alt+s',
+        description: 'Share',
+        category: 'Page Actions',
+        action: () => callbacksRef.current.onShare?.()
+      });
+    }
+
+    if (onDownloadBill) {
+      shortcuts.push({
+        key: 'Alt+b',
+        description: 'Download Bill',
+        category: 'Page Actions',
+        action: () => callbacksRef.current.onDownloadBill?.()
+      });
+    }
+
+    const unregister = registerShortcuts(shortcuts);
+
+    return () => {
+      unregister();
     };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onSearchFocus, createNewPath, onExport, onShare, onDownloadBill, navigate]);
+  }, [
+    !!onSearchFocus,
+    !!createNewPath,
+    !!onExport,
+    !!onShare,
+    !!onDownloadBill,
+    registerShortcuts
+  ]);
 };

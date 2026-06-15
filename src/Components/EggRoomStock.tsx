@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useEggRoomStock } from '../hooks/useEggRoomStock';
 import CustomDatePicker from './Common/CustomDatePicker';
 import { StockFormSection } from '../Components/StockFormSection';
@@ -13,6 +13,10 @@ import { exportTableToExcel } from '../utility/export-utils';
 import { toYYYYMMDD } from '../utility/date-utils';
 import SubscriptionWarning from '../Components/Common/SubscriptionWarning';
 import CustomPagination from './Common/CustomPagination';
+import { useShortcuts } from './context/KeyboardShortcutContext';
+import { usePageShortcuts } from '../hooks/usePageShortcuts';
+import { useTableKeyboardNavigation } from '../hooks/useTableKeyboardNavigation';
+import KeyboardShortcutsIndicator from './Common/KeyboardShortcutsIndicator';
 
 // Define a common type for the fields to ensure consistency
 type StockFieldConfig = {
@@ -29,52 +33,52 @@ const sectionConfigs: Array<{
   color: string;
   fields: StockFieldConfig[];
 }> = [
-  {
-    id: 'table',
-    title: 'Table Stock',
-    icon: 'bi-box-seam',
-    color: 'primary',
-    fields: [
-      { key: 'table_opening', label: 'Opening', readOnly: true },
-      { key: 'table_received', label: 'Received', readOnly: true },
-      { key: 'table_transfer', label: 'Sold(Transfer)', readOnly: true },
-      { key: 'table_damage', label: 'Damage' },
-      { key: 'table_untrayed', label: 'Untrayed' },
-      { key: 'table_out', label: 'Out (To Jumbo)' },
-      { key: 'table_in', label: 'In (From Jumbo)', readOnly: true, controlledBy: 'jumbo_out' },
-    ],
-  },
-  {
-    id: 'jumbo',
-    title: 'Jumbo',
-    icon: 'bi-egg-fried',
-    color: 'primary',
-    fields: [
-      { key: 'jumbo_opening', label: 'Opening', readOnly: true },
-      { key: 'jumbo_received', label: 'Received', readOnly: true },
-      { key: 'jumbo_transfer', label: 'Sold(Transfer)', readOnly: true },
-      { key: 'jumbo_waste', label: 'Waste' },
-      { key: 'jumbo_untrayed', label: 'Untrayed' },
-      { key: 'jumbo_in', label: 'In (From Table)', readOnly: true, controlledBy: 'table_out' },
-      { key: 'jumbo_out', label: 'Out (To Table)' },
-    ],
-  },
-  {
-    id: 'gradec',
-    title: 'Grade C',
-    icon: 'bi-award',
-    color: 'primary',
-    fields: [
-      { key: 'grade_c_opening', label: 'Opening', readOnly: true },
-      { key: 'grade_c_shed_received', label: 'Shed Received', readOnly: true },
-      { key: 'grade_c_room_received', label: 'Room Received', readOnly: true, controlledBy: 'table_damage' },
-      { key: 'grade_c_transfer', label: 'Sold(Transfer)', readOnly: true },
-      { key: 'grade_c_labour', label: 'Labour' },
-      { key: 'grade_c_waste', label: 'Waste' },
-      { key: 'grade_c_untrayed', label: 'Untrayed' },
-    ],
-  },
-];
+    {
+      id: 'table',
+      title: 'Table Stock',
+      icon: 'bi-box-seam',
+      color: 'primary',
+      fields: [
+        { key: 'table_opening', label: 'Opening', readOnly: true },
+        { key: 'table_received', label: 'Received', readOnly: true },
+        { key: 'table_transfer', label: 'Sold(Transfer)', readOnly: true },
+        { key: 'table_damage', label: 'Damage' },
+        { key: 'table_untrayed', label: 'Untrayed' },
+        { key: 'table_out', label: 'Out (To Jumbo)' },
+        { key: 'table_in', label: 'In (From Jumbo)', readOnly: true, controlledBy: 'jumbo_out' },
+      ],
+    },
+    {
+      id: 'jumbo',
+      title: 'Jumbo',
+      icon: 'bi-egg-fried',
+      color: 'primary',
+      fields: [
+        { key: 'jumbo_opening', label: 'Opening', readOnly: true },
+        { key: 'jumbo_received', label: 'Received', readOnly: true },
+        { key: 'jumbo_transfer', label: 'Sold(Transfer)', readOnly: true },
+        { key: 'jumbo_waste', label: 'Waste' },
+        { key: 'jumbo_untrayed', label: 'Untrayed' },
+        { key: 'jumbo_in', label: 'In (From Table)', readOnly: true, controlledBy: 'table_out' },
+        { key: 'jumbo_out', label: 'Out (To Table)' },
+      ],
+    },
+    {
+      id: 'gradec',
+      title: 'Grade C',
+      icon: 'bi-award',
+      color: 'primary',
+      fields: [
+        { key: 'grade_c_opening', label: 'Opening', readOnly: true },
+        { key: 'grade_c_shed_received', label: 'Shed Received', readOnly: true },
+        { key: 'grade_c_room_received', label: 'Room Received', readOnly: true, controlledBy: 'table_damage' },
+        { key: 'grade_c_transfer', label: 'Sold(Transfer)', readOnly: true },
+        { key: 'grade_c_labour', label: 'Labour' },
+        { key: 'grade_c_waste', label: 'Waste' },
+        { key: 'grade_c_untrayed', label: 'Untrayed' },
+      ],
+    },
+  ];
 
 const closingFields: Record<string, keyof EggRoomStockEntry> = {
   table: 'table_closing',
@@ -114,6 +118,108 @@ const EggRoomStock: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
   const stockFormSectionToShareRef = useRef<HTMLDivElement>(null); // New ref for the stock form section
+
+  const { registerShortcuts } = useShortcuts();
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1);
+
+  const getPaginatedReports = useCallback(() => {
+    return reports.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+  }, [reports, currentPage]);
+
+  const { resetSelection, setSelectedIndex } = useTableKeyboardNavigation({
+    rowCount: getPaginatedReports().length,
+    containerRef: tableContainerRef,
+    onRowSelect: (index) => {
+      setFocusedRowIndex(index);
+    },
+    onRowEnter: () => { },
+    enabled: getPaginatedReports().length > 0,
+  });
+
+  const handleExport = async () => {
+    const fileName = `egg-room-report-${activeTab}`;
+    exportTableToExcel('egg-room-report-table', fileName, 'Egg Room Report');
+  };
+
+  const handleShare = async () => {
+    if (!tableRef.current) {
+      toast.error("Table element not found.");
+      return;
+    }
+
+    if (!navigator.share) {
+      toast.error("Web Share API is not supported in your browser.");
+      return;
+    }
+
+    const tableNode = tableRef.current;
+    setIsSharing(true);
+
+    // Store original inline styles to restore them later
+    const originalTableStyle = {
+      width: tableNode.style.width,
+      minWidth: tableNode.style.minWidth,
+      whiteSpace: tableNode.style.whiteSpace,
+    };
+
+    try {
+      // Temporarily apply styles for a consistent, wide image
+      tableNode.style.width = 'auto';
+      tableNode.style.minWidth = '1800px'; // Force a wide layout to prevent wrapping
+      tableNode.style.whiteSpace = 'nowrap';
+
+      const dataUrl = await htmlToImage.toPng(tableNode, {
+        backgroundColor: '#ffffff',
+      });
+      const blob = await (await fetch(dataUrl)).blob();
+      const file = new File([blob], `egg-room-report.png`, { type: 'image/png' });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title: 'Egg Room Stock Report',
+          text: `Egg Room Stock Report from ${startDate} to ${endDate}.`,
+          files: [file],
+        });
+        toast.success("Report shared successfully!");
+      } else {
+        toast.error("Sharing files is not supported on this device.");
+      }
+    } catch (error: any) {
+      if (error.name !== 'AbortError') { // User cancellation should not be treated as an error
+        console.error('Sharing failed', error);
+        toast.error(`Failed to share report: ${error.message}`);
+      }
+    } finally {
+      // Restore original styles
+      tableNode.style.width = originalTableStyle.width;
+      tableNode.style.minWidth = originalTableStyle.minWidth;
+      tableNode.style.whiteSpace = originalTableStyle.whiteSpace;
+      setIsSharing(false);
+    }
+  };
+
+  usePageShortcuts({
+    onSearchFocus: () => {
+      document.getElementById('start-date-picker')?.focus();
+    },
+    onExport: reports.length > 0 ? handleExport : undefined,
+    onShare: reports.length > 0 ? handleShare : undefined,
+  });
+
+  useEffect(() => {
+    const tabShortcuts = [
+      { key: 'Alt+1', description: 'Table Stock Tab', category: 'Tab Actions', action: () => setActiveTab('table') },
+      { key: 'Alt+2', description: 'Jumbo Tab', category: 'Tab Actions', action: () => setActiveTab('jumbo') },
+      { key: 'Alt+3', description: 'Grade C Tab', category: 'Tab Actions', action: () => setActiveTab('gradec') },
+    ];
+    return registerShortcuts(tabShortcuts);
+  }, [registerShortcuts]);
+
+  useEffect(() => {
+    resetSelection();
+    setFocusedRowIndex(-1);
+  }, [reports, currentPage, resetSelection]);
 
   useEffect(() => {
     if (dateError) {
@@ -218,68 +324,6 @@ const EggRoomStock: React.FC = () => {
       }
     }
     setShowDateModal(false);
-  };
-
-  const handleExport = async () => {
-    const fileName = `egg-room-report-${activeTab}`;
-    exportTableToExcel('egg-room-report-table', fileName, 'Egg Room Report');
-  };
-
-  const handleShare = async () => {
-    if (!tableRef.current) {
-      toast.error("Table element not found.");
-      return;
-    }
-
-    if (!navigator.share) {
-      toast.error("Web Share API is not supported in your browser.");
-      return;
-    }
-
-    const tableNode = tableRef.current;
-    setIsSharing(true);
-
-    // Store original inline styles to restore them later
-    const originalTableStyle = {
-      width: tableNode.style.width,
-      minWidth: tableNode.style.minWidth,
-      whiteSpace: tableNode.style.whiteSpace,
-    };
-
-    try {
-      // Temporarily apply styles for a consistent, wide image
-      tableNode.style.width = 'auto';
-      tableNode.style.minWidth = '1800px'; // Force a wide layout to prevent wrapping
-      tableNode.style.whiteSpace = 'nowrap';
-
-      const dataUrl = await htmlToImage.toPng(tableNode, {
-        backgroundColor: '#ffffff',
-      });
-      const blob = await (await fetch(dataUrl)).blob();
-      const file = new File([blob], `egg-room-report.png`, { type: 'image/png' });
-
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          title: 'Egg Room Stock Report',
-          text: `Egg Room Stock Report from ${startDate} to ${endDate}.`,
-          files: [file],
-        });
-        toast.success("Report shared successfully!");
-      } else {
-        toast.error("Sharing files is not supported on this device.");
-      }
-    } catch (error: any) {
-      if (error.name !== 'AbortError') { // User cancellation should not be treated as an error
-        console.error('Sharing failed', error);
-        toast.error(`Failed to share report: ${error.message}`);
-      }
-    } finally {
-      // Restore original styles
-      tableNode.style.width = originalTableStyle.width;
-      tableNode.style.minWidth = originalTableStyle.minWidth;
-      tableNode.style.whiteSpace = originalTableStyle.whiteSpace;
-      setIsSharing(false);
-    }
   };
 
   const handleShareStockForm = async () => {
@@ -436,66 +480,67 @@ const EggRoomStock: React.FC = () => {
         <div className="card p-3 mb-4 mt-2">
           <h5 className="card-title">View Report</h5>
           <div className="row g-3 mb-3">
-          <div className="col-auto d-flex align-items-center mt-3">
-            <label className="form-label me-3 mb-0">Start Date</label>
-            <CustomDatePicker
-              selected={startDate}
-              onChange={(date: Date | null) => date && setStartDate(date)}
-              maxDate={endDate || new Date()}
-              dateFormat="dd-MM-yyyy"
-              showMonthDropdown
-              showYearDropdown
-              dropdownMode="select"
-              className="form-control"
-              placeholderText="Start Date"
-              key={`start-date-${startDate ? toYYYYMMDD(startDate) : 'null'}`} // Force remount to reset internal state when date changes
-            />
-          </div>
-          <div className="col-auto d-flex align-items-center mt-3">
-            <label className="form-label me-3 mb-0">End Date</label>
-            <CustomDatePicker
-              selected={endDate}
-              onChange={(date: Date | null) => date && setEndDate(date)}
-              minDate={startDate || undefined}
-              maxDate={new Date()}
-              showMonthDropdown
-              showYearDropdown
-              dropdownMode="select"
-              className="form-control"
-              dateFormat="dd-MM-yyyy"
-              placeholderText="End Date"
-            />
-          </div>
-          </div>
-            <div className="col-12 d-flex flex-wrap gap-2 mb-2 mt-3">
-              <button
-                className="btn btn-primary flex-grow-1 flex-md-grow-0"
-                onClick={() => fetchReports()}
-                disabled={
-                  !startDate || !endDate || reportLoading || !!dateRangeError
-                }
-                style={{ minWidth: '140px' }}
-              >
-                {reportLoading ? "Loading..." : "Get Report"}
-              </button>
-              <button
-                className="btn btn-info flex-grow-1 flex-md-grow-0"
-                onClick={handleShare}
-                disabled={reports.length === 0 || reportLoading || isSharing}
-                style={{ minWidth: '140px' }}
-              >
-                {isSharing ? "Generating..." : "Share as Image"}
-              </button>
-              <button
-                className="btn btn-success flex-grow-1 flex-md-grow-0"
-                onClick={handleExport}
-                disabled={reports.length === 0 || reportLoading || isSharing}
-                style={{ minWidth: '140px' }}
-              >
-                Export to Excel
-              </button>
+            <div className="col-auto d-flex align-items-center mt-3">
+              <label className="form-label me-3 mb-0">Start Date</label>
+              <CustomDatePicker
+                id="start-date-picker"
+                selected={startDate}
+                onChange={(date: Date | null) => date && setStartDate(date)}
+                maxDate={endDate || new Date()}
+                dateFormat="dd-MM-yyyy"
+                showMonthDropdown
+                showYearDropdown
+                dropdownMode="select"
+                className="form-control"
+                placeholderText="Start Date"
+                key={`start-date-${startDate ? toYYYYMMDD(startDate) : 'null'}`} // Force remount to reset internal state when date changes
+              />
             </div>
-          
+            <div className="col-auto d-flex align-items-center mt-3">
+              <label className="form-label me-3 mb-0">End Date</label>
+              <CustomDatePicker
+                selected={endDate}
+                onChange={(date: Date | null) => date && setEndDate(date)}
+                minDate={startDate || undefined}
+                maxDate={new Date()}
+                showMonthDropdown
+                showYearDropdown
+                dropdownMode="select"
+                className="form-control"
+                dateFormat="dd-MM-yyyy"
+                placeholderText="End Date"
+              />
+            </div>
+          </div>
+          <div className="col-12 d-flex flex-wrap gap-2 mb-2 mt-3">
+            <button
+              className="btn btn-primary flex-grow-1 flex-md-grow-0"
+              onClick={() => fetchReports()}
+              disabled={
+                !startDate || !endDate || reportLoading || !!dateRangeError
+              }
+              style={{ minWidth: '140px' }}
+            >
+              {reportLoading ? "Loading..." : "Get Report"}
+            </button>
+            <button
+              className="btn btn-info flex-grow-1 flex-md-grow-0"
+              onClick={handleShare}
+              disabled={reports.length === 0 || reportLoading || isSharing}
+              style={{ minWidth: '140px' }}
+            >
+              {isSharing ? "Generating..." : "Share as Image"}
+            </button>
+            <button
+              className="btn btn-success flex-grow-1 flex-md-grow-0"
+              onClick={handleExport}
+              disabled={reports.length === 0 || reportLoading || isSharing}
+              style={{ minWidth: '140px' }}
+            >
+              Export to Excel
+            </button>
+          </div>
+
           {dateRangeError && (
             <div className="text-danger mt-2">
               {dateRangeError}
@@ -503,7 +548,7 @@ const EggRoomStock: React.FC = () => {
           )}
         </div>
 
-        
+
         {reportError && (
           <div className="alert alert-danger text-center">{reportError}</div>
         )}
@@ -558,9 +603,8 @@ const EggRoomStock: React.FC = () => {
               {sectionConfigs.map((config) => (
                 <li className="nav-item" key={config.id}>
                   <button
-                    className={`nav-link ${
-                      activeTab === config.id ? "active" : ""
-                    }`}
+                    className={`nav-link ${activeTab === config.id ? "active" : ""
+                      }`}
                     onClick={() => setActiveTab(config.id)}
                   >
                     {config.title}
@@ -568,8 +612,8 @@ const EggRoomStock: React.FC = () => {
                 </li>
               ))}
             </ul>
-            <div className='table-responsive'>
-              <table id="egg-room-report-table" className="table table-bordered" ref={tableRef}>
+            <div className='table-responsive' ref={tableContainerRef} tabIndex={0} style={{ outline: 'none' }}>
+              <table id="egg-room-report-table" className="table table-bordered table-hover" ref={tableRef}>
                 <thead>
                   <tr>
                     <th className="text-center align-middle">Date</th>
@@ -586,8 +630,16 @@ const EggRoomStock: React.FC = () => {
                 <tbody>
                   {reports
                     .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
-                    .map((r) => (
-                      <tr key={r.report_date}>
+                    .map((r, index) => (
+                      <tr
+                        key={r.report_date}
+                        data-row-index={index}
+                        onClick={() => {
+                          setFocusedRowIndex(index);
+                          setSelectedIndex(index);
+                        }}
+                        className={focusedRowIndex === index ? 'table-primary' : ''}
+                      >
                         <td>{r.report_date}</td>
                         {sectionConfigs
                           .find((c) => c.id === activeTab)
@@ -653,6 +705,7 @@ const EggRoomStock: React.FC = () => {
           </div>
         )}
       </div>
+      <KeyboardShortcutsIndicator hasSearch hasExport hasShare={reports.length > 0} />
     </>
   );
 };

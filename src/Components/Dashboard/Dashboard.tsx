@@ -82,7 +82,7 @@ const Dashboard: React.FC = () => {
   // Effect for daily stats
   useEffect(() => {
     if (checkingRestriction) return;
-    
+
     const fetchBatches = async () => {
       if (isBatchRestricted) {
         setLoading(false);
@@ -136,129 +136,129 @@ const Dashboard: React.FC = () => {
     sessionStorage.setItem(BATCH_DATE_KEY, batchDate);
   }, [batchDate]);
 
-    // Effect for Graphs
-    useEffect(() => {
-      if (checkingRestriction) return;
-      
-      const start = new Date(startDate);
-      const end = new Date(endDate);
+  // Effect for Graphs
+  useEffect(() => {
+    if (checkingRestriction) return;
 
-      if (start > end) {
-        setDateRangeError('End Date cannot be before Start Date.');
-        setEggTrendData([]);
-        setCompositionUsageData([]); // Clear data for pie chart as well
-        setEggTrendLoading(false);
-        setCompositionUsageLoading(false);
-        setEggCostLoading(false);
-        setFeedConsumptionLoading(false);
-        return;
-      }
-      setDateRangeError(null);
+    const start = new Date(startDate);
+    const end = new Date(endDate);
 
-      // Fetch egg trend data
-      const fetchEggTrendData = async () => {
-        setEggTrendLoading(true);
-        setEggTrendError(null);
-        try {
-          const apiData = await reportsApi.getMonthlyEggProduction(startDate, endDate);
-          const getMonthsInRange = (start: Date, end: Date) => {
-            const months = [];
-            let current = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 1));
-            while (current <= end) {
-              months.push(current.toISOString().slice(0, 7)); // "YYYY-MM"
-              current.setUTCMonth(current.getUTCMonth() + 1);
-            }
-            return months;
-          };
-          const allMonths = getMonthsInRange(start, end);
-          const dataMap = new Map(apiData.map(item => [item.month, item.total_eggs]));
-          let processedData = allMonths.map(month => ({
-            month,
-            total_eggs: dataMap.get(month) || 0,
-          }));
+    if (start > end) {
+      setDateRangeError('End Date cannot be before Start Date.');
+      setEggTrendData([]);
+      setCompositionUsageData([]); // Clear data for pie chart as well
+      setEggTrendLoading(false);
+      setCompositionUsageLoading(false);
+      setEggCostLoading(false);
+      setFeedConsumptionLoading(false);
+      return;
+    }
+    setDateRangeError(null);
 
-          // If there's API data, ensure we don't show leading empty months
-          // that are outside the range of the actual data.
-          if (apiData.length > 0) {
-            // Assuming apiData is sorted by month, which it should be for a trend report.
-            const firstApiMonth = apiData[0].month;
-            const firstDataIndex = processedData.findIndex(item => item.month === firstApiMonth);
-
-            if (firstDataIndex > 0) {
-              processedData = processedData.slice(firstDataIndex);
-            }
+    // Fetch egg trend data
+    const fetchEggTrendData = async () => {
+      setEggTrendLoading(true);
+      setEggTrendError(null);
+      try {
+        const apiData = await reportsApi.getMonthlyEggProduction(startDate, endDate);
+        const getMonthsInRange = (start: Date, end: Date) => {
+          const months = [];
+          let current = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 1));
+          while (current <= end) {
+            months.push(current.toISOString().slice(0, 7)); // "YYYY-MM"
+            current.setUTCMonth(current.getUTCMonth() + 1);
           }
+          return months;
+        };
+        const allMonths = getMonthsInRange(start, end);
+        const dataMap = new Map(apiData.map(item => [item.month, item.total_eggs]));
+        let processedData = allMonths.map(month => ({
+          month,
+          total_eggs: dataMap.get(month) || 0,
+        }));
 
-          setEggTrendData(processedData);
-        } catch (err) {
-          setEggTrendError('Failed to load egg production data.');
-          console.error(err);
-        } finally {
-          setEggTrendLoading(false);
+        // If there's API data, ensure we don't show leading empty months
+        // that are outside the range of the actual data.
+        if (apiData.length > 0) {
+          // Assuming apiData is sorted by month, which it should be for a trend report.
+          const firstApiMonth = apiData[0].month;
+          const firstDataIndex = processedData.findIndex(item => item.month === firstApiMonth);
+
+          if (firstDataIndex > 0) {
+            processedData = processedData.slice(firstDataIndex);
+          }
         }
-      };
 
-      // Fetch composition usage data
-      const fetchCompositionUsageData = async () => {
-          setCompositionUsageLoading(true);
-          setCompositionUsageError(null);
-          try {
-              const apiData = await reportsApi.getCompositionUsageReport(startDate, endDate);
-              // Filter out items with zero usage to avoid cluttering the pie chart
-              const filteredReport = apiData.report.filter(item => item.total_usage > 0);
-              setCompositionUsageData(filteredReport);
-          } catch (err) {
-              setCompositionUsageError('Failed to load composition usage data.');
-              console.error(err);
-          } finally {
-              setCompositionUsageLoading(false);
-          }
-      };
-
-      // Fetch egg production cost data
-      const fetchEggCostData = async () => {
-          setEggCostLoading(true);
-          setEggCostError(null);
-          try {
-              const apiData = await reportsApi.getMonthlyEggProductionCost(startDate, endDate);
-              const sortedData = [...apiData].sort((a, b) => a.month.localeCompare(b.month));
-              setEggCostData(sortedData);
-          } catch (err) {
-              setEggCostError('Failed to load egg production cost data.');
-              console.error(err);
-          } finally {
-              setEggCostLoading(false);
-          }
-      };
-
-      // Fetch feed consumption per egg data
-      const fetchFeedConsumptionData = async () => {
-          setFeedConsumptionLoading(true);
-          setFeedConsumptionError(null);
-          try {
-              const apiData = await reportsApi.getFeedConsumptionPerEgg(startDate, endDate);
-              const sortedData = [...apiData].sort((a, b) => a.month.localeCompare(b.month));
-              setFeedConsumptionData(sortedData);
-          } catch (err) {
-              setFeedConsumptionError('Failed to load feed consumption per egg data.');
-              console.error(err);
-          } finally {
-              setFeedConsumptionLoading(false);
-          }
-      };
-
-      if (!isBatchRestricted) {
-        fetchEggTrendData();
-        fetchEggCostData();
-        fetchFeedConsumptionData();
-      } else {
+        setEggTrendData(processedData);
+      } catch (err) {
+        setEggTrendError('Failed to load egg production data.');
+        console.error(err);
+      } finally {
         setEggTrendLoading(false);
+      }
+    };
+
+    // Fetch composition usage data
+    const fetchCompositionUsageData = async () => {
+      setCompositionUsageLoading(true);
+      setCompositionUsageError(null);
+      try {
+        const apiData = await reportsApi.getCompositionUsageReport(startDate, endDate);
+        // Filter out items with zero usage to avoid cluttering the pie chart
+        const filteredReport = apiData.report.filter(item => item.total_usage > 0);
+        setCompositionUsageData(filteredReport);
+      } catch (err) {
+        setCompositionUsageError('Failed to load composition usage data.');
+        console.error(err);
+      } finally {
+        setCompositionUsageLoading(false);
+      }
+    };
+
+    // Fetch egg production cost data
+    const fetchEggCostData = async () => {
+      setEggCostLoading(true);
+      setEggCostError(null);
+      try {
+        const apiData = await reportsApi.getMonthlyEggProductionCost(startDate, endDate);
+        const sortedData = [...apiData].sort((a, b) => a.month.localeCompare(b.month));
+        setEggCostData(sortedData);
+      } catch (err) {
+        setEggCostError('Failed to load egg production cost data.');
+        console.error(err);
+      } finally {
         setEggCostLoading(false);
+      }
+    };
+
+    // Fetch feed consumption per egg data
+    const fetchFeedConsumptionData = async () => {
+      setFeedConsumptionLoading(true);
+      setFeedConsumptionError(null);
+      try {
+        const apiData = await reportsApi.getFeedConsumptionPerEgg(startDate, endDate);
+        const sortedData = [...apiData].sort((a, b) => a.month.localeCompare(b.month));
+        setFeedConsumptionData(sortedData);
+      } catch (err) {
+        setFeedConsumptionError('Failed to load feed consumption per egg data.');
+        console.error(err);
+      } finally {
         setFeedConsumptionLoading(false);
       }
-      fetchCompositionUsageData();
+    };
 
-    }, [startDate, endDate, checkingRestriction, isBatchRestricted]);
+    if (!isBatchRestricted) {
+      fetchEggTrendData();
+      fetchEggCostData();
+      fetchFeedConsumptionData();
+    } else {
+      setEggTrendLoading(false);
+      setEggCostLoading(false);
+      setFeedConsumptionLoading(false);
+    }
+    fetchCompositionUsageData();
+
+  }, [startDate, endDate, checkingRestriction, isBatchRestricted]);
 
 
   const { totalBirds, totalEggs, avgHD } = useMemo(() => {
@@ -283,11 +283,12 @@ const Dashboard: React.FC = () => {
   return (
     <>
       <PageHeader title="Dashboard" />
-      
-      <SubscriptionWarning />
 
-      <div className="mb-3">
-        <div className="col-auto d-flex align-items-center bg-white p-2 rounded shadow-sm" style={{maxWidth: '250px'}}>
+      <div className="container">
+        <SubscriptionWarning />
+
+        <div className="mb-3">
+          <div className="col-auto d-flex align-items-center bg-white p-2 rounded shadow-sm" style={{ maxWidth: '250px' }}>
             <label className="form-label me-2 mb-0 fw-bold">Usage Stats Date</label>
             <CustomDatePicker
               selected={batchDate ? new Date(batchDate) : null}
@@ -300,88 +301,89 @@ const Dashboard: React.FC = () => {
               showYearDropdown
             />
           </div>
-      </div>
+        </div>
 
-      <div className="container-fluid mt-4">
-        <div className="row g-4">
-          {(loading || feedLoading || inventoryLoading) && <div className="col-12"><Loading message="Loading dashboard data..." /></div>}
-          {error && <div className="col-12"><div className="alert alert-danger">{error}</div></div>}
-          {!(loading || feedLoading || inventoryLoading) && !error && dashboardStats.map((stat, index) => {
-            const IconComponent = stat.icon || HelpCircle;
-            return (
-              <div className="col-12 col-md-6 col-lg-3" key={index}>
-                <div className="card h-100 shadow">
-                  <div className="card-body d-flex align-items-center">
-                    <div className="me-3 d-flex align-items-center justify-content-center rounded-3 bg-primary-subtle p-2">
-                      <IconComponent className="text-primary" size={32} />
-                    </div>
-                    <div>
-                      <h5 className="card-title text-muted mb-1">{stat.title}</h5>
-                      <p className="card-text fs-3 fw-bold mb-0">
-                        {stat.value.toLocaleString()}
-                        {stat.unit}
-                      </p>
+        <div className="mt-4">
+          <div className="row g-4">
+            {(loading || feedLoading || inventoryLoading) && <div className="col-12"><Loading message="Loading dashboard data..." /></div>}
+            {error && <div className="col-12"><div className="alert alert-danger">{error}</div></div>}
+            {!(loading || feedLoading || inventoryLoading) && !error && dashboardStats.map((stat, index) => {
+              const IconComponent = stat.icon || HelpCircle;
+              return (
+                <div className="col-12 col-md-6 col-lg-3" key={index}>
+                  <div className="card h-100 shadow">
+                    <div className="card-body d-flex align-items-center">
+                      <div className="me-3 d-flex align-items-center justify-content-center rounded-3 bg-primary-subtle p-2">
+                        <IconComponent className="text-primary" size={32} />
+                      </div>
+                      <div>
+                        <h5 className="card-title text-muted mb-1">{stat.title}</h5>
+                        <p className="card-text fs-3 fw-bold mb-0">
+                          {stat.value.toLocaleString()}
+                          {stat.unit}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            )
-          })}
-        </div>
+              )
+            })}
+          </div>
 
-        {!isBatchRestricted && (
-          <div className="row mt-4">
-            <div className="col-12">
-              <EggPriceCard />
+          {!isBatchRestricted && (
+            <div className="row mt-4">
+              <div className="col-12">
+                <EggPriceCard />
+              </div>
+            </div>
+          )}
+
+
+          <div className="card shadow-sm my-4">
+            <div className="card-body">
+              <h5 className="card-title">Graphical Reports</h5>
+              <div className="row g-3 align-items-end mb-3">
+                <div className="col-auto d-flex align-items-center">
+                  <label className="form-label me-3 mb-0">Start Date</label>
+                  <CustomDatePicker selected={startDate ? new Date(startDate) : null} onChange={(date: Date | null) => date && setStartDate(date.toISOString().split('T')[0])} maxDate={endDate ? new Date(endDate) : new Date()} dateFormat="dd-MM-yyyy" className="form-control" placeholderText="Select start date" dropdownMode="select" showMonthDropdown showYearDropdown />
+                </div>
+                <div className="col-auto d-flex align-items-center">
+                  <label className="form-label me-3 mb-0">End Date</label>
+                  <CustomDatePicker selected={endDate ? new Date(endDate) : null} onChange={(date: Date | null) => date && setEndDate(date.toISOString().split('T')[0])} minDate={startDate ? new Date(startDate) : undefined} maxDate={new Date()} dateFormat="dd-MM-yyyy" className="form-control" placeholderText="Select end date" showMonthDropdown showYearDropdown dropdownMode="select" />
+                </div>
+              </div>
+              {dateRangeError && <div className="alert alert-danger">{dateRangeError}</div>}
             </div>
           </div>
-        )}
 
-
-        <div className="card shadow-sm my-4">
-            <div className="card-body">
-                <h5 className="card-title">Graphical Reports</h5>
-                <div className="row g-3 align-items-end mb-3">
-                    <div className="col-auto d-flex align-items-center">
-                        <label className="form-label me-3 mb-0">Start Date</label>
-                        <CustomDatePicker selected={startDate ? new Date(startDate) : null} onChange={(date: Date | null) => date && setStartDate(date.toISOString().split('T')[0])} maxDate={endDate ? new Date(endDate) : new Date()} dateFormat="dd-MM-yyyy" className="form-control" placeholderText="Select start date" dropdownMode="select" showMonthDropdown showYearDropdown />
-                    </div>
-                    <div className="col-auto d-flex align-items-center">
-                        <label className="form-label me-3 mb-0">End Date</label>
-                        <CustomDatePicker selected={endDate ? new Date(endDate) : null} onChange={(date: Date | null) => date && setEndDate(date.toISOString().split('T')[0])} minDate={startDate ? new Date(startDate) : undefined} maxDate={new Date()} dateFormat="dd-MM-yyyy" className="form-control" placeholderText="Select end date" showMonthDropdown showYearDropdown dropdownMode="select" />
-                    </div>
-                </div>
-                {dateRangeError && <div className="alert alert-danger">{dateRangeError}</div>}
-            </div>
-        </div>
-
-        <div className="row g-4">
+          <div className="row g-4">
             {!isBatchRestricted && (
               <div className="col-12 col-xl-8">
-                  <EggProductionGraph data={eggTrendData} loading={eggTrendLoading} error={eggTrendError} />
+                <EggProductionGraph data={eggTrendData} loading={eggTrendLoading} error={eggTrendError} />
               </div>
             )}
             <div className={`col-12 ${isBatchRestricted ? 'col-xl-12' : 'col-xl-4'}`}>
-                <CompositionUsagePieChart data={compositionUsageData} loading={compositionUsageLoading} error={compositionUsageError} />
+              <CompositionUsagePieChart data={compositionUsageData} loading={compositionUsageLoading} error={compositionUsageError} />
             </div>
+          </div>
+
+          {!isBatchRestricted && (
+            <>
+              <div className="row g-4 mt-2">
+                <div className="col-12">
+                  <EggProductionCostGraph data={eggCostData} loading={eggCostLoading} error={eggCostError} />
+                </div>
+              </div>
+
+              <div className="row g-4 mt-2">
+                <div className="col-12">
+                  <FeedConsumptionPerEggGraph data={feedConsumptionData} loading={feedConsumptionLoading} error={feedConsumptionError} />
+                </div>
+              </div>
+            </>
+          )}
+
         </div>
-
-        {!isBatchRestricted && (
-          <>
-            <div className="row g-4 mt-2">
-                <div className="col-12">
-                    <EggProductionCostGraph data={eggCostData} loading={eggCostLoading} error={eggCostError} />
-                </div>
-            </div>
-
-            <div className="row g-4 mt-2">
-                <div className="col-12">
-                    <FeedConsumptionPerEggGraph data={feedConsumptionData} loading={feedConsumptionLoading} error={feedConsumptionError} />
-                </div>
-            </div>
-          </>
-        )}
-
       </div>
     </>
   );

@@ -71,9 +71,9 @@ const EditSalesOrder: React.FC = () => {
       setError(null);
       try {
         if (!so_id) {
-            setError("Sales Order ID is missing.");
-            setInitialLoading(false);
-            return;
+          setError("Sales Order ID is missing.");
+          setInitialLoading(false);
+          return;
         }
 
         const [soData, customersData, inventoryItemsData] = await Promise.all([
@@ -108,9 +108,9 @@ const EditSalesOrder: React.FC = () => {
             ? inventoryItemVariantApi.getInventoryItemVariants(item.inventory_item_id)
             : Promise.resolve([])
         );
-        
+
         const variantsByItemArray = await Promise.all(variantPromises);
-        
+
         const variantsMap = formItems.reduce((acc, item, index) => {
           acc[item.tempId] = variantsByItemArray[index];
           return acc;
@@ -119,7 +119,7 @@ const EditSalesOrder: React.FC = () => {
         setVariantsByItem(variantsMap);
 
         setCustomers(customersData);
-        
+
         // Ensure already selected items remain in the list even if they are no longer sellable
         const existingItemIds = new Set(soData.items?.map(i => i.inventory_item_id) || []);
         const itemsToSet = inventoryItemsData.filter(item => item.is_sellable || existingItemIds.has(item.id));
@@ -198,11 +198,32 @@ const EditSalesOrder: React.FC = () => {
   }, [so_id]);
 
   const handleRemoveItem = useCallback((tempId: number) => {
-    setItems((prevItems) =>
-      prevItems.map((item) =>
-        item.tempId === tempId ? { ...item, isDeleted: true } : item // Mark for deletion instead of removing
-      )
-    );
+    setItems((prevItems) => {
+      const index = prevItems.findIndex(i => i.tempId === tempId);
+
+      setTimeout(() => {
+        let focusTargetId = null;
+        for (let i = index - 1; i >= 0; i--) {
+          if (!prevItems[i].isDeleted) {
+            focusTargetId = prevItems[i].tempId;
+            break;
+          }
+        }
+
+        if (focusTargetId) {
+          const row = document.getElementById(`item-row-${focusTargetId}`);
+          const input = row?.querySelector('input[type="number"]') as HTMLElement;
+          if (input) input.focus();
+        } else {
+          const btn = document.getElementById('add-item-btn');
+          if (btn) btn.focus();
+        }
+      }, 50);
+
+      return prevItems.map((item) =>
+        item.tempId === tempId ? { ...item, isDeleted: true } : item
+      );
+    });
   }, []);
 
   const handleUndoRemoveItem = useCallback((tempId: number) => {
@@ -225,7 +246,7 @@ const EditSalesOrder: React.FC = () => {
               [field]: Number(value),
               inventory_item_name: selectedItem?.name,
               inventory_item_unit: selectedItem?.unit,
-              variant_id: null, 
+              variant_id: null,
               variant_name: '',
             };
           }
@@ -262,9 +283,9 @@ const EditSalesOrder: React.FC = () => {
     setIsLoading(true);
 
     if (!so_id) {
-        toast.error("Sales Order ID is missing for update.");
-        setIsLoading(false);
-        return;
+      toast.error("Sales Order ID is missing for update.");
+      setIsLoading(false);
+      return;
     }
 
     // Filter out items marked for deletion for validation
@@ -313,10 +334,10 @@ const EditSalesOrder: React.FC = () => {
           const originalItem = originalItems.find(oi => oi.id === item.id);
 
           const hasChanged = !originalItem ||
-                               originalItem.inventory_item_id !== item.inventory_item_id ||
-                               originalItem.quantity !== item.quantity ||
-                               originalItem.price_per_unit !== item.price_per_unit ||
-                               originalItem.variant_id !== item.variant_id;
+            originalItem.inventory_item_id !== item.inventory_item_id ||
+            originalItem.quantity !== item.quantity ||
+            originalItem.price_per_unit !== item.price_per_unit ||
+            originalItem.variant_id !== item.variant_id;
 
           if (hasChanged) {
             const updateItemData: SalesOrderItemUpdate = {
@@ -341,6 +362,25 @@ const EditSalesOrder: React.FC = () => {
     }
   };
 
+  const handleFormKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === 'Enter') {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' && target.getAttribute('role') !== 'combobox') {
+        e.preventDefault();
+        const form = e.currentTarget;
+        const focusableElements = Array.from(
+          form.querySelectorAll(
+            'input:not([disabled]):not([type="hidden"]), select:not([disabled]), button:not([disabled]), textarea:not([disabled])'
+          )
+        ) as HTMLElement[];
+        const currentIndex = focusableElements.indexOf(target);
+        if (currentIndex > -1 && currentIndex < focusableElements.length - 1) {
+          focusableElements[currentIndex + 1].focus();
+        }
+      }
+    }
+  };
+
   if (initialLoading) return <div className="text-center mt-5">Loading sales order for editing...</div>;
   if (error) return <div className="text-center text-danger mt-5">{error}</div>;
 
@@ -357,19 +397,19 @@ const EditSalesOrder: React.FC = () => {
 
   return (
     <>
-      <PageHeader title={`Edit Sales: ${so_id || 'Loading...'}`} buttonVariant="secondary" buttonLabel="Back" buttonIcon='bi-arrow-left'/>
+      <PageHeader title={`Edit Sales: ${so_id || 'Loading...'}`} buttonVariant="secondary" buttonLabel="Back" buttonIcon='bi-arrow-left' />
       <div className="container">
         <SubscriptionWarning />
         <div className="card shadow-sm">
           <div className="card-body">
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} onKeyDown={handleFormKeyDown}>
               <div className="row g-3">
                 {/* SO Details Section */}
                 <h5 className="mb-3">Sales Order Details</h5>
                 <div className="col-md-6">
                   <label htmlFor="customerSelect" className="form-label">Customer <span className="form-field-required">*</span></label>
                   <div className="d-flex">
-                  <StyledSelect
+                    <StyledSelect
                       id="customerSelect"
                       className="me-2"
                       value={selectedCustomerOption}
@@ -397,17 +437,17 @@ const EditSalesOrder: React.FC = () => {
                 <div className="col-md-6">
                   <label htmlFor="orderDate" className="form-label">Date <span className="form-field-required">*</span></label>
                   <div>
-                  <CustomDatePicker
-                    selected={orderDate}
-                    onChange={(date: Date | null) => setOrderDate(date)}
-                    dateFormat="dd-MM-yyyy"
-                    showMonthDropdown
-                    showYearDropdown
-                    dropdownMode="select"
-                    className="form-control"
-                    id="orderDate"
-                    disabled={isLoading}
-                  />
+                    <CustomDatePicker
+                      selected={orderDate}
+                      onChange={(date: Date | null) => setOrderDate(date)}
+                      dateFormat="dd-MM-yyyy"
+                      showMonthDropdown
+                      showYearDropdown
+                      dropdownMode="select"
+                      className="form-control"
+                      id="orderDate"
+                      disabled={isLoading}
+                    />
                   </div>
                 </div>
 
@@ -447,65 +487,65 @@ const EditSalesOrder: React.FC = () => {
                   const selectedVariantOption = variantOptions.find(o => o.value === item.variant_id);
 
                   return (
-                  <div 
-                    key={item.tempId} 
-                    id={`item-row-${item.tempId}`}
-                    className={`col-12 border p-3 mb-3 ${item.isDeleted ? 'bg-danger-subtle border-danger' : 'bg-light'}`}
-                    onKeyDown={(e) => {
-                      if (e.altKey && (e.key === 'Delete' || e.key === 'Backspace')) {
-                        e.preventDefault();
-                        if (item.isDeleted) handleUndoRemoveItem(item.tempId);
-                        else handleRemoveItem(item.tempId);
-                      }
-                    }}
-                  >
-                    <div className="d-flex justify-content-between align-items-center mb-2">
-                      <h6>Item {index + 1} {item.isDeleted && <span className="badge bg-danger ms-2">Marked for Deletion</span>}</h6>
-                      {!item.isDeleted ? (
-                        <button
-                          type="button"
-                          className="btn btn-outline-danger btn-sm"
-                          onClick={() => handleRemoveItem(item.tempId)}
-                          disabled={isLoading || isSubscriptionPaid === false}
-                          title="Mark for Remove (Alt + Backspace)"
-                        >
-                          <i className="bi bi-x-lg"></i> Mark for Remove
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          className="btn btn-outline-primary btn-sm fw-bold"
-                          onClick={() => handleUndoRemoveItem(item.tempId)}
-                          disabled={isLoading || isSubscriptionPaid === false}
-                          title="Undo Remove (Alt + Backspace)"
-                        >
-                          <i className="bi bi-arrow-counterclockwise"></i> Undo Remove
-                        </button>
-                      )}
-                    </div>
-                    {!item.isDeleted && (
-                      <div className="row g-2">
-                        <div className="col-md-5">
-                          <label htmlFor={`itemId-${item.tempId}`} className="form-label">Inventory Item <span className="form-field-required">*</span></label>
-                          <div className="d-flex">
-                          <StyledSelect
-                              id={`itemId-${item.tempId}`}
-                              className="me-2"
-                              value={inventoryItemOptions.find(option => option.value === item.inventory_item_id)}
-                              onChange={(option, _action) => handleItemChange(item.tempId, 'inventory_item_id', option ? option.value : '')}
-                              options={inventoryItemOptions}
-                              placeholder="Select an Item"
-                              isClearable
-                              isLoading={isLoading}
-                            />
-                            {/* add-item button removed on edit page */}
-                          </div>
-                          {inventoryItems.length === 0 && !isLoading && (
+                    <div
+                      key={item.tempId}
+                      id={`item-row-${item.tempId}`}
+                      className={`col-12 border p-3 mb-3 ${item.isDeleted ? 'bg-danger-subtle border-danger' : 'bg-light'}`}
+                      onKeyDown={(e) => {
+                        if (e.altKey && (e.key === 'Delete' || e.key === 'Backspace')) {
+                          e.preventDefault();
+                          if (item.isDeleted) handleUndoRemoveItem(item.tempId);
+                          else handleRemoveItem(item.tempId);
+                        }
+                      }}
+                    >
+                      <div className="d-flex justify-content-between align-items-center mb-2">
+                        <h6>Item {index + 1} {item.isDeleted && <span className="badge bg-danger ms-2">Marked for Deletion</span>}</h6>
+                        {!item.isDeleted ? (
+                          <button
+                            type="button"
+                            className="btn btn-outline-danger btn-sm"
+                            onClick={() => handleRemoveItem(item.tempId)}
+                            disabled={isLoading || isSubscriptionPaid === false}
+                            title="Mark for Remove (Alt + Backspace)"
+                          >
+                            <i className="bi bi-x-lg"></i> Mark for Remove
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className="btn btn-outline-primary btn-sm fw-bold"
+                            onClick={() => handleUndoRemoveItem(item.tempId)}
+                            disabled={isLoading || isSubscriptionPaid === false}
+                            title="Undo Remove (Alt + Backspace)"
+                          >
+                            <i className="bi bi-arrow-counterclockwise"></i> Undo Remove
+                          </button>
+                        )}
+                      </div>
+                      {!item.isDeleted && (
+                        <div className="row g-2">
+                          <div className="col-md-5">
+                            <label htmlFor={`itemId-${item.tempId}`} className="form-label">Inventory Item <span className="form-field-required">*</span></label>
+                            <div className="d-flex">
+                              <StyledSelect
+                                id={`itemId-${item.tempId}`}
+                                className="me-2"
+                                value={inventoryItemOptions.find(option => option.value === item.inventory_item_id)}
+                                onChange={(option, _action) => handleItemChange(item.tempId, 'inventory_item_id', option ? option.value : '')}
+                                options={inventoryItemOptions}
+                                placeholder="Select an Item"
+                                isClearable
+                                isLoading={isLoading}
+                              />
+                              {/* add-item button removed on edit page */}
+                            </div>
+                            {inventoryItems.length === 0 && !isLoading && (
                               <div className="text-danger mt-1">No inventory items found. Please add items first.</div>
-                          )}
-                          {/* Inventory item can now be changed for existing rows */}
-                        </div>
-                        <div className="col-md-3">
+                            )}
+                            {/* Inventory item can now be changed for existing rows */}
+                          </div>
+                          <div className="col-md-3">
                             <label htmlFor={`variantId-${item.tempId}`} className="form-label">
                               Variant
                             </label>
@@ -519,41 +559,42 @@ const EditSalesOrder: React.FC = () => {
                               isDisabled={!item.inventory_item_id || itemVariants.length === 0}
                             />
                           </div>
-                        <div className="col-md-2">
-                          <label htmlFor={`quantity-${item.tempId}`} className="form-label">Quantity <span className="form-field-required">*</span></label>
-                          <input
-                            type="number"
-                            className="form-control"
-                            id={`quantity-${item.tempId}`}
-                            value={item.quantity || ''}
-                            onChange={(e) => handleItemChange(item.tempId, 'quantity', Number(e.target.value))}
-                            min="1"
-                            required
-                            disabled={isLoading}
-                          />
-                        </div>
-                        <div className="col-md-2">
-                          <label htmlFor={`pricePerUnit-${item.tempId}`} className="form-label">Price per Unit</label>
-                          <input
-                            type="number"
-                            className="form-control"
-                            id={`pricePerUnit-${item.tempId}`}
-                            value={item.price_per_unit || ''}
-                            onChange={(e) => handleItemChange(item.tempId, 'price_per_unit', Number(e.target.value))}
-                            step="0.01"
-                            disabled={isLoading}
-                          />
-                        </div>
+                          <div className="col-md-2">
+                            <label htmlFor={`quantity-${item.tempId}`} className="form-label">Quantity <span className="form-field-required">*</span></label>
+                            <input
+                              type="number"
+                              className="form-control"
+                              id={`quantity-${item.tempId}`}
+                              value={item.quantity || ''}
+                              onChange={(e) => handleItemChange(item.tempId, 'quantity', Number(e.target.value))}
+                              min="1"
+                              required
+                              disabled={isLoading}
+                            />
+                          </div>
+                          <div className="col-md-2">
+                            <label htmlFor={`pricePerUnit-${item.tempId}`} className="form-label">Price per Unit</label>
+                            <input
+                              type="number"
+                              className="form-control"
+                              id={`pricePerUnit-${item.tempId}`}
+                              value={item.price_per_unit || ''}
+                              onChange={(e) => handleItemChange(item.tempId, 'price_per_unit', Number(e.target.value))}
+                              step="0.01"
+                              disabled={isLoading}
+                            />
+                          </div>
 
-                        <div className="col-md-12">
-                          <p className="text-end mb-0">
-                            Line Total: <strong>Rs. {(item.quantity * item.price_per_unit).toFixed(2)}</strong>
-                          </p>
+                          <div className="col-md-12">
+                            <p className="text-end mb-0">
+                              Line Total: <strong>Rs. {(item.quantity * item.price_per_unit).toFixed(2)}</strong>
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                )})}
+                      )}
+                    </div>
+                  )
+                })}
 
                 {items.filter(item => !item.isDeleted).length > 0 && (
                   <div className="col-12 text-end">
@@ -564,6 +605,7 @@ const EditSalesOrder: React.FC = () => {
                 <div className="col-12 text-center">
                   <button
                     type="button"
+                    id="add-item-btn"
                     className="btn btn-outline-primary btn-sm"
                     onClick={handleAddItem}
                     disabled={isLoading || isSubscriptionPaid === false}

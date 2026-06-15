@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useLayoutEffect, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
 import "bootstrap-icons/font/bootstrap-icons.min.css";
 import "./Sidebar.css"; // Import custom sidebar styles
@@ -6,6 +6,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { useSidebar } from "../../hooks/useSidebar";
 import annamalaiyarlogo from "../../styles/annamalaiyarlogo.png"; // Import the image
 import { getTenantId, tenantFeatureApi } from "../../services/api";
+import { useShortcuts } from "../../Components/context/KeyboardShortcutContext";
 
 // Using Bootstrap's lg breakpoint (≥992px) instead of hardcoded value
 
@@ -20,6 +21,8 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
   const organization = user?.profile?.['custom:organization'];
   const { isOpen, toggle, isDesktop } = useSidebar();
   const location = useLocation();
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const { registerShortcuts } = useShortcuts();
 
   // Check if current tenant is restricted from seeing Batch and Shed modules
   const currentTenantId = getTenantId() || "";
@@ -57,48 +60,48 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
 
   // Add this useEffect to manage openMenu based on current location
   useEffect(() => {
-  // Determine which parent menu should be open based on the current path
-  if (
-    location.pathname.startsWith("/add-batch") ||
-    location.pathname.startsWith("/upload-batch") ||
-    location.pathname.startsWith("/production")
-  ) {
-    setOpenMenu("batch");
-  } else if (location.pathname.startsWith("/egg-room-stock")) {
-    setOpenMenu("egg");
-  } else if (
-    location.pathname.startsWith("/feed") ||
-    location.pathname.startsWith("/feed-mill-stock")
-  ) {
-    setOpenMenu("feed");
-  } else if (
-    location.pathname.startsWith("/inventory-items") ||
-    location.pathname.startsWith("/inventory-items/stock-level-report") ||
-    location.pathname.startsWith("/inventory-items/low-stock-report") ||
-    location.pathname.startsWith("/inventory-items/top-selling-items-report")
-  ) {
-    setOpenMenu("inventory");
-  } else if (
-    location.pathname.startsWith("/financial-reports") ||
-    location.pathname.startsWith("/operational-expenses") ||
-    location.pathname.startsWith("/chart-of-accounts") ||
-    location.pathname.startsWith("/journal-entries")
-  ) {
-    setOpenMenu("finance");
-  } else if (
-    location.pathname.startsWith("/reports")
-  ) {
-    setOpenMenu("reports");
-  } else if (
-    location.pathname.startsWith("/sheds") ||
-    location.pathname.startsWith("/swap-sheds")
-  ) {
-    setOpenMenu("shed");
-  } else {
-    setOpenMenu(null); // No sub-menu related path, so close any open sub-menus
-  }
-}, [location.pathname]);
- // Re-run when the path changes
+    // Determine which parent menu should be open based on the current path
+    if (
+      location.pathname.startsWith("/add-batch") ||
+      location.pathname.startsWith("/upload-batch") ||
+      location.pathname.startsWith("/production")
+    ) {
+      setOpenMenu("batch");
+    } else if (location.pathname.startsWith("/egg-room-stock")) {
+      setOpenMenu("egg");
+    } else if (
+      location.pathname.startsWith("/feed") ||
+      location.pathname.startsWith("/feed-mill-stock")
+    ) {
+      setOpenMenu("feed");
+    } else if (
+      location.pathname.startsWith("/inventory-items") ||
+      location.pathname.startsWith("/inventory-items/stock-level-report") ||
+      location.pathname.startsWith("/inventory-items/low-stock-report") ||
+      location.pathname.startsWith("/inventory-items/top-selling-items-report")
+    ) {
+      setOpenMenu("inventory");
+    } else if (
+      location.pathname.startsWith("/financial-reports") ||
+      location.pathname.startsWith("/operational-expenses") ||
+      location.pathname.startsWith("/chart-of-accounts") ||
+      location.pathname.startsWith("/journal-entries")
+    ) {
+      setOpenMenu("finance");
+    } else if (
+      location.pathname.startsWith("/reports")
+    ) {
+      setOpenMenu("reports");
+    } else if (
+      location.pathname.startsWith("/sheds") ||
+      location.pathname.startsWith("/swap-sheds")
+    ) {
+      setOpenMenu("shed");
+    } else {
+      setOpenMenu(null); // No sub-menu related path, so close any open sub-menus
+    }
+  }, [location.pathname]);
+  // Re-run when the path changes
 
 
   const closeSidebarMobile = () => {
@@ -111,8 +114,86 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
     setOpenMenu(openMenu === menuName ? null : menuName); // Toggle or close if already open
   };
 
+  const focusActiveItem = useCallback(() => {
+    // Find the currently visible sidebar content (desktop vs mobile wrapper)
+    const contents = Array.from(document.querySelectorAll('.sidebar-content')) as HTMLElement[];
+    const visibleContent = contents.find(el => el.getBoundingClientRect().width > 0);
+    if (!visibleContent) return;
+
+    const activeEl = visibleContent.querySelector('.active-link, .expandable.active') as HTMLElement;
+    if (activeEl) {
+      activeEl.focus();
+    } else {
+      const firstEl = visibleContent.querySelector('.nav-menu-link') as HTMLElement;
+      firstEl?.focus();
+    }
+  }, []);
+
+  const shortcutStateRef = useRef({ isDesktop, isOpen, toggle });
+  useLayoutEffect(() => {
+    shortcutStateRef.current = { isDesktop, isOpen, toggle };
+  }, [isDesktop, isOpen, toggle]);
+
+  // Register global shortcut to focus sidebar
+  useEffect(() => {
+    const unregister = registerShortcuts([
+      {
+        key: 'Alt+m',
+        description: 'Focus Sidebar Menu',
+        category: 'Navigation',
+        action: (e) => {
+          e.preventDefault();
+          const state = shortcutStateRef.current;
+          if (!state.isDesktop && !state.isOpen) {
+            state.toggle();
+            setTimeout(() => focusActiveItem(), 300);
+          } else {
+            focusActiveItem();
+          }
+        }
+      }
+    ]);
+    return unregister;
+  }, [registerShortcuts, focusActiveItem]);
+
+  // Local keyboard navigation within Sidebar
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const activeEl = document.activeElement as HTMLElement;
+      if (!sidebarRef.current?.contains(activeEl)) return;
+
+      if (['ArrowDown', 'ArrowUp', 'Enter', 'Escape'].includes(e.key)) {
+        e.preventDefault();
+        e.stopImmediatePropagation(); // Prevent table hooks or page shortcuts from firing
+
+        if (e.key === 'Escape') {
+          activeEl.blur();
+          if (!isDesktop && isOpen) toggle();
+          return;
+        }
+        if (e.key === 'Enter') {
+          activeEl.click();
+          return;
+        }
+
+        const allLinks = Array.from(sidebarRef.current.querySelectorAll('.nav-menu-link')) as HTMLElement[];
+        const visibleLinks = allLinks.filter(link => !link.closest('.sub-menu') || link.closest('.sub-menu')?.classList.contains('open'));
+
+        const currentIndex = visibleLinks.indexOf(activeEl);
+        let nextIndex = e.key === 'ArrowDown' ? currentIndex + 1 : currentIndex - 1;
+        if (nextIndex >= visibleLinks.length) nextIndex = 0;
+        if (nextIndex < 0) nextIndex = visibleLinks.length - 1;
+
+        visibleLinks[nextIndex]?.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown, true); // use capture
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
+  }, [isDesktop, isOpen, toggle]);
+
   const sidebarStyle: React.CSSProperties = isDesktop
-  ? {
+    ? {
       // Desktop styles
       position: 'relative', // Keep it in the layout flow
       width: '100%', // Fill the parent Col
@@ -122,7 +203,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
       overflowY: 'auto', // Add scroll for long content
       paddingTop: '0', // Remove top padding
     }
-  : {
+    : {
       // Mobile styles - using Bootstrap offcanvas style with responsive width
       width: window.innerWidth > 768 ? '320px' : '80%', // Use fixed width on larger screens, percentage on mobile
       maxWidth: '320px', // Set maximum width for all screen sizes
@@ -144,7 +225,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
 
   return (
     <>
-      <div className={`sidebar pt-2 pt-xl-0 ${isOpen ? "open" : ""}`} style={sidebarStyle}>
+      <div className={`sidebar pt-2 pt-xl-0 ${isOpen ? "open" : ""}`} style={sidebarStyle} ref={sidebarRef}>
         <div>
           {!isDesktop && (
             <div
@@ -197,136 +278,126 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                 <li className="nav-menu-item">
                   <Link
                     to="/"
-                    className={`nav-menu-link ${
-                      location.pathname === "/" ? "active-link" : ""
-                    }`}
+                    className={`nav-menu-link ${location.pathname === "/" ? "active-link" : ""
+                      }`}
                     onClick={closeSidebarMobile}
                   >
                     <i className="bi bi-house me-2 sidebar-icon"></i>
                     <span className="sidebar-text">Dashboard</span>
                   </Link>
                 </li>
-                
+
                 {/* Batch Management - Expandable Item */}
                 {!checkingRestriction && !isBatchRestricted && (
-                <li className="nav-menu-item">
-                  <div
-                    className={`nav-menu-link expandable ${
-                      openMenu === "batch" ? "active" : ""
-                    }`}
-                    onClick={() => toggleMenu("batch")}
-                  >
-                    <i className="bi bi-file-earmark-text me-2 sidebar-icon"></i>
-                    <span className="sidebar-text">Batch Management</span>
-                    <i
-                      className={`bi bi-chevron-right chevron-icon sidebar-icon ${
-                        openMenu === "batch" ? "rotated" : ""
-                      }`}
-                    ></i>
-                  </div>
-                  <ul
-                    className={`sub-menu ${openMenu === "batch" ? "open" : ""}`}
-                  >
-                    <li className="sub-menu-item">
-                      <Link
-                        to="/production"
-                        className={`nav-menu-link ${
-                          location.pathname === "/production"
+                  <li className="nav-menu-item">
+                    <div
+                      className={`nav-menu-link expandable ${openMenu === "batch" ? "active" : ""
+                        }`}
+                      onClick={() => toggleMenu("batch")}
+                      tabIndex={0}
+                    >
+                      <i className="bi bi-file-earmark-text me-2 sidebar-icon"></i>
+                      <span className="sidebar-text">Batch Management</span>
+                      <i
+                        className={`bi bi-chevron-right chevron-icon sidebar-icon ${openMenu === "batch" ? "rotated" : ""
+                          }`}
+                      ></i>
+                    </div>
+                    <ul
+                      className={`sub-menu ${openMenu === "batch" ? "open" : ""}`}
+                    >
+                      <li className="sub-menu-item">
+                        <Link
+                          to="/production"
+                          className={`nav-menu-link ${location.pathname === "/production"
                             ? "active-link"
                             : ""
-                        }`}
-                        onClick={closeSidebarMobile}
-                      >
-                        <span className="sidebar-text">Production</span>
-                      </Link>
-                    </li>
-                    <li className="sub-menu-item">
-                      <Link
-                        to="/add-batch"
-                        className={`nav-menu-link ${
-                          location.pathname === "/add-batch"
+                            }`}
+                          onClick={closeSidebarMobile}
+                        >
+                          <span className="sidebar-text">Production</span>
+                        </Link>
+                      </li>
+                      <li className="sub-menu-item">
+                        <Link
+                          to="/add-batch"
+                          className={`nav-menu-link ${location.pathname === "/add-batch"
                             ? "active-link"
                             : ""
-                        }`}
-                        onClick={closeSidebarMobile}
-                      >
-                        <span className="sidebar-text">Add Batch</span>
-                      </Link>
-                    </li>
-                    <li className="sub-menu-item">
-                      <Link
-                        to="/upload-batch"
-                        className={`nav-menu-link ${
-                          location.pathname === "/upload-batch"
+                            }`}
+                          onClick={closeSidebarMobile}
+                        >
+                          <span className="sidebar-text">Add Batch</span>
+                        </Link>
+                      </li>
+                      <li className="sub-menu-item">
+                        <Link
+                          to="/upload-batch"
+                          className={`nav-menu-link ${location.pathname === "/upload-batch"
                             ? "active-link"
                             : ""
-                        }`}
-                        onClick={closeSidebarMobile}
-                      >
-                        <span className="sidebar-text">Upload Batch</span>
-                      </Link>
-                    </li>
-                  </ul>
-                </li>
+                            }`}
+                          onClick={closeSidebarMobile}
+                        >
+                          <span className="sidebar-text">Upload Batch</span>
+                        </Link>
+                      </li>
+                    </ul>
+                  </li>
                 )}
                 <li className="nav-menu-item">
                   <Link
                     to="/egg-room-stock"
-                    className={`nav-menu-link ${
-                      location.pathname === "/egg-room-stock"
-                        ? "active-link"
-                        : ""
-                    }`}
+                    className={`nav-menu-link ${location.pathname === "/egg-room-stock"
+                      ? "active-link"
+                      : ""
+                      }`}
                     onClick={closeSidebarMobile}
                   >
                     <i className="bi bi-egg me-2 sidebar-icon"></i>
                     <span className="sidebar-text">Egg Room Stock</span>
                   </Link>
                 </li>
-                
+
                 <li className="nav-menu-item">
                   <Link
                     to="/feed-mill-stock"
-                    className={`nav-menu-link ${
-                      location.pathname === "/feed-mill-stock"
-                        ? "active-link"
-                        : ""
-                    }`}
+                    className={`nav-menu-link ${location.pathname === "/feed-mill-stock"
+                      ? "active-link"
+                      : ""
+                      }`}
                     onClick={closeSidebarMobile}
                   >
                     <i className="bi bi-bag me-2 sidebar-icon"></i>
                     <span className="sidebar-text">Feed Compositions</span>
                   </Link>
                 </li>
-                
+
                 <li className="nav-menu-item">
                   <div
-                    className={`nav-menu-link expandable ${
-                      openMenu === "inventory" ? "active" : ""
-                    }`}
+                    className={`nav-menu-link expandable ${openMenu === "inventory" ? "active" : ""
+                      }`}
                     onClick={() => toggleMenu("inventory")}
+                    tabIndex={0}
                   >
                     <i className="bi bi-box-seam me-2 sidebar-icon"></i>
                     <span className="sidebar-text">Inventory</span>
                     <i
-                      className={`bi bi-chevron-right chevron-icon sidebar-icon ${
-                        openMenu === "inventory" ? "rotated" : ""
-                      }`}
+                      className={`bi bi-chevron-right chevron-icon sidebar-icon ${openMenu === "inventory" ? "rotated" : ""
+                        }`}
                     ></i>
                   </div>
                   <ul
-                    className={`sub-menu ${
-                      openMenu === "inventory" ? "open" : ""
-                    }`}
+                    className={`sub-menu ${openMenu === "inventory" ? "open" : ""
+                      }`}
                   >
                     <li className="sub-menu-item">
                       <Link
                         to="/inventory-items"
-                        className={`nav-menu-link ${
-                          location.pathname === "/inventory-items"
-                            ? "active-link"
-                            : ""
-                        }`}
+                        className={`nav-menu-link ${location.pathname === "/inventory-items"
+                          ? "active-link"
+                          : ""
+                          }`}
                         onClick={closeSidebarMobile}
                       >
                         <span className="sidebar-text">Inventory Items</span>
@@ -335,11 +406,10 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     <li className="sub-menu-item">
                       <Link
                         to="/inventory-items/manage-sellable"
-                        className={`nav-menu-link ${
-                          location.pathname === "/inventory-items/manage-sellable"
-                            ? "active-link"
-                            : ""
-                        }`}
+                        className={`nav-menu-link ${location.pathname === "/inventory-items/manage-sellable"
+                          ? "active-link"
+                          : ""
+                          }`}
                         onClick={closeSidebarMobile}
                       >
                         <span className="sidebar-text">Manage Sellable</span>
@@ -348,11 +418,10 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     <li className="sub-menu-item">
                       <Link
                         to="/inventory-items/stock-level-report"
-                        className={`nav-menu-link ${
-                          location.pathname === "/inventory-items/stock-level-report"
-                            ? "active-link"
-                            : ""
-                        }`}
+                        className={`nav-menu-link ${location.pathname === "/inventory-items/stock-level-report"
+                          ? "active-link"
+                          : ""
+                          }`}
                         onClick={closeSidebarMobile}
                       >
                         <span className="sidebar-text">Stock Levels</span>
@@ -361,11 +430,10 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     <li className="sub-menu-item">
                       <Link
                         to="/inventory-items/low-stock-report"
-                        className={`nav-menu-link ${
-                          location.pathname === "/inventory-items/low-stock-report"
-                            ? "active-link"
-                            : ""
-                        }`}
+                        className={`nav-menu-link ${location.pathname === "/inventory-items/low-stock-report"
+                          ? "active-link"
+                          : ""
+                          }`}
                         onClick={closeSidebarMobile}
                       >
                         <span className="sidebar-text">Low Stock Report</span>
@@ -374,11 +442,10 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     <li className="sub-menu-item">
                       <Link
                         to="/inventory-items/top-selling-items-report"
-                        className={`nav-menu-link ${
-                          location.pathname === "/inventory-items/top-selling-items-report"
-                            ? "active-link"
-                            : ""
-                        }`}
+                        className={`nav-menu-link ${location.pathname === "/inventory-items/top-selling-items-report"
+                          ? "active-link"
+                          : ""
+                          }`}
                         onClick={closeSidebarMobile}
                       >
                         <span className="sidebar-text">Top Selling Items Report</span>
@@ -386,129 +453,120 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     </li>
                   </ul>
                 </li>
-                
+
                 <li className="nav-menu-item">
                   <Link
                     to="/purchase-orders"
-                    className={`nav-menu-link ${
-                      location.pathname.startsWith("/purchase-orders")
-                        ? "active-link"
-                        : ""
-                    }`}
+                    className={`nav-menu-link ${location.pathname.startsWith("/purchase-orders")
+                      ? "active-link"
+                      : ""
+                      }`}
                     onClick={closeSidebarMobile}
                   >
                     <i className="bi bi-cart4 me-2 sidebar-icon"></i>
                     <span className="sidebar-text">Purchase</span>
                   </Link>
                 </li>
-                
+
                 <li className="nav-menu-item">
                   <Link
                     to="/sales-orders"
-                    className={`nav-menu-link ${
-                      location.pathname.startsWith("/sales-orders")
-                        ? "active-link"
-                        : ""
-                    }`}
+                    className={`nav-menu-link ${location.pathname.startsWith("/sales-orders")
+                      ? "active-link"
+                      : ""
+                      }`}
                     onClick={closeSidebarMobile}
                   >
                     <i className="bi bi-receipt me-2 sidebar-icon"></i>
                     <span className="sidebar-text">Sales</span>
                   </Link>
                 </li>
-                
+
                 <li className="nav-menu-item">
                   <Link
                     to="/business-partners"
-                    className={`nav-menu-link ${
-                      location.pathname === "/business-partners"
-                        ? "active-link"
-                        : ""
-                    }`}
+                    className={`nav-menu-link ${location.pathname === "/business-partners"
+                      ? "active-link"
+                      : ""
+                      }`}
                     onClick={closeSidebarMobile}
                   >
                     <i className="bi bi-people me-2 sidebar-icon"></i>
                     <span className="sidebar-text">People</span>
                   </Link>
                 </li>
-                
+
                 {/* Shed Management - Expandable Item */}
                 {!checkingRestriction && !isBatchRestricted && (
-                <li className="nav-menu-item">
-                  <div
-                    className={`nav-menu-link expandable ${
-                      openMenu === "shed" ? "active" : ""
-                    }`}
-                    onClick={() => toggleMenu("shed")}
-                  >
-                    <i className="bi bi-house-door me-2 sidebar-icon"></i>
-                    <span className="sidebar-text">Shed Management</span>
-                    <i
-                      className={`bi bi-chevron-right chevron-icon sidebar-icon ${
-                        openMenu === "shed" ? "rotated" : ""
-                      }`}
-                    ></i>
-                  </div>
-                  <ul
-                    className={`sub-menu ${openMenu === "shed" ? "open" : ""}`}
-                  >
-                    <li className="sub-menu-item">
-                      <Link
-                        to="/sheds"
-                        className={`nav-menu-link ${
-                          location.pathname === "/sheds" ? "active-link" : ""
+                  <li className="nav-menu-item">
+                    <div
+                      className={`nav-menu-link expandable ${openMenu === "shed" ? "active" : ""
                         }`}
-                        onClick={closeSidebarMobile}
-                      >
-                        <span className="sidebar-text">Sheds</span>
-                      </Link>
-                    </li>
-                    <li className="sub-menu-item">
-                      <Link
-                        to="/swap-sheds"
-                        className={`nav-menu-link ${
-                          location.pathname === "/swap-sheds"
+                      onClick={() => toggleMenu("shed")}
+                      tabIndex={0}
+                    >
+                      <i className="bi bi-house-door me-2 sidebar-icon"></i>
+                      <span className="sidebar-text">Shed Management</span>
+                      <i
+                        className={`bi bi-chevron-right chevron-icon sidebar-icon ${openMenu === "shed" ? "rotated" : ""
+                          }`}
+                      ></i>
+                    </div>
+                    <ul
+                      className={`sub-menu ${openMenu === "shed" ? "open" : ""}`}
+                    >
+                      <li className="sub-menu-item">
+                        <Link
+                          to="/sheds"
+                          className={`nav-menu-link ${location.pathname === "/sheds" ? "active-link" : ""
+                            }`}
+                          onClick={closeSidebarMobile}
+                        >
+                          <span className="sidebar-text">Sheds</span>
+                        </Link>
+                      </li>
+                      <li className="sub-menu-item">
+                        <Link
+                          to="/swap-sheds"
+                          className={`nav-menu-link ${location.pathname === "/swap-sheds"
                             ? "active-link"
                             : ""
-                        }`}
-                        onClick={closeSidebarMobile}
-                      >
-                        <span className="sidebar-text">Swap Sheds</span>
-                      </Link>
-                    </li>
-                  </ul>
-                </li>
+                            }`}
+                          onClick={closeSidebarMobile}
+                        >
+                          <span className="sidebar-text">Swap Sheds</span>
+                        </Link>
+                      </li>
+                    </ul>
+                  </li>
                 )}
-                
+
                 {/* Finance - Expandable Item */}
                 <li className="nav-menu-item">
                   <div
-                    className={`nav-menu-link expandable ${
-                      openMenu === "finance" ? "active" : ""
-                    }`}
+                    className={`nav-menu-link expandable ${openMenu === "finance" ? "active" : ""
+                      }`}
                     onClick={() => toggleMenu("finance")}
+                    tabIndex={0}
                   >
                     <i className="bi bi-cash-coin me-2 sidebar-icon"></i>
                     <span className="sidebar-text">Finance</span>
                     <i
-                      className={`bi bi-chevron-right chevron-icon sidebar-icon ${
-                        openMenu === "finance" ? "rotated" : ""
-                      }`}
+                      className={`bi bi-chevron-right chevron-icon sidebar-icon ${openMenu === "finance" ? "rotated" : ""
+                        }`}
                     ></i>
                   </div>
                   <ul
-                    className={`sub-menu ${
-                      openMenu === "finance" ? "open" : ""
-                    }`}
+                    className={`sub-menu ${openMenu === "finance" ? "open" : ""
+                      }`}
                   >
                     <li className="sub-menu-item">
                       <Link
                         to="/financial-reports"
-                        className={`nav-menu-link ${
-                          location.pathname === "/financial-reports"
-                            ? "active-link"
-                            : ""
-                        }`}
+                        className={`nav-menu-link ${location.pathname === "/financial-reports"
+                          ? "active-link"
+                          : ""
+                          }`}
                         onClick={closeSidebarMobile}
                       >
                         <span className="sidebar-text">Financial Reports</span>
@@ -517,11 +575,10 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     <li className="sub-menu-item">
                       <Link
                         to="/operational-expenses"
-                        className={`nav-menu-link ${
-                          location.pathname === "/operational-expenses"
-                            ? "active-link"
-                            : ""
-                        }`}
+                        className={`nav-menu-link ${location.pathname === "/operational-expenses"
+                          ? "active-link"
+                          : ""
+                          }`}
                         onClick={closeSidebarMobile}
                       >
                         <span className="sidebar-text">Operational Expenses</span>
@@ -530,11 +587,10 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     <li className="sub-menu-item">
                       <Link
                         to="/chart-of-accounts"
-                        className={`nav-menu-link ${
-                          location.pathname === "/chart-of-accounts"
-                            ? "active-link"
-                            : ""
-                        }`}
+                        className={`nav-menu-link ${location.pathname === "/chart-of-accounts"
+                          ? "active-link"
+                          : ""
+                          }`}
                         onClick={closeSidebarMobile}
                       >
                         <span className="sidebar-text">Chart of Accounts</span>
@@ -543,11 +599,10 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     <li className="sub-menu-item">
                       <Link
                         to="/journal-entries"
-                        className={`nav-menu-link ${
-                          location.pathname.startsWith("/journal-entries")
-                            ? "active-link"
-                            : ""
-                        }`}
+                        className={`nav-menu-link ${location.pathname.startsWith("/journal-entries")
+                          ? "active-link"
+                          : ""
+                          }`}
                         onClick={closeSidebarMobile}
                       >
                         <span className="sidebar-text">Journal Entries</span>
@@ -560,11 +615,10 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                   <li className="nav-menu-item">
                     <Link
                       to="/configurations"
-                      className={`nav-menu-link ${
-                        location.pathname === "/configurations"
-                          ? "active-link"
-                          : ""
-                      }`}
+                      className={`nav-menu-link ${location.pathname === "/configurations"
+                        ? "active-link"
+                        : ""
+                        }`}
                       onClick={closeSidebarMobile}
                     >
                       <i className="bi bi-gear me-2 sidebar-icon"></i>
@@ -572,14 +626,13 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     </Link>
                   </li>
                 )}
-               {/* Admin - Simple Link */}
+                {/* Admin - Simple Link */}
                 {userGroups.includes("admin") && (
                   <li className="nav-menu-item">
                     <Link
                       to="/admin"
-                      className={`nav-menu-link ${
-                        location.pathname === "/admin" ? "active-link" : ""
-                      }`}
+                      className={`nav-menu-link ${location.pathname === "/admin" ? "active-link" : ""
+                        }`}
                       onClick={closeSidebarMobile}
                     >
                       <i className="bi bi-shield-lock me-2 sidebar-icon"></i>
@@ -593,18 +646,17 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                   <li className="nav-menu-item">
                     <Link
                       to="/super-admin/subscriptions"
-                      className={`nav-menu-link ${
-                        location.pathname === "/super-admin/subscriptions"
-                          ? "active-link"
-                          : ""
-                      }`}
+                      className={`nav-menu-link ${location.pathname === "/super-admin/subscriptions"
+                        ? "active-link"
+                        : ""
+                        }`}
                       onClick={closeSidebarMobile}
                     >
                       <i className="bi bi-globe me-2 sidebar-icon"></i>
                       <span className="sidebar-text">Super Admin</span>
                     </Link>
                   </li>
-                )} 
+                )}
               </ul>
               {/* </ul> */}
             </div>

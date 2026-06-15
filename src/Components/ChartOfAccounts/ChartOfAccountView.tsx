@@ -168,7 +168,14 @@ const ChartOfAccountView: React.FC = () => {
             </Card.Body>
           </Card>
 
-          <Modal show={showDeleteModal} onHide={cancelDelete}>
+          <Modal 
+            show={showDeleteModal} 
+            onHide={cancelDelete}
+            onEntered={() => {
+              const btn = document.querySelector('.modal-footer .btn-danger') as HTMLElement;
+              btn?.focus();
+            }}
+          >
             <Modal.Header closeButton>
               <Modal.Title>Confirm Delete</Modal.Title>
             </Modal.Header>

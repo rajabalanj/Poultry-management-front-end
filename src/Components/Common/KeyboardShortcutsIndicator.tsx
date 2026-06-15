@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useShortcuts } from '../context/KeyboardShortcutContext';
 
 interface KeyboardShortcutsIndicatorProps {
   hasPayment?: boolean;
@@ -11,7 +12,7 @@ interface KeyboardShortcutsIndicatorProps {
   hasShare?: boolean;
 }
 
-const KeyboardShortcutsIndicator: React.FC<KeyboardShortcutsIndicatorProps> = ({ 
+const KeyboardShortcutsIndicator: React.FC<KeyboardShortcutsIndicatorProps> = ({
   hasPayment = false,
   hasDelete = false,
   hasViewItems = false,
@@ -22,13 +23,31 @@ const KeyboardShortcutsIndicator: React.FC<KeyboardShortcutsIndicatorProps> = ({
   hasShare = false
 }) => {
   const [isMinimized, setIsMinimized] = useState(true);
+  const { activeShortcuts } = useShortcuts();
+  const isMac = typeof window !== 'undefined' ? navigator.platform.toUpperCase().indexOf('MAC') >= 0 : false;
+
+  const formatKey = (keyCombo: string) => {
+    return keyCombo.split('+').map((part, index) => {
+      let label = part.charAt(0).toUpperCase() + part.slice(1);
+      if (isMac && part.toLowerCase() === 'alt') label = '⌥ Option';
+      else if (part.toLowerCase() === 'arrowup') label = '↑';
+      else if (part.toLowerCase() === 'arrowdown') label = '↓';
+
+      return (
+        <React.Fragment key={index}>
+          {index > 0 && '+'}
+          <kbd>{label}</kbd>
+        </React.Fragment>
+      );
+    });
+  };
 
   // Allow users to press "?" to quickly toggle the shortcuts guide
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
       const isInputFocused = ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable;
-      
+
       if (!isInputFocused && e.key === '?') {
         setIsMinimized(prev => !prev);
       }
@@ -40,16 +59,16 @@ const KeyboardShortcutsIndicator: React.FC<KeyboardShortcutsIndicatorProps> = ({
 
   if (isMinimized) {
     return (
-      <button 
+      <button
         className="btn btn-light border shadow d-none d-md-flex align-items-center justify-content-center"
-        style={{ 
-          position: 'fixed', 
-          bottom: '30px', 
-          right: '30px', 
-          zIndex: 1040, 
-          width: '50px', 
-          height: '50px', 
-          borderRadius: '50%' 
+        style={{
+          position: 'fixed',
+          bottom: '30px',
+          right: '30px',
+          zIndex: 1040,
+          width: '50px',
+          height: '50px',
+          borderRadius: '50%'
         }}
         onClick={() => setIsMinimized(false)}
         title="Keyboard Shortcuts (Press ? to toggle)"
@@ -60,12 +79,12 @@ const KeyboardShortcutsIndicator: React.FC<KeyboardShortcutsIndicatorProps> = ({
   }
 
   return (
-    <div 
-      className="d-none d-md-flex flex-column p-3 rounded shadow bg-white border border-secondary-subtle" 
-      style={{ 
-        position: 'fixed', 
-        right: '30px', 
-        bottom: '30px', 
+    <div
+      className="d-none d-md-flex flex-column p-3 rounded shadow bg-white border border-secondary-subtle"
+      style={{
+        position: 'fixed',
+        right: '30px',
+        bottom: '30px',
         zIndex: 1040,
         fontSize: '0.85rem',
         minWidth: '200px'
@@ -78,11 +97,17 @@ const KeyboardShortcutsIndicator: React.FC<KeyboardShortcutsIndicatorProps> = ({
         <button type="button" className="btn-close" style={{ fontSize: '0.5rem' }} onClick={() => setIsMinimized(true)} title="Close"></button>
       </div>
       <div className="d-flex flex-column gap-2">
-        {hasSearch && <div className="d-flex justify-content-between gap-3"><span>Filter</span> <kbd>/</kbd></div>}
-        {hasNew && <div className="d-flex justify-content-between gap-3"><span>New</span> <span><kbd>Alt</kbd>+<kbd>N</kbd></span></div>}
-        {hasExport && <div className="d-flex justify-content-between gap-3"><span>Export</span> <span><kbd>Alt</kbd>+<kbd>E</kbd></span></div>}
-        {hasShare && <div className="d-flex justify-content-between gap-3"><span>Share</span> <span><kbd>Alt</kbd>+<kbd>S</kbd></span></div>}
-        {hasBill && <div className="d-flex justify-content-between gap-3"><span>Bill</span> <span><kbd>Alt</kbd>+<kbd>B</kbd></span></div>}
+        {activeShortcuts.map((shortcut, idx) => (
+          <div key={idx} className="d-flex justify-content-between gap-3">
+            <span>{shortcut.description}</span>
+            <span>{formatKey(shortcut.key)}</span>
+          </div>
+        ))}
+        {hasSearch && !activeShortcuts.some(s => s.key === '/') && <div className="d-flex justify-content-between gap-3"><span>Filter</span> <kbd>/</kbd></div>}
+        {hasNew && !activeShortcuts.some(s => s.key.toLowerCase() === 'alt+n') && <div className="d-flex justify-content-between gap-3"><span>New</span> <span>{formatKey('Alt+n')}</span></div>}
+        {hasExport && !activeShortcuts.some(s => s.key.toLowerCase() === 'alt+e') && <div className="d-flex justify-content-between gap-3"><span>Export</span> <span>{formatKey('Alt+e')}</span></div>}
+        {hasShare && !activeShortcuts.some(s => s.key.toLowerCase() === 'alt+s') && <div className="d-flex justify-content-between gap-3"><span>Share</span> <span>{formatKey('Alt+s')}</span></div>}
+        {hasBill && !activeShortcuts.some(s => s.key.toLowerCase() === 'alt+b') && <div className="d-flex justify-content-between gap-3"><span>Bill</span> <span>{formatKey('Alt+b')}</span></div>}
         <div className="d-flex justify-content-between gap-3"><span>Navigate</span> <span><kbd>↑</kbd> <kbd>↓</kbd></span></div>
         <div className="d-flex justify-content-between gap-3"><span>Page</span> <span><kbd>←</kbd> <kbd>→</kbd></span></div>
         <div className="d-flex justify-content-between gap-3"><span>Open</span> <kbd>Enter</kbd></div>

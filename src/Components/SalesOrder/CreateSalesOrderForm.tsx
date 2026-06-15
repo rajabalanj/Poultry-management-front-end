@@ -43,9 +43,9 @@ const CreateSalesOrderForm: React.FC = () => {
 
   // Sales Order states
   const [customerId, setCustomerId] = useState<number | ''>('');
-  
+
   const [orderDate, setOrderDate] = useState<Date>(new Date()); // ADD THIS STATE: Default to current date
-  
+
   const [notes, setNotes] = useState('');
   const [billNo, setBillNo] = useState<string>('');
   const [items, setItems] = useState<FormSalesOrderItem[]>([]);
@@ -148,7 +148,24 @@ const CreateSalesOrderForm: React.FC = () => {
   };
 
   const handleRemoveItem = useCallback((tempId: number) => {
-    setItems((prevItems) => prevItems.filter((item) => item.tempId !== tempId));
+    setItems((prevItems) => {
+      const index = prevItems.findIndex(i => i.tempId === tempId);
+      const newItems = prevItems.filter((item) => item.tempId !== tempId);
+
+      setTimeout(() => {
+        if (index > 0 && newItems.length > 0) {
+          const prevItem = newItems[index - 1];
+          const row = document.getElementById(`item-row-${prevItem.tempId}`);
+          const input = row?.querySelector('input[type="number"]') as HTMLElement;
+          if (input) input.focus();
+        } else {
+          const btn = document.getElementById('add-item-btn');
+          if (btn) btn.focus();
+        }
+      }, 50);
+
+      return newItems;
+    });
     setVariantsByItem(prev => {
       const newVariantsByItem = { ...prev };
       delete newVariantsByItem[tempId];
@@ -168,7 +185,7 @@ const CreateSalesOrderForm: React.FC = () => {
               [field]: Number(value),
               inventory_item_name: selectedItem?.name,
               inventory_item_unit: selectedItem?.unit,
-              variant_id: null, 
+              variant_id: null,
               variant_name: '',
             };
           }
@@ -218,7 +235,7 @@ const CreateSalesOrderForm: React.FC = () => {
         setIsLoading(false);
         return;
       }
-      
+
     }
 
     const newSalesOrderData: SalesOrderCreate = {
@@ -237,7 +254,7 @@ const CreateSalesOrderForm: React.FC = () => {
 
     try {
       const soResponse = await salesOrderApi.createSalesOrder(newSalesOrderData);
-      
+
       toast.success('Sales Order created successfully! Proceeding to payment.');
       setNewSalesOrder(soResponse); // Set the new sales order
       setFormStep('addPayment'); // Move to the next step
@@ -255,40 +272,59 @@ const CreateSalesOrderForm: React.FC = () => {
     e.preventDefault();
 
     if (!newSalesOrder || !newSalesOrder.id) {
-        toast.error("No sales order created yet.");
-        return;
+      toast.error("No sales order created yet.");
+      return;
     }
 
     if (!amountPaid || amountPaid <= 0 || !paymentMode) {
-        toast.error("Please provide a valid amount and payment mode.");
-        return;
+      toast.error("Please provide a valid amount and payment mode.");
+      return;
     }
 
     setIsLoading(true);
 
     const paymentData: PaymentCreate = {
-        sales_order_id: newSalesOrder.id,
-        amount_paid: Number(amountPaid),
-        payment_date: format(paymentDate, 'yyyy-MM-dd'),
-        payment_mode: paymentMode,
-        reference_number: referenceNumber || undefined,
-        notes: paymentNotes || undefined,
+      sales_order_id: newSalesOrder.id,
+      amount_paid: Number(amountPaid),
+      payment_date: format(paymentDate, 'yyyy-MM-dd'),
+      payment_mode: paymentMode,
+      reference_number: referenceNumber || undefined,
+      notes: paymentNotes || undefined,
     };
 
     try {
-        await salesOrderApi.addPaymentToSalesOrder(paymentData);
+      await salesOrderApi.addPaymentToSalesOrder(paymentData);
 
 
 
-        toast.success("Payment added successfully!");
-        navigate(`/sales-orders/${newSalesOrder.id}/details`);
+      toast.success("Payment added successfully!");
+      navigate(`/sales-orders/${newSalesOrder.id}/details`);
 
     } catch (error) {
-        const err = error as { message?: string };
-        toast.error(err.message || "Failed to add payment.");
-        console.error("Error adding payment:", err);
+      const err = error as { message?: string };
+      toast.error(err.message || "Failed to add payment.");
+      console.error("Error adding payment:", err);
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
+    }
+  };
+
+  const handleFormKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === 'Enter') {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' && target.getAttribute('role') !== 'combobox') {
+        e.preventDefault();
+        const form = e.currentTarget;
+        const focusableElements = Array.from(
+          form.querySelectorAll(
+            'input:not([disabled]):not([type="hidden"]), select:not([disabled]), button:not([disabled]), textarea:not([disabled])'
+          )
+        ) as HTMLElement[];
+        const currentIndex = focusableElements.indexOf(target);
+        if (currentIndex > -1 && currentIndex < focusableElements.length - 1) {
+          focusableElements[currentIndex + 1].focus();
+        }
+      }
     }
   };
 
@@ -328,7 +364,7 @@ const CreateSalesOrderForm: React.FC = () => {
         <div className="card shadow-sm">
           <div className="card-body">
             {formStep === "createOrder" ? (
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleSubmit} onKeyDown={handleFormKeyDown}>
                 <div className="row g-3">
                   <h5 className="mb-3">Step 1: Sales Order Details</h5>
                   <div className="col-md-6">
@@ -585,6 +621,7 @@ const CreateSalesOrderForm: React.FC = () => {
                   <div className="col-12 text-center">
                     <button
                       type="button"
+                      id="add-item-btn"
                       className="btn btn-outline-primary btn-sm"
                       onClick={handleAddItem}
                       disabled={isLoading || isSubscriptionPaid === false}
@@ -613,7 +650,7 @@ const CreateSalesOrderForm: React.FC = () => {
                 </div>
               </form>
             ) : (
-              <form onSubmit={handlePaymentSubmit}>
+              <form onSubmit={handlePaymentSubmit} onKeyDown={handleFormKeyDown}>
                 <h5 className="mb-3">Step 2: Add Payment</h5>
                 {newSalesOrder && (
                   <div className="alert alert-info">

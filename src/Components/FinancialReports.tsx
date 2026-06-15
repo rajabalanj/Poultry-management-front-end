@@ -14,6 +14,9 @@ import SalesLedgerComponent from './Ledgers/SalesLedgerComponent';
 import InventoryLedgerComponent from './Ledgers/InventoryLedgerComponent';
 import StyledSelect from './Common/StyledSelect';
 import { toYYYYMMDD } from '../utility/date-utils';
+import { useShortcuts } from './context/KeyboardShortcutContext';
+import { usePageShortcuts } from '../hooks/usePageShortcuts';
+import KeyboardShortcutsIndicator from './Common/KeyboardShortcutsIndicator';
 
 type ReportType = 'pnl' | 'balance-sheet' | 'general-ledger' | 'purchase-ledger' | 'sales-ledger' | 'inventory-ledger' | 'financial-summary' | 'year-closing';
 
@@ -36,6 +39,23 @@ const FinancialReports: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ReportType>(() => {
     return (sessionStorage.getItem('financial_active_tab') as ReportType) || 'pnl';
   });
+
+  const { registerShortcuts } = useShortcuts();
+
+  // Tab switching shortcuts
+  useEffect(() => {
+    const tabShortcuts = [
+      { key: 'Alt+1', description: 'Financial Summary Tab', category: 'Tab Actions', action: () => setActiveTab('financial-summary') },
+      { key: 'Alt+2', description: 'Profit & Loss Tab', category: 'Tab Actions', action: () => setActiveTab('pnl') },
+      { key: 'Alt+3', description: 'Balance Sheet Tab', category: 'Tab Actions', action: () => setActiveTab('balance-sheet') },
+      { key: 'Alt+4', description: 'General Ledger Tab', category: 'Tab Actions', action: () => setActiveTab('general-ledger') },
+      { key: 'Alt+5', description: 'Purchase Ledger Tab', category: 'Tab Actions', action: () => setActiveTab('purchase-ledger') },
+      { key: 'Alt+6', description: 'Sales Ledger Tab', category: 'Tab Actions', action: () => setActiveTab('sales-ledger') },
+      { key: 'Alt+7', description: 'Inventory Ledger Tab', category: 'Tab Actions', action: () => setActiveTab('inventory-ledger') },
+      { key: 'Alt+8', description: 'Year Closing Tab', category: 'Tab Actions', action: () => setActiveTab('year-closing') },
+    ];
+    return registerShortcuts(tabShortcuts);
+  }, [registerShortcuts]);
 
   // Year Closing State
   const [financialSettings, setFinancialSettings] = useState<FinancialSettings | null>(null);
@@ -245,6 +265,29 @@ const FinancialReports: React.FC = () => {
   const handleShareFsPDF = () => handleShareOrDownload(() => financialReportsApi.exportFinancialSummary(fsStartDate, fsEndDate, 'pdf'), `Financial_Summary_${fsStartDate}_to_${fsEndDate}.pdf`, 'Financial Summary Report');
 
   const handleShareBsPDF = () => handleShareOrDownload(() => financialReportsApi.exportBalanceSheet(bsAsOfDate, 'pdf'), `Balance_Sheet_${bsAsOfDate}.pdf`, 'Balance Sheet Report');
+
+  const handleShareCurrentReport = useCallback(() => {
+    if (activeTab === 'pnl' && pnlData) handleSharePnlPDF();
+    else if (activeTab === 'financial-summary' && fsData) handleShareFsPDF();
+    else if (activeTab === 'balance-sheet' && bsData) handleShareBsPDF();
+  }, [activeTab, pnlData, fsData, bsData]);
+
+  const handleFocusSearch = useCallback(() => {
+    let input: HTMLInputElement | null = null;
+    if (activeTab === 'pnl') input = document.getElementById('pnlStartDate') as HTMLInputElement;
+    else if (activeTab === 'financial-summary') input = document.getElementById('fsStartDate') as HTMLInputElement;
+    else if (activeTab === 'balance-sheet') input = document.getElementById('bsAsOfDate') as HTMLInputElement;
+    if (input) input.focus();
+  }, [activeTab]);
+
+  usePageShortcuts({
+    onShare: (activeTab === 'pnl' && pnlData) || (activeTab === 'financial-summary' && fsData) || (activeTab === 'balance-sheet' && bsData)
+      ? handleShareCurrentReport
+      : undefined,
+    onSearchFocus: ['pnl', 'financial-summary', 'balance-sheet'].includes(activeTab)
+      ? handleFocusSearch
+      : undefined,
+  });
 
   const renderPnlReport = () => {
     if (pnlLoading) return <Loading message="Loading data..." />;
@@ -783,6 +826,7 @@ const FinancialReports: React.FC = () => {
             </Button>
           </Modal.Footer>
         </Modal>
+        <KeyboardShortcutsIndicator hasSearch hasShare={['pnl', 'financial-summary', 'balance-sheet'].includes(activeTab)} />
       </div>
     </>
   );

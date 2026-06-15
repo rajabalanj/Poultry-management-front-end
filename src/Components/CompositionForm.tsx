@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { InventoryItemResponse } from '../types/InventoryItem';
 import { InventoryItemInComposition } from '../types/compositon';
 import { useSubscription } from './context/SubscriptionContext';
 import SubscriptionWarning from './Common/SubscriptionWarning';
 import CustomPagination from './Common/CustomPagination';
+import { useShortcuts } from './context/KeyboardShortcutContext';
 
 interface CompositionFormProps {
   title: string;
@@ -47,6 +48,8 @@ function CompositionForm({
   onOpenCreateItem,
 }: CompositionFormProps) {
   const { isSubscriptionPaid } = useSubscription();
+  const { registerShortcuts } = useShortcuts();
+  const searchInputRef = useRef<HTMLInputElement>(null);
   
   // Pagination logic
   const ITEMS_PER_PAGE = 10;
@@ -54,6 +57,37 @@ function CompositionForm({
 
   // Reset to page 1 when search changes
   useEffect(() => setCurrentPage(1), [search]);
+
+  useEffect(() => {
+    const formShortcuts = [
+      {
+        key: '/',
+        description: 'Focus Search Items',
+        category: 'Form Actions',
+        action: () => {
+          searchInputRef.current?.focus();
+        }
+      },
+      {
+        key: 'Alt+s',
+        description: saveButtonLabel,
+        category: 'Form Actions',
+        action: () => {
+          onSave();
+        }
+      },
+      {
+        key: 'Escape',
+        description: 'Cancel',
+        category: 'Form Actions',
+        action: () => {
+          onCancel();
+        }
+      }
+    ];
+
+    return registerShortcuts(formShortcuts);
+  }, [registerShortcuts, saveButtonLabel, onSave, onCancel]);
 
   // Filter items out that are already in the composition, then paginate
   const availableItems = filteredItems.filter((i) => !editItems.some((ei) => ei.inventory_item_id === i.id));
@@ -144,6 +178,7 @@ function CompositionForm({
         <div className="mb-3 col-12 col-md-6">
           <div className="d-flex gap-2 align-items-center mb-2">
             <input
+              ref={searchInputRef}
               type="text"
               className="form-control form-control-sm"
               placeholder="Search Items..."

@@ -1,11 +1,18 @@
 :root {
-  --sidebar-bg: #ffffff; /* Pure white background */
-  --sidebar-text: #333333; /* Dark gray for text */
-  --sidebar-hover: #f0f0f0; /* Light gray for hover */
-  --sidebar-active: #dff5ff; /* Light blue for active items */
-  --sidebar-border: #e0e0e0; /* Subtle border color */
-  --sidebar-icon: var(--bs-primary); /* Professional blue for icons */
-  --sidebar-submenu-indicator: #90caf9; /* Lighter blue for submenu indicator */
+  --sidebar-bg: #ffffff;
+  /* Pure white background */
+  --sidebar-text: #333333;
+  /* Dark gray for text */
+  --sidebar-hover: #f0f0f0;
+  /* Light gray for hover */
+  --sidebar-active: #dff5ff;
+  /* Light blue for active items */
+  --sidebar-border: #e0e0e0;
+  /* Subtle border color */
+  --sidebar-icon: var(--bs-primary);
+  /* Professional blue for icons */
+  --sidebar-submenu-indicator: #90caf9;
+  /* Lighter blue for submenu indicator */
 }
 
 .sidebar {
@@ -51,6 +58,13 @@
   color: var(--bs-primary);
 }
 
+.nav-menu-link:focus,
+.nav-menu-link:focus-visible {
+  outline: 2px dashed var(--bs-primary);
+  outline-offset: -2px;
+  background-color: var(--bs-primary-bg-subtle);
+}
+
 .nav-menu-link.active-link {
   background-color: var(--bs-primary);
   color: var(--bs-white);
@@ -75,6 +89,15 @@
   background-color: var(--bs-primary);
   background-image: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1));
   color: var(--bs-white);
+}
+
+/* High contrast focus ring for already active items */
+.nav-menu-link.active-link:focus,
+.nav-menu-link.active-link:focus-visible,
+.nav-menu-link.expandable.active:focus,
+.nav-menu-link.expandable.active:focus-visible {
+  outline: 2px dashed var(--bs-white);
+  outline-offset: -2px;
 }
 
 .nav-menu-link.expandable {
@@ -154,7 +177,7 @@
   flex: 1;
 }
 
-.nav-menu + p,
+.nav-menu+p,
 .px-3 .text-uppercase {
   color: var(--bs-secondary-text);
   font-size: 0.75rem;

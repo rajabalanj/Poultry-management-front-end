@@ -1,4 +1,4 @@
-
+import React from 'react';
 import Select, {
   StylesConfig,
   Props,
@@ -33,8 +33,8 @@ interface StyledSelectProps extends Omit<Props<OptionType, false>, 'onChange'> {
   ) => void;
 }
 
-const StyledSelect: React.FC<StyledSelectProps> = (props) => {
-  return <Select {...props} styles={customStyles} />;
-};
+const StyledSelect = React.forwardRef<any, StyledSelectProps>((props, ref) => {
+  return <Select {...props} ref={ref} styles={customStyles} />;
+});
 
 export default StyledSelect;

@@ -1,5 +1,6 @@
-import React, { useCallback, useMemo, useState, useEffect } from "react";
+import React, { useCallback, useMemo, useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTableKeyboardNavigation } from "../hooks/useTableKeyboardNavigation";
 import { Circle, Birdhouse } from "lucide-react";
 import { DailyBatch } from "../types/daily_batch";
 import ListModal from './Common/ListModal';
@@ -37,7 +38,8 @@ const BatchCard: React.FC<{
   batch: DailyBatch;
   onView: (batch_id: number, batchDate: string) => void;
   henDayDeviation: number;
-}> = React.memo(({ batch, onView, henDayDeviation }) => {
+  isFocused?: boolean;
+}> = React.memo(({ batch, onView, henDayDeviation, isFocused }) => {
   const navigate = useNavigate();
   const { isSubscriptionPaid } = useSubscription();
 
@@ -63,7 +65,7 @@ const BatchCard: React.FC<{
 
   return (
     <div
-      className="card mb-3 shadow-sm"
+      className={`card mb-3 shadow-sm ${isFocused ? 'border-primary border-2' : ''}`}
       onClick={handleCardClick}
       style={cardStyle}
       onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-3px)'}
@@ -125,6 +127,57 @@ interface BatchTableProps {
 const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
   const navigate = useNavigate();
   const [henDayDeviation, setHenDayDeviation] = useState(0);
+
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1);
+
+  const allDisplayableBatches = useMemo(() => {
+    const displayableBatches = batches.filter(
+      (batch: any) => batch && !batch.message
+    );
+
+    return displayableBatches
+      .filter((batch: any) => batch.batch_id != null && !!batch.batch_type)
+      .map((b: any) => {
+        if (!b.batch_date && b.requested_date) {
+          return { ...b, batch_date: b.requested_date };
+        }
+        return b;
+      })
+      .filter((batch: any) => !!batch.batch_date)
+      .map((b: any) => b as DailyBatch);
+  }, [batches]);
+
+  const { resetSelection, setSelectedIndex } = useTableKeyboardNavigation({
+    rowCount: allDisplayableBatches.length,
+    containerRef: tableContainerRef,
+    onRowSelect: (index) => {
+      setFocusedRowIndex(index);
+    },
+    onRowEnter: (index) => {
+      const batch = allDisplayableBatches[index];
+      if (batch) {
+        handleViewDetails(batch.batch_id, batch.batch_date);
+      }
+    },
+    onRowAction: (index, key) => {
+      const batch = allDisplayableBatches[index];
+      if (!batch) return;
+      const k = key.toLowerCase();
+      if (k === 'u' && batch.is_active !== false) {
+        navigate(`/batch/${batch.batch_id}/${batch.batch_date}/edit`);
+      } else if (k === 'm' && batch.is_active !== false) {
+        navigate(`/batch/${batch.batch_id}/move-shed`);
+      }
+    },
+    enabled: allDisplayableBatches.length > 0,
+    actionKeys: ['u', 'U', 'm', 'M'],
+  });
+
+  useEffect(() => {
+    resetSelection();
+    setFocusedRowIndex(-1);
+  }, [allDisplayableBatches, resetSelection]);
 
   useEffect(() => {
     const fetchHenDayDeviation = async () => {
@@ -194,12 +247,18 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
     setShowRequestsModal(true);
   };
 
+  const getBatchIndex = useCallback((batch: DailyBatch) => {
+    return allDisplayableBatches.findIndex(
+      b => b.batch_id === batch.batch_id && b.batch_date === batch.batch_date
+    );
+  }, [allDisplayableBatches]);
+
   if (loading) return <Loading message="Loading data..." />;
   if (error) return <div className="text-center text-danger">{error}</div>;
   if ((!batches || batches.length === 0) && !loading) return <div className="text-center">No batches found</div>;
 
   return (
-    <div>
+    <div ref={tableContainerRef} tabIndex={0} style={{ outline: 'none' }}>
       {requestItems.length > 0 && (
         <div className="mb-3">
           <div className="alert border border-warning text-dark" role="alert">
@@ -225,11 +284,23 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
           <h5 className="mb-3">Layer Batches</h5>
           <div className="row">
             {filteredBatches.Layer.map(batch => (
-              <div className="col-md-6" key={`Layer-${batch.batch_id}-${batch.batch_date}`}>
+              <div 
+                className="col-md-6" 
+                key={`Layer-${batch.batch_id}-${batch.batch_date}`}
+                data-row-index={getBatchIndex(batch)}
+                onClick={() => {
+                  const idx = getBatchIndex(batch);
+                  if (idx >= 0) {
+                    setFocusedRowIndex(idx);
+                    setSelectedIndex(idx);
+                  }
+                }}
+              >
                 <BatchCard
                   batch={batch}
                   onView={handleViewDetails}
                   henDayDeviation={henDayDeviation}
+                  isFocused={focusedRowIndex === getBatchIndex(batch)}
                 />
               </div>
             ))}
@@ -241,11 +312,23 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
           <h5 className="mb-3">Grower Batches</h5>
           <div className="row">
             {filteredBatches.Grower.map(batch => (
-              <div className="col-md-6" key={`Grower-${batch.batch_id}-${batch.batch_date}`}>
+              <div 
+                className="col-md-6" 
+                key={`Grower-${batch.batch_id}-${batch.batch_date}`}
+                data-row-index={getBatchIndex(batch)}
+                onClick={() => {
+                  const idx = getBatchIndex(batch);
+                  if (idx >= 0) {
+                    setFocusedRowIndex(idx);
+                    setSelectedIndex(idx);
+                  }
+                }}
+              >
                 <BatchCard
                   batch={batch}
                   onView={handleViewDetails}
                   henDayDeviation={henDayDeviation}
+                  isFocused={focusedRowIndex === getBatchIndex(batch)}
                 />
               </div>
             ))}
@@ -257,11 +340,23 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
           <h5 className="mb-3">Chick Batches</h5>
           <div className="row">
             {filteredBatches.Chick.map(batch => (
-              <div className="col-md-6" key={`Chick-${batch.batch_id}-${batch.batch_date}`}>
+              <div 
+                className="col-md-6" 
+                key={`Chick-${batch.batch_id}-${batch.batch_date}`}
+                data-row-index={getBatchIndex(batch)}
+                onClick={() => {
+                  const idx = getBatchIndex(batch);
+                  if (idx >= 0) {
+                    setFocusedRowIndex(idx);
+                    setSelectedIndex(idx);
+                  }
+                }}
+              >
                 <BatchCard
                   batch={batch}
                   onView={handleViewDetails}
                   henDayDeviation={henDayDeviation}
+                  isFocused={focusedRowIndex === getBatchIndex(batch)}
                 />
               </div>
             ))}

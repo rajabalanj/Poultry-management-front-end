@@ -14,7 +14,7 @@ import {
 import {
   PurchaseOrderItemCreate,
   PurchaseOrderItemUpdate,
-  PurchaseOrderItemResponse, 
+  PurchaseOrderItemResponse,
 } from '../../types/PurchaseOrderItem';
 import { BusinessPartner } from '../../types/BusinessPartner';
 import { InventoryItemResponse } from '../../types/InventoryItem';
@@ -49,12 +49,12 @@ const EditPurchaseOrder: React.FC = () => {
 
   // Purchase states, initialized from fetched data
   const [vendorId, setVendorId] = useState<number | ''>(0);
-  
+
   const [orderDate, setOrderDate] = useState<Date | null>(null);
-  
+
   const [notes, setNotes] = useState('');
   const [billNo, setBillNo] = useState<string>('');
-  
+
   const [items, setItems] = useState<FormPurchaseOrderItem[]>([]);
   const [originalItems, setOriginalItems] = useState<FormPurchaseOrderItem[]>([]);
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
@@ -73,9 +73,9 @@ const EditPurchaseOrder: React.FC = () => {
       setError(null);
       try {
         if (!po_id) {
-            setError("Purchase ID is missing.");
-            setInitialLoading(false);
-            return;
+          setError("Purchase ID is missing.");
+          setInitialLoading(false);
+          return;
         }
 
         const [poData, vendorsData, inventoryItemsData] = await Promise.all([
@@ -87,12 +87,12 @@ const EditPurchaseOrder: React.FC = () => {
         // Set main Purchase details
         setVendorId(poData.vendor_id);
         setPoNumber(poData.po_number);
-        
+
         setOrderDate(poData.order_date ? new Date(poData.order_date) : null);
-        
+
         setNotes(poData.notes || '');
         setBillNo(poData.bill_no || '');
-        
+
         setCurrentReceipt(poData.payment_receipt || null);
 
         // Map existing items to form state, adding tempId for consistency and flags
@@ -187,11 +187,32 @@ const EditPurchaseOrder: React.FC = () => {
   }, [po_id]);
 
   const handleRemoveItem = useCallback((tempId: number) => {
-    setItems((prevItems) =>
-      prevItems.map((item) =>
-        item.tempId === tempId ? { ...item, isDeleted: true } : item // Mark for deletion instead of removing
-      )
-    );
+    setItems((prevItems) => {
+      const index = prevItems.findIndex(i => i.tempId === tempId);
+
+      setTimeout(() => {
+        let focusTargetId = null;
+        for (let i = index - 1; i >= 0; i--) {
+          if (!prevItems[i].isDeleted) {
+            focusTargetId = prevItems[i].tempId;
+            break;
+          }
+        }
+
+        if (focusTargetId) {
+          const row = document.getElementById(`item-row-${focusTargetId}`);
+          const input = row?.querySelector('input[type="number"]') as HTMLElement;
+          if (input) input.focus();
+        } else {
+          const btn = document.getElementById('add-item-btn');
+          if (btn) btn.focus();
+        }
+      }, 50);
+
+      return prevItems.map((item) =>
+        item.tempId === tempId ? { ...item, isDeleted: true } : item
+      );
+    });
   }, []);
 
   const handleUndoRemoveItem = useCallback((tempId: number) => {
@@ -228,9 +249,9 @@ const EditPurchaseOrder: React.FC = () => {
     setIsLoading(true);
 
     if (!po_id) {
-        toast.error("Purchase ID is missing for update.");
-        setIsLoading(false);
-        return;
+      toast.error("Purchase ID is missing for update.");
+      setIsLoading(false);
+      return;
     }
 
     // Filter out items marked for deletion for validation
@@ -259,7 +280,7 @@ const EditPurchaseOrder: React.FC = () => {
         order_date: orderDate ? format(orderDate, 'yyyy-MM-dd') : undefined,
         notes: notes || undefined,
         bill_no: billNo || undefined,
-        
+
       };
       await purchaseOrderApi.updatePurchaseOrder(Number(po_id), poUpdateData);
 
@@ -283,10 +304,10 @@ const EditPurchaseOrder: React.FC = () => {
         } else if (!item.isNew && !item.isDeleted) { // Existing item, potentially updated
           const originalItem = originalItems.find(oi => oi.id === item.id);
 
-          const hasChanged = !originalItem || 
-                               originalItem.inventory_item_id !== item.inventory_item_id ||
-                               originalItem.quantity !== item.quantity || 
-                               originalItem.price_per_unit !== item.price_per_unit;
+          const hasChanged = !originalItem ||
+            originalItem.inventory_item_id !== item.inventory_item_id ||
+            originalItem.quantity !== item.quantity ||
+            originalItem.price_per_unit !== item.price_per_unit;
 
           if (hasChanged) {
             const updateItemData: PurchaseOrderItemUpdate = {
@@ -306,6 +327,25 @@ const EditPurchaseOrder: React.FC = () => {
       console.error('Error updating Purchase:', err);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleFormKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === 'Enter') {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' && target.getAttribute('role') !== 'combobox') {
+        e.preventDefault();
+        const form = e.currentTarget;
+        const focusableElements = Array.from(
+          form.querySelectorAll(
+            'input:not([disabled]):not([type="hidden"]), select:not([disabled]), button:not([disabled]), textarea:not([disabled])'
+          )
+        ) as HTMLElement[];
+        const currentIndex = focusableElements.indexOf(target);
+        if (currentIndex > -1 && currentIndex < focusableElements.length - 1) {
+          focusableElements[currentIndex + 1].focus();
+        }
+      }
     }
   };
 
@@ -330,14 +370,14 @@ const EditPurchaseOrder: React.FC = () => {
         <SubscriptionWarning />
         <div className="card shadow-sm">
           <div className="card-body">
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} onKeyDown={handleFormKeyDown}>
               <div className="row g-3">
                 {/* Purchase Details Section */}
                 <h5 className="mb-3">Purchase Details</h5>
                 <div className="col-md-6">
                   <label htmlFor="vendorSelect" className="form-label">Vendor <span className="form-field-required">*</span></label>
                   <div className="d-flex gap-2 align-items-center">
-                  <StyledSelect
+                    <StyledSelect
                       id="vendorSelect"
                       value={selectedVendorOption}
                       onChange={(option, _action) => setVendorId(option ? Number(option.value) : '')}
@@ -354,20 +394,20 @@ const EditPurchaseOrder: React.FC = () => {
                     <div className="text-danger mt-1">No vendors found. Please add a vendor first.</div>
                   )}
                 </div>
-                
+
                 <div className="col-md-6">
                   <label htmlFor="orderDate" className="form-label">Date <span className="form-field-required">*</span></label>
                   <div>
-                  <CustomDatePicker
-                    selected={orderDate}
-                    onChange={(date: Date | null) => setOrderDate(date)}
-                    dateFormat="dd-MM-yyyy"
-                    showMonthDropdown
-                    showYearDropdown
-                    dropdownMode="select"
-                    className="form-control"
-                    id="orderDate"
-                    disabled={isLoading} />
+                    <CustomDatePicker
+                      selected={orderDate}
+                      onChange={(date: Date | null) => setOrderDate(date)}
+                      dateFormat="dd-MM-yyyy"
+                      showMonthDropdown
+                      showYearDropdown
+                      dropdownMode="select"
+                      className="form-control"
+                      id="orderDate"
+                      disabled={isLoading} />
                   </div>
                 </div>
                 <div className="col-md-6">
@@ -417,8 +457,8 @@ const EditPurchaseOrder: React.FC = () => {
                 {items.filter(item => !item.isDeleted).length === 0 && <p className="col-12 text-muted">No active items. Click "Add Item" to add new ones.</p>}
 
                 {items.map((item, index) => (
-                  <div 
-                    key={item.tempId} 
+                  <div
+                    key={item.tempId}
                     id={`item-row-${item.tempId}`}
                     className={`col-12 border p-3 mb-3 ${item.isDeleted ? 'bg-danger-subtle border-danger' : 'bg-light'}`}
                     onKeyDown={(e) => {
@@ -458,19 +498,19 @@ const EditPurchaseOrder: React.FC = () => {
                         <div className="col-md-6">
                           <label htmlFor={`itemId-${item.tempId}`} className="form-label">Inventory Item <span className="form-field-required">*</span></label>
                           <div className="d-flex gap-2 align-items-center">
-                          <StyledSelect
-                            id={`itemId-${item.tempId}`}
-                            value={inventoryItemOptions.find(option => option.value === item.inventory_item_id)}
-                            onChange={(option, _action) => handleItemChange(item.tempId, 'inventory_item_id', option ? option.value : '')}
-                            options={inventoryItemOptions}
-                            placeholder="Select an Item"
-                            isClearable
-                            isLoading={isLoading}
-                          />
-                          {/* add-item button removed on edit page */}
+                            <StyledSelect
+                              id={`itemId-${item.tempId}`}
+                              value={inventoryItemOptions.find(option => option.value === item.inventory_item_id)}
+                              onChange={(option, _action) => handleItemChange(item.tempId, 'inventory_item_id', option ? option.value : '')}
+                              options={inventoryItemOptions}
+                              placeholder="Select an Item"
+                              isClearable
+                              isLoading={isLoading}
+                            />
+                            {/* add-item button removed on edit page */}
                           </div>
                           {inventoryItems.length === 0 && !isLoading && (
-                              <div className="text-danger mt-1">No inventory items found. Please add items first.</div>
+                            <div className="text-danger mt-1">No inventory items found. Please add items first.</div>
                           )}
                           {/* Inventory item can now be changed for existing rows */}
                         </div>
@@ -519,6 +559,7 @@ const EditPurchaseOrder: React.FC = () => {
                 <div className="col-12 text-center">
                   <button
                     type="button"
+                    id="add-item-btn"
                     className="btn btn-outline-primary btn-sm"
                     onClick={handleAddItem}
                     disabled={isLoading}
@@ -549,45 +590,45 @@ const EditPurchaseOrder: React.FC = () => {
           </div>
         </div>
       </div>
-              {/* Create Vendor Modal */}
-              {showCreateVendorModal && (
-                <>
-                  <div className="modal fade show" tabIndex={-1} role="dialog" style={{ display: 'block' }} aria-modal="true">
-                    <div className="modal-dialog modal-lg" role="document">
-                      <div className="modal-content">
-                        <div className="modal-header">
-                          <h5 className="modal-title">Create Vendor</h5>
-                          <button type="button" className="btn-close" aria-label="Close" onClick={() => setShowCreateVendorModal(false)}></button>
-                        </div>
-                        <div className="modal-body">
-                          <CreateBusinessPartnerForm hideHeader onCreated={handleVendorCreatedInline} onCancel={() => setShowCreateVendorModal(false)} />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="modal-backdrop fade show"></div>
-                </>
-              )}
+      {/* Create Vendor Modal */}
+      {showCreateVendorModal && (
+        <>
+          <div className="modal fade show" tabIndex={-1} role="dialog" style={{ display: 'block' }} aria-modal="true">
+            <div className="modal-dialog modal-lg" role="document">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Create Vendor</h5>
+                  <button type="button" className="btn-close" aria-label="Close" onClick={() => setShowCreateVendorModal(false)}></button>
+                </div>
+                <div className="modal-body">
+                  <CreateBusinessPartnerForm hideHeader onCreated={handleVendorCreatedInline} onCancel={() => setShowCreateVendorModal(false)} />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="modal-backdrop fade show"></div>
+        </>
+      )}
 
-              {/* Create Inventory Item Modal */}
-              {showCreateItemModal && (
-                <>
-                  <div className="modal fade show" tabIndex={-1} role="dialog" style={{ display: 'block' }} aria-modal="true">
-                    <div className="modal-dialog modal-lg" role="document">
-                      <div className="modal-content">
-                        <div className="modal-header">
-                          <h5 className="modal-title">Create Inventory Item</h5>
-                          <button type="button" className="btn-close" aria-label="Close" onClick={() => setShowCreateItemModal(false)}></button>
-                        </div>
-                        <div className="modal-body">
-                          <CreateInventoryItemForm hideHeader onCreated={handleItemCreatedInline} onCancel={() => setShowCreateItemModal(false)} />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="modal-backdrop fade show"></div>
-                </>
-              )}
+      {/* Create Inventory Item Modal */}
+      {showCreateItemModal && (
+        <>
+          <div className="modal fade show" tabIndex={-1} role="dialog" style={{ display: 'block' }} aria-modal="true">
+            <div className="modal-dialog modal-lg" role="document">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Create Inventory Item</h5>
+                  <button type="button" className="btn-close" aria-label="Close" onClick={() => setShowCreateItemModal(false)}></button>
+                </div>
+                <div className="modal-body">
+                  <CreateInventoryItemForm hideHeader onCreated={handleItemCreatedInline} onCancel={() => setShowCreateItemModal(false)} />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="modal-backdrop fade show"></div>
+        </>
+      )}
     </>
   );
 };

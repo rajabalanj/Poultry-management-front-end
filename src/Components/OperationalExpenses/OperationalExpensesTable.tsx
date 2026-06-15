@@ -1,10 +1,11 @@
 // src/components/OperationalExpenses/OperationalExpensesTable.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { OperationalExpense } from "../../types/operationalExpense";
 import { Button } from "react-bootstrap";
 import { useSubscription } from "../context/SubscriptionContext";
 import CustomPagination from "../Common/CustomPagination";
+import { useTableKeyboardNavigation } from "../../hooks/useTableKeyboardNavigation";
 
 interface OperationalExpensesTableProps {
   expenses: OperationalExpense[];
@@ -18,9 +19,48 @@ const OperationalExpensesTable: React.FC<OperationalExpensesTableProps> = ({ exp
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 15;
 
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1);
+
   useEffect(() => {
     setCurrentPage(1);
   }, [expenses]);
+
+  const getPaginatedExpenses = useCallback(() => {
+    return expenses.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+  }, [expenses, currentPage]);
+
+  const { resetSelection, setSelectedIndex } = useTableKeyboardNavigation({
+    rowCount: getPaginatedExpenses().length,
+    containerRef: tableContainerRef,
+    onRowSelect: (index) => {
+      setFocusedRowIndex(index);
+    },
+    onRowEnter: (index) => {
+      const paginated = getPaginatedExpenses();
+      if (paginated && paginated[index]) {
+        handleView(paginated[index].id);
+      }
+    },
+    onRowAction: (index, key) => {
+      const paginated = getPaginatedExpenses();
+      if (!paginated || !paginated[index]) return;
+      const id = paginated[index].id;
+      const k = key.toLowerCase();
+      if (k === 'e' && isSubscriptionPaid !== false) {
+        handleEdit(id);
+      } else if (k === 'd' && isSubscriptionPaid !== false) {
+        onDelete(id);
+      }
+    },
+    enabled: getPaginatedExpenses().length > 0,
+    actionKeys: ['e', 'E', 'd', 'D'],
+  });
+
+  useEffect(() => {
+    resetSelection();
+    setFocusedRowIndex(-1);
+  }, [expenses, currentPage, resetSelection]);
 
   const totalPages = Math.ceil(expenses.length / ITEMS_PER_PAGE);
   const paginatedExpenses = expenses.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
@@ -50,7 +90,7 @@ const OperationalExpensesTable: React.FC<OperationalExpensesTableProps> = ({ exp
 
   return (
     <div>
-      <div className="table-responsive">
+      <div className="table-responsive" ref={tableContainerRef} tabIndex={0} style={{ outline: 'none' }}>
       <table className="table table-striped table-hover">
         <thead className="thead-dark">
           <tr>
@@ -61,8 +101,18 @@ const OperationalExpensesTable: React.FC<OperationalExpensesTableProps> = ({ exp
           </tr>
         </thead>
         <tbody>
-          {paginatedExpenses.map((expense) => (
-            <tr key={expense.id} onClick={() => handleView(expense.id)} style={{ cursor: 'pointer' }}>
+          {paginatedExpenses.map((expense, index) => (
+            <tr 
+              key={expense.id} 
+              data-row-index={index}
+              onClick={() => {
+                setFocusedRowIndex(index);
+                setSelectedIndex(index);
+                handleView(expense.id);
+              }} 
+              className={focusedRowIndex === index ? 'table-primary' : ''}
+              style={{ cursor: 'pointer' }}
+            >
               <td>{formatDate(expense.expense_date)}</td>
               <td>{expense.expense_type}</td>
               <td>{expense.amount_str || (typeof expense.amount === 'number' ? expense.amount.toFixed(2) : parseFloat(expense.amount || '0').toFixed(2))}</td>

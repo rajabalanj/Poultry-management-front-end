@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { ledgerApi } from '../../services/api';
@@ -9,6 +9,8 @@ import CustomDatePicker from '../Common/CustomDatePicker';
 import StyledSelect from '../Common/StyledSelect';
 import { financialReportsApi } from '../../services/api';
 import CustomPagination from '../Common/CustomPagination';
+import { useTableKeyboardNavigation } from '../../hooks/useTableKeyboardNavigation';
+import { usePageShortcuts } from '../../hooks/usePageShortcuts';
 
 const GeneralLedgerComponent: React.FC = () => {
     const today = new Date().toISOString().slice(0, 10);
@@ -22,7 +24,10 @@ const GeneralLedgerComponent: React.FC = () => {
     const ITEMS_PER_PAGE = 10;
     const navigate = useNavigate();
 
-    const handleRowClick = (entry: GeneralLedger['entries'][0]) => {
+    const tableContainerRef = useRef<HTMLDivElement>(null);
+    const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1);
+
+    const handleRowClick = useCallback((entry: GeneralLedger['entries'][0]) => {
         const details = entry.details.toLowerCase();
         if (details.includes('purchase order')) {
             navigate(`/purchase-orders/${entry.reference_id}/details`);
@@ -31,9 +36,9 @@ const GeneralLedgerComponent: React.FC = () => {
         } else if (entry.transaction_type.toLowerCase() === 'expense' || details.includes('operational expense')) {
             navigate(`/operational-expenses/${entry.reference_id}/details`);
         }
-    };
+    }, [navigate]);
 
-    const handlePaymentClick = (e: React.MouseEvent, entry: GeneralLedger['entries'][0]) => {
+    const handlePaymentClick = useCallback((e: React.MouseEvent, entry: GeneralLedger['entries'][0]) => {
         e.stopPropagation();
         const details = entry.details.toLowerCase();
         if (details.includes('purchase order')) {
@@ -41,49 +46,88 @@ const GeneralLedgerComponent: React.FC = () => {
         } else if (details.includes('sales order')) {
             navigate(`/sales-orders/${entry.reference_id}/add-payment`);
         }
-    };
+    }, [navigate]);
+
+    const getPaginatedEntries = useCallback(() => {
+        return ledgerData?.entries.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE) || [];
+    }, [ledgerData, currentPage]);
+
+    const { resetSelection, setSelectedIndex } = useTableKeyboardNavigation({
+        rowCount: getPaginatedEntries().length,
+        containerRef: tableContainerRef,
+        onRowSelect: (index) => {
+            setFocusedRowIndex(index);
+        },
+        onRowEnter: (index) => {
+            const paginated = getPaginatedEntries();
+            if (paginated && paginated[index]) {
+                handleRowClick(paginated[index]);
+            }
+        },
+        onRowAction: (index, key) => {
+            const paginated = getPaginatedEntries();
+            if (key.toLowerCase() === 'p' && paginated && paginated[index]) {
+                const entry = paginated[index];
+                const details = entry.details.toLowerCase();
+                if (details.includes('purchase order')) {
+                    navigate(`/purchase-orders/${entry.reference_id}/add-payment`);
+                } else if (details.includes('sales order')) {
+                    navigate(`/sales-orders/${entry.reference_id}/add-payment`);
+                }
+            }
+        },
+        enabled: getPaginatedEntries().length > 0,
+        actionKeys: ['p', 'P'],
+    });
 
     const handleShareOrDownload = async (fetchBlob: () => Promise<Blob>, filename: string, title: string) => {
         setIsSharing(true);
         try {
-          const blob = await fetchBlob();
-          const file = new File([blob], filename, { type: 'application/pdf' });
-    
-          if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            try {
-              await navigator.share({ title, files: [file] });
-              toast.success(`${title} shared successfully!`);
-              return;
-            } catch (shareError: any) {
-              if (shareError.name === 'AbortError') return;
-              console.error('Share error:', shareError);
+            const blob = await fetchBlob();
+            const file = new File([blob], filename, { type: 'application/pdf' });
+
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({ title, files: [file] });
+                    toast.success(`${title} shared successfully!`);
+                    return;
+                } catch (shareError: any) {
+                    if (shareError.name === 'AbortError') return;
+                    console.error('Share error:', shareError);
+                }
             }
-          }
-          
-          // Fallback: direct download
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = filename;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          window.URL.revokeObjectURL(url);
-          toast.success(`${title} downloaded successfully!`);
+
+            // Fallback: direct download
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            toast.success(`${title} downloaded successfully!`);
         } catch (error: any) {
-          console.error('Failed to export PDF:', error);
-          toast.error(error.message || `Failed to export ${title}.`);
+            console.error('Failed to export PDF:', error);
+            toast.error(error.message || `Failed to export ${title}.`);
         } finally {
-          setIsSharing(false);
+            setIsSharing(false);
         }
-      };
+    };
 
     const handleShareGeneralLedgerPDF = () => handleShareOrDownload(
-  () => financialReportsApi.exportGeneralLedger(startDate, endDate, 'pdf'),
-  `General_Ledger_${startDate}_to_${endDate}.pdf`,
-  'General Ledger Report'
-);
+        () => financialReportsApi.exportGeneralLedger(startDate, endDate, 'pdf'),
+        `General_Ledger_${startDate}_to_${endDate}.pdf`,
+        'General Ledger Report'
+    );
 
+    usePageShortcuts({
+        onShare: ledgerData ? handleShareGeneralLedgerPDF : undefined,
+        onSearchFocus: () => {
+            const input = document.getElementById('glStartDate') as HTMLInputElement;
+            if (input) input.focus();
+        }
+    });
 
     useEffect(() => {
         sessionStorage.setItem('gl_start_date', startDate);
@@ -97,6 +141,11 @@ const GeneralLedgerComponent: React.FC = () => {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        resetSelection();
+        setFocusedRowIndex(-1);
+    }, [ledgerData, currentPage, resetSelection]);
 
     const handleFetchLedger = async () => {
         if (new Date(startDate) > new Date(endDate)) {
@@ -180,7 +229,7 @@ const GeneralLedgerComponent: React.FC = () => {
                 <div className="p-3">
                     <h5 className="mb-3">{ledgerData.title}</h5>
                     <p className="text-muted">Opening Balance: {ledgerData.opening_balance_str || ledgerData.opening_balance.toFixed(2)}</p>
-                    <div className="table-responsive">
+                    <div className="table-responsive" ref={tableContainerRef} tabIndex={0} style={{ outline: 'none' }}>
                         <table className="table table-striped table-hover">
                             <thead>
                                 <tr>
@@ -196,7 +245,17 @@ const GeneralLedgerComponent: React.FC = () => {
                             </thead>
                             <tbody>
                                 {paginatedEntries.map((entry, index) => (
-                                    <tr key={index} onClick={() => handleRowClick(entry)} style={{ cursor: 'pointer' }}>
+                                    <tr
+                                        key={index}
+                                        data-row-index={index}
+                                        onClick={() => {
+                                            setFocusedRowIndex(index);
+                                            setSelectedIndex(index);
+                                            handleRowClick(entry);
+                                        }}
+                                        className={focusedRowIndex === index ? 'table-primary' : ''}
+                                        style={{ cursor: 'pointer' }}
+                                    >
                                         <td>{entry.date}</td>
                                         <td>{entry.transaction_type}</td>
                                         <td>{entry.details}</td>
