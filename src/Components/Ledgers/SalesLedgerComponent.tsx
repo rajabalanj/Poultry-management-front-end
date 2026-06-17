@@ -269,7 +269,7 @@ const SalesLedgerComponent: React.FC = () => {
                             Customer: {ledgerData.customer_name ? `${ledgerData.customer_name} (ID: ${ledgerData.customer_id})` : ledgerData.customer_id}
                             {ledgerData.total_records !== undefined && ` | Total records: ${ledgerData.total_records}`}
                         </p>
-                        <KeyboardShortcutsIndicator hasPayment />
+                        <KeyboardShortcutsIndicator />
                         <div
                             className="table-responsive"
                             ref={tableContainerRef}

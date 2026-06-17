@@ -10,6 +10,8 @@ import CustomDatePicker from '../Common/CustomDatePicker';
 import ListModal from '../Common/ListModal'; // Import ListModal
 import StyledSelect from '../Common/StyledSelect';
 import { Bird, Package, Egg } from 'lucide-react';
+import { useShortcuts } from '../context/KeyboardShortcutContext';
+import KeyboardShortcutsIndicator from '../Common/KeyboardShortcutsIndicator';
 
 const BATCH_DATE_KEY = 'dashboard_batch_date';
 
@@ -38,6 +40,16 @@ const DashboardIndex = () => {
   const [showFeedModal, setShowFeedModal] = useState(false);
   const [feedModalTitle, setFeedModalTitle] = useState('');
   const [feedModalItems, setFeedModalItems] = useState<string[]>([]);
+
+  const { registerShortcuts } = useShortcuts();
+
+  useEffect(() => {
+    const unregister = registerShortcuts([
+      { key: '/', description: 'Focus Batch Date', category: 'Page Actions', action: () => document.getElementById('batch-date-picker')?.focus() },
+      { key: 'Alt+r', description: 'Focus Report Start Date', category: 'Report Actions', action: () => document.getElementById('report-start-date-picker')?.focus() }
+    ]);
+    return unregister;
+  }, [registerShortcuts]);
 
   useEffect(() => {
     const fetchHenDayDeviation = async () => {
@@ -190,7 +202,7 @@ const DashboardIndex = () => {
     const birdsAdded = filteredBatches.reduce((sum, b) => sum + (b.birds_added || 0), 0);
     const layerBatches = filteredBatches.filter(b => b.batch_type === 'Layer');
     const avgHD = layerBatches.length > 0 ? Number(((layerBatches.reduce((sum, b) => sum + (b.hd || 0), 0) / layerBatches.length) * 100).toFixed(2)) : 0;
-    const avgStandardHD = layerBatches.length > 0 
+    const avgStandardHD = layerBatches.length > 0
       ? layerBatches.reduce((sum, b) => sum + (b.standard_hen_day_percentage || 0), 0) / layerBatches.length
       : 0;
     return { totalBirds, totalEggs, openingCount, mortality, culls, birdsAdded, avgHD, avgStandardHD };
@@ -209,28 +221,28 @@ const DashboardIndex = () => {
       ]
     },
     {
-  title: "Material Usage",
-  mainValue: (feedUsage?.total_feed || 0) + (inventoryUsage?.total_used || 0),
-  icon: Package,
-  subValues: [
-    // Feed section
-    ...(feedUsage?.feed_breakdown.map(fb => ({
-      label: `Feed: ${fb.composition_name || fb.feed_type}`,
-      value: fb.amount,
-      subValue: fb.composition_items?.map(ci => 
-        `${ci.inventory_item_name}: ${ci.weight}${ci.unit}`
-      ).join(', ')
-    })) || []),
-    // Direct inventory section
-    ...(inventoryUsage?.breakdown
-      .filter(item => !item.name?.toLowerCase().includes('feed')) // Exclude feed items
-      .map(item => ({
-        label: item.name || `Item ${item.inventory_item_id}`,
-        value: item.amount,
-        subValue: item.unit
-      })) || [])
-  ]
-},
+      title: "Material Usage",
+      mainValue: (feedUsage?.total_feed || 0) + (inventoryUsage?.total_used || 0),
+      icon: Package,
+      subValues: [
+        // Feed section
+        ...(feedUsage?.feed_breakdown.map(fb => ({
+          label: `Feed: ${fb.composition_name || fb.feed_type}`,
+          value: fb.amount,
+          subValue: fb.composition_items?.map(ci =>
+            `${ci.inventory_item_name}: ${ci.weight}${ci.unit}`
+          ).join(', ')
+        })) || []),
+        // Direct inventory section
+        ...(inventoryUsage?.breakdown
+          .filter(item => !item.name?.toLowerCase().includes('feed')) // Exclude feed items
+          .map(item => ({
+            label: item.name || `Item ${item.inventory_item_id}`,
+            value: item.amount,
+            subValue: item.unit
+          })) || [])
+      ]
+    },
     {
       title: "Total Eggs",
       mainValue: stats.totalEggs,
@@ -245,6 +257,7 @@ const DashboardIndex = () => {
 
   return (
     <div className="container">
+      <KeyboardShortcutsIndicator />
       <div className="card shadow-sm mb-4">
         <div className="card-body p-4">
           <div className="mb-4">
@@ -253,6 +266,7 @@ const DashboardIndex = () => {
                 <div className="d-flex align-items-center">
                   <label className="form-label me-3 mb-0">Batch Date</label>
                   <CustomDatePicker
+                    id="batch-date-picker"
                     selected={batchDate ? new Date(batchDate) : null}
                     onChange={(date: Date | null) => date && setBatchDate(date.toISOString().split('T')[0])}
                     dateFormat="dd-MM-yyyy"
@@ -267,6 +281,7 @@ const DashboardIndex = () => {
                 <div className="d-flex align-items-center">
                   <label className="form-label me-3 mb-0">Shed</label>
                   <StyledSelect
+                    inputId="shed-filter-select"
                     value={{ value: selectedShedNo, label: selectedShedNo || "All Sheds" }}
                     onChange={(option) => setSelectedShedNo(option ? String(option.value) : "")}
                     options={[
@@ -286,12 +301,12 @@ const DashboardIndex = () => {
             <HeaderCardGroup cards={cards} loading={loading} error={error} onViewDetails={handleViewFeedDetails} />
           </div>
           <div className="mb-4">
-            <GraphsSection 
-              henDayValue={stats.avgHD} 
+            <GraphsSection
+              henDayValue={stats.avgHD}
               standardHenDayPercentage={stats.avgStandardHD}
               henDayDeviation={henDayDeviation}
-              loading={loading} 
-              error={error} 
+              loading={loading}
+              error={error}
             />
           </div>
           <div>
@@ -316,6 +331,7 @@ const DashboardIndex = () => {
             <div className="col-auto d-flex align-items-center mt-3">
               <label className="form-label me-3 mb-0">Start Date</label>
               <CustomDatePicker
+                id="report-start-date-picker"
                 selected={startDate ? new Date(startDate) : null}
                 onChange={(date: Date | null) => date && setStartDate(date.toISOString().split('T')[0])}
                 maxDate={endDate ? new Date(endDate) : new Date()}

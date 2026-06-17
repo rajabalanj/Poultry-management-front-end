@@ -14,6 +14,8 @@ import { InventoryItemUsageResponse } from "../../../types/InventoryItemUsage";
 import { InventoryItemResponse } from "../../../types/InventoryItem";
 import { useSubscription } from '../../context/SubscriptionContext';
 import SubscriptionWarning from "../../Common/SubscriptionWarning";
+import { useShortcuts } from '../../context/KeyboardShortcutContext';
+import KeyboardShortcutsIndicator from '../../Common/KeyboardShortcutsIndicator';
 
 const EditBatch: React.FC = () => {
   const navigate = useNavigate();
@@ -40,7 +42,17 @@ const EditBatch: React.FC = () => {
   const { isSubscriptionPaid } = useSubscription();
   const [showUsageHistoryModal, setShowUsageHistoryModal] = useState(false);
   const [isInventoryRestricted, setIsInventoryRestricted] = useState(false);
-  
+  const { registerShortcuts } = useShortcuts();
+
+  useEffect(() => {
+    const unregister = registerShortcuts([
+      { key: '/', description: 'Focus Batch Date', category: 'Page Actions', action: () => document.getElementById('batch-date-picker')?.focus() },
+      { key: 'Alt+h', description: 'Usage History', category: 'Page Actions', action: () => setShowUsageHistoryModal(true) }
+    ]);
+
+    return unregister;
+  }, [registerShortcuts]);
+
   useEffect(() => {
     const fetchData = async () => {
       if (!batchId || !batch_date) return;
@@ -53,7 +65,7 @@ const EditBatch: React.FC = () => {
             const features = await tenantFeatureApi.getTenantFeaturesByTenantId(tenantId);
             invRestricted = features.some(f => f.feature_name === 'INVENTORY_USAGE' && f.is_restricted);
             setIsInventoryRestricted(invRestricted);
-          } catch (e) {}
+          } catch (e) { }
         }
 
         const [batches, history, itemHistory] = await Promise.all([
@@ -108,7 +120,7 @@ const EditBatch: React.FC = () => {
     let hasErrors = false;
     let madeChanges = false;
 
-    const hasBatchChanges = 
+    const hasBatchChanges =
       batch.mortality !== initialBatch.mortality ||
       batch.culls !== initialBatch.culls ||
       batch.birds_added !== initialBatch.birds_added ||
@@ -175,7 +187,7 @@ const EditBatch: React.FC = () => {
           standard_hen_day_percentage: batch.standard_hen_day_percentage ?? 0,
           birds_added: batch.birds_added,
         };
-        
+
         await dailyBatchApi.updateDailyBatch(Number(batchId), batch_date, payload);
         toast.success("Batch details updated successfully");
         madeChanges = true;
@@ -239,6 +251,7 @@ const EditBatch: React.FC = () => {
         buttonIcon="bi-arrow-left"
       />
       <div className="container">
+        <KeyboardShortcutsIndicator />
         <SubscriptionWarning />
         <div className="card shadow-sm mb-4">
           <div className="card-body">
@@ -247,6 +260,7 @@ const EditBatch: React.FC = () => {
                 <label className="form-label me-3 mb-0">Batch Date</label>
                 <div style={{ maxWidth: "200px" }}>
                   <CustomDatePicker
+                    id="batch-date-picker"
                     selected={batch_date ? new Date(batch_date) : null}
                     onChange={(date: Date | null) => handleDateChange(date)}
                     maxDate={new Date()}
@@ -362,11 +376,11 @@ const EditBatch: React.FC = () => {
                   </div>
                 )}
               </div>
-              
+
               {/* Record Feed & Items Usage Section */}
               <div className="row">
                 <div className="col-12">
-              <div className="card shadow-sm mb-4">
+                  <div className="card shadow-sm mb-4">
                     <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                       <h5 className="mb-0">Record Feed & Items Usage</h5>
                       <Button variant="light" size="sm" onClick={() => setShowUsageHistoryModal(true)}>
@@ -388,9 +402,9 @@ const EditBatch: React.FC = () => {
                                 selectedCompositionId
                                   ? compositions.find((c) => c.id === selectedCompositionId)
                                     ? {
-                                        value: selectedCompositionId,
-                                        label: compositions.find((c) => c.id === selectedCompositionId)?.name || "",
-                                      }
+                                      value: selectedCompositionId,
+                                      label: compositions.find((c) => c.id === selectedCompositionId)?.name || "",
+                                    }
                                     : null
                                   : null
                               }
@@ -414,9 +428,9 @@ const EditBatch: React.FC = () => {
                             <button type="button" className="btn btn-danger btn-sm" onClick={() => setTimesToUse((prev) => Math.max(1, Number(prev) - 1))}>
                               -
                             </button>
-                            <input 
-                              type="number" 
-                              className="form-control form-control-sm text-center" 
+                            <input
+                              type="number"
+                              className="form-control form-control-sm text-center"
                               style={{ width: '80px' }}
                               value={timesToUse}
                               onChange={(e) => setTimesToUse(e.target.value === "" ? "" as any : parseInt(e.target.value, 10))}
@@ -437,87 +451,87 @@ const EditBatch: React.FC = () => {
                             )}
                           </div>
                         </div>
-                        
+
                         {!isInventoryRestricted && (
-                        <div className="col-md-6">
-                          <h6>Use Inventory Item</h6>
-                          <div className="mb-3">
-                            <label htmlFor="itemSelect" className="form-label">
-                              Select Inventory Item:
-                            </label>
-                            <StyledSelect
-                              id="itemSelect"
-                              value={
-                                selectedItemId
-                                  ? inventoryItems.find((i) => i.id === selectedItemId)
-                                    ? {
+                          <div className="col-md-6">
+                            <h6>Use Inventory Item</h6>
+                            <div className="mb-3">
+                              <label htmlFor="itemSelect" className="form-label">
+                                Select Inventory Item:
+                              </label>
+                              <StyledSelect
+                                id="itemSelect"
+                                value={
+                                  selectedItemId
+                                    ? inventoryItems.find((i) => i.id === selectedItemId)
+                                      ? {
                                         value: selectedItemId,
                                         label: `${inventoryItems.find((i) => i.id === selectedItemId)?.name} (${inventoryItems.find((i) => i.id === selectedItemId)?.unit})`,
                                       }
-                                    : null
-                                  : null
-                              }
-                              onChange={(option) => {
-                                const id = option ? Number(option.value) : null;
-                                setSelectedItemId(id);
-                                if (id) {
-                                  setSelectedItemUnit(inventoryItems.find((i) => i.id === id)?.unit || "");
-                                } else {
-                                  setSelectedItemUnit("");
-                                }
-                              }}
-                              options={inventoryItems.map((i) => ({ value: i.id, label: `${i.name} (${i.unit})` }))}
-                              placeholder="Select an Item"
-                              isClearable
-                            />
-                          </div>
-                          <div className="d-flex align-items-center gap-2 mb-4">
-                            <input
-                              type="number"
-                              className="form-control"
-                              placeholder="Quantity"
-                              value={itemQuantityToUse}
-                              onChange={(e) => setItemQuantityToUse(e.target.value ? Number(e.target.value) : "")}
-                              min="0"
-                              step="any"
-                            />
-                            <div style={{ minWidth: '100px' }}>
-                              <StyledSelect
-                                value={
-                                  selectedItemUnit
-                                    ? { value: selectedItemUnit, label: selectedItemUnit }
+                                      : null
                                     : null
                                 }
-                                onChange={(option) => setSelectedItemUnit(option ? String(option.value) : "")}
-                                options={[
-                                  { value: "gram", label: "gram" },
-                                  { value: "kg", label: "kg" },
-                                  { value: "ton", label: "ton" },
-                                ]}
-                                isClearable={false}
+                                onChange={(option) => {
+                                  const id = option ? Number(option.value) : null;
+                                  setSelectedItemId(id);
+                                  if (id) {
+                                    setSelectedItemUnit(inventoryItems.find((i) => i.id === id)?.unit || "");
+                                  } else {
+                                    setSelectedItemUnit("");
+                                  }
+                                }}
+                                options={inventoryItems.map((i) => ({ value: i.id, label: `${i.name} (${i.unit})` }))}
+                                placeholder="Select an Item"
+                                isClearable
                               />
                             </div>
-                          </div>
-                        </div>
-                        )}
-                      </div>
-                    </div>
-                          {selectedCompositionId && (
-                            <div className="mb-4">
-                              <label htmlFor="compWastage" className="form-label">
-                                Wastage Percentage (%):
-                              </label>
+                            <div className="d-flex align-items-center gap-2 mb-4">
                               <input
-                                id="compWastage"
                                 type="number"
                                 className="form-control"
-                                value={usageWastagePercentage}
-                                onChange={(e) => setUsageWastagePercentage(e.target.value)}
+                                placeholder="Quantity"
+                                value={itemQuantityToUse}
+                                onChange={(e) => setItemQuantityToUse(e.target.value ? Number(e.target.value) : "")}
                                 min="0"
                                 step="any"
                               />
+                              <div style={{ minWidth: '100px' }}>
+                                <StyledSelect
+                                  value={
+                                    selectedItemUnit
+                                      ? { value: selectedItemUnit, label: selectedItemUnit }
+                                      : null
+                                  }
+                                  onChange={(option) => setSelectedItemUnit(option ? String(option.value) : "")}
+                                  options={[
+                                    { value: "gram", label: "gram" },
+                                    { value: "kg", label: "kg" },
+                                    { value: "ton", label: "ton" },
+                                  ]}
+                                  isClearable={false}
+                                />
+                              </div>
                             </div>
-                          )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    {selectedCompositionId && (
+                      <div className="mb-4">
+                        <label htmlFor="compWastage" className="form-label">
+                          Wastage Percentage (%):
+                        </label>
+                        <input
+                          id="compWastage"
+                          type="number"
+                          className="form-control"
+                          value={usageWastagePercentage}
+                          onChange={(e) => setUsageWastagePercentage(e.target.value)}
+                          min="0"
+                          step="any"
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

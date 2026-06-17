@@ -7,6 +7,7 @@ import ListModal from './Common/ListModal';
 import Loading from './Common/Loading';
 import { configApi, AppConfigKey } from "../services/api";
 import { useSubscription } from './context/SubscriptionContext';
+import { useShortcuts } from './context/KeyboardShortcutContext';
 
 const getPerformanceIndicator = (
   actual: number | undefined,
@@ -75,8 +76,8 @@ const BatchCard: React.FC<{
         <div className="row align-items-center">
           <div className="col-12 col-md-6 d-flex align-items-center">
             <div className="me-3 d-flex align-items-center justify-content-center bg-primary-subtle p-2">
-            <Birdhouse className="text-primary" size={24} />
-          </div>
+              <Birdhouse className="text-primary" size={24} />
+            </div>
             <div>
               <h5 className="mb-1">{batch.batch_no}{batch.is_active === false && <span className="ms-2 badge bg-danger">Closed</span>}</h5>
               <p className="text-muted mb-0">Shed: {batch.shed_no}</p>
@@ -95,18 +96,18 @@ const BatchCard: React.FC<{
           </div>
         </div>
         <div className="d-flex justify-content-end gap-2 mt-3 pt-2 border-top">
-          <button 
-            type="button" 
-            className="btn btn-sm btn-primary" 
-            onClick={handleUpdateClick} 
+          <button
+            type="button"
+            className="btn btn-sm btn-primary"
+            onClick={handleUpdateClick}
             disabled={batch.is_active === false || isSubscriptionPaid === false}
           >
             Update
           </button>
-          <button 
-            type="button" 
-            className="btn btn-sm btn-info text-white" 
-            onClick={handleMoveShedClick} 
+          <button
+            type="button"
+            className="btn btn-sm btn-info text-white"
+            onClick={handleMoveShedClick}
             disabled={batch.is_active === false || isSubscriptionPaid === false}
           >
             Move Shed
@@ -130,6 +131,7 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
 
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1);
+  const { registerShortcuts } = useShortcuts();
 
   const allDisplayableBatches = useMemo(() => {
     const displayableBatches = batches.filter(
@@ -173,6 +175,19 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
     enabled: allDisplayableBatches.length > 0,
     actionKeys: ['u', 'U', 'm', 'M'],
   });
+
+  useEffect(() => {
+    if (allDisplayableBatches.length > 0) {
+      const unregister = registerShortcuts([
+        { key: 'ArrowUp', description: 'Previous batch', category: 'Table Navigation', action: () => { } },
+        { key: 'ArrowDown', description: 'Next batch', category: 'Table Navigation', action: () => { } },
+        { key: 'Enter', description: 'Open batch details', category: 'Table Navigation', action: () => { } },
+        { key: 'u', description: 'Update batch', category: 'Table Navigation', action: () => { } },
+        { key: 'm', description: 'Move shed', category: 'Table Navigation', action: () => { } }
+      ]);
+      return () => unregister();
+    }
+  }, [allDisplayableBatches.length, registerShortcuts]);
 
   useEffect(() => {
     resetSelection();
@@ -284,8 +299,8 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
           <h5 className="mb-3">Layer Batches</h5>
           <div className="row">
             {filteredBatches.Layer.map(batch => (
-              <div 
-                className="col-md-6" 
+              <div
+                className="col-md-6"
                 key={`Layer-${batch.batch_id}-${batch.batch_date}`}
                 data-row-index={getBatchIndex(batch)}
                 onClick={() => {
@@ -312,8 +327,8 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
           <h5 className="mb-3">Grower Batches</h5>
           <div className="row">
             {filteredBatches.Grower.map(batch => (
-              <div 
-                className="col-md-6" 
+              <div
+                className="col-md-6"
                 key={`Grower-${batch.batch_id}-${batch.batch_date}`}
                 data-row-index={getBatchIndex(batch)}
                 onClick={() => {
@@ -340,8 +355,8 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, loading, error }) => {
           <h5 className="mb-3">Chick Batches</h5>
           <div className="row">
             {filteredBatches.Chick.map(batch => (
-              <div 
-                className="col-md-6" 
+              <div
+                className="col-md-6"
                 key={`Chick-${batch.batch_id}-${batch.batch_date}`}
                 data-row-index={getBatchIndex(batch)}
                 onClick={() => {

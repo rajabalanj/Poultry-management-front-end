@@ -221,7 +221,7 @@ const PurchaseLedgerComponent: React.FC = () => {
                             Vendor: {ledgerData.vendor_name ? `${ledgerData.vendor_name} (ID: ${ledgerData.vendor_id})` : ledgerData.vendor_id}
                             {ledgerData.total_records !== undefined && ` | Total records: ${ledgerData.total_records}`}
                         </p>
-                        <KeyboardShortcutsIndicator hasPayment />
+                        <KeyboardShortcutsIndicator />
                         <div
                             className="table-responsive"
                             ref={tableContainerRef}

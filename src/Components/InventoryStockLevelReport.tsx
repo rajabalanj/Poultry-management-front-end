@@ -10,6 +10,10 @@ import StyledSelect from './Common/StyledSelect';
 import { toPng } from 'html-to-image';
 import { exportTableToExcel } from '../utility/export-utils';
 import CustomPagination from './Common/CustomPagination';
+import { useTableKeyboardNavigation } from '../hooks/useTableKeyboardNavigation';
+import KeyboardShortcutsIndicator from './Common/KeyboardShortcutsIndicator';
+import { usePageShortcuts } from '../hooks/usePageShortcuts';
+import { useModalScope } from '../hooks/useModalScope';
 
 const InventoryStockLevelReport = () => {
   const [reportData, setReportData] = useState<InventoryStockLevel[]>([]);
@@ -18,8 +22,10 @@ const InventoryStockLevelReport = () => {
   const [category, setCategory] = useState<string>('');
   const [isSharing, setIsSharing] = useState(false);
   const tableRef = useRef<HTMLDivElement>(null);
+  const tableContainerRef = useRef<HTMLDivElement>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 15;
+  const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1);
 
   // State for Daily Stock History Modal
   const [showHistoryModal, setShowHistoryModal] = useState(false);
@@ -28,6 +34,8 @@ const InventoryStockLevelReport = () => {
   const [historyStartDate, setHistoryStartDate] = useState<string>('');
   const [historyEndDate, setHistoryEndDate] = useState<string>('');
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+
+  useModalScope(showHistoryModal, 'modal');
 
   const fetchData = async (filterCategory?: string) => {
     setIsLoading(true);
@@ -54,10 +62,38 @@ const InventoryStockLevelReport = () => {
     const end = new Date();
     const start = new Date();
     start.setDate(end.getDate() - 30);
-    
+
     setHistoryEndDate(end.toISOString().split('T')[0]);
     setHistoryStartDate(start.toISOString().split('T')[0]);
   }, []);
+
+  const totalPages = Math.ceil(reportData.length / ITEMS_PER_PAGE);
+  const paginatedData = reportData.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
+  const { resetSelection, setSelectedIndex } = useTableKeyboardNavigation({
+    rowCount: paginatedData.length,
+    containerRef: tableContainerRef,
+    onRowSelect: (index) => {
+      setFocusedRowIndex(index);
+    },
+    onRowEnter: (index) => {
+      const item = paginatedData[index];
+      if (item) handleViewHistory(item);
+    },
+    onRowAction: (index, key) => {
+      const item = paginatedData[index];
+      if (item && (key.toLowerCase() === 'v' || key.toLowerCase() === 'h')) {
+        handleViewHistory(item);
+      }
+    },
+    enabled: !showHistoryModal && !isLoading && paginatedData.length > 0,
+    actionKeys: ['v', 'V', 'h', 'H'],
+  });
+
+  useEffect(() => {
+    resetSelection();
+    setFocusedRowIndex(-1);
+  }, [currentPage, category, resetSelection]);
 
   const fetchHistoryData = async (itemId: number, start: string, end: string) => {
     setIsHistoryLoading(true);
@@ -151,12 +187,18 @@ const InventoryStockLevelReport = () => {
     }
   };
 
-  const totalPages = Math.ceil(reportData.length / ITEMS_PER_PAGE);
-  const paginatedData = reportData.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+  usePageShortcuts({
+    onSearchFocus: () => {
+      const filterInput = document.querySelector('#categorySelect input') as HTMLElement;
+      if (filterInput) filterInput.focus();
+    },
+    onExport: !isLoading && reportData.length > 0 ? handleExport : undefined,
+    onShare: !isLoading && !isSharing && reportData.length > 0 ? handleShare : undefined
+  });
 
   return (
     <>
-      <PageHeader title="Stock Levels"/>
+      <PageHeader title="Stock Levels" />
       <div className="container">
         <div className="col-12 mb-4">
           <div className="card shadow-sm">
@@ -183,6 +225,8 @@ const InventoryStockLevelReport = () => {
             </div>
           </div>
         </div>
+
+        <KeyboardShortcutsIndicator />
 
         {isLoading && <Loading message="Loading report..." />}
         {error && <div className="alert alert-danger text-center">{error}</div>}
@@ -214,92 +258,100 @@ const InventoryStockLevelReport = () => {
                   </button>
                 </div>
               </div>
-          
-          {/* Mobile Cards */}
-          <div className="d-block d-md-none">
-            {paginatedData.map((item) => (
-              <div key={item.id} className="card mb-2 mt-2 border-top-0 border-end-0 border-start-0 border-bottom" style={{ borderRadius: 0 }}>
-                <div className="card-body p-2">
-                  <div className="d-flex justify-content-between align-items-start">
-                    <div>
-                      <h6 className="mb-1">
-                        {item.name}
-                        {item.is_sellable ? (
-                          <span className="badge bg-success ms-2">Sellable</span>
-                        ) : (
-                          <span className="badge bg-secondary ms-2">No</span>
-                        )}
-                      </h6>
-                      <div className="text-sm">
-                        <p className="mb-0 text-muted">{item.category}</p>
-                        <p className="mb-0">Stock: <span className="fw-semibold">{item.current_stock} {item.unit}</span></p>
-                        <p className="mb-0">Avg Cost: {item.average_cost_str || item.average_cost}</p>
-                        <p className="mb-0 text-muted">Reorder Level: {item.reorder_level}</p>
+
+              {/* Mobile Cards */}
+              <div className="d-block d-md-none">
+                {paginatedData.map((item) => (
+                  <div key={item.id} className="card mb-2 mt-2 border-top-0 border-end-0 border-start-0 border-bottom" style={{ borderRadius: 0 }}>
+                    <div className="card-body p-2">
+                      <div className="d-flex justify-content-between align-items-start">
+                        <div>
+                          <h6 className="mb-1">
+                            {item.name}
+                            {item.is_sellable ? (
+                              <span className="badge bg-success ms-2">Sellable</span>
+                            ) : (
+                              <span className="badge bg-secondary ms-2">No</span>
+                            )}
+                          </h6>
+                          <div className="text-sm">
+                            <p className="mb-0 text-muted">{item.category}</p>
+                            <p className="mb-0">Stock: <span className="fw-semibold">{item.current_stock} {item.unit}</span></p>
+                            <p className="mb-0">Avg Cost: {item.average_cost_str || item.average_cost}</p>
+                            <p className="mb-0 text-muted">Reorder Level: {item.reorder_level}</p>
+                          </div>
+                        </div>
+                        <div>
+                          <button
+                            className="btn btn-sm btn-info text-white mt-1"
+                            onClick={() => handleViewHistory(item)}
+                          >
+                            History
+                          </button>
+                        </div>
                       </div>
                     </div>
-                    <div>
-                      <button 
-                        className="btn btn-sm btn-info text-white mt-1"
-                        onClick={() => handleViewHistory(item)}
-                      >
-                        History
-                      </button>
-                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop Table */}
+              <div className="d-none d-md-block">
+                <div ref={tableRef}>
+                  <div className="table-responsive" ref={tableContainerRef} tabIndex={0} style={{ outline: 'none' }}>
+                    <table id="inventory-stock-level-table" className="table table-bordered table-striped">
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Category</th>
+                          <th>Current Stock</th>
+                          <th>Unit</th>
+                          <th>Average Cost</th>
+                          <th>Reorder Level</th>
+                          <th>Sellable</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {paginatedData.map((item, index) => (
+                          <tr
+                            key={item.id}
+                            data-row-index={index}
+                            onClick={() => {
+                              setFocusedRowIndex(index);
+                              setSelectedIndex(index);
+                            }}
+                            className={focusedRowIndex === index ? 'table-primary' : ''}
+                          >
+                            <td>{item.name}</td>
+                            <td>{item.category}</td>
+                            <td>{item.current_stock}</td>
+                            <td>{item.unit}</td>
+                            <td>{item.average_cost_str || item.average_cost}</td>
+                            <td>{item.reorder_level}</td>
+                            <td>
+                              {item.is_sellable ? (
+                                <span className="badge bg-success">Yes</span>
+                              ) : (
+                                <span className="badge bg-secondary">No</span>
+                              )}
+                            </td>
+                            <td>
+                              <button
+                                className="btn btn-sm btn-info text-white"
+                                onClick={() => handleViewHistory(item)}
+                              >
+                                View History
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-
-          {/* Desktop Table */}
-          <div className="d-none d-md-block">
-            <div ref={tableRef}>
-              <div className="table-responsive">
-              <table id="inventory-stock-level-table" className="table table-bordered table-striped">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Category</th>
-                    <th>Current Stock</th>
-                    <th>Unit</th>
-                    <th>Average Cost</th>
-                    <th>Reorder Level</th>
-                    <th>Sellable</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedData.map((item) => (
-                    <tr key={item.id}>
-                      <td>{item.name}</td>
-                      <td>{item.category}</td>
-                      <td>{item.current_stock}</td>
-                      <td>{item.unit}</td>
-                      <td>{item.average_cost_str || item.average_cost}</td>
-                      <td>{item.reorder_level}</td>
-                      <td>
-                        {item.is_sellable ? (
-                          <span className="badge bg-success">Yes</span>
-                        ) : (
-                          <span className="badge bg-secondary">No</span>
-                        )}
-                      </td>
-                      <td>
-                        <button 
-                          className="btn btn-sm btn-info text-white"
-                          onClick={() => handleViewHistory(item)}
-                        >
-                          View History
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              </div>
-            </div>
-          </div>
-            <CustomPagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+              <CustomPagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
             </div>
           </div>
         )}
@@ -313,23 +365,23 @@ const InventoryStockLevelReport = () => {
             <div className="row g-3 mb-3 align-items-end">
               <div className="col-md-4">
                 <Form.Label>Start Date</Form.Label>
-                <Form.Control 
-                  type="date" 
-                  value={historyStartDate} 
-                  onChange={(e) => setHistoryStartDate(e.target.value)} 
+                <Form.Control
+                  type="date"
+                  value={historyStartDate}
+                  onChange={(e) => setHistoryStartDate(e.target.value)}
                 />
               </div>
               <div className="col-md-4">
                 <Form.Label>End Date</Form.Label>
-                <Form.Control 
-                  type="date" 
-                  value={historyEndDate} 
-                  onChange={(e) => setHistoryEndDate(e.target.value)} 
+                <Form.Control
+                  type="date"
+                  value={historyEndDate}
+                  onChange={(e) => setHistoryEndDate(e.target.value)}
                 />
               </div>
               <div className="col-md-4">
-                <Button 
-                  variant="primary" 
+                <Button
+                  variant="primary"
                   className="w-100"
                   onClick={() => selectedItem && fetchHistoryData(selectedItem.id, historyStartDate, historyEndDate)}
                   disabled={isHistoryLoading || !historyStartDate || !historyEndDate}

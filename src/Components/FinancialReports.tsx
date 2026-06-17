@@ -139,7 +139,7 @@ const FinancialReports: React.FC = () => {
   useEffect(() => {
     sessionStorage.setItem('financial_fs_start', fsStartDate);
     sessionStorage.setItem('financial_fs_end', fsEndDate);
-    }, [fsStartDate, fsEndDate]);
+  }, [fsStartDate, fsEndDate]);
 
   // Balance Sheet State
   const [bsAsOfDate, setBsAsOfDate] = useState(() => sessionStorage.getItem('financial_bs_date') || today);
@@ -175,19 +175,19 @@ const FinancialReports: React.FC = () => {
 
   const handleFetchFs = useCallback(async () => {
     if (fsStartDate > fsEndDate) {
-        toast.error('Start date cannot be after end date.');
-        return;
+      toast.error('Start date cannot be after end date.');
+      return;
     }
     setFsLoading(true);
     setFsData(null);
     try {
-        const data = await financialReportsApi.getFinancialSummary(fsStartDate, fsEndDate);
-        setFsData(data);
-        sessionStorage.setItem('financial_fs_loaded', 'true');
+      const data = await financialReportsApi.getFinancialSummary(fsStartDate, fsEndDate);
+      setFsData(data);
+      sessionStorage.setItem('financial_fs_loaded', 'true');
     } catch (error: any) {
-        toast.error(error.message || 'Failed to fetch Financial Summary.');
+      toast.error(error.message || 'Failed to fetch Financial Summary.');
     } finally {
-        setFsLoading(false);
+      setFsLoading(false);
     }
   }, [fsStartDate, fsEndDate]);
 
@@ -241,7 +241,7 @@ const FinancialReports: React.FC = () => {
           console.error('Share error:', shareError);
         }
       }
-      
+
       // Fallback: direct download
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -319,79 +319,79 @@ const FinancialReports: React.FC = () => {
     if (!fsData) return <p className="text-center text-muted p-4">Select a date range and click "Get Report" to view the Financial Summary.</p>;
 
     return (
-        <div className="p-3">
-            <h5 className="mb-3">Financial Summary</h5>
-            <p className="text-muted">For the period from {fsStartDate} to {fsEndDate}</p>
-            <div className="row">
-                <div className="col-md-6 col-lg-4 mb-3">
-                    <div className="card h-100">
-                        <div className="card-body">
-                            <h6 className="card-title">Egg Production</h6>
-                            <p className="card-text fs-4">{fsData.eggs_produced}</p>
-                        </div>
-                    </div>
-                </div>
-                <div className="col-md-6 col-lg-4 mb-3">
-                    <div className="card h-100">
-                        <div className="card-body">
-                            <h6 className="card-title">Eggs Sold</h6>
-                            <p className="card-text fs-4">{fsData.eggs_sold}</p>
-                        </div>
-                    </div>
-                </div>
-                <div className="col-md-6 col-lg-4 mb-3">
-                    <div className="card h-100">
-                        <div className="card-body">
-                            <h6 className="card-title">Cost Per Egg</h6>
-                            <p className="card-text fs-4">{fsData.cost_per_egg_str}</p>
-                        </div>
-                    </div>
-                </div>
-                <div className="col-md-6 col-lg-4 mb-3">
-                    <div className="card h-100">
-                        <div className="card-body">
-                            <h6 className="card-title">Selling Price Per Egg</h6>
-                            <p className="card-text fs-4">{fsData.selling_price_per_egg_str}</p>
-                        </div>
-                    </div>
-                </div>
-                <div className="col-md-6 col-lg-4 mb-3">
-                    <div className="card h-100">
-                        <div className="card-body">
-                            <h6 className="card-title">Net Margin Per Egg</h6>
-                            <p className="card-text fs-4">{fsData.net_margin_per_egg_str}</p>
-                        </div>
-                    </div>
-                </div>
-                <div className="col-md-6 col-lg-4 mb-3">
-                    <div className="card h-100">
-                        <div className="card-body">
-                            <h6 className="card-title">Cash Balance</h6>
-                            <p className="card-text fs-4">{fsData.cash_balance_str}</p>
-                            <small className="text-muted">{fsData.cash_balance_words}</small>
-                        </div>
-                    </div>
-                </div>
-                <div className="col-md-6 col-lg-4 mb-3">
-                    <div className="card h-100">
-                        <div className="card-body">
-                            <h6 className="card-title">Receivables</h6>
-                            <p className="card-text fs-4">{fsData.receivables_str}</p>
-                             <small className="text-muted">{fsData.receivables_words}</small>
-                        </div>
-                    </div>
-                </div>
-                <div className="col-md-6 col-lg-4 mb-3">
-                    <div className="card h-100">
-                        <div className="card-body">
-                            <h6 className="card-title">Payables</h6>
-                            <p className="card-text fs-4">{fsData.payables_str}</p>
-                            <small className="text-muted">{fsData.payables_words}</small>
-                        </div>
-                    </div>
-                </div>
+      <div className="p-3">
+        <h5 className="mb-3">Financial Summary</h5>
+        <p className="text-muted">For the period from {fsStartDate} to {fsEndDate}</p>
+        <div className="row">
+          <div className="col-md-6 col-lg-4 mb-3">
+            <div className="card h-100">
+              <div className="card-body">
+                <h6 className="card-title">Egg Production</h6>
+                <p className="card-text fs-4">{fsData.eggs_produced}</p>
+              </div>
             </div>
+          </div>
+          <div className="col-md-6 col-lg-4 mb-3">
+            <div className="card h-100">
+              <div className="card-body">
+                <h6 className="card-title">Eggs Sold</h6>
+                <p className="card-text fs-4">{fsData.eggs_sold}</p>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-6 col-lg-4 mb-3">
+            <div className="card h-100">
+              <div className="card-body">
+                <h6 className="card-title">Cost Per Egg</h6>
+                <p className="card-text fs-4">{fsData.cost_per_egg_str}</p>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-6 col-lg-4 mb-3">
+            <div className="card h-100">
+              <div className="card-body">
+                <h6 className="card-title">Selling Price Per Egg</h6>
+                <p className="card-text fs-4">{fsData.selling_price_per_egg_str}</p>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-6 col-lg-4 mb-3">
+            <div className="card h-100">
+              <div className="card-body">
+                <h6 className="card-title">Net Margin Per Egg</h6>
+                <p className="card-text fs-4">{fsData.net_margin_per_egg_str}</p>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-6 col-lg-4 mb-3">
+            <div className="card h-100">
+              <div className="card-body">
+                <h6 className="card-title">Cash Balance</h6>
+                <p className="card-text fs-4">{fsData.cash_balance_str}</p>
+                <small className="text-muted">{fsData.cash_balance_words}</small>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-6 col-lg-4 mb-3">
+            <div className="card h-100">
+              <div className="card-body">
+                <h6 className="card-title">Receivables</h6>
+                <p className="card-text fs-4">{fsData.receivables_str}</p>
+                <small className="text-muted">{fsData.receivables_words}</small>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-6 col-lg-4 mb-3">
+            <div className="card h-100">
+              <div className="card-body">
+                <h6 className="card-title">Payables</h6>
+                <p className="card-text fs-4">{fsData.payables_str}</p>
+                <small className="text-muted">{fsData.payables_words}</small>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
     );
   };
   const renderBsReport = () => {
@@ -440,8 +440,8 @@ const FinancialReports: React.FC = () => {
     const lastClosed = financialSettings?.last_closed_date;
 
     // Min date for closing can be one day after last closed date
-    const minClosingDate = lastClosed 
-      ? new Date(new Date(`${lastClosed}T00:00:00`).getTime() + 24 * 60 * 60 * 1000) 
+    const minClosingDate = lastClosed
+      ? new Date(new Date(`${lastClosed}T00:00:00`).getTime() + 24 * 60 * 60 * 1000)
       : undefined;
 
     return (
@@ -451,7 +451,7 @@ const FinancialReports: React.FC = () => {
             <div className="card border-0 shadow-sm mb-4">
               <div className="card-body">
                 <h5 className="card-title mb-4 font-weight-bold">Financial Year Lock & Closing</h5>
-                
+
                 <div className="d-flex align-items-center mb-4 p-3 bg-light rounded">
                   <div className="me-3">
                     <span className={`badge p-3 rounded-circle ${isClosed ? 'bg-warning text-dark' : 'bg-success text-white'}`} style={{ fontSize: '1.2rem' }}>
@@ -491,8 +491,8 @@ const FinancialReports: React.FC = () => {
                   </div>
 
                   <div className="col-md-6 d-flex align-items-end gap-2">
-                    <button 
-                      className="btn btn-warning w-100" 
+                    <button
+                      className="btn btn-warning w-100"
                       onClick={() => {
                         if (!closingDate) {
                           toast.error('Please select a closing date.');
@@ -507,8 +507,8 @@ const FinancialReports: React.FC = () => {
                     </button>
 
                     {isClosed && (
-                      <button 
-                        className="btn btn-outline-danger w-100" 
+                      <button
+                        className="btn btn-outline-danger w-100"
                         onClick={() => setShowReopenConfirm(true)}
                         disabled={closingLoading || reopeningLoading}
                       >
@@ -581,7 +581,7 @@ const FinancialReports: React.FC = () => {
           </div>
           <div className="card-header d-none d-md-block p-0">
             <ul className="nav nav-tabs card-header-tabs">
-            <li className="nav-item">
+              <li className="nav-item">
                 <button className={`nav-link ${activeTab === 'financial-summary' ? 'active' : ''}`} onClick={() => setActiveTab('financial-summary')}>
                   Financial Summary
                 </button>
@@ -596,31 +596,31 @@ const FinancialReports: React.FC = () => {
                   Balance Sheet
                 </button>
               </li>
-               <li className="nav-item">
-                   <button className={`nav-link ${activeTab === 'general-ledger' ? 'active' : ''}`} onClick={() => setActiveTab('general-ledger')}>
-                       General Ledger
-                   </button>
-               </li>
-               <li className="nav-item">
-                   <button className={`nav-link ${activeTab === 'purchase-ledger' ? 'active' : ''}`} onClick={() => setActiveTab('purchase-ledger')}>
-                       Purchase Ledger
-                   </button>
-               </li>
-               <li className="nav-item">
-                   <button className={`nav-link ${activeTab === 'sales-ledger' ? 'active' : ''}`} onClick={() => setActiveTab('sales-ledger')}>
-                       Sales Ledger
-                   </button>
-               </li>
-               <li className="nav-item">
-                   <button className={`nav-link ${activeTab === 'inventory-ledger' ? 'active' : ''}`} onClick={() => setActiveTab('inventory-ledger')}>
-                       Inventory Ledger
-                   </button>
-               </li>
-               <li className="nav-item">
-                   <button className={`nav-link ${activeTab === 'year-closing' ? 'active' : ''}`} onClick={() => setActiveTab('year-closing')}>
-                       Year Closing
-                   </button>
-               </li>
+              <li className="nav-item">
+                <button className={`nav-link ${activeTab === 'general-ledger' ? 'active' : ''}`} onClick={() => setActiveTab('general-ledger')}>
+                  General Ledger
+                </button>
+              </li>
+              <li className="nav-item">
+                <button className={`nav-link ${activeTab === 'purchase-ledger' ? 'active' : ''}`} onClick={() => setActiveTab('purchase-ledger')}>
+                  Purchase Ledger
+                </button>
+              </li>
+              <li className="nav-item">
+                <button className={`nav-link ${activeTab === 'sales-ledger' ? 'active' : ''}`} onClick={() => setActiveTab('sales-ledger')}>
+                  Sales Ledger
+                </button>
+              </li>
+              <li className="nav-item">
+                <button className={`nav-link ${activeTab === 'inventory-ledger' ? 'active' : ''}`} onClick={() => setActiveTab('inventory-ledger')}>
+                  Inventory Ledger
+                </button>
+              </li>
+              <li className="nav-item">
+                <button className={`nav-link ${activeTab === 'year-closing' ? 'active' : ''}`} onClick={() => setActiveTab('year-closing')}>
+                  Year Closing
+                </button>
+              </li>
             </ul>
           </div>
           <div className="card-body">
@@ -741,11 +741,11 @@ const FinancialReports: React.FC = () => {
                 {renderBsReport()}
               </div>
             )}
-           {activeTab === 'general-ledger' && <GeneralLedgerComponent />}
-           {activeTab === 'purchase-ledger' && <PurchaseLedgerComponent />}
-           {activeTab === 'sales-ledger' && <SalesLedgerComponent />}
-           {activeTab === 'inventory-ledger' && <InventoryLedgerComponent />}
-           {activeTab === 'year-closing' && renderYearClosing()}
+            {activeTab === 'general-ledger' && <GeneralLedgerComponent />}
+            {activeTab === 'purchase-ledger' && <PurchaseLedgerComponent />}
+            {activeTab === 'sales-ledger' && <SalesLedgerComponent />}
+            {activeTab === 'inventory-ledger' && <InventoryLedgerComponent />}
+            {activeTab === 'year-closing' && renderYearClosing()}
           </div>
         </div>
 
@@ -792,7 +792,7 @@ const FinancialReports: React.FC = () => {
           <Modal.Body>
             <p>Are you sure you want to close the financial year up to <strong>{closingDate}</strong>?</p>
             <p className="text-danger small">
-              <i className="bi bi-exclamation-triangle-fill me-1"></i> 
+              <i className="bi bi-exclamation-triangle-fill me-1"></i>
               This will lock the period on or before {closingDate}. You will not be able to add, modify, or delete journal entries in this locked period.
             </p>
           </Modal.Body>
@@ -826,7 +826,7 @@ const FinancialReports: React.FC = () => {
             </Button>
           </Modal.Footer>
         </Modal>
-        <KeyboardShortcutsIndicator hasSearch hasShare={['pnl', 'financial-summary', 'balance-sheet'].includes(activeTab)} />
+        <KeyboardShortcutsIndicator />
       </div>
     </>
   );

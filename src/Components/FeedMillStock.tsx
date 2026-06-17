@@ -53,7 +53,7 @@ function FeedMillStock() {
           restricted = features.some(f => f.feature_name === 'BATCH_MANAGEMENT' && f.is_restricted);
           setIsBatchRestricted(restricted);
         }
-      } catch (e) {}
+      } catch (e) { }
 
       const [itemsResult, compsResult, batchesResult] = await Promise.allSettled([
         inventoryItemApi.getInventoryItems(0, 1000, InventoryItemCategory.FEED),
@@ -325,7 +325,7 @@ function FeedMillStock() {
             category: 'Composition Actions',
             action: () => handleEdit()
           });
-          
+
           shortcuts.push({
             key: 'Alt+u',
             description: 'Use Composition',
@@ -459,54 +459,54 @@ function FeedMillStock() {
           </div>
           <div className="card-body">
             <ul className="list-group">
-            {selectedComposition.inventory_items.map((i: any) => {
-              const item = inventoryItems.find((inv) => inv.id === i.inventory_item_id);
-              if (!item) return null;
-              return (
-                <li
-                  key={i.inventory_item_id}
-                  className="list-group-item d-flex justify-content-between align-items-center"
-                >
-                  <span>{item.name}</span>
-                  <div className="d-flex flex-column flex-sm-row align-items-end align-items-sm-center">
-                    <span className="badge bg-secondary rounded-pill mb-1 mb-sm-0 me-sm-2">
-                      {i.weight} kg
-                    </span>
-                    <span className="badge bg-warning rounded-pill">
-                      {i.wastage_percentage || 0}% wastage
-                    </span>
-                  </div>
-                </li>
-              );
-            })}
-            <li className="list-group-item d-flex justify-content-between align-items-center">
-              <strong>Total Weight</strong>
-              <span className="badge bg-primary rounded-pill">
-                {selectedComposition.inventory_items.reduce((sum: number, i: any) => sum + Number(i.weight || 0), 0)} kg
-              </span>
-            </li>
-          </ul>
-          <div className="mt-3 d-flex align-items-center gap-2">
-            <button
-              className="btn btn-primary"
-              onClick={() => {
-                setUsageWastagePercentage(selectedComposition.wastage_percentage || 0);
-                setViewState("use-composition");
-              }}
-              disabled={isSubscriptionPaid === false}
-            >
-              Use Composition
-            </button>
-            <button
-              className="btn btn-info"
-              onClick={() => {
-                if (selectedCompositionId) {
-                  window.location.href = `/compositions/${selectedCompositionId}/usage-history`;
-                }
-              }}
-            >
-              Usage History
-            </button>
+              {selectedComposition.inventory_items.map((i: any) => {
+                const item = inventoryItems.find((inv) => inv.id === i.inventory_item_id);
+                if (!item) return null;
+                return (
+                  <li
+                    key={i.inventory_item_id}
+                    className="list-group-item d-flex justify-content-between align-items-center"
+                  >
+                    <span>{item.name}</span>
+                    <div className="d-flex flex-column flex-sm-row align-items-end align-items-sm-center">
+                      <span className="badge bg-secondary rounded-pill mb-1 mb-sm-0 me-sm-2">
+                        {i.weight} kg
+                      </span>
+                      <span className="badge bg-warning rounded-pill">
+                        {i.wastage_percentage || 0}% wastage
+                      </span>
+                    </div>
+                  </li>
+                );
+              })}
+              <li className="list-group-item d-flex justify-content-between align-items-center">
+                <strong>Total Weight</strong>
+                <span className="badge bg-primary rounded-pill">
+                  {selectedComposition.inventory_items.reduce((sum: number, i: any) => sum + Number(i.weight || 0), 0)} kg
+                </span>
+              </li>
+            </ul>
+            <div className="mt-3 d-flex align-items-center gap-2">
+              <button
+                className="btn btn-primary"
+                onClick={() => {
+                  setUsageWastagePercentage(selectedComposition.wastage_percentage || 0);
+                  setViewState("use-composition");
+                }}
+                disabled={isSubscriptionPaid === false}
+              >
+                Use Composition
+              </button>
+              <button
+                className="btn btn-info"
+                onClick={() => {
+                  if (selectedCompositionId) {
+                    window.location.href = `/compositions/${selectedCompositionId}/usage-history`;
+                  }
+                }}
+              >
+                Usage History
+              </button>
             </div>
           </div>
         </div>
@@ -518,85 +518,85 @@ function FeedMillStock() {
             <h5 className="mb-0">Use Composition</h5>
           </div>
           <div className="card-body">
-          <div className="d-flex align-items-center gap-2 mb-2">
-            <span title="Number of mixes for this composition">Mixes:</span>
-            <button
-              className="btn btn-danger btn-sm"
-              onClick={() => setTimesToUse((prev) => Math.max(1, Number(prev) - 1))}
-            >
-              -
-            </button>
-            <input 
-              ref={mixesInputRef}
-              type="number" 
-              className="form-control form-control-sm text-center" 
-              style={{ width: '80px' }}
-              value={timesToUse}
-              onChange={(e) => setTimesToUse(e.target.value === "" ? "" as any : parseInt(e.target.value, 10))}
-              min="1"
-              step="1"
-            />
-            <button
-              className="btn btn-success btn-sm"
-              onClick={() => setTimesToUse((prev) => Number(prev) + 1)}
-            >
-              +
-            </button>
-            <span className="ms-2 text-muted fw-bold">
-              Total Feed: {(
-                selectedComposition.inventory_items.reduce((sum: number, i: any) => sum + Number(i.weight || 0), 0) * timesToUse
-              ).toFixed(2)} kg
-            </span>
-          </div>
-          {!isBatchRestricted && (
-          <div className="mb-3">
-            <label htmlFor="batchNoSelect" className="form-label">Select Batch Number:</label>
-            <StyledSelect
-              id="batchNoSelect"
-              value={selectedBatchOption}
-              onChange={handleBatchSelectChange}
-              options={batchOptions}
-              styles={customStyles}
-              placeholder="Select a Batch"
-              isClearable
-            />
-          </div>
-          )}
-          <div className="mb-3">
-            <label htmlFor="batchDate" className="form-label">Usage Date:</label>
-            <CustomDatePicker
-              id="batchDate"
-              selected={batchDate ? new Date(batchDate) : null}
-              onChange={(date) => setBatchDate(date ? format(date, 'yyyy-MM-dd') : '')}
-              className="form-control-sm"
-              placeholderText="Select Batch Date"
-            />
-          </div>
+            <div className="d-flex align-items-center gap-2 mb-2">
+              <span title="Number of mixes for this composition">Mixes:</span>
+              <button
+                className="btn btn-danger btn-sm"
+                onClick={() => setTimesToUse((prev) => Math.max(1, Number(prev) - 1))}
+              >
+                -
+              </button>
+              <input
+                ref={mixesInputRef}
+                type="number"
+                className="form-control form-control-sm text-center"
+                style={{ width: '80px' }}
+                value={timesToUse}
+                onChange={(e) => setTimesToUse(e.target.value === "" ? "" as any : parseInt(e.target.value, 10))}
+                min="1"
+                step="1"
+              />
+              <button
+                className="btn btn-success btn-sm"
+                onClick={() => setTimesToUse((prev) => Number(prev) + 1)}
+              >
+                +
+              </button>
+              <span className="ms-2 text-muted fw-bold">
+                Total Feed: {(
+                  selectedComposition.inventory_items.reduce((sum: number, i: any) => sum + Number(i.weight || 0), 0) * timesToUse
+                ).toFixed(2)} kg
+              </span>
+            </div>
+            {!isBatchRestricted && (
+              <div className="mb-3">
+                <label htmlFor="batchNoSelect" className="form-label">Select Batch Number:</label>
+                <StyledSelect
+                  id="batchNoSelect"
+                  value={selectedBatchOption}
+                  onChange={handleBatchSelectChange}
+                  options={batchOptions}
+                  styles={customStyles}
+                  placeholder="Select a Batch"
+                  isClearable
+                />
+              </div>
+            )}
+            <div className="mb-3">
+              <label htmlFor="batchDate" className="form-label">Usage Date:</label>
+              <CustomDatePicker
+                id="batchDate"
+                selected={batchDate ? new Date(batchDate) : null}
+                onChange={(date) => setBatchDate(date ? format(date, 'yyyy-MM-dd') : '')}
+                className="form-control-sm"
+                placeholderText="Select Batch Date"
+              />
+            </div>
 
-          <div className="mb-3">
-            <label htmlFor="usageWastage" className="form-label">Wastage Percentage (%):</label>
-            <input
-              id="usageWastage"
-              type="number"
-              className="form-control form-control-sm"
-              value={usageWastagePercentage}
-              onChange={(e) => setUsageWastagePercentage(e.target.value)}
-              min="0"
-              step="any"
-            />
-          </div>
+            <div className="mb-3">
+              <label htmlFor="usageWastage" className="form-label">Wastage Percentage (%):</label>
+              <input
+                id="usageWastage"
+                type="number"
+                className="form-control form-control-sm"
+                value={usageWastagePercentage}
+                onChange={(e) => setUsageWastagePercentage(e.target.value)}
+                min="0"
+                step="any"
+              />
+            </div>
 
-          <div className="d-flex gap-2">
-            <button
-              id="confirm-use-btn"
-              className="btn btn-primary"
-              onClick={handleConfirmUseComposition}
-              disabled={isSubscriptionPaid === false}
-            >
-              Confirm
-            </button>
-            <button className="btn btn-secondary" onClick={() => setViewState("view")}>Cancel</button>
-          </div>
+            <div className="d-flex gap-2">
+              <button
+                id="confirm-use-btn"
+                className="btn btn-primary"
+                onClick={handleConfirmUseComposition}
+                disabled={isSubscriptionPaid === false}
+              >
+                Confirm
+              </button>
+              <button className="btn btn-secondary" onClick={() => setViewState("view")}>Cancel</button>
+            </div>
           </div>
         </div>
       )}
@@ -646,10 +646,7 @@ function FeedMillStock() {
           onOpenCreateItem={handleOpenCreateItem}
         />
       )}
-      <KeyboardShortcutsIndicator
-        hasSearch={viewState === "add" || viewState === "edit"}
-        hasNew={viewState === "view"}
-      />
+      <KeyboardShortcutsIndicator />
     </div>
   );
 }

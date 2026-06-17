@@ -16,6 +16,8 @@ import { InventoryItemUsageResponse } from '../../../types/InventoryItemUsage';
 import { Bird, Package, Egg } from 'lucide-react';
 import { useSubscription } from '../../context/SubscriptionContext';
 import SubscriptionWarning from "../../Common/SubscriptionWarning"; // adjust path as needed
+import { useShortcuts } from '../../context/KeyboardShortcutContext';
+import KeyboardShortcutsIndicator from '../../Common/KeyboardShortcutsIndicator';
 import { CompositionUsage } from '../../../types/compositon';
 
 const BatchDetails: React.FC = () => {
@@ -46,6 +48,16 @@ const BatchDetails: React.FC = () => {
   const [feedModalItems, setFeedModalItems] = useState<string[]>([]);
 
   const { isSubscriptionPaid } = useSubscription();
+  const { registerShortcuts } = useShortcuts();
+
+  useEffect(() => {
+    const unregister = registerShortcuts([
+      { key: '/', description: 'Focus Batch Date', category: 'Page Actions', action: () => document.getElementById('batch-date-picker')?.focus() },
+      { key: 'Alt+r', description: 'Focus Report Start Date', category: 'Report Actions', action: () => document.getElementById('report-start-date-picker')?.focus() },
+      { key: 'Alt+t', description: 'Toggle Report Type', category: 'Report Actions', action: () => setReportType(prev => prev === 'daily' ? 'weekly' : 'daily') }
+    ]);
+    return unregister;
+  }, [registerShortcuts]);
 
   useEffect(() => {
     const fetchHenDayDeviation = async () => {
@@ -184,13 +196,14 @@ const BatchDetails: React.FC = () => {
 
   return (
     <>
-      <PageHeader 
+      <PageHeader
         subtitle={`View ${batch.batch_no}`}
         buttonLabel="Back"
         buttonLink="/production"
         buttonIcon="bi-arrow-left"
       />
       <div className="container">
+        <KeyboardShortcutsIndicator />
         <SubscriptionWarning />
         <div className="card shadow-sm mb-4">
           <div className="card-body p-4">
@@ -201,6 +214,7 @@ const BatchDetails: React.FC = () => {
                     <label className="form-label me-3 mb-0">Batch Date</label>
                     <div style={{ maxWidth: "200px" }}>
                       <CustomDatePicker
+                        id="batch-date-picker"
                         selected={batch_date ? new Date(batch_date) : null}
                         onChange={(date: Date | null) => handleDateChange(date)}
                         maxDate={new Date()}
@@ -214,176 +228,176 @@ const BatchDetails: React.FC = () => {
             </div>
             <div className="mb-4">
               <HeaderCardGroup
-            cards={[
-            {
-              title: 'Total Birds',
-              mainValue: batch.closing_count,
+                cards={[
+                  {
+                    title: 'Total Birds',
+                    mainValue: batch.closing_count,
 
-              subValues: [
-                { label: 'Opening', value: batch.opening_count },
-                { label: 'Mortality', value: batch.mortality },
-                { label: 'Culls', value: batch.culls },
-                { label: "Birds Added", value: batch.birds_added }
-              ],
-              icon: Bird,
-            },
-            {
-              title: 'Material Usage',
-              mainValue: (feedUsage?.total_feed || 0) + (inventoryUsage?.total_used || 0),
+                    subValues: [
+                      { label: 'Opening', value: batch.opening_count },
+                      { label: 'Mortality', value: batch.mortality },
+                      { label: 'Culls', value: batch.culls },
+                      { label: "Birds Added", value: batch.birds_added }
+                    ],
+                    icon: Bird,
+                  },
+                  {
+                    title: 'Material Usage',
+                    mainValue: (feedUsage?.total_feed || 0) + (inventoryUsage?.total_used || 0),
 
-              subValues: (() => {
-                const items = [
-                  ...(feedUsage?.feed_breakdown.map(fb => ({
-                    label: fb.composition_name || fb.feed_type,
-                    value: fb.amount,
-                    subValue: fb.composition_items && fb.composition_items.length > 0
-                      ? fb.composition_items.map(ci => `${ci.inventory_item_name || ci.inventory_item_id}: ${ci.weight}${ci.unit ? ` ${ci.unit}` : ''}`).join(', ')
-                      : undefined,
-                  })) || []),
-                  ...(inventoryUsage?.breakdown.map((item: { inventory_item_id: number; name?: string; amount: number; unit: string }) => ({
-                    label: item.name || `Item ${item.inventory_item_id}`,
-                    value: item.amount,
-                    subValue: item.unit,
-                  })) || []),
-                ];
-                return items.length > 0 ? items : (feedLoading || inventoryLoading ? [{ label: 'Loading...', value: 0 }] : []);
-              })(),
-              icon:Package,
-            },
-            {
-              title: 'Total Eggs',
-              mainValue: totalEggs,
+                    subValues: (() => {
+                      const items = [
+                        ...(feedUsage?.feed_breakdown.map(fb => ({
+                          label: fb.composition_name || fb.feed_type,
+                          value: fb.amount,
+                          subValue: fb.composition_items && fb.composition_items.length > 0
+                            ? fb.composition_items.map(ci => `${ci.inventory_item_name || ci.inventory_item_id}: ${ci.weight}${ci.unit ? ` ${ci.unit}` : ''}`).join(', ')
+                            : undefined,
+                        })) || []),
+                        ...(inventoryUsage?.breakdown.map((item: { inventory_item_id: number; name?: string; amount: number; unit: string }) => ({
+                          label: item.name || `Item ${item.inventory_item_id}`,
+                          value: item.amount,
+                          subValue: item.unit,
+                        })) || []),
+                      ];
+                      return items.length > 0 ? items : (feedLoading || inventoryLoading ? [{ label: 'Loading...', value: 0 }] : []);
+                    })(),
+                    icon: Package,
+                  },
+                  {
+                    title: 'Total Eggs',
+                    mainValue: totalEggs,
 
-              subValues: [
-                { label: 'Normal', value: batch.table_eggs || 0 },
-                { label: 'Jumbo', value: batch.jumbo || 0 },
-                { label: 'Crack', value: batch.cr || 0 },
-              ],
-              icon: Egg,
-            },
-          ]}
-          loading={false}
-          error={null}
-          onViewDetails={handleViewFeedDetails}
-            />
+                    subValues: [
+                      { label: 'Normal', value: batch.table_eggs || 0 },
+                      { label: 'Jumbo', value: batch.jumbo || 0 },
+                      { label: 'Crack', value: batch.cr || 0 },
+                    ],
+                    icon: Egg,
+                  },
+                ]}
+                loading={false}
+                error={null}
+                onViewDetails={handleViewFeedDetails}
+              />
             </div>
             <div className="mb-4">
-              <GraphsSection 
-                henDayValue={Number((batch.hd * 100).toFixed(2))} 
+              <GraphsSection
+                henDayValue={Number((batch.hd * 100).toFixed(2))}
                 standardHenDayPercentage={batch.standard_hen_day_percentage}
                 henDayDeviation={henDayDeviation}
-                loading={false} 
-                error={null} 
+                loading={false}
+                error={null}
               />
             </div>
             <div>
-          <div className="row">
-            <div className="col-12 col-md-6 mb-4 mt-4">
-              <label className="form-label">Shed No.</label>
-              <input
-                type="string"
-                className="form-control is-readonly"
-                value={getShedNumber(batch.shed_id)}
-                readOnly
-              />
-            </div>
-            <div className="col-12 col-md-6 mb-4 mt-4">
-              <label className="form-label">Age</label>
-              <input
-                type="number"
-                className="form-control is-readonly"
-                value={batch.age}
-                readOnly
-                step="0.1"
-              />
-            </div>
-            <div className="col-12 col-md-6 mb-4 mt-4">
-              <label className="form-label">Standard Hen Day Percentage</label>
-              <input
-                type="number"
-                className="form-control is-readonly"
-                value={
-                  batch.standard_hen_day_percentage !== undefined && batch.standard_hen_day_percentage !== null && !isNaN(Number(batch.standard_hen_day_percentage))
-                    ? Number(batch.standard_hen_day_percentage).toFixed(2)
-                    : ''
-                }
-                readOnly
-              />
-            </div>
-            <div className="col-12 col-md-6 mb-4 mt-4">
-              <label className="form-label">Notes</label>
-              <textarea
-                className="form-control is-readonly"
-                value={batch.notes || ''}
-                readOnly
-              />
-            </div>
-          </div>
-                    <div className="row mt-4">
-                      <div className="col-12">
-                          {usageHistory.length > 0 && (
-                              <div>
-                                  <h5 className="mb-3">Feed Usage for this day</h5>
-                                  <div className="table-responsive">
-                                      <table className="table table-sm table-bordered">
-                                          <thead>
-                                              <tr>
-                                                  <th>Composition</th>
-                                                  <th>Times Used</th>
-                                              </tr>
-                                          </thead>
-                                          <tbody>
-                                              {usageHistory.map((item) => (
-                                                  <tr key={item.id}>
-                                                      <td>{item.composition_name || 'Unknown Composition'}</td>
-                                                      <td>{item.times}</td>
-                                                  </tr>
-                                              ))}
-                                          </tbody>
-                                      </table>
-                                  </div>
-                              </div>
-                          )}
-                          {itemUsageHistory.length > 0 && (
-                              <div className="mt-4">
-                                  <h5 className="mb-3">Individual Item Usage for this day</h5>
-                                  <div className="table-responsive">
-                                      <table className="table table-sm table-bordered">
-                                          <thead>
-                                              <tr>
-                                                  <th>Item</th>
-                                                  <th>Quantity</th>
-                                              </tr>
-                                          </thead>
-                                          <tbody>
-                                              {itemUsageHistory.map((item) => (
-                                                  <tr key={item.id}>
-                                                      <td>{item.inventory_item_name || `Item ID: ${item.inventory_item_id}`}</td>
-                                                      <td>{item.used_quantity} {item.unit}</td>
-                                                  </tr>
-                                              ))}
-                                          </tbody>
-                                      </table>
-                                  </div>
-                              </div>
-                          )}
+              <div className="row">
+                <div className="col-12 col-md-6 mb-4 mt-4">
+                  <label className="form-label">Shed No.</label>
+                  <input
+                    type="string"
+                    className="form-control is-readonly"
+                    value={getShedNumber(batch.shed_id)}
+                    readOnly
+                  />
+                </div>
+                <div className="col-12 col-md-6 mb-4 mt-4">
+                  <label className="form-label">Age</label>
+                  <input
+                    type="number"
+                    className="form-control is-readonly"
+                    value={batch.age}
+                    readOnly
+                    step="0.1"
+                  />
+                </div>
+                <div className="col-12 col-md-6 mb-4 mt-4">
+                  <label className="form-label">Standard Hen Day Percentage</label>
+                  <input
+                    type="number"
+                    className="form-control is-readonly"
+                    value={
+                      batch.standard_hen_day_percentage !== undefined && batch.standard_hen_day_percentage !== null && !isNaN(Number(batch.standard_hen_day_percentage))
+                        ? Number(batch.standard_hen_day_percentage).toFixed(2)
+                        : ''
+                    }
+                    readOnly
+                  />
+                </div>
+                <div className="col-12 col-md-6 mb-4 mt-4">
+                  <label className="form-label">Notes</label>
+                  <textarea
+                    className="form-control is-readonly"
+                    value={batch.notes || ''}
+                    readOnly
+                  />
+                </div>
+              </div>
+              <div className="row mt-4">
+                <div className="col-12">
+                  {usageHistory.length > 0 && (
+                    <div>
+                      <h5 className="mb-3">Feed Usage for this day</h5>
+                      <div className="table-responsive">
+                        <table className="table table-sm table-bordered">
+                          <thead>
+                            <tr>
+                              <th>Composition</th>
+                              <th>Times Used</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {usageHistory.map((item) => (
+                              <tr key={item.id}>
+                                <td>{item.composition_name || 'Unknown Composition'}</td>
+                                <td>{item.times}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
                     </div>
-                    <div className="mt-4 d-flex justify-content-start">
-                      <button type="button" className="btn btn-primary me-2" onClick={() => navigate(`/batch/${batch_id}/${batch_date}/edit`)} disabled={batch.is_active === false || isSubscriptionPaid === false}>
-                        Update
-                      </button>
-                      <button type="button" className="btn btn-info me-2" onClick={() => navigate(`/batch/${batch_id}/move-shed`)} disabled={batch.is_active === false || isSubscriptionPaid === false}>
-                        Move Shed
-                      </button>
-                      <button type="button" className="btn btn-secondary me-2" onClick={() => navigate(-1)}>
-                        Back
-                      </button>
+                  )}
+                  {itemUsageHistory.length > 0 && (
+                    <div className="mt-4">
+                      <h5 className="mb-3">Individual Item Usage for this day</h5>
+                      <div className="table-responsive">
+                        <table className="table table-sm table-bordered">
+                          <thead>
+                            <tr>
+                              <th>Item</th>
+                              <th>Quantity</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {itemUsageHistory.map((item) => (
+                              <tr key={item.id}>
+                                <td>{item.inventory_item_name || `Item ID: ${item.inventory_item_id}`}</td>
+                                <td>{item.used_quantity} {item.unit}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
-                  </div>
+                  )}
+                </div>
+              </div>
+              <div className="mt-4 d-flex justify-content-start">
+                <button type="button" className="btn btn-primary me-2" onClick={() => navigate(`/batch/${batch_id}/${batch_date}/edit`)} disabled={batch.is_active === false || isSubscriptionPaid === false}>
+                  Update
+                </button>
+                <button type="button" className="btn btn-info me-2" onClick={() => navigate(`/batch/${batch_id}/move-shed`)} disabled={batch.is_active === false || isSubscriptionPaid === false}>
+                  Move Shed
+                </button>
+                <button type="button" className="btn btn-secondary me-2" onClick={() => navigate(-1)}>
+                  Back
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-        
+
         {/* Report Download Section */}
         <div className="col-12 mb-4 mt-4">
           <div className="card shadow-sm">
@@ -420,8 +434,9 @@ const BatchDetails: React.FC = () => {
                 {reportType === 'daily' ? (
                   <>
                     <div className="col-auto d-flex align-items-center mt-3">
-            <label className="form-label me-3 mb-0">Start Date</label>
+                      <label className="form-label me-3 mb-0">Start Date</label>
                       <CustomDatePicker
+                        id="report-start-date-picker"
                         selected={startDate ? new Date(startDate) : null}
                         onChange={(date: Date | null) => date && setStartDate(date.toISOString().split('T')[0])}
                         maxDate={endDate ? new Date(endDate) : new Date()}
@@ -433,7 +448,7 @@ const BatchDetails: React.FC = () => {
                       />
                     </div>
                     <div className="col-auto d-flex align-items-center mt-3">
-            <label className="form-label me-3 mb-0">End Date</label>
+                      <label className="form-label me-3 mb-0">End Date</label>
                       <CustomDatePicker
                         selected={endDate ? new Date(endDate) : null}
                         onChange={(date: Date | null) => date && setEndDate(date.toISOString().split('T')[0])}

@@ -17,6 +17,10 @@ import { toPng } from 'html-to-image';
 import { useSubscription } from '../context/SubscriptionContext';
 import SubscriptionWarning from "../Common/SubscriptionWarning"; // adjust path as needed
 import CustomPagination from '../Common/CustomPagination';
+import { useTableKeyboardNavigation } from '../../hooks/useTableKeyboardNavigation';
+import KeyboardShortcutsIndicator from '../Common/KeyboardShortcutsIndicator';
+import { usePageShortcuts } from '../../hooks/usePageShortcuts';
+import { useModalScope } from '../../hooks/useModalScope';
 
 const InventoryItemResponsive: React.FC = () => {
   const navigate = useNavigate();
@@ -39,11 +43,45 @@ const InventoryItemResponsive: React.FC = () => {
   const [itemToUse, setItemToUse] = useState<InventoryItemResponse | null>(null);
   const [isSharing, setIsSharing] = useState(false);
   const tableRef = useRef<HTMLDivElement>(null);
+  const tableContainerRef = useRef<HTMLDivElement>(null);
   const { isSubscriptionPaid } = useSubscription();
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 15;
+  const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1);
 
   const isMobile = useMediaQuery({ maxWidth: 768 });
+
+  useModalScope(showUseModal || showDeleteModal, 'modal');
+
+  const totalPages = Math.ceil(inventoryItems.length / ITEMS_PER_PAGE);
+  const paginatedInventoryItems = inventoryItems.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
+  const { resetSelection, setSelectedIndex } = useTableKeyboardNavigation({
+    rowCount: paginatedInventoryItems.length,
+    containerRef: tableContainerRef,
+    onRowSelect: (index) => {
+      setFocusedRowIndex(index);
+    },
+    onRowEnter: (index) => {
+      const item = paginatedInventoryItems[index];
+      if (item) navigate(`/inventory-items/${item.id}/details`);
+    },
+    onRowAction: (index, key) => {
+      const item = paginatedInventoryItems[index];
+      if (!item) return;
+      if (key.toLowerCase() === 'u' && item.category.toString() !== 'Supplies' && isSubscriptionPaid !== false) {
+        setItemToUse(item);
+        setShowUseModal(true);
+      }
+    },
+    enabled: !showUseModal && !showDeleteModal && !loading && !isMobile && paginatedInventoryItems.length > 0,
+    actionKeys: ['u', 'U'],
+  });
+
+  useEffect(() => {
+    resetSelection();
+    setFocusedRowIndex(-1);
+  }, [currentPage, filterCategory, resetSelection]);
 
   // Effect to fetch inventory item list
   useEffect(() => {
@@ -132,7 +170,7 @@ const InventoryItemResponsive: React.FC = () => {
     }
 
     const tableNode = tableRef.current;
-    
+
     // Check if it's hidden inside d-none (mobile view)
     const hiddenParent = tableNode.closest('.d-none');
     if (hiddenParent) {
@@ -161,7 +199,7 @@ const InventoryItemResponsive: React.FC = () => {
       const dataUrl = await toPng(tableNode, {
         backgroundColor: '#ffffff',
       });
-      
+
       // Restore 'no-export' elements
       noExportElements.forEach((el) => {
         (el as HTMLElement).style.display = '';
@@ -234,75 +272,105 @@ const InventoryItemResponsive: React.FC = () => {
     }
   };
 
-  const totalPages = Math.ceil(inventoryItems.length / ITEMS_PER_PAGE);
-  const paginatedInventoryItems = inventoryItems.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+  usePageShortcuts({
+    createNewPath: isSubscriptionPaid !== false ? '/inventory-items/create' : undefined,
+    onSearchFocus: () => {
+      const filterInput = document.querySelector('#categoryFilter input') as HTMLElement;
+      if (filterInput) filterInput.focus();
+    },
+    onExport: !loading && inventoryItems.length > 0 ? handleExport : undefined,
+    onShare: !loading && !isSharing && inventoryItems.length > 0 ? handleShare : undefined
+  });
 
-  const renderInventoryTable = (id?: string, itemsList: InventoryItemResponse[] = paginatedInventoryItems) => (
-    <div ref={tableRef} className="table-responsive">
-      <Table id={id} striped bordered hover responsive className="table-hover shadow-sm">
-        <thead className="table-primary">
-          <tr>
-            <th className="fw-bold">Name</th>
-            <th className="fw-bold">Category</th>
-            <th className="fw-bold">{selectedDate ? (() => {
-              // Format as YYYY-MM-DD using local timezone to avoid date shift
-              const year = selectedDate.getFullYear();
-              const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
-              const day = String(selectedDate.getDate()).padStart(2, '0');
-              return `Stock as of ${year}-${month}-${day}`;
-            })() : 'Current Stock'}</th>
-            <th className="fw-bold">Reorder Level</th>
-            <th className="fw-bold">Status</th>
-            <th className="fw-bold no-export">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {itemsList.map((item) => (
-            <tr 
-              key={item.id} 
-            onClick={() => navigate(`/inventory-items/${item.id}/details`)}
-              style={{ cursor: 'pointer' }}
-            >
-              <td>{item.name}</td>
-              <td>{item.category}</td>
-              <td>
-                {(() => {
-                  const stockInfo = stockData[item.id] || { stock: item.current_stock?.toString() || '0', unit: item.unit };
-                  const displayStock = selectedDate ? stockInfo.stock : item.current_stock;
-                  return loadingStock ? (
-                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                  ) : (
-                    <span className="d-flex align-items-center gap-2">
-                      <span className="fw-semibold">{displayStock}</span>
-                      <Badge bg="light" text="dark" className="border">{stockInfo.unit}</Badge>
-                    </span>
-                  );
-                })()}
-              </td>
-              <td>{item.reorder_level || 'N/A'}</td>
-              <td>{getStockStatus(item)}</td>
-              <td className="no-export">
-                {item.category.toString() !== 'Supplies' && (
-                  <Button 
-                    variant="primary" 
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setItemToUse(item);
-                      setShowUseModal(true);
-                    }}
-                    disabled={isSubscriptionPaid === false}
-                  >
-                    Use
-                  </Button>
-                )}
-              </td>
+  const renderInventoryTable = (id?: string, itemsList: InventoryItemResponse[] = paginatedInventoryItems) => {
+    const isVisibleTable = itemsList === paginatedInventoryItems;
+
+    const setRefs = (el: HTMLDivElement | null) => {
+      if (id === "inventory-items-table") {
+        // @ts-ignore
+        tableRef.current = el;
+      }
+      if (isVisibleTable) {
+        // @ts-ignore
+        tableContainerRef.current = el;
+      }
+    };
+
+    return (
+      <div ref={setRefs} className="table-responsive" tabIndex={isVisibleTable ? 0 : undefined} style={{ outline: isVisibleTable ? 'none' : undefined }}>
+        <Table id={id} striped bordered hover responsive className="table-hover shadow-sm">
+          <thead className="table-primary">
+            <tr>
+              <th className="fw-bold">Name</th>
+              <th className="fw-bold">Category</th>
+              <th className="fw-bold">{selectedDate ? (() => {
+                // Format as YYYY-MM-DD using local timezone to avoid date shift
+                const year = selectedDate.getFullYear();
+                const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+                const day = String(selectedDate.getDate()).padStart(2, '0');
+                return `Stock as of ${year}-${month}-${day}`;
+              })() : 'Current Stock'}</th>
+              <th className="fw-bold">Reorder Level</th>
+              <th className="fw-bold">Status</th>
+              <th className="fw-bold no-export">Action</th>
             </tr>
-          ))}
-        </tbody>
-      </Table>
-    </div>
-  );
+          </thead>
+          <tbody>
+            {itemsList.map((item, index) => (
+              <tr
+                key={item.id}
+                data-row-index={isVisibleTable ? index : undefined}
+                onClick={() => {
+                  if (isVisibleTable) {
+                    setFocusedRowIndex(index);
+                    setSelectedIndex(index);
+                  }
+                  navigate(`/inventory-items/${item.id}/details`);
+                }}
+                className={isVisibleTable && focusedRowIndex === index ? 'table-primary' : ''}
+                style={{ cursor: 'pointer' }}
+              >
+                <td>{item.name}</td>
+                <td>{item.category}</td>
+                <td>
+                  {(() => {
+                    const stockInfo = stockData[item.id] || { stock: item.current_stock?.toString() || '0', unit: item.unit };
+                    const displayStock = selectedDate ? stockInfo.stock : item.current_stock;
+                    return loadingStock ? (
+                      <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    ) : (
+                      <span className="d-flex align-items-center gap-2">
+                        <span className="fw-semibold">{displayStock}</span>
+                        <Badge bg="light" text="dark" className="border">{stockInfo.unit}</Badge>
+                      </span>
+                    );
+                  })()}
+                </td>
+                <td>{item.reorder_level || 'N/A'}</td>
+                <td>{getStockStatus(item)}</td>
+                <td className="no-export">
+                  {item.category.toString() !== 'Supplies' && (
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setItemToUse(item);
+                        setShowUseModal(true);
+                      }}
+                      disabled={isSubscriptionPaid === false}
+                    >
+                      Use
+                    </Button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </div>
+    );
+  };
 
   const groupedItems = paginatedInventoryItems.reduce((acc, item) => {
     const category = item.category;
@@ -403,6 +471,9 @@ const InventoryItemResponsive: React.FC = () => {
                 </Button>
               </div>
             </div>
+
+            <KeyboardShortcutsIndicator />
+
             {loadingStock && <div className="alert alert-info"><i className="bi bi-hourglass-split me-2"></i>Fetching stock data for selected date...</div>}
 
             {Object.entries(groupedItems).map(([category, items]) => (
@@ -542,6 +613,8 @@ const InventoryItemResponsive: React.FC = () => {
             </div>
           </div>
 
+          <KeyboardShortcutsIndicator />
+
           {loading && <div className="text-center py-4"><div className="spinner-border" role="status"><span className="visually-hidden">Loading...</span></div></div>}
           {error && <div className="alert alert-danger text-center">{error}</div>}
           {!loading && !error && inventoryItems.length === 0 && <div className="alert alert-info text-center">No inventory items found</div>}
@@ -554,8 +627,8 @@ const InventoryItemResponsive: React.FC = () => {
             </>
           )}
 
-          <Modal 
-            show={showDeleteModal} 
+          <Modal
+            show={showDeleteModal}
             onHide={cancelDelete}
             onEntered={() => {
               const btn = document.querySelector('.modal-footer .btn-danger') as HTMLElement;

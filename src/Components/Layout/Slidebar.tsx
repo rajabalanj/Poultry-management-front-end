@@ -134,27 +134,55 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
     shortcutStateRef.current = { isDesktop, isOpen, toggle };
   }, [isDesktop, isOpen, toggle]);
 
+  const exitSidebarFocus = useCallback(() => {
+    const activeEl = document.activeElement as HTMLElement;
+    activeEl?.blur();
+
+    const state = shortcutStateRef.current;
+    if (!state.isDesktop && state.isOpen) {
+      state.toggle();
+    }
+
+    // Move focus to main content (page header) to resume normal tabbing seamlessly
+    const mainContent = (document.querySelector('.page-header') || document.body) as HTMLElement;
+    if (mainContent !== document.body) {
+      mainContent.setAttribute('tabindex', '-1');
+      mainContent.style.outline = 'none'; // Prevent ugly focus ring on the header wrapper itself
+    }
+    mainContent.focus();
+  }, []);
+
   // Register global shortcut to focus sidebar
   useEffect(() => {
     const unregister = registerShortcuts([
       {
         key: 'Alt+m',
-        description: 'Focus Sidebar Menu',
+        description: 'Toggle Sidebar Focus',
         category: 'Navigation',
         action: (e) => {
           e.preventDefault();
-          const state = shortcutStateRef.current;
-          if (!state.isDesktop && !state.isOpen) {
-            state.toggle();
-            setTimeout(() => focusActiveItem(), 300);
+
+          const contents = Array.from(document.querySelectorAll('.sidebar-content')) as HTMLElement[];
+          const visibleContent = contents.find(el => el.getBoundingClientRect().width > 0);
+          const activeEl = document.activeElement as HTMLElement;
+
+          // If we are already focused inside the sidebar, act as a toggle to exit
+          if (visibleContent?.contains(activeEl)) {
+            exitSidebarFocus();
           } else {
-            focusActiveItem();
+            const state = shortcutStateRef.current;
+            if (!state.isDesktop && !state.isOpen) {
+              state.toggle();
+              setTimeout(() => focusActiveItem(), 300);
+            } else {
+              focusActiveItem();
+            }
           }
         }
       }
     ]);
     return unregister;
-  }, [registerShortcuts, focusActiveItem]);
+  }, [registerShortcuts, focusActiveItem, exitSidebarFocus]);
 
   // Local keyboard navigation within Sidebar
   useEffect(() => {
@@ -167,8 +195,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
         e.stopImmediatePropagation(); // Prevent table hooks or page shortcuts from firing
 
         if (e.key === 'Escape') {
-          activeEl.blur();
-          if (!isDesktop && isOpen) toggle();
+          exitSidebarFocus();
           return;
         }
         if (e.key === 'Enter') {
@@ -190,7 +217,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
 
     window.addEventListener('keydown', handleKeyDown, true); // use capture
     return () => window.removeEventListener('keydown', handleKeyDown, true);
-  }, [isDesktop, isOpen, toggle]);
+  }, [exitSidebarFocus]);
 
   const sidebarStyle: React.CSSProperties = isDesktop
     ? {

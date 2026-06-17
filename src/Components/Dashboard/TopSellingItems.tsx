@@ -9,6 +9,8 @@ import { toast } from 'react-toastify';
 import { toPng } from 'html-to-image';
 import CustomDatePicker from '../Common/CustomDatePicker';
 import { toYYYYMMDD } from '../../utility/date-utils';
+import KeyboardShortcutsIndicator from '../Common/KeyboardShortcutsIndicator';
+import { usePageShortcuts } from '../../hooks/usePageShortcuts';
 
 const TopSellingItems = () => {
   const [items, setItems] = useState<TopSellingItem[]>([]);
@@ -90,9 +92,19 @@ const TopSellingItems = () => {
     }
   };
 
+  usePageShortcuts({
+    onSearchFocus: () => {
+      const dateInput = document.querySelector('#startDate') as HTMLElement;
+      if (dateInput) dateInput.focus();
+    },
+    onExport: !loading && items.length > 0 ? handleExport : undefined,
+    onShare: !loading && !isSharing && items.length > 0 ? handleShare : undefined
+  });
+
   return (
     <div className="container">
       <PageHeader title="Top Selling Items Report" />
+      <KeyboardShortcutsIndicator />
       <div ref={reportRef}>
         <Card>
           <Card.Header className="d-flex justify-content-between align-items-center">

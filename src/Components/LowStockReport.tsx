@@ -8,6 +8,8 @@ import { InventoryStockLevel } from '../types/inventoryStockLevel';
 import { toPng } from 'html-to-image';
 import { exportTableToExcel } from '../utility/export-utils';
 import CustomPagination from './Common/CustomPagination';
+import KeyboardShortcutsIndicator from './Common/KeyboardShortcutsIndicator';
+import { usePageShortcuts } from '../hooks/usePageShortcuts';
 
 const LowStockReport = () => {
   const [reportData, setReportData] = useState<InventoryStockLevel[]>([]);
@@ -106,10 +108,17 @@ const LowStockReport = () => {
   const totalPages = Math.ceil(reportData.length / ITEMS_PER_PAGE);
   const paginatedData = reportData.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
+  usePageShortcuts({
+    onExport: !isLoading && reportData.length > 0 ? handleExport : undefined,
+    onShare: !isLoading && !isSharing && reportData.length > 0 ? handleShare : undefined
+  });
+
   return (
     <>
-      <PageHeader title="Low Stock Report"/>
+      <PageHeader title="Low Stock Report" />
       <div className="container">
+        <KeyboardShortcutsIndicator />
+
         {isLoading && <Loading message="Loading report..." />}
         {error && <div className="alert alert-danger text-center">{error}</div>}
         {!isLoading && !error && reportData.length === 0 && (
@@ -140,55 +149,55 @@ const LowStockReport = () => {
                   </button>
                 </div>
               </div>
-          
-          {/* Mobile Cards */}
-          <div className="d-block d-md-none">
-            {paginatedData.map((item) => (
-              <div key={item.id} className="card mb-2 mt-2 border-top-0 border-end-0 border-start-0 border-bottom" style={{ borderRadius: 0 }}>
-                <div className="card-body p-2">
-                  <h6 className="mb-1">{item.name}</h6>
-                  <div className="text-sm">
-                    <p className="mb-0 text-muted">Category: {item.category}</p>
-                    <p className="mb-0">
-                      <span className="text-danger fw-semibold">Stock: {item.current_stock} {item.unit}</span>
-                      <span className="ms-2 text-muted">(Reorder: {item.reorder_level})</span>
-                    </p>
+
+              {/* Mobile Cards */}
+              <div className="d-block d-md-none">
+                {paginatedData.map((item) => (
+                  <div key={item.id} className="card mb-2 mt-2 border-top-0 border-end-0 border-start-0 border-bottom" style={{ borderRadius: 0 }}>
+                    <div className="card-body p-2">
+                      <h6 className="mb-1">{item.name}</h6>
+                      <div className="text-sm">
+                        <p className="mb-0 text-muted">Category: {item.category}</p>
+                        <p className="mb-0">
+                          <span className="text-danger fw-semibold">Stock: {item.current_stock} {item.unit}</span>
+                          <span className="ms-2 text-muted">(Reorder: {item.reorder_level})</span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop Table */}
+              <div className="d-none d-md-block">
+                <div ref={tableRef}>
+                  <div className='table-responsive'>
+                    <table id="low-stock-report-table" className="table table-bordered table-striped">
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Category</th>
+                          <th>Current Stock</th>
+                          <th>Unit</th>
+                          <th>Reorder Level</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {paginatedData.map((item) => (
+                          <tr key={item.id}>
+                            <td>{item.name}</td>
+                            <td>{item.category}</td>
+                            <td>{item.current_stock}</td>
+                            <td>{item.unit}</td>
+                            <td>{item.reorder_level}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-
-          {/* Desktop Table */}
-          <div className="d-none d-md-block">
-            <div ref={tableRef}>
-              <div className='table-responsive'>
-              <table id="low-stock-report-table" className="table table-bordered table-striped">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Category</th>
-                    <th>Current Stock</th>
-                    <th>Unit</th>
-                    <th>Reorder Level</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedData.map((item) => (
-                    <tr key={item.id}>
-                      <td>{item.name}</td>
-                      <td>{item.category}</td>
-                      <td>{item.current_stock}</td>
-                      <td>{item.unit}</td>
-                      <td>{item.reorder_level}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              </div>
-            </div>
-          </div>
-            <CustomPagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+              <CustomPagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
             </div>
           </div>
         )}

@@ -151,8 +151,8 @@ const OperationalExpensesIndexPage: React.FC = () => {
           />
         </ErrorBoundary>
 
-        <Modal 
-          show={showDeleteModal} 
+        <Modal
+          show={showDeleteModal}
           onHide={cancelDelete}
           onEntered={() => {
             const btn = document.querySelector('.modal-footer .btn-danger') as HTMLElement;
@@ -178,7 +178,7 @@ const OperationalExpensesIndexPage: React.FC = () => {
             </Button>
           </Modal.Footer>
         </Modal>
-        <KeyboardShortcutsIndicator hasNew hasSearch hasDelete />
+        <KeyboardShortcutsIndicator />
       </div>
     </>
   );

@@ -220,7 +220,7 @@ const SalesResponsive: React.FC = () => {
               </div>
             )}
 
-            <KeyboardShortcutsIndicator hasPayment hasDelete hasViewItems hasSearch hasNew hasBill={!!filters.customerId} />
+            <KeyboardShortcutsIndicator />
 
             <SalesOrderTable
               salesOrders={paginatedSalesOrders}
@@ -323,7 +323,7 @@ const SalesResponsive: React.FC = () => {
             </div>
           )}
 
-          <KeyboardShortcutsIndicator hasPayment hasDelete hasViewItems hasSearch hasNew hasBill={!!filters.customerId} hasExport hasShare />
+          <KeyboardShortcutsIndicator />
 
           <SalesReportTable
             salesOrders={paginatedSalesOrders}

@@ -155,7 +155,7 @@ const PurchaseResponsive: React.FC = () => {
               <PurchaseFilter vendors={vendors} filters={filters} setFilters={setFilters} />
             </div>
 
-            <KeyboardShortcutsIndicator hasPayment hasDelete hasViewItems hasSearch hasNew />
+            <KeyboardShortcutsIndicator />
 
             <PurchaseOrderTable
               purchaseOrders={paginatedPurchaseOrders}
@@ -235,7 +235,7 @@ const PurchaseResponsive: React.FC = () => {
             <PurchaseFilter vendors={vendors} filters={filters} setFilters={setFilters} />
           </div>
 
-          <KeyboardShortcutsIndicator hasPayment hasDelete hasViewItems hasSearch hasNew hasExport hasShare />
+          <KeyboardShortcutsIndicator />
 
           <PurchaseReportTable
             purchaseOrders={paginatedPurchaseOrders}

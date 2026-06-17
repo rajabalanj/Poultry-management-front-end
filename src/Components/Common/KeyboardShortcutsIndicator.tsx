@@ -1,27 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useShortcuts } from '../context/KeyboardShortcutContext';
 
-interface KeyboardShortcutsIndicatorProps {
-  hasPayment?: boolean;
-  hasDelete?: boolean;
-  hasViewItems?: boolean;
-  hasSearch?: boolean;
-  hasNew?: boolean;
-  hasExport?: boolean;
-  hasBill?: boolean;
-  hasShare?: boolean;
-}
+interface KeyboardShortcutsIndicatorProps { }
 
-const KeyboardShortcutsIndicator: React.FC<KeyboardShortcutsIndicatorProps> = ({
-  hasPayment = false,
-  hasDelete = false,
-  hasViewItems = false,
-  hasSearch = false,
-  hasNew = false,
-  hasExport = false,
-  hasBill = false,
-  hasShare = false
-}) => {
+const KeyboardShortcutsIndicator: React.FC<KeyboardShortcutsIndicatorProps> = () => {
   const [isMinimized, setIsMinimized] = useState(true);
   const { activeShortcuts } = useShortcuts();
   const isMac = typeof window !== 'undefined' ? navigator.platform.toUpperCase().indexOf('MAC') >= 0 : false;
@@ -103,18 +85,7 @@ const KeyboardShortcutsIndicator: React.FC<KeyboardShortcutsIndicatorProps> = ({
             <span>{formatKey(shortcut.key)}</span>
           </div>
         ))}
-        {hasSearch && !activeShortcuts.some(s => s.key === '/') && <div className="d-flex justify-content-between gap-3"><span>Filter</span> <kbd>/</kbd></div>}
-        {hasNew && !activeShortcuts.some(s => s.key.toLowerCase() === 'alt+n') && <div className="d-flex justify-content-between gap-3"><span>New</span> <span>{formatKey('Alt+n')}</span></div>}
-        {hasExport && !activeShortcuts.some(s => s.key.toLowerCase() === 'alt+e') && <div className="d-flex justify-content-between gap-3"><span>Export</span> <span>{formatKey('Alt+e')}</span></div>}
-        {hasShare && !activeShortcuts.some(s => s.key.toLowerCase() === 'alt+s') && <div className="d-flex justify-content-between gap-3"><span>Share</span> <span>{formatKey('Alt+s')}</span></div>}
-        {hasBill && !activeShortcuts.some(s => s.key.toLowerCase() === 'alt+b') && <div className="d-flex justify-content-between gap-3"><span>Bill</span> <span>{formatKey('Alt+b')}</span></div>}
-        <div className="d-flex justify-content-between gap-3"><span>Navigate</span> <span><kbd>↑</kbd> <kbd>↓</kbd></span></div>
-        <div className="d-flex justify-content-between gap-3"><span>Page</span> <span><kbd>←</kbd> <kbd>→</kbd></span></div>
-        <div className="d-flex justify-content-between gap-3"><span>Open</span> <kbd>Enter</kbd></div>
-        {hasViewItems && <div className="d-flex justify-content-between gap-3"><span>View Items</span> <kbd>V</kbd></div>}
-        {hasPayment && <div className="d-flex justify-content-between gap-3"><span>Payment</span> <kbd>P</kbd></div>}
-        {hasDelete && <div className="d-flex justify-content-between gap-3"><span>Delete</span> <kbd>D</kbd></div>}
-        <div className="d-flex justify-content-between gap-3"><span>Close</span> <kbd>Esc</kbd></div>
+        {activeShortcuts.length === 0 && <div className="text-muted text-center">No shortcuts active for this view.</div>}
       </div>
       <div className="text-center text-muted mt-2 border-top pt-2" style={{ fontSize: '0.7rem' }}>
         Press <kbd>?</kbd> to toggle

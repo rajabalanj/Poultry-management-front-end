@@ -705,7 +705,7 @@ const EggRoomStock: React.FC = () => {
           </div>
         )}
       </div>
-      <KeyboardShortcutsIndicator hasSearch hasExport hasShare={reports.length > 0} />
+      <KeyboardShortcutsIndicator />
     </>
   );
 };

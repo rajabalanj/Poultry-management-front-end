@@ -132,8 +132,8 @@ const ShedIndexPage: React.FC = () => {
           containerRef={tableContainerRef}
         />
 
-        <Modal 
-          show={showDeleteModal} 
+        <Modal
+          show={showDeleteModal}
           onHide={cancelDelete}
           onEntered={() => {
             const btn = document.querySelector('.modal-footer .btn-danger') as HTMLElement;
@@ -159,7 +159,7 @@ const ShedIndexPage: React.FC = () => {
             </Button>
           </Modal.Footer>
         </Modal>
-        <KeyboardShortcutsIndicator hasNew hasDelete />
+        <KeyboardShortcutsIndicator />
       </div>
     </>
   );
