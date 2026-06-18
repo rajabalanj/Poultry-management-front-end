@@ -12,6 +12,7 @@ import CompositionUsagePieChart from './CompositionUsagePieChart';
 import FeedConsumptionPerEggGraph from './FeedConsumptionPerEggGraph';
 import EggPriceCard from './EggPriceCard';
 import SubscriptionWarning from '../Common/SubscriptionWarning';
+import { useShortcuts } from '../context/KeyboardShortcutContext';
 
 const BATCH_DATE_KEY = 'dashboard_batch_date';
 
@@ -60,6 +61,14 @@ const Dashboard: React.FC = () => {
   // State for Feature Restrictions
   const [isBatchRestricted, setIsBatchRestricted] = useState(false);
   const [checkingRestriction, setCheckingRestriction] = useState(true);
+  const { registerShortcuts } = useShortcuts();
+
+  useEffect(() => {
+    const unregister = registerShortcuts([
+      { key: '/', description: 'Focus Usage Stats Date', category: 'Page Actions', action: () => document.getElementById('usage-stats-date-picker')?.focus() }
+    ]);
+    return unregister;
+  }, [registerShortcuts]);
 
   useEffect(() => {
     const checkRestriction = async () => {
@@ -291,6 +300,7 @@ const Dashboard: React.FC = () => {
           <div className="col-auto d-flex align-items-center bg-white p-2 rounded shadow-sm" style={{ maxWidth: '250px' }}>
             <label className="form-label me-2 mb-0 fw-bold">Usage Stats Date</label>
             <CustomDatePicker
+              id="usage-stats-date-picker"
               selected={batchDate ? new Date(batchDate) : null}
               maxDate={new Date()}
               onChange={(date: Date | null) => date && setBatchDate(date.toISOString().split('T')[0])}

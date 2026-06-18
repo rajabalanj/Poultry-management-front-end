@@ -613,7 +613,7 @@ const InventoryItemResponsive: React.FC = () => {
             </div>
           </div>
 
-          <KeyboardShortcutsIndicator />
+          <KeyboardShortcutsIndicator/>
 
           {loading && <div className="text-center py-4"><div className="spinner-border" role="status"><span className="visually-hidden">Loading...</span></div></div>}
           {error && <div className="alert alert-danger text-center">{error}</div>}

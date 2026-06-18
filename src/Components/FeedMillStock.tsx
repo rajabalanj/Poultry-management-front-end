@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useLayoutEffect } from "react";
 import { compositionApi, batchApi, inventoryItemApi, getTenantId, tenantFeatureApi } from "../services/api";
 import { format } from 'date-fns';
 import { InventoryItemResponse, InventoryItemCategory } from "../types/InventoryItem";
@@ -295,6 +295,29 @@ function FeedMillStock() {
     }
   };
 
+  // Create a ref for shortcut action handlers to prevent re-registering on input keystrokes
+  const shortcutHandlersRef = useRef({
+    handleAddComposition,
+    handleEdit,
+    handleConfirmUseComposition,
+    setViewState,
+    setUsageWastagePercentage,
+    selectedComposition,
+    selectedCompositionId
+  });
+
+  useLayoutEffect(() => {
+    shortcutHandlersRef.current = {
+      handleAddComposition,
+      handleEdit,
+      handleConfirmUseComposition,
+      setViewState,
+      setUsageWastagePercentage,
+      selectedComposition,
+      selectedCompositionId
+    };
+  });
+
   useEffect(() => {
     const shortcuts: any[] = [];
 
@@ -313,17 +336,17 @@ function FeedMillStock() {
           key: 'Alt+n',
           description: 'Create Composition',
           category: 'Composition Actions',
-          action: () => handleAddComposition()
+          action: () => shortcutHandlersRef.current.handleAddComposition()
         });
       }
 
-      if (selectedComposition) {
+      if (shortcutHandlersRef.current.selectedComposition) {
         if (isSubscriptionPaid !== false) {
           shortcuts.push({
             key: 'Alt+e',
             description: 'Edit Composition',
             category: 'Composition Actions',
-            action: () => handleEdit()
+            action: () => shortcutHandlersRef.current.handleEdit()
           });
 
           shortcuts.push({
@@ -331,8 +354,11 @@ function FeedMillStock() {
             description: 'Use Composition',
             category: 'Composition Actions',
             action: () => {
-              setUsageWastagePercentage(selectedComposition.wastage_percentage || 0);
-              setViewState('use-composition');
+              const comp = shortcutHandlersRef.current.selectedComposition;
+              if (comp) {
+                shortcutHandlersRef.current.setUsageWastagePercentage(comp.wastage_percentage || 0);
+                shortcutHandlersRef.current.setViewState('use-composition');
+              }
             }
           });
         }
@@ -342,7 +368,10 @@ function FeedMillStock() {
           description: 'Composition Usage History',
           category: 'Navigation',
           action: () => {
-            window.location.href = `/compositions/${selectedCompositionId}/usage-history`;
+            const compId = shortcutHandlersRef.current.selectedCompositionId;
+            if (compId) {
+              window.location.href = `/compositions/${compId}/usage-history`;
+            }
           }
         });
       }
@@ -375,7 +404,7 @@ function FeedMillStock() {
         description: 'Confirm Use',
         category: 'Form Actions',
         action: () => {
-          handleConfirmUseComposition();
+          shortcutHandlersRef.current.handleConfirmUseComposition();
         }
       });
 
@@ -383,23 +412,17 @@ function FeedMillStock() {
         key: 'Escape',
         description: 'Cancel',
         category: 'Form Actions',
-        action: () => setViewState('view')
+        action: () => shortcutHandlersRef.current.setViewState('view')
       });
     }
 
     return registerShortcuts(shortcuts);
   }, [
     viewState,
-    selectedCompositionId,
     isSubscriptionPaid,
-    selectedComposition,
     registerShortcuts,
     navigate,
-    timesToUse,
-    batchDate,
-    selectedBatchNo,
-    isBatchRestricted,
-    usageWastagePercentage,
+    !!selectedComposition,
   ]);
 
   return (

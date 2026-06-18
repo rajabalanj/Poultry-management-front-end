@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { InventoryItemResponse } from '../types/InventoryItem';
 import { InventoryItemInComposition } from '../types/compositon';
 import { useSubscription } from './context/SubscriptionContext';
@@ -58,6 +58,11 @@ function CompositionForm({
   // Reset to page 1 when search changes
   useEffect(() => setCurrentPage(1), [search]);
 
+  const handlersRef = useRef({ onSave, onCancel });
+  useLayoutEffect(() => {
+    handlersRef.current = { onSave, onCancel };
+  });
+
   useEffect(() => {
     const formShortcuts = [
       {
@@ -73,7 +78,7 @@ function CompositionForm({
         description: saveButtonLabel,
         category: 'Form Actions',
         action: () => {
-          onSave();
+          handlersRef.current.onSave();
         }
       },
       {
@@ -81,13 +86,13 @@ function CompositionForm({
         description: 'Cancel',
         category: 'Form Actions',
         action: () => {
-          onCancel();
+          handlersRef.current.onCancel();
         }
       }
     ];
 
     return registerShortcuts(formShortcuts);
-  }, [registerShortcuts, saveButtonLabel, onSave, onCancel]);
+  }, [registerShortcuts, saveButtonLabel]);
 
   // Filter items out that are already in the composition, then paginate
   const availableItems = filteredItems.filter((i) => !editItems.some((ei) => ei.inventory_item_id === i.id));

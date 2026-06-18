@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Outlet, Navigate, useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Container } from 'react-bootstrap';
@@ -108,15 +108,13 @@ const FeatureProtectedRoute = () => {
   return <Outlet />;
 };
 
-const App: React.FC = () => {
+const AppRoutes: React.FC = () => {
+  const location = useLocation();
+
   return (
-    <Container fluid>
-      <Router>
-        <ScrollToTop />
-        <Layout>
-          <Suspense fallback={<div className="text-center p-5">Loading...</div>}>
-            <Routes>
-              <Route element={<ProtectedRoutes />}>
+    <Suspense fallback={<div className="text-center p-5">Loading...</div>}>
+      <Routes key={location.pathname}>
+        <Route element={<ProtectedRoutes />}>
                 <Route path="/" element={<Dashboard />} />
                 <Route element={<FeatureProtectedRoute />}>
                 <Route
@@ -254,8 +252,18 @@ const App: React.FC = () => {
               />
               <Route path="/logout" element={<LogoutPage />} />
               <Route path="/callback" element={<Callback />} />
-            </Routes>
-          </Suspense>
+      </Routes>
+    </Suspense>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <Container fluid>
+      <Router>
+        <ScrollToTop />
+        <Layout>
+          <AppRoutes />
         </Layout>
         <ToastContainer position="top-right" autoClose={3000} />
       </Router>

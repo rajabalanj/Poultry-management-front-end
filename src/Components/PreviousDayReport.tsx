@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, memo } from 'react';
+import { useEffect, useState, useRef, memo, useLayoutEffect } from 'react';
 import * as htmlToImage from 'html-to-image';
 import { flushSync } from 'react-dom';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
@@ -12,6 +12,8 @@ import { BatchResponse } from '../types/batch';
 import { ShedResponse } from '../types/shed';
 import CustomDatePicker from './Common/CustomDatePicker';
 import { useEscapeKey } from '../hooks/useEscapeKey';
+import { useShortcuts } from './context/KeyboardShortcutContext';
+import KeyboardShortcutsIndicator from './Common/KeyboardShortcutsIndicator';
 import { configApi, batchApi, shedApi, dailyBatchApi, reportsApi, AppConfigKey } from '../services/api';
 import StyledSelect from './Common/StyledSelect';
 import { toYYYYMMDD } from '../utility/date-utils';
@@ -20,23 +22,23 @@ import SubscriptionWarning from './Common/SubscriptionWarning';
 import CustomPagination from './Common/CustomPagination';
 
 // Memoized table row component to prevent unnecessary re-renders
-const TableRow = memo(({ 
-  row, 
-  index, 
-  batchIdFromUrl, 
-  henDayDeviation, 
-  handleEdit 
-}: { 
-  row: any; 
-  index: number; 
-  batchIdFromUrl?: string; 
-  henDayDeviation: number; 
-  reportType: 'daily' | 'weekly'; 
-  handleEdit: (batchId: number, batchDate: string) => void; 
+const TableRow = memo(({
+  row,
+  index,
+  batchIdFromUrl,
+  henDayDeviation,
+  handleEdit
+}: {
+  row: any;
+  index: number;
+  batchIdFromUrl?: string;
+  henDayDeviation: number;
+  reportType: 'daily' | 'weekly';
+  handleEdit: (batchId: number, batchDate: string) => void;
 }) => {
   // Create a stable key for each row
-  const rowKey = !batchIdFromUrl 
-    ? `${row.batch_id}-${index}` 
+  const rowKey = !batchIdFromUrl
+    ? `${row.batch_id}-${index}`
     : `${row.batch_id}-${row.batch_date || index}`;
 
   // Pre-calculate values to improve performance
@@ -128,196 +130,9 @@ const PreviousDayReport = () => {
   const { batchId: batchIdFromUrl } = useParams<{ batchId?: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const {registerShortcuts} = useShortcuts();
 
   const effectiveBatchId = batchIdFromUrl || searchParams.get('batch_id') || undefined;
-
-  useEscapeKey(() => navigate(-1));
-
-  // Component state for data display
-  const [gridData, setGridData] = useState<GridRow[]>([]);
-  const [summaryData, setSummaryData] = useState<GridRow | null>(null);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [error, setError] = useState<string | null>(null);
-  const [isSharing, setIsSharing] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const reportContentRef = useRef<HTMLDivElement>(null);
-  const [henDayDeviation, setHenDayDeviation] = useState(10);
-
-  // State for weekly report specific data
-  const [weekData, setWeekData] = useState<number | null>(null);
-  const [ageRange, setAgeRange] = useState<string | null>(null);
-  const [henHousing, setHenHousing] = useState<number | null>(null);
-  const [cumulativeReportData, setCumulativeReportData] = useState<CumulativeReport | null>(null);
-
-  const getFormattedDateFromParam = (param: string | null) => {
-    if (!param) return '';
-    return param.split('T')[0];
-  }
-
-  // State for the report generation form
-  const [reportType, setReportType] = useState<'daily' | 'weekly'>(searchParams.get('week') ? 'weekly' : 'daily');
-  const [startDate, setStartDate] = useState(getFormattedDateFromParam(searchParams.get('start')));
-  const [endDate, setEndDate] = useState(getFormattedDateFromParam(searchParams.get('end')));
-  const [week, setWeek] = useState(searchParams.get('week') || '');
-  const [batchNo, setBatchNo] = useState('');
-  const [batches, setBatches] = useState<BatchResponse[]>([]);
-  const [sheds, setSheds] = useState<ShedResponse[]>([]);
-  
-  const selectedBatch = batchNo ? batches.find(b => b.batch_no.toLowerCase() === batchNo.toLowerCase().trim()) : null;
-  const isBatchClosed = selectedBatch ? selectedBatch.is_active === false : false;
-  
-  const rowsPerPage = 10;
-  const validGridData = gridData.filter(row => row && Object.keys(row).length > 0);
-  const totalPages = validGridData.length > 0 ? Math.ceil(validGridData.length / rowsPerPage) : 0;
-
-  const batchOptions = batches.map(b => ({ value: b.batch_no, label: b.batch_no }));
-  batchOptions.unshift({ value: '', label: 'All Batches (Daily Report Only)' });
-
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      const [shedResult, configsResult, batchResult] = await Promise.allSettled([
-        shedApi.getSheds(),
-        configApi.getAllConfigs(),
-        batchApi.getBatches(0, 1000)
-      ]);
-
-      if (shedResult.status === 'fulfilled') {
-        const validSheds = Array.isArray(shedResult.value) ? shedResult.value : [];
-        setSheds(validSheds);
-      } else {
-        console.error('Failed to load sheds', shedResult.reason);
-      }
-
-      if (configsResult.status === 'fulfilled') {
-        const hdConfig = configsResult.value.find(c => c.name === AppConfigKey.HEN_DAY_DEVIATION);
-        setHenDayDeviation(hdConfig ? Number(hdConfig.value) : 10);
-      } else {
-        console.error('Failed to load configs', configsResult.reason);
-      }
-
-      if (batchResult.status === 'fulfilled') {
-        const validBatches = Array.isArray(batchResult.value) ? batchResult.value : [];
-        setBatches(validBatches);
-        if (effectiveBatchId) {
-          const foundBatch = validBatches.find(b => String(b.id) === effectiveBatchId);
-          if (foundBatch) {
-            setBatchNo(foundBatch.batch_no);
-          }
-        }
-      } else {
-        console.error('Failed to load batches', batchResult.reason);
-      }
-    };
-    fetchInitialData();
-  }, [effectiveBatchId]);
-
-  const fetchData = async (batchIdToFetch?: string, start?: string, end?: string, weekToFetch?: string) => {
-    setIsLoading(true);
-    try {
-      // Reset previous data and errors
-      setGridData([]);
-      setSummaryData(null);
-      setWeekData(null);
-      setAgeRange(null);
-      setHenHousing(null);
-      setCumulativeReportData(null);
-      setError(null);
-
-      let reportDetails: GridRow[];
-      let reportSummary: GridRow | null = null;
-
-      if (reportType === 'weekly') {
-        if (!batchIdToFetch || !weekToFetch) {
-            const msg = 'Batch number and week are required for weekly reports.';
-            toast.error(msg);
-            setError(msg);
-            return;
-        }
-        
-        const weeklyReport = await reportsApi.getWeeklyLayerReport(
-          Number(batchIdToFetch),
-          Number(weekToFetch)
-        );
-        reportDetails = weeklyReport.details;
-        reportSummary = weeklyReport.summary;
-        setWeekData(weeklyReport.week ?? null);
-        setAgeRange(weeklyReport.age_range ?? null);
-        setHenHousing(weeklyReport.hen_housing ?? null);
-        setCumulativeReportData((weeklyReport.cumulative_report as CumulativeReport) ?? null);
-      } else {
-        const dailyReport = await dailyBatchApi.getSnapshot(
-          start || '',
-          end || '',
-          batchIdToFetch ? Number(batchIdToFetch) : undefined
-        );
-        reportDetails = dailyReport.details;
-        reportSummary = dailyReport.summary;
-      }
-
-      const detailsWithShedNo = reportDetails.map(d => ({
-        ...d,
-        shed_no: sheds.find(s => s.id == d.shed_id)?.shed_no || 'N/A'
-      }));
-
-      setGridData(detailsWithShedNo);
-      setSummaryData(reportSummary);
-
-    } catch (error: any) {
-      const errorMsg = error?.message || 'Failed to fetch data';
-      setError(errorMsg);
-      toast.error(errorMsg);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Initial data fetch based on URL parameters
-  useEffect(() => {
-    if (sheds.length > 0) {
-      fetchData(effectiveBatchId, searchParams.get('start') || '', searchParams.get('end') || '', searchParams.get('week') || '');
-    }
-  }, [effectiveBatchId, searchParams, sheds]);
-
-  const handleViewReport = () => {
-    let batchIdToFetch: string | undefined;
-
-    if (batchNo) {
-        const foundBatch = batches.find(b => b.batch_no.toLowerCase() === batchNo.toLowerCase().trim());
-        if (foundBatch) {
-            batchIdToFetch = String(foundBatch.id);
-        } else {
-          if (batchNo) { // only error if a batchNo was actually selected/entered
-            toast.error(`Batch with number "${batchNo}" not found.`);
-            return;
-          }
-        }
-    }
-
-    const params = new URLSearchParams();
-    if (reportType === 'weekly') {
-        if (week && parseInt(week, 10) >= 18) {
-            params.set('week', week);
-        } else {
-            toast.error('Week number must be 18 or greater for weekly reports.');
-            return;
-        }
-    } else {
-        if (startDate) params.set('start', startDate);
-        if (endDate) params.set('end', endDate);
-    }
-    
-    const path = batchIdToFetch ? `/previous-day-report/${batchIdToFetch}` : '/previous-day-report';
-    navigate(`${path}?${params.toString()}`);
-    
-    // We call fetchData directly instead of relying on useEffect from navigation
-    fetchData(batchIdToFetch, startDate, endDate, week);
-  };
-
-  const handleExport = () => {
-    const batchIdForExport = batchNo ? batches.find(b => b.batch_no.toLowerCase() === batchNo.toLowerCase().trim())?.id : undefined;
-    const fileName = `batch_${batchIdForExport || 'all'}_report`;
-    exportTableToExcel('report-table', fileName, 'Batch Report');
-  };
 
   const handleShare = async () => {
     if (!reportContentRef.current) {
@@ -329,7 +144,7 @@ const PreviousDayReport = () => {
       toast.error("Web Share API is not supported in your browser.");
       return;
     }
-    
+
     const contentNode = reportContentRef.current;
     setIsSharing(true);
     const files: File[] = [];
@@ -411,7 +226,7 @@ const PreviousDayReport = () => {
         // Compute width and height dynamically based on the applied layout styles
         const contentWidth = Math.max(tableNode.scrollWidth, contentNode.scrollWidth, 1400);
         const contentHeight = contentNode.scrollHeight;
-        
+
         const dataUrl = await htmlToImage.toPng(contentNode, {
           backgroundColor: '#ffffff',
           width: contentWidth,
@@ -471,6 +286,223 @@ const PreviousDayReport = () => {
     }
   };
 
+  const handleExport = () => {
+    const batchIdForExport = batchNo ? batches.find(b => b.batch_no.toLowerCase() === batchNo.toLowerCase().trim())?.id : undefined;
+    const fileName = `batch_${batchIdForExport || 'all'}_report`;
+    exportTableToExcel('report-table', fileName, 'Batch Report');
+  };
+
+  useEscapeKey(() => navigate(-1));
+
+  // Create ref for the batch number select
+  const batchSelectRef = useRef<any>(null);
+
+  // Create a ref to store the latest action handlers to avoid re-registering shortcuts on every render
+  const shortcutHandlersRef = useRef({
+    focusBatchSelect: () => batchSelectRef?.current?.focus(),
+    toggleReportType: () => setReportType(prev => prev === 'daily' ? 'weekly' : 'daily'),
+    handleShare,
+    handleExport
+  });
+
+  // Keep the handlers ref up-to-date on every render
+  useLayoutEffect(() => {
+    shortcutHandlersRef.current = {
+      focusBatchSelect: () => batchSelectRef?.current?.focus(),
+      toggleReportType: () => setReportType(prev => prev === 'daily' ? 'weekly' : 'daily'),
+      handleShare,
+      handleExport
+    };
+  });
+
+  // Register keyboard shortcuts once on mount
+  useEffect(() => {
+    const unregister = registerShortcuts([
+      { key: '/', description: 'Focus Batch Number', category: 'Page Actions', action: () => shortcutHandlersRef.current.focusBatchSelect() },
+      { key: 'Alt+t', description: 'Toggle Report Type', category: 'Page Actions', action: () => shortcutHandlersRef.current.toggleReportType() },
+      { key: 'Alt+s', description: 'Share as Image', category: 'Page Actions', action: () => shortcutHandlersRef.current.handleShare() },
+      { key: 'Alt+e', description: 'Export to Excel', category: 'Page Actions', action: () => shortcutHandlersRef.current.handleExport() }
+    ]);
+    return unregister;
+  }, [registerShortcuts]);
+
+  // Component state for data display
+  const [gridData, setGridData] = useState<GridRow[]>([]);
+  const [summaryData, setSummaryData] = useState<GridRow | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [error, setError] = useState<string | null>(null);
+  const [isSharing, setIsSharing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const reportContentRef = useRef<HTMLDivElement>(null);
+  const [henDayDeviation, setHenDayDeviation] = useState(10);
+
+  // State for weekly report specific data
+  const [weekData, setWeekData] = useState<number | null>(null);
+  const [ageRange, setAgeRange] = useState<string | null>(null);
+  const [henHousing, setHenHousing] = useState<number | null>(null);
+  const [cumulativeReportData, setCumulativeReportData] = useState<CumulativeReport | null>(null);
+
+  const getFormattedDateFromParam = (param: string | null) => {
+    if (!param) return '';
+    return param.split('T')[0];
+  }
+
+  // State for the report generation form
+  const [reportType, setReportType] = useState<'daily' | 'weekly'>(searchParams.get('week') ? 'weekly' : 'daily');
+  const [startDate, setStartDate] = useState(getFormattedDateFromParam(searchParams.get('start')));
+  const [endDate, setEndDate] = useState(getFormattedDateFromParam(searchParams.get('end')));
+  const [week, setWeek] = useState(searchParams.get('week') || '');
+  const [batchNo, setBatchNo] = useState('');
+  const [batches, setBatches] = useState<BatchResponse[]>([]);
+  const [sheds, setSheds] = useState<ShedResponse[]>([]);
+
+  const selectedBatch = batchNo ? batches.find(b => b.batch_no.toLowerCase() === batchNo.toLowerCase().trim()) : null;
+  const isBatchClosed = selectedBatch ? selectedBatch.is_active === false : false;
+
+  const rowsPerPage = 10;
+  const validGridData = gridData.filter(row => row && Object.keys(row).length > 0);
+  const totalPages = validGridData.length > 0 ? Math.ceil(validGridData.length / rowsPerPage) : 0;
+
+  const batchOptions = batches.map(b => ({ value: b.batch_no, label: b.batch_no }));
+  batchOptions.unshift({ value: '', label: 'All Batches (Daily Report Only)' });
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      const [shedResult, configsResult, batchResult] = await Promise.allSettled([
+        shedApi.getSheds(),
+        configApi.getAllConfigs(),
+        batchApi.getBatches(0, 1000)
+      ]);
+
+      if (shedResult.status === 'fulfilled') {
+        const validSheds = Array.isArray(shedResult.value) ? shedResult.value : [];
+        setSheds(validSheds);
+      } else {
+        console.error('Failed to load sheds', shedResult.reason);
+      }
+
+      if (configsResult.status === 'fulfilled') {
+        const hdConfig = configsResult.value.find(c => c.name === AppConfigKey.HEN_DAY_DEVIATION);
+        setHenDayDeviation(hdConfig ? Number(hdConfig.value) : 10);
+      } else {
+        console.error('Failed to load configs', configsResult.reason);
+      }
+
+      if (batchResult.status === 'fulfilled') {
+        const validBatches = Array.isArray(batchResult.value) ? batchResult.value : [];
+        setBatches(validBatches);
+        if (effectiveBatchId) {
+          const foundBatch = validBatches.find(b => String(b.id) === effectiveBatchId);
+          if (foundBatch) {
+            setBatchNo(foundBatch.batch_no);
+          }
+        }
+      } else {
+        console.error('Failed to load batches', batchResult.reason);
+      }
+    };
+    fetchInitialData();
+  }, [effectiveBatchId]);
+
+  const fetchData = async (batchIdToFetch?: string, start?: string, end?: string, weekToFetch?: string) => {
+    setIsLoading(true);
+    try {
+      // Reset previous data and errors
+      setGridData([]);
+      setSummaryData(null);
+      setWeekData(null);
+      setAgeRange(null);
+      setHenHousing(null);
+      setCumulativeReportData(null);
+      setError(null);
+
+      let reportDetails: GridRow[];
+      let reportSummary: GridRow | null = null;
+
+      if (reportType === 'weekly') {
+        if (!batchIdToFetch || !weekToFetch) {
+          const msg = 'Batch number and week are required for weekly reports.';
+          toast.error(msg);
+          setError(msg);
+          return;
+        }
+
+        const weeklyReport = await reportsApi.getWeeklyLayerReport(
+          Number(batchIdToFetch),
+          Number(weekToFetch)
+        );
+        reportDetails = weeklyReport.details;
+        reportSummary = weeklyReport.summary;
+        setWeekData(weeklyReport.week ?? null);
+        setAgeRange(weeklyReport.age_range ?? null);
+        setHenHousing(weeklyReport.hen_housing ?? null);
+        setCumulativeReportData((weeklyReport.cumulative_report as CumulativeReport) ?? null);
+      } else {
+        const dailyReport = await dailyBatchApi.getSnapshot(
+          start || '',
+          end || '',
+          batchIdToFetch ? Number(batchIdToFetch) : undefined
+        );
+        reportDetails = dailyReport.details;
+        reportSummary = dailyReport.summary;
+      }
+
+      const detailsWithShedNo = reportDetails.map(d => ({
+        ...d,
+        shed_no: sheds.find(s => s.id == d.shed_id)?.shed_no || 'N/A'
+      }));
+
+      setGridData(detailsWithShedNo);
+      setSummaryData(reportSummary);
+
+    } catch (error: any) {
+      const errorMsg = error?.message || 'Failed to fetch data';
+      setError(errorMsg);
+      toast.error(errorMsg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Initial data fetch based on URL parameters
+  useEffect(() => {
+    if (sheds.length > 0) {
+      fetchData(effectiveBatchId, searchParams.get('start') || '', searchParams.get('end') || '', searchParams.get('week') || '');
+    }
+  }, [effectiveBatchId, searchParams, sheds]);
+
+  const handleViewReport = () => {
+    let batchIdToFetch: string | undefined;
+
+    if (batchNo) {
+      const foundBatch = batches.find(b => b.batch_no.toLowerCase() === batchNo.toLowerCase().trim());
+      if (foundBatch) {
+        batchIdToFetch = String(foundBatch.id);
+      } else {
+        if (batchNo) { // only error if a batchNo was actually selected/entered
+          toast.error(`Batch with number "${batchNo}" not found.`);
+          return;
+        }
+      }
+    }
+
+    const params = new URLSearchParams();
+    if (reportType === 'weekly') {
+      if (week && parseInt(week, 10) >= 18) {
+        params.set('week', week);
+      } else {
+        toast.error('Week number must be 18 or greater for weekly reports.');
+        return;
+      }
+    } else {
+      if (startDate) params.set('start', startDate);
+      if (endDate) params.set('end', endDate);
+    }
+
+    const path = batchIdToFetch ? `/previous-day-report/${batchIdToFetch}` : '/previous-day-report';
+    navigate(`${path}?${params.toString()}`);
+  };
+
   const handleEdit = (batchId: number, batchDate: string) => {
     const [day, month, year] = batchDate.split('-');
     const formattedDate = `${year}-${month}-${day}`;
@@ -479,60 +511,61 @@ const PreviousDayReport = () => {
 
   return (
     <>
-    <PageHeader title="Batch Reports" buttonLabel='Back' buttonVariant='secondary' buttonIcon="bi-arrow-left"/>
-    <div className="container">
-      <SubscriptionWarning />
+      <PageHeader title="Batch Reports" buttonLabel='Back' buttonVariant='secondary' buttonIcon="bi-arrow-left" />
+      <div className="container">
+        <SubscriptionWarning />
         <div className="col-12 mb-4">
           <div className="card shadow-sm">
             <div className="card-body">
               <h5 className="card-title">Report</h5>
+              <KeyboardShortcutsIndicator />
               <div className="row g-3 align-items-end">
                 <div className="col-12 col-md-auto">
-                    <label htmlFor="batchNoSelect" className="form-label">Batch Number</label>
-                    <StyledSelect
-                        id="batchNoSelect"
-                        value={batchOptions.find(b => b.value === batchNo)}
-                        onChange={(option, _action) => setBatchNo(option ? String(option.value) : '')}
-                        options={batchOptions}
-                        placeholder="All Batches (Daily Report Only)"
-                    />
+                  <label htmlFor="batchNoSelect" className="form-label">Batch Number</label>
+                  <StyledSelect
+                    ref={batchSelectRef}
+                    value={batchOptions.find(b => b.value === batchNo)}
+                    onChange={(option, _action) => setBatchNo(option ? String(option.value) : '')}
+                    options={batchOptions}
+                    placeholder="All Batches (Daily Report Only)"
+                  />
                 </div>
                 <div className="col-12 col-md-auto">
-                    <label className="form-label d-block">&nbsp;</label> {/* Spacer for alignment */}
-                    <div className="btn-group" role="group" aria-label="Report type">
-                        <input
-                        type="radio"
-                        className="btn-check"
-                        name="reportType"
-                        id="dailyRadio"
-                        autoComplete="off"
-                        checked={reportType === 'daily'}
-                        onChange={() => setReportType('daily')}
-                        />
-                        <label className="btn btn-outline-primary" htmlFor="dailyRadio">
-                        Daily Report
-                        </label>
+                  <label className="form-label d-block">&nbsp;</label> {/* Spacer for alignment */}
+                  <div className="btn-group" role="group" aria-label="Report type">
+                    <input
+                      type="radio"
+                      className="btn-check"
+                      name="reportType"
+                      id="dailyRadio"
+                      autoComplete="off"
+                      checked={reportType === 'daily'}
+                      onChange={() => setReportType('daily')}
+                    />
+                    <label className="btn btn-outline-primary" htmlFor="dailyRadio">
+                      Daily Report
+                    </label>
 
-                        <input
-                        type="radio"
-                        className="btn-check"
-                        name="reportType"
-                        id="weeklyRadio"
-                        autoComplete="off"
-                        checked={reportType === 'weekly'}
-                        onChange={() => setReportType('weekly')}
-                        />
-                        <label className="btn btn-outline-primary" htmlFor="weeklyRadio">
-                        Weekly Report
-                        </label>
-                    </div>
+                    <input
+                      type="radio"
+                      className="btn-check"
+                      name="reportType"
+                      id="weeklyRadio"
+                      autoComplete="off"
+                      checked={reportType === 'weekly'}
+                      onChange={() => setReportType('weekly')}
+                    />
+                    <label className="btn btn-outline-primary" htmlFor="weeklyRadio">
+                      Weekly Report
+                    </label>
+                  </div>
                 </div>
               </div>
               <div className="row g-3 align-items-end mt-2">
                 {reportType === 'daily' ? (
                   <>
                     <div className="col-auto d-flex align-items-center mt-3">
-            <label className="form-label me-3 mb-0">Start Date</label>
+                      <label className="form-label me-3 mb-0">Start Date</label>
                       <CustomDatePicker
                         selected={startDate ? new Date(`${startDate}T00:00:00`) : null}
                         onChange={(date: Date | null) => date && setStartDate(toYYYYMMDD(date))}
@@ -544,7 +577,7 @@ const PreviousDayReport = () => {
                       />
                     </div>
                     <div className="col-auto d-flex align-items-center mt-3">
-            <label className="form-label me-3 mb-0">End Date</label>
+                      <label className="form-label me-3 mb-0">End Date</label>
                       <CustomDatePicker
                         selected={endDate ? new Date(`${endDate}T00:00:00`) : null}
                         onChange={(date: Date | null) => date && setEndDate(toYYYYMMDD(date))}
@@ -582,67 +615,52 @@ const PreviousDayReport = () => {
           </div>
         </div>
 
-      {isLoading && <Loading message="Loading report..." />}
-      {error && <div className="alert alert-danger text-center">{error}</div>}
-      {!isLoading && !error && validGridData.length === 0 && (
-        <div className="text-center text-muted my-4">
-          <p>No reports found for the selected criteria.</p>
-        </div>
-      )}
-      
-      <div className="row mb-4">
-        <div className="d-flex flex-column mb-4">
-          <div className="d-flex gap-2 mt-2 align-self-end">
-            <button
-              className="btn btn-info"
-              onClick={handleShare}
-              disabled={gridData.length === 0 || isSharing}
-            >
-              {isSharing ? 'Generating...' : 'Share as Image'}
-            </button>
-            <button
-              className="btn btn-success"
-              onClick={handleExport}
-              disabled={gridData.length === 0 || isSharing}
-            >
-              Export to Excel
-            </button>
+        {isLoading && <Loading message="Loading report..." />}
+        {error && <div className="alert alert-danger text-center">{error}</div>}
+        {!isLoading && !error && validGridData.length === 0 && (
+          <div className="text-center text-muted my-4">
+            <p>No reports found for the selected criteria.</p>
+          </div>
+        )}
+
+        <div className="row mb-4">
+          <div className="d-flex flex-column mb-4">
+            <div className="d-flex gap-2 mt-2 align-self-end">
+              <button
+                className="btn btn-info"
+                onClick={handleShare}
+                disabled={gridData.length === 0 || isSharing}
+              >
+                {isSharing ? 'Generating...' : 'Share as Image'}
+              </button>
+              <button
+                className="btn btn-success"
+                onClick={handleExport}
+                disabled={gridData.length === 0 || isSharing}
+              >
+                Export to Excel
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
-      {validGridData.length > 0 && (
-        <div ref={reportContentRef} className="p-3 bg-white border rounded shadow-sm">
-          <div className="d-flex flex-wrap gap-3 mb-4">
-            {weekData ? (
-              <>
-                <div className="px-3 py-2 bg-white border rounded shadow-sm border-start border-4 border-primary">
-                  <span className="text-muted small text-uppercase d-block">Week</span>
-                  <span className="fw-bold fs-5 text-dark">{weekData}</span>
-                </div>
-                <div className="px-3 py-2 bg-white border rounded shadow-sm border-start border-4 border-success">
-                  <span className="text-muted small text-uppercase d-block">Age Range</span>
-                  <span className="fw-bold fs-5 text-dark">{ageRange}</span>
-                </div>
-                <div className="px-3 py-2 bg-white border rounded shadow-sm border-start border-4 border-info">
-                  <span className="text-muted small text-uppercase d-block">Hen Housing</span>
-                  <span className="fw-bold fs-5 text-dark">{henHousing}</span>
-                </div>
-                <div className="px-3 py-2 bg-white border rounded shadow-sm border-start border-4 border-secondary">
-                  <span className="text-muted small text-uppercase d-block">Batch No</span>
-                  <span className="fw-bold fs-5 text-dark">
-                    {batchNo}
-                    {isBatchClosed && <span className="ms-2 badge bg-danger">Closed</span>}
-                  </span>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="px-3 py-2 bg-white border rounded shadow-sm border-start border-4 border-primary">
-                  <span className="text-muted small text-uppercase d-block">Date Range</span>
-                  <span className="fw-bold fs-6 text-dark">{formatDateForDisplay(startDate)} <span className="text-muted mx-1">to</span> {formatDateForDisplay(endDate)}</span>
-                </div>
-                {batchNo && (
+        {validGridData.length > 0 && (
+          <div ref={reportContentRef} className="p-3 bg-white border rounded shadow-sm">
+            <div className="d-flex flex-wrap gap-3 mb-4">
+              {weekData ? (
+                <>
+                  <div className="px-3 py-2 bg-white border rounded shadow-sm border-start border-4 border-primary">
+                    <span className="text-muted small text-uppercase d-block">Week</span>
+                    <span className="fw-bold fs-5 text-dark">{weekData}</span>
+                  </div>
+                  <div className="px-3 py-2 bg-white border rounded shadow-sm border-start border-4 border-success">
+                    <span className="text-muted small text-uppercase d-block">Age Range</span>
+                    <span className="fw-bold fs-5 text-dark">{ageRange}</span>
+                  </div>
+                  <div className="px-3 py-2 bg-white border rounded shadow-sm border-start border-4 border-info">
+                    <span className="text-muted small text-uppercase d-block">Hen Housing</span>
+                    <span className="fw-bold fs-5 text-dark">{henHousing}</span>
+                  </div>
                   <div className="px-3 py-2 bg-white border rounded shadow-sm border-start border-4 border-secondary">
                     <span className="text-muted small text-uppercase d-block">Batch No</span>
                     <span className="fw-bold fs-5 text-dark">
@@ -650,265 +668,280 @@ const PreviousDayReport = () => {
                       {isBatchClosed && <span className="ms-2 badge bg-danger">Closed</span>}
                     </span>
                   </div>
-                )}
-              </>
-            )}
-          </div>
-          <div className='table-responsive'>
-          <table id="report-table" className="table table-bordered">
-            <thead>
-              <tr>
-                {!effectiveBatchId && <th>Batch No</th>}
-                {effectiveBatchId && <th>Batch Date</th>}
-                <th>Shed No</th>
-                <th>{!effectiveBatchId ? "Highest Age" : "Age"}</th>
-                <th>Opening</th>
-                <th>Birds Added</th>
-                <th>Mortality</th>
-                <th>Culls</th>
-                <th>Closing Count</th>
-                <th>Table</th>
-                <th>Jumbo</th>
-                <th>Crack</th>
-                <th>Total Eggs</th>
-                <th>HD (%)</th>
-                <th>Standard (%)</th>
-                <th>Actual Feed</th>
-                <th>Standard Feed</th>
-                {effectiveBatchId && <th>Edit</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {validGridData
-                .slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
-                .map((row, index) => (
-                  <TableRow
-                    key={!effectiveBatchId ? `${row.batch_id}-${index}` : `${row.batch_id}-${row.batch_date || index}`}
-                    row={row}
-                    index={index}
-                    batchIdFromUrl={effectiveBatchId}
-                    henDayDeviation={henDayDeviation}
-                    reportType={reportType}
-                    handleEdit={handleEdit}
-                  />
-                ))}
-            </tbody>
-          </table>
-          </div>
-          <CustomPagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
-          {summaryData && weekData && (
-            <div className="mt-4 p-3 border bg-light">
-              <h5 className="mb-3">Report Summary</h5>
-              <div className='table-responsive'>
-              <table className="table table-bordered">
+                </>
+              ) : (
+                <>
+                  <div className="px-3 py-2 bg-white border rounded shadow-sm border-start border-4 border-primary">
+                    <span className="text-muted small text-uppercase d-block">Date Range</span>
+                    <span className="fw-bold fs-6 text-dark">{formatDateForDisplay(startDate)} <span className="text-muted mx-1">to</span> {formatDateForDisplay(endDate)}</span>
+                  </div>
+                  {batchNo && (
+                    <div className="px-3 py-2 bg-white border rounded shadow-sm border-start border-4 border-secondary">
+                      <span className="text-muted small text-uppercase d-block">Batch No</span>
+                      <span className="fw-bold fs-5 text-dark">
+                        {batchNo}
+                        {isBatchClosed && <span className="ms-2 badge bg-danger">Closed</span>}
+                      </span>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+            <div className='table-responsive'>
+              <table id="report-table" className="table table-bordered">
                 <thead>
                   <tr>
-                    <th></th>
+                    {!effectiveBatchId && <th>Batch No</th>}
+                    {effectiveBatchId && <th>Batch Date</th>}
+                    <th>Shed No</th>
+                    <th>{!effectiveBatchId ? "Highest Age" : "Age"}</th>
                     <th>Opening</th>
                     <th>Birds Added</th>
                     <th>Mortality</th>
                     <th>Culls</th>
-                    <th>Closing</th>
-                    <th>Feed/Bird (g)</th>
+                    <th>Closing Count</th>
+                    <th>Table</th>
+                    <th>Jumbo</th>
+                    <th>Crack</th>
+                    <th>Total Eggs</th>
+                    <th>HD (%)</th>
+                    <th>Standard (%)</th>
+                    <th>Actual Feed</th>
+                    <th>Standard Feed</th>
+                    {effectiveBatchId && <th>Edit</th>}
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td>Count</td>
-                    <td>{summaryData.opening_count}</td>
-                    <td>{summaryData.birds_added}</td>
-                    <td>{summaryData.mortality}</td>
-                    <td>{summaryData.culls}</td>
-                    <td>{summaryData.closing_count}</td>
-                    <td rowSpan={2}>{summaryData.feed_per_bird_per_day_grams}</td>
-                  </tr>
-                  <tr>
-                    <td>%</td>
-                    <td>{summaryData.opening_percent}</td>
-                    <td>-</td>
-                    <td>{summaryData.mort_percent}</td>
-                    <td>{summaryData.culls_percent}</td>
-                    <td>{summaryData.closing_percent}</td>
-                  </tr>
+                  {validGridData
+                    .slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage)
+                    .map((row, index) => (
+                      <TableRow
+                        key={!effectiveBatchId ? `${row.batch_id}-${index}` : `${row.batch_id}-${row.batch_date || index}`}
+                        row={row}
+                        index={index}
+                        batchIdFromUrl={effectiveBatchId}
+                        henDayDeviation={henDayDeviation}
+                        reportType={reportType}
+                        handleEdit={handleEdit}
+                      />
+                    ))}
                 </tbody>
               </table>
-              </div>
             </div>
-          )}
-          {summaryData && !weekData && (
-            <div className="mt-4 p-4 border rounded bg-light">
-              <h5 className="mb-3 text-dark fw-bold">Report Summary</h5>
-              <div className="row g-3">
-                <div className="col-6 col-md-3">
-                  <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
-                    <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Opening</span>
-                    <span className="fw-bold fs-5 text-dark">{summaryData.opening_count}</span>
-                  </div>
-                </div>
-                <div className="col-6 col-md-3">
-                  <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
-                    <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Birds Added</span>
-                    <span className="fw-bold fs-5 text-dark">{summaryData.birds_added}</span>
-                  </div>
-                </div>
-                <div className="col-6 col-md-3">
-                  <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
-                    <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Total Mortality</span>
-                    <span className="fw-bold fs-5 text-dark">{summaryData.mortality}</span>
-                  </div>
-                </div>
-                <div className="col-6 col-md-3">
-                  <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
-                    <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Total Culls</span>
-                    <span className="fw-bold fs-5 text-dark">{summaryData.culls}</span>
-                  </div>
-                </div>
-                <div className="col-6 col-md-3">
-                  <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
-                    <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Closing</span>
-                    <span className="fw-bold fs-5 text-dark">{summaryData.closing_count}</span>
-                  </div>
-                </div>
-                <div className="col-6 col-md-3">
-                  <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
-                    <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Total Table Eggs</span>
-                    <span className="fw-bold fs-5 text-dark">{summaryData.table_eggs}</span>
-                  </div>
-                </div>
-                <div className="col-6 col-md-3">
-                  <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
-                    <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Total Jumbo</span>
-                    <span className="fw-bold fs-5 text-dark">{summaryData.jumbo}</span>
-                  </div>
-                </div>
-                <div className="col-6 col-md-3">
-                  <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
-                    <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Total Crack</span>
-                    <span className="fw-bold fs-5 text-dark">{summaryData.cr}</span>
-                  </div>
-                </div>
-                <div className="col-6 col-md-3">
-                  <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
-                    <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Total Eggs</span>
-                    <span className="fw-bold fs-5 text-dark">{summaryData.total_eggs}</span>
-                  </div>
-                </div>
-                <div className="col-6 col-md-3">
-                  <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
-                    <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Avg HD</span>
-                    <span className="fw-bold fs-5 text-dark">{summaryData.hd != null ? (Number(summaryData.hd) * 100).toFixed(2) : 'N/A'}%</span>
-                  </div>
-                </div>
-                <div className="col-6 col-md-3">
-                  <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
-                    <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Avg Std HD</span>
-                    <span className="fw-bold fs-5 text-dark">{summaryData.standard_hen_day_percentage != null ? Number(summaryData.standard_hen_day_percentage).toFixed(2) : 'N/A'}%</span>
-                  </div>
-                </div>
-                <div className="col-6 col-md-3">
-                  <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
-                    <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Actual Feed</span>
-                    <span className="fw-bold fs-5 text-dark">{summaryData.actual_feed_consumed != null ? Number(summaryData.actual_feed_consumed).toFixed(2) : 'N/A'}</span>
-                  </div>
-                </div>
-                <div className="col-6 col-md-3">
-                  <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
-                    <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Standard Feed</span>
-                    <span className="fw-bold fs-5 text-dark">{summaryData.standard_feed_consumption != null ? Number(summaryData.standard_feed_consumption).toFixed(2) : 'N/A'}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-          {cumulativeReportData && (
-            <div className="mt-4 p-3 border bg-light">
-              <h5 className="mb-3">Cumulative Report</h5>
-              <div className="row g-3">
-                <div className="col-md-6">
-                  <div className='table-responsive'>
+            <CustomPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+            {summaryData && weekData && (
+              <div className="mt-4 p-3 border bg-light">
+                <h5 className="mb-3">Report Summary</h5>
+                <div className='table-responsive'>
                   <table className="table table-bordered">
                     <thead>
                       <tr>
                         <th></th>
-                        <th>Cum</th>
-                        <th>Actual</th>
-                        <th>Standard</th>
-                        <th>Diff</th>
+                        <th>Opening</th>
+                        <th>Birds Added</th>
+                        <th>Mortality</th>
+                        <th>Culls</th>
+                        <th>Closing</th>
+                        <th>Feed/Bird (g)</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr>
-                        <td>Cum Feed</td>
-                        <td>{cumulativeReportData.section1.cum_feed.cum}</td>
-                        <td>{cumulativeReportData.section1.cum_feed.actual}</td>
-                        <td>{cumulativeReportData.section1.cum_feed.standard}</td>
-                        <td>{cumulativeReportData.section1.cum_feed.diff}</td>
+                        <td>Count</td>
+                        <td>{summaryData.opening_count}</td>
+                        <td>{summaryData.birds_added}</td>
+                        <td>{summaryData.mortality}</td>
+                        <td>{summaryData.culls}</td>
+                        <td>{summaryData.closing_count}</td>
+                        <td rowSpan={2}>{summaryData.feed_per_bird_per_day_grams}</td>
                       </tr>
                       <tr>
-                        <td>Weekly Feed</td>
-                        <td>{cumulativeReportData.section1.weekly_feed.cum}</td>
-                        <td>{cumulativeReportData.section1.weekly_feed.actual}</td>
-                        <td>{cumulativeReportData.section1.weekly_feed.standard}</td>
-                        <td>{cumulativeReportData.section1.weekly_feed.diff}</td>
-                      </tr>
-                      <tr>
-                        <td>Cum Egg</td>
-                        <td>{cumulativeReportData.section1.cum_egg.cum}</td>
-                        <td>{cumulativeReportData.section1.cum_egg.actual}</td>
-                        <td>{cumulativeReportData.section1.cum_egg.standard}</td>
-                        <td>{cumulativeReportData.section1.cum_egg.diff}</td>
-                      </tr>
-                      <tr>
-                        <td>Weekly Egg</td>
-                        <td>{cumulativeReportData.section1.weekly_egg.cum}</td>
-                        <td>{cumulativeReportData.section1.weekly_egg.actual}</td>
-                        <td>
-                          {cumulativeReportData.section1.weekly_egg.standard}
-                        </td>
-                        <td>{cumulativeReportData.section1.weekly_egg.diff}</td>
+                        <td>%</td>
+                        <td>{summaryData.opening_percent}</td>
+                        <td>-</td>
+                        <td>{summaryData.mort_percent}</td>
+                        <td>{summaryData.culls_percent}</td>
+                        <td>{summaryData.closing_percent}</td>
                       </tr>
                     </tbody>
                   </table>
-                  </div>
                 </div>
-                <div className="col-md-6">
-                  <div className="table-responsive">
-                  <table className="table table-bordered">
-                    <thead>
-                      <tr>
-                        <th></th>
-                        <th>Actual</th>
-                        <th>Standard</th>
-                        <th>Diff</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>Livability</td>
-                        <td>{cumulativeReportData.section2.livability.actual}</td>
-                        <td>{cumulativeReportData.section2.livability.standard}</td>
-                        <td>{cumulativeReportData.section2.livability.diff}</td>
-                      </tr>
-                      <tr>
-                        <td>Feed Grams</td>
-                        <td>{cumulativeReportData.section2.feed_grams.actual}</td>
-                        <td>{cumulativeReportData.section2.feed_grams.standard}</td>
-                        <td>{cumulativeReportData.section2.feed_grams.diff}</td>
-                      </tr>
-                    </tbody>
-                  </table>
+              </div>
+            )}
+            {summaryData && !weekData && (
+              <div className="mt-4 p-4 border rounded bg-light">
+                <h5 className="mb-3 text-dark fw-bold">Report Summary</h5>
+                <div className="row g-3">
+                  <div className="col-6 col-md-3">
+                    <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                      <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Opening</span>
+                      <span className="fw-bold fs-5 text-dark">{summaryData.opening_count}</span>
+                    </div>
+                  </div>
+                  <div className="col-6 col-md-3">
+                    <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                      <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Birds Added</span>
+                      <span className="fw-bold fs-5 text-dark">{summaryData.birds_added}</span>
+                    </div>
+                  </div>
+                  <div className="col-6 col-md-3">
+                    <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                      <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Total Mortality</span>
+                      <span className="fw-bold fs-5 text-dark">{summaryData.mortality}</span>
+                    </div>
+                  </div>
+                  <div className="col-6 col-md-3">
+                    <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                      <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Total Culls</span>
+                      <span className="fw-bold fs-5 text-dark">{summaryData.culls}</span>
+                    </div>
+                  </div>
+                  <div className="col-6 col-md-3">
+                    <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                      <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Closing</span>
+                      <span className="fw-bold fs-5 text-dark">{summaryData.closing_count}</span>
+                    </div>
+                  </div>
+                  <div className="col-6 col-md-3">
+                    <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                      <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Total Table Eggs</span>
+                      <span className="fw-bold fs-5 text-dark">{summaryData.table_eggs}</span>
+                    </div>
+                  </div>
+                  <div className="col-6 col-md-3">
+                    <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                      <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Total Jumbo</span>
+                      <span className="fw-bold fs-5 text-dark">{summaryData.jumbo}</span>
+                    </div>
+                  </div>
+                  <div className="col-6 col-md-3">
+                    <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                      <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Total Crack</span>
+                      <span className="fw-bold fs-5 text-dark">{summaryData.cr}</span>
+                    </div>
+                  </div>
+                  <div className="col-6 col-md-3">
+                    <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                      <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Total Eggs</span>
+                      <span className="fw-bold fs-5 text-dark">{summaryData.total_eggs}</span>
+                    </div>
+                  </div>
+                  <div className="col-6 col-md-3">
+                    <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                      <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Avg HD</span>
+                      <span className="fw-bold fs-5 text-dark">{summaryData.hd != null ? (Number(summaryData.hd) * 100).toFixed(2) : 'N/A'}%</span>
+                    </div>
+                  </div>
+                  <div className="col-6 col-md-3">
+                    <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                      <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Avg Std HD</span>
+                      <span className="fw-bold fs-5 text-dark">{summaryData.standard_hen_day_percentage != null ? Number(summaryData.standard_hen_day_percentage).toFixed(2) : 'N/A'}%</span>
+                    </div>
+                  </div>
+                  <div className="col-6 col-md-3">
+                    <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                      <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Actual Feed</span>
+                      <span className="fw-bold fs-5 text-dark">{summaryData.actual_feed_consumed != null ? Number(summaryData.actual_feed_consumed).toFixed(2) : 'N/A'}</span>
+                    </div>
+                  </div>
+                  <div className="col-6 col-md-3">
+                    <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                      <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Standard Feed</span>
+                      <span className="fw-bold fs-5 text-dark">{summaryData.standard_feed_consumption != null ? Number(summaryData.standard_feed_consumption).toFixed(2) : 'N/A'}</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
+            )}
+            {cumulativeReportData && (
+              <div className="mt-4 p-3 border bg-light">
+                <h5 className="mb-3">Cumulative Report</h5>
+                <div className="row g-3">
+                  <div className="col-md-6">
+                    <div className='table-responsive'>
+                      <table className="table table-bordered">
+                        <thead>
+                          <tr>
+                            <th></th>
+                            <th>Cum</th>
+                            <th>Actual</th>
+                            <th>Standard</th>
+                            <th>Diff</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>Cum Feed</td>
+                            <td>{cumulativeReportData.section1.cum_feed.cum}</td>
+                            <td>{cumulativeReportData.section1.cum_feed.actual}</td>
+                            <td>{cumulativeReportData.section1.cum_feed.standard}</td>
+                            <td>{cumulativeReportData.section1.cum_feed.diff}</td>
+                          </tr>
+                          <tr>
+                            <td>Weekly Feed</td>
+                            <td>{cumulativeReportData.section1.weekly_feed.cum}</td>
+                            <td>{cumulativeReportData.section1.weekly_feed.actual}</td>
+                            <td>{cumulativeReportData.section1.weekly_feed.standard}</td>
+                            <td>{cumulativeReportData.section1.weekly_feed.diff}</td>
+                          </tr>
+                          <tr>
+                            <td>Cum Egg</td>
+                            <td>{cumulativeReportData.section1.cum_egg.cum}</td>
+                            <td>{cumulativeReportData.section1.cum_egg.actual}</td>
+                            <td>{cumulativeReportData.section1.cum_egg.standard}</td>
+                            <td>{cumulativeReportData.section1.cum_egg.diff}</td>
+                          </tr>
+                          <tr>
+                            <td>Weekly Egg</td>
+                            <td>{cumulativeReportData.section1.weekly_egg.cum}</td>
+                            <td>{cumulativeReportData.section1.weekly_egg.actual}</td>
+                            <td>
+                              {cumulativeReportData.section1.weekly_egg.standard}
+                            </td>
+                            <td>{cumulativeReportData.section1.weekly_egg.diff}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <div className="table-responsive">
+                      <table className="table table-bordered">
+                        <thead>
+                          <tr>
+                            <th></th>
+                            <th>Actual</th>
+                            <th>Standard</th>
+                            <th>Diff</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>Livability</td>
+                            <td>{cumulativeReportData.section2.livability.actual}</td>
+                            <td>{cumulativeReportData.section2.livability.standard}</td>
+                            <td>{cumulativeReportData.section2.livability.diff}</td>
+                          </tr>
+                          <tr>
+                            <td>Feed Grams</td>
+                            <td>{cumulativeReportData.section2.feed_grams.actual}</td>
+                            <td>{cumulativeReportData.section2.feed_grams.standard}</td>
+                            <td>{cumulativeReportData.section2.feed_grams.diff}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </>
   );
 };

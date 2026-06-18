@@ -826,7 +826,7 @@ const FinancialReports: React.FC = () => {
             </Button>
           </Modal.Footer>
         </Modal>
-        <KeyboardShortcutsIndicator />
+        <KeyboardShortcutsIndicator/>
       </div>
     </>
   );
