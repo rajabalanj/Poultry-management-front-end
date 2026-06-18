@@ -7,7 +7,9 @@ import { useLocation } from 'react-router-dom';
 import CustomDatePicker from '../../Common/CustomDatePicker';
 import { ShedResponse } from '../../../types/shed';
 import { useSubscription } from '../../context/SubscriptionContext';
+import { useShortcuts } from '../../context/KeyboardShortcutContext';
 import SubscriptionWarning from "../../Common/SubscriptionWarning"; // adjust path as needed
+import KeyboardShortcutsIndicator from "../../Common/KeyboardShortcutsIndicator";
 
 const AddBatch: React.FC = () => {
   const [batch_no, setBatchNo] = useState('');
@@ -22,6 +24,7 @@ const AddBatch: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { isSubscriptionPaid } = useSubscription();
+  const { registerShortcuts } = useShortcuts();
 
   // Prefill fields from query params when opened from a pending request
   useEffect(() => {
@@ -66,6 +69,22 @@ const AddBatch: React.FC = () => {
     fetchMaxBatchNo();
     fetchSheds();
   }, []);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const formShortcuts = [
+      {
+        key: '/',
+        description: 'Focus Batch Start Date',
+        category: 'Form Actions',
+        action: () => {
+          document.getElementById('batch-date-picker')?.focus();
+        }
+      }
+    ];
+
+    return registerShortcuts(formShortcuts);
+  }, [registerShortcuts]);
 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -125,6 +144,7 @@ const AddBatch: React.FC = () => {
       <PageHeader title="Add New Batch" />
       <div className="container">
         <SubscriptionWarning />
+        <KeyboardShortcutsIndicator />
         <div className="p-4">
           <form onSubmit={handleSubmit}>
             <div className="row g-3">
@@ -133,6 +153,7 @@ const AddBatch: React.FC = () => {
               {/* Wrap DatePicker in a div to ensure it's on a new line */}
               <div>
                 <CustomDatePicker
+                  id="batch-date-picker"
                   selected={batch_date ? new Date(batch_date) : null}
                   onChange={(date: Date | null) =>
                     date && setBatchDate(date.toISOString().slice(0, 10))
