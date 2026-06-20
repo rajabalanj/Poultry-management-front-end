@@ -24,7 +24,7 @@ const InventoryStockLevelReport = () => {
   const tableRef = useRef<HTMLDivElement>(null);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 15;
+  const ITEMS_PER_PAGE = 10;
   const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1);
 
   // State for Daily Stock History Modal

@@ -17,7 +17,7 @@ interface OperationalExpensesTableProps {
 const OperationalExpensesTable: React.FC<OperationalExpensesTableProps> = ({ expenses, loading, error, onDelete }) => {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 15;
+  const ITEMS_PER_PAGE = 10;
 
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1);

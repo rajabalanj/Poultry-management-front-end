@@ -38,6 +38,7 @@ function FeedMillStock() {
   const navigate = useNavigate();
   const { isSubscriptionPaid } = useSubscription();
   const [isBatchRestricted, setIsBatchRestricted] = useState(false);
+  const [isInventoryRestricted, setIsInventoryRestricted] = useState(false);
 
   const { registerShortcuts } = useShortcuts();
   const selectRef = useRef<any>(null);
@@ -52,6 +53,7 @@ function FeedMillStock() {
           const features = await tenantFeatureApi.getTenantFeaturesByTenantId(tenantId);
           restricted = features.some(f => f.feature_name === 'BATCH_MANAGEMENT' && f.is_restricted);
           setIsBatchRestricted(restricted);
+          setIsInventoryRestricted(features.some(f => f.feature_name === 'INVENTORY_USAGE' && f.is_restricted));
         }
       } catch (e) { }
 
@@ -467,12 +469,14 @@ function FeedMillStock() {
           >
             Composition History
           </button>
+{!isInventoryRestricted && (
           <button
             onClick={() => navigate('/inventory/usage-history')}
             className="btn btn-outline-info"
           >
             Inventory History
           </button>
+        )}
         </div>
       </div>
       {selectedComposition && viewState !== "edit" && viewState !== "add" && (

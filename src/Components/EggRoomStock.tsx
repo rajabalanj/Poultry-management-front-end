@@ -201,7 +201,7 @@ const EggRoomStock: React.FC = () => {
 
   usePageShortcuts({
     onSearchFocus: () => {
-      document.getElementById('start-date-picker')?.focus();
+      document.getElementById('report-date-picker')?.focus();
     },
     onExport: reports.length > 0 ? handleExport : undefined,
     onShare: reports.length > 0 ? handleShare : undefined,
@@ -212,6 +212,7 @@ const EggRoomStock: React.FC = () => {
       { key: 'Alt+1', description: 'Table Stock Tab', category: 'Tab Actions', action: () => setActiveTab('table') },
       { key: 'Alt+2', description: 'Jumbo Tab', category: 'Tab Actions', action: () => setActiveTab('jumbo') },
       { key: 'Alt+3', description: 'Grade C Tab', category: 'Tab Actions', action: () => setActiveTab('gradec') },
+      { key: 'Alt+r', description: 'Focus Report Start Date', category: 'Report Actions', action: () => document.getElementById('report-start-date-picker')?.focus() },
     ];
     return registerShortcuts(tabShortcuts);
   }, [registerShortcuts]);
@@ -427,6 +428,7 @@ const EggRoomStock: React.FC = () => {
               <div className="d-flex align-items-center mt-3">
                 <label className="form-label me-3 mb-0">Report Date</label>
                 <CustomDatePicker
+                  id="report-date-picker"
                   selected={selectedDate ? new Date(selectedDate) : null}
                   onChange={(date: Date | null) => date && setSelectedDate(toYYYYMMDD(date))}
                   maxDate={new Date()}
@@ -483,7 +485,7 @@ const EggRoomStock: React.FC = () => {
             <div className="col-auto d-flex align-items-center mt-3">
               <label className="form-label me-3 mb-0">Start Date</label>
               <CustomDatePicker
-                id="start-date-picker"
+                id="report-start-date-picker"
                 selected={startDate}
                 onChange={(date: Date | null) => date && setStartDate(date)}
                 maxDate={endDate || new Date()}

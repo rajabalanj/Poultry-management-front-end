@@ -6,6 +6,7 @@ import StyledSelect from './Common/StyledSelect';
 import { SingleValue } from 'react-select';
 import { useSubscription } from './context/SubscriptionContext';
 import SubscriptionWarning from './Common/SubscriptionWarning';
+ import { useShortcuts } from './context/KeyboardShortcutContext';
 
 const UploadBatch: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -17,6 +18,16 @@ const UploadBatch: React.FC = () => {
   const [selectedBatchId, setSelectedBatchId] = useState<number | null>(null);
   const [loadingBatches, setLoadingBatches] = useState(true);
   const { isSubscriptionPaid } = useSubscription();
+  const { registerShortcuts } = useShortcuts();
+  // Register keyboard shortcuts
+  useEffect(() => {
+    const unregister = registerShortcuts([
+      { key: 'Alt+t', description: 'Toggle Report Type', category: 'Report Actions', action: () => setReportType(prev => prev === 'daily' ? 'weekly' : 'daily') }
+    ]);
+    
+    return () => unregister();
+  }, [registerShortcuts]);
+
   // Fetch batches on component mount
   useEffect(() => {
     const fetchBatches = async () => {

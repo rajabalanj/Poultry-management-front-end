@@ -5,7 +5,7 @@ import PageHeader from "../Layout/PageHeader";
 import { Modal, Button, Table, Badge } from "react-bootstrap";
 import { useMediaQuery } from 'react-responsive';
 import { useNavigate } from 'react-router-dom';
-import { inventoryItemApi, configApi } from "../../services/api";
+import { inventoryItemApi, configApi, tenantFeatureApi, getTenantId } from "../../services/api";
 import { InventoryItemResponse, InventoryItemCategory } from "../../types/InventoryItem";
 import { toast } from 'react-toastify';
 import { exportTableToExcel } from "../../utility/export-utils";
@@ -45,8 +45,10 @@ const InventoryItemResponsive: React.FC = () => {
   const tableRef = useRef<HTMLDivElement>(null);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const { isSubscriptionPaid } = useSubscription();
+  const [isInventoryRestricted, setIsInventoryRestricted] = useState(false);
+  const [isBatchRestricted, setIsBatchRestricted] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 15;
+  const ITEMS_PER_PAGE = 10;
   const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1);
 
   const isMobile = useMediaQuery({ maxWidth: 768 });
@@ -125,6 +127,22 @@ const InventoryItemResponsive: React.FC = () => {
     fetchInventoryItemList();
     fetchThresholds();
     fetchInventoryValue();
+    
+    // Fetch tenant features to check restrictions
+    const fetchRestrictions = async () => {
+      try {
+        const tenantId = getTenantId();
+        if (tenantId) {
+          const features = await tenantFeatureApi.getTenantFeaturesByTenantId(tenantId);
+          setIsInventoryRestricted(features.some(f => f.feature_name === 'INVENTORY_USAGE' && f.is_restricted));
+          setIsBatchRestricted(features.some(f => f.feature_name === 'BATCH_MANAGEMENT' && f.is_restricted));
+        }
+      } catch (error) {
+        console.error("Failed to fetch tenant restrictions", error);
+      }
+    };
+    
+    fetchRestrictions();
     setCurrentPage(1);
   }, [filterCategory]);
 
@@ -312,7 +330,7 @@ const InventoryItemResponsive: React.FC = () => {
               })() : 'Current Stock'}</th>
               <th className="fw-bold">Reorder Level</th>
               <th className="fw-bold">Status</th>
-              <th className="fw-bold no-export">Action</th>
+              {!isInventoryRestricted && <th className="fw-bold no-export">Action</th>}
             </tr>
           </thead>
           <tbody>
@@ -348,22 +366,24 @@ const InventoryItemResponsive: React.FC = () => {
                 </td>
                 <td>{item.reorder_level || 'N/A'}</td>
                 <td>{getStockStatus(item)}</td>
-                <td className="no-export">
-                  {item.category.toString() !== 'Supplies' && (
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setItemToUse(item);
-                        setShowUseModal(true);
-                      }}
-                      disabled={isSubscriptionPaid === false}
-                    >
-                      Use
-                    </Button>
-                  )}
-                </td>
+                {!isInventoryRestricted && (
+                  <td className="no-export">
+                    {item.category.toString() !== 'Supplies' && (
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setItemToUse(item);
+                          setShowUseModal(true);
+                        }}
+                        disabled={isSubscriptionPaid === false}
+                      >
+                        Use
+                      </Button>
+                    )}
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

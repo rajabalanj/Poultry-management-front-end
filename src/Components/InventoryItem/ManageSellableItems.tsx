@@ -96,7 +96,7 @@ const ManageSellableItems: React.FC = () => {
   [items, sellableIds, searchNonSellable]);
 
   // Pagination logic
-  const ITEMS_PER_PAGE = 15;
+  const ITEMS_PER_PAGE = 10;
   const [sellablePage, setSellablePage] = useState(1);
   const [nonSellablePage, setNonSellablePage] = useState(1);
 
