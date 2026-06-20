@@ -642,7 +642,7 @@ const Dashboard: React.FC = () => {
                           <YAxis dataKey="name" type="category" width={100} tick={{ fontSize: 12 }} />
                           <Tooltip />
                           <Bar dataKey="total_quantity_sold" fill="#2563EB" radius={[0, 4, 4, 0]} name="Quantity Sold">
-                            {topSellingItems.map((entry, index) => (
+                            {topSellingItems.map((_, index) => (
                               <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                             ))}
                           </Bar>
@@ -768,4 +768,4 @@ const Dashboard: React.FC = () => {
   );
 };
 
-export default Dashboard;
+export default Dashboard;

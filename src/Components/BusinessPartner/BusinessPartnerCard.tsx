@@ -4,10 +4,13 @@ import { BusinessPartner } from "../../types/BusinessPartner";
 interface BusinessPartnerCardProps {
   partner: BusinessPartner;
   onView: (id: number) => void;
+  isFocused?: boolean;
+  index?: number;
+  setSelectedIndex?: (index: number) => void;
 }
 
 const BusinessPartnerCard: React.FC<BusinessPartnerCardProps> = React.memo(
-  ({ partner, onView }) => {
+  ({ partner, onView, isFocused, index, setSelectedIndex }) => {
     const getPartnerType = () => {
       if (partner.is_vendor && partner.is_customer) return "Vendor & Customer";
       if (partner.is_vendor) return "Vendor";
@@ -24,9 +27,12 @@ const BusinessPartnerCard: React.FC<BusinessPartnerCardProps> = React.memo(
 
     return (
       <div 
-        className="card mb-2 mt-2 border-top-0 border-end-0 border-start-0 border-bottom"
+        className={`card mb-2 mt-2 border-top-0 border-end-0 border-start-0 border-bottom ${isFocused ? 'border-primary border-2' : ''}`}
         style={{ cursor: 'pointer', borderRadius: 0 }}
-        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
+        onMouseOver={(e) => {
+          e.currentTarget.style.backgroundColor = '#f0f0f0';
+          if (setSelectedIndex && index !== undefined) setSelectedIndex(index);
+        }}
         onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
         onClick={() => onView(partner.id)}
       >

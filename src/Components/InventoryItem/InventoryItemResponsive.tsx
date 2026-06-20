@@ -46,7 +46,6 @@ const InventoryItemResponsive: React.FC = () => {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const { isSubscriptionPaid } = useSubscription();
   const [isInventoryRestricted, setIsInventoryRestricted] = useState(false);
-  const [isBatchRestricted, setIsBatchRestricted] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
   const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1);
@@ -135,7 +134,6 @@ const InventoryItemResponsive: React.FC = () => {
         if (tenantId) {
           const features = await tenantFeatureApi.getTenantFeaturesByTenantId(tenantId);
           setIsInventoryRestricted(features.some(f => f.feature_name === 'INVENTORY_USAGE' && f.is_restricted));
-          setIsBatchRestricted(features.some(f => f.feature_name === 'BATCH_MANAGEMENT' && f.is_restricted));
         }
       } catch (error) {
         console.error("Failed to fetch tenant restrictions", error);

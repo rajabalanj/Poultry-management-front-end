@@ -21,6 +21,10 @@ const BusinessPartnerTable: React.FC<BusinessPartnerTableProps> = ({ partners, l
   const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   
+  // Calculate paginated partners before using it in hooks
+  const totalPages = Math.ceil(partners.length / ITEMS_PER_PAGE);
+  const paginatedPartners = partners.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
   // Keyboard navigation hook
   const { resetSelection, setSelectedIndex } = useTableKeyboardNavigation({
     rowCount: paginatedPartners.length,
@@ -42,9 +46,6 @@ const BusinessPartnerTable: React.FC<BusinessPartnerTableProps> = ({ partners, l
     resetSelection();
     setFocusedRowIndex(-1);
   }, [partners, resetSelection]);
-
-  const totalPages = Math.ceil(partners.length / ITEMS_PER_PAGE);
-  const paginatedPartners = partners.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   const handleViewDetails = useCallback(
     (id: number) => {
