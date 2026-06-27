@@ -72,6 +72,7 @@ const SalesFilter: React.FC<SalesFilterProps> = ({ customers, filters, setFilter
         </div>
         <div className="col-md-3">
           <label htmlFor="startDateFilter" className="form-label">Start Date:</label>
+          <div>
           <CustomDatePicker
               selected={filters.startDate}
               onChange={(date: Date | null) => setFilters.setStartDate(date)}
@@ -85,9 +86,11 @@ const SalesFilter: React.FC<SalesFilterProps> = ({ customers, filters, setFilter
               isClearable={true}
               maxDate={filters.endDate ?? undefined}
             />
+            </div>
         </div>
         <div className="col-md-3">
           <label htmlFor="endDateFilter" className="form-label">End Date:</label>
+          <div>
           <CustomDatePicker
               selected={filters.endDate}
               onChange={(date: Date | null) => setFilters.setEndDate(date)}
@@ -101,6 +104,7 @@ const SalesFilter: React.FC<SalesFilterProps> = ({ customers, filters, setFilter
               isClearable
               minDate={filters.startDate ?? undefined}
             />
+            </div>
         </div>
       </div>
     </div>

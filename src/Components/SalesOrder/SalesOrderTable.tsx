@@ -8,8 +8,9 @@ import SalesOrderCard from "../SalesOrder/SalesOrderCard";
 import { Button } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import ItemsModal from '../Common/ItemsModal';
-import { inventoryItemApi, salesOrderApi } from "../../services/api";
+import { inventoryItemApi, salesOrderApi, compositionApi } from "../../services/api";
 import { InventoryItemResponse } from "../../types/InventoryItem";
+import { CompositionResponse } from "../../types/compositon";
 import CustomPagination from '../Common/CustomPagination';
 
 interface SalesOrderTableProps {
@@ -41,23 +42,35 @@ const SalesOrderTable: React.FC<SalesOrderTableProps> = ({ salesOrders, loading,
   const [selectedItems, setSelectedItems] = useState<SalesOrderItemResponse[]>([]);
   const [selectedSOId, setSelectedSOId] = useState<string | null>(null);
   const [inventoryItems, setInventoryItems] = useState<InventoryItemResponse[]>([]);
+  const [compositions, setCompositions] = useState<CompositionResponse[]>([]);
 
   useEffect(() => {
-    // Pre-fetch inventory items to make modal loading faster
-    const fetchInventoryItems = async () => {
+    // Pre-fetch inventory items and compositions to make modal loading faster
+    const fetchInitialData = async () => {
       try {
-        const items = await inventoryItemApi.getInventoryItems();
+        const [items, comps] = await Promise.all([
+          inventoryItemApi.getInventoryItems(),
+          compositionApi.getCompositions(),
+        ]);
         setInventoryItems(items);
+        setCompositions(comps);
       } catch (error) {
-        console.error("Failed to pre-fetch inventory items:", error);
+        console.error("Failed to pre-fetch inventory items or compositions:", error);
       }
     };
-    fetchInventoryItems();
+    fetchInitialData();
   }, []);
 
-  const getItemName = (itemId: number) => {
-    const item = inventoryItems.find(i => i.id === itemId);
-    return item?.name || 'N/A';
+  const getItemName = (itemId: number | undefined, compId?: number) => {
+    if (itemId) {
+      const item = inventoryItems.find(i => i.id === itemId);
+      return item?.name || 'N/A';
+    }
+    if (compId) {
+      const comp = compositions.find(c => c.id === compId);
+      return comp?.name || 'N/A';
+    }
+    return 'N/A';
   };
 
   const handleViewItems = useCallback((items: SalesOrderItemResponse[], so_number: string) => {
@@ -199,7 +212,7 @@ const SalesOrderTable: React.FC<SalesOrderTableProps> = ({ salesOrders, loading,
                       }`}>{so.status}</span></td>
                     <td>
                       {so.items?.map(item => {
-                        const name = getItemName(item.inventory_item_id);
+                        const name = getItemName(item.inventory_item_id, item.composition_id);
                         return item.variant_name ? `${name} (${item.variant_name})` : name;
                       }).join(', ') || 'N/A'}
                     </td>

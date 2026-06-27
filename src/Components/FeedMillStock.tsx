@@ -28,7 +28,7 @@ function FeedMillStock() {
   const [editItems, setEditItems] = useState<InventoryItemInComposition[]>([]);
   const [search, setSearch] = useState("");
   const [newCompName, setNewCompName] = useState("");
-  const [timesToUse, setTimesToUse] = useState(1);
+  const [timesToUse, setTimesToUse] = useState<number | "">(1);
   const [usageWastagePercentage, setUsageWastagePercentage] = useState<number | string>(0);
   const [editCompName, setEditCompName] = useState("");
   const [wastagePercentage, setWastagePercentage] = useState<number | string>(0);
@@ -43,6 +43,8 @@ function FeedMillStock() {
   const { registerShortcuts } = useShortcuts();
   const selectRef = useRef<any>(null);
   const mixesInputRef = useRef<HTMLInputElement>(null);
+  const totalFeedInputRef = useRef<HTMLInputElement>(null);
+  const [totalFeedInput, setTotalFeedInput] = useState<string>("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -102,6 +104,22 @@ function FeedMillStock() {
     };
     fetchData();
   }, []);
+
+  useEffect(() => {
+    const selectedComposition = compositions.find((c) => c.id === selectedCompositionId);
+    if (!selectedComposition) {
+      setTotalFeedInput("");
+      return;
+    }
+    if (document.activeElement !== totalFeedInputRef.current) {
+      const totalWeight = selectedComposition.inventory_items.reduce((sum: number, i: any) => sum + Number(i.weight || 0), 0);
+      if (timesToUse === "") {
+        setTotalFeedInput("");
+      } else {
+        setTotalFeedInput((totalWeight * Number(timesToUse)).toFixed(2));
+      }
+    }
+  }, [timesToUse, selectedCompositionId, compositions]);
 
   useEffect(() => {
     if (selectedCompositionId !== null) {
@@ -351,18 +369,20 @@ function FeedMillStock() {
             action: () => shortcutHandlersRef.current.handleEdit()
           });
 
-          shortcuts.push({
-            key: 'Alt+u',
-            description: 'Use Composition',
-            category: 'Composition Actions',
-            action: () => {
-              const comp = shortcutHandlersRef.current.selectedComposition;
-              if (comp) {
-                shortcutHandlersRef.current.setUsageWastagePercentage(comp.wastage_percentage || 0);
-                shortcutHandlersRef.current.setViewState('use-composition');
+          if (!isBatchRestricted) {
+            shortcuts.push({
+              key: 'Alt+u',
+              description: 'Use Composition',
+              category: 'Composition Actions',
+              action: () => {
+                const comp = shortcutHandlersRef.current.selectedComposition;
+                if (comp) {
+                  shortcutHandlersRef.current.setUsageWastagePercentage(comp.wastage_percentage || 0);
+                  shortcutHandlersRef.current.setViewState('use-composition');
+                }
               }
-            }
-          });
+            });
+          }
         }
 
         shortcuts.push({
@@ -520,7 +540,8 @@ function FeedMillStock() {
                   setUsageWastagePercentage(selectedComposition.wastage_percentage || 0);
                   setViewState("use-composition");
                 }}
-                disabled={isSubscriptionPaid === false}
+                disabled={isSubscriptionPaid === false || isBatchRestricted}
+                title={isBatchRestricted ? "Batch Management is restricted" : ""}
               >
                 Use Composition
               </button>
@@ -549,7 +570,7 @@ function FeedMillStock() {
               <span title="Number of mixes for this composition">Mixes:</span>
               <button
                 className="btn btn-danger btn-sm"
-                onClick={() => setTimesToUse((prev) => Math.max(1, Number(prev) - 1))}
+                onClick={() => setTimesToUse((prev) => Math.max(0.0001, Number(prev) - 1))}
               >
                 -
               </button>
@@ -559,9 +580,9 @@ function FeedMillStock() {
                 className="form-control form-control-sm text-center"
                 style={{ width: '80px' }}
                 value={timesToUse}
-                onChange={(e) => setTimesToUse(e.target.value === "" ? "" as any : parseInt(e.target.value, 10))}
-                min="1"
-                step="1"
+                onChange={(e) => setTimesToUse(e.target.value === "" ? "" : parseFloat(e.target.value))}
+                min="0.0001"
+                step="any"
               />
               <button
                 className="btn btn-success btn-sm"
@@ -569,10 +590,37 @@ function FeedMillStock() {
               >
                 +
               </button>
-              <span className="ms-2 text-muted fw-bold">
-                Total Feed: {(
-                  selectedComposition.inventory_items.reduce((sum: number, i: any) => sum + Number(i.weight || 0), 0) * timesToUse
-                ).toFixed(2)} kg
+              <span className="ms-3 text-muted fw-bold d-flex align-items-center gap-1">
+                Total Feed:
+                <input
+                  ref={totalFeedInputRef}
+                  type="number"
+                  className="form-control form-control-sm text-center"
+                  style={{ width: '100px' }}
+                  value={totalFeedInput}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setTotalFeedInput(val);
+                    if (val === "") {
+                      setTimesToUse("");
+                    } else {
+                      const totalWeight = selectedComposition.inventory_items.reduce((sum: number, i: any) => sum + Number(i.weight || 0), 0);
+                      if (totalWeight > 0) {
+                        const calculatedTimes = Number((parseFloat(val) / totalWeight).toFixed(4));
+                        setTimesToUse(calculatedTimes);
+                      }
+                    }
+                  }}
+                  onBlur={() => {
+                    const totalWeight = selectedComposition.inventory_items.reduce((sum: number, i: any) => sum + Number(i.weight || 0), 0);
+                    if (timesToUse !== "" && totalWeight > 0) {
+                      setTotalFeedInput((totalWeight * Number(timesToUse)).toFixed(2));
+                    }
+                  }}
+                  min="0.0001"
+                  step="any"
+                />
+                kg
               </span>
             </div>
             {!isBatchRestricted && (

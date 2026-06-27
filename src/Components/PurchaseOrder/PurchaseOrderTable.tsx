@@ -55,7 +55,8 @@ const PurchaseOrderTable: React.FC<PurchaseOrderTableProps> = ({ purchaseOrders,
     fetchInventoryItems();
   }, []);
 
-  const getItemName = (itemId: number) => {
+  const getItemName = (itemId: number | undefined, _compId?: number) => {
+    if (itemId === undefined) return 'N/A';
     const item = inventoryItems.find(i => i.id === itemId);
     return item?.name || 'N/A';
   };

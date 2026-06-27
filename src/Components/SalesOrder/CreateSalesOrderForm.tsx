@@ -3,11 +3,12 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
-import { salesOrderApi, inventoryItemApi, businessPartnerApi, inventoryItemVariantApi } from '../../services/api';
+import { salesOrderApi, inventoryItemApi, businessPartnerApi, inventoryItemVariantApi, compositionApi } from '../../services/api';
 import CustomDatePicker from '../Common/CustomDatePicker';
 import CreateBusinessPartnerForm from '../BusinessPartner/CreateBusinessPartnerForm';
 import CreateInventoryItemForm from '../InventoryItem/CreateInventoryItemForm';
 import SubscriptionWarning from '../Common/SubscriptionWarning';
+import { CompositionResponse } from '../../types/compositon';
 
 import type {
   SalesOrderCreate,
@@ -24,6 +25,7 @@ import { useSubscription } from '../context/SubscriptionContext';
 
 interface FormSalesOrderItem extends SalesOrderItemCreate {
   tempId: number;
+  item_type: 'inventory' | 'composition';
   inventory_item_name?: string;
   inventory_item_unit?: string;
   available_stock?: number;
@@ -40,6 +42,7 @@ const CreateSalesOrderForm: React.FC = () => {
   const [showCreateCustomerModal, setShowCreateCustomerModal] = useState(false);
   const [showCreateItemModal, setShowCreateItemModal] = useState(false);
   const [variantsByItem, setVariantsByItem] = useState<{ [key: number]: InventoryItemVariant[] }>({});
+  const [compositions, setCompositions] = useState<CompositionResponse[]>([]);
 
   // Sales Order states
   const [customerId, setCustomerId] = useState<number | ''>('');
@@ -75,19 +78,21 @@ const CreateSalesOrderForm: React.FC = () => {
     const fetchInitialData = async () => {
       setIsLoading(true);
       try {
-        const [customersData, inventoryItemsData] = await Promise.all([
+        const [customersData, inventoryItemsData, compositionsData] = await Promise.all([
           businessPartnerApi.getCustomers(),
           inventoryItemApi.getInventoryItems(0, 1000),
+          compositionApi.getCompositions(),
         ]);
         setCustomers(customersData);
         setInventoryItems(inventoryItemsData.filter(item => item.is_sellable));
+        setCompositions(compositionsData);
 
         if (customersData.length > 0) {
           setCustomerId(customersData[0].id);
         }
       } catch (error) {
         const err = error as { message?: string };
-        toast.error(err.message || 'Failed to load necessary data (Customers, Inventory Items).');
+        toast.error(err.message || 'Failed to load necessary data (Customers, Inventory Items, Compositions).');
         console.error('Error fetching initial data:', err);
       } finally {
         setIsLoading(false);
@@ -108,7 +113,9 @@ const CreateSalesOrderForm: React.FC = () => {
     const tempId = Date.now();
     const newItem: FormSalesOrderItem = {
       tempId,
-      inventory_item_id: 0,
+      item_type: 'inventory',
+      inventory_item_id: undefined,
+      composition_id: undefined,
       quantity: 1,
       price_per_unit: 0,
       variant_id: null,
@@ -173,6 +180,26 @@ const CreateSalesOrderForm: React.FC = () => {
     });
   }, []);
 
+  const handleItemTypeChange = useCallback((tempId: number, type: 'inventory' | 'composition') => {
+    setItems((prevItems) =>
+      prevItems.map((item) => {
+        if (item.tempId === tempId) {
+          return {
+            ...item,
+            item_type: type,
+            inventory_item_id: undefined,
+            composition_id: undefined,
+            inventory_item_name: undefined,
+            inventory_item_unit: undefined,
+            variant_id: null,
+            variant_name: '',
+          };
+        }
+        return item;
+      })
+    );
+  }, []);
+
   const handleItemChange = useCallback(async (tempId: number, field: keyof FormSalesOrderItem, value: string | number) => {
     setItems((prevItems) =>
       prevItems.map((item) => {
@@ -182,9 +209,22 @@ const CreateSalesOrderForm: React.FC = () => {
             // Reset variant when item changes
             return {
               ...item,
-              [field]: Number(value),
+              [field]: Number(value) || undefined,
+              composition_id: undefined,
               inventory_item_name: selectedItem?.name,
               inventory_item_unit: selectedItem?.unit,
+              variant_id: null,
+              variant_name: '',
+            };
+          }
+          if (field === 'composition_id') {
+            const selectedComp = compositions.find(comp => comp.id === Number(value));
+            return {
+              ...item,
+              [field]: Number(value) || undefined,
+              inventory_item_id: undefined,
+              inventory_item_name: selectedComp?.name,
+              inventory_item_unit: 'kg',
               variant_id: null,
               variant_name: '',
             };
@@ -214,7 +254,7 @@ const CreateSalesOrderForm: React.FC = () => {
         setVariantsByItem(prev => ({ ...prev, [tempId]: [] }));
       }
     }
-  }, [inventoryItems, variantsByItem]);
+  }, [inventoryItems, compositions, variantsByItem]);
 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -230,12 +270,12 @@ const CreateSalesOrderForm: React.FC = () => {
 
     // Validate each item
     for (const item of items) {
-      if (!item.inventory_item_id || item.quantity <= 0) {
-        toast.error('Please ensure all items have a selected Inventory Item and quantity > 0.');
+      const hasItem = item.item_type === 'inventory' ? !!item.inventory_item_id : !!item.composition_id;
+      if (!hasItem || item.quantity <= 0) {
+        toast.error('Please ensure all items have a selected Inventory Item or Composition and quantity > 0.');
         setIsLoading(false);
         return;
       }
-
     }
 
     const newSalesOrderData: SalesOrderCreate = {
@@ -244,11 +284,12 @@ const CreateSalesOrderForm: React.FC = () => {
       notes: notes || undefined,
       bill_no: billNo || undefined,
       items: items.map(item => ({
-        inventory_item_id: item.inventory_item_id,
+        inventory_item_id: item.item_type === 'inventory' ? item.inventory_item_id : undefined,
+        composition_id: item.item_type === 'composition' ? item.composition_id : undefined,
         quantity: item.quantity,
         price_per_unit: item.price_per_unit || 0,
-        variant_id: item.variant_id,
-        variant_name: item.variant_name,
+        variant_id: item.item_type === 'inventory' ? item.variant_id : undefined,
+        variant_name: item.item_type === 'inventory' ? item.variant_name : undefined,
       })),
     };
 
@@ -337,6 +378,11 @@ const CreateSalesOrderForm: React.FC = () => {
   const inventoryItemOptions: OptionType[] = inventoryItems.map((item) => ({
     value: item.id,
     label: `${item.name} (${item.unit})`,
+  }));
+
+  const compositionOptions = compositions.map((comp) => ({
+    value: comp.id,
+    label: comp.name,
   }));
 
   const paymentModeOptions: OptionType[] = paymentModes.map((mode) => ({
@@ -488,47 +534,67 @@ const CreateSalesOrderForm: React.FC = () => {
                           </button>
                         </div>
                         <div className="row g-2">
-                          <div className="col-md-5">
+                          <div className="col-md-2">
+                            <label className="form-label">Type</label>
+                            <select
+                              className="form-select"
+                              value={item.item_type}
+                              onChange={(e) => handleItemTypeChange(item.tempId, e.target.value as 'inventory' | 'composition')}
+                              disabled={isLoading}
+                            >
+                              <option value="inventory">Inventory Item</option>
+                              <option value="composition">Composition</option>
+                            </select>
+                          </div>
+                          <div className="col-md-4">
                             <label
                               htmlFor={`itemId-${item.tempId}`}
                               className="form-label"
                             >
-                              Inventory Item{" "}
+                              {item.item_type === 'inventory' ? 'Inventory Item' : 'Composition'}{" "}
                               <span className="form-field-required">*</span>
                             </label>
                             <div className="d-flex gap-2 align-items-center">
                               <StyledSelect
                                 id={`itemId-${item.tempId}`}
-                                value={inventoryItemOptions.find(
-                                  (option) =>
-                                    option.value === item.inventory_item_id
-                                )}
+                                value={
+                                  item.item_type === 'inventory'
+                                    ? inventoryItemOptions.find((option) => option.value === item.inventory_item_id)
+                                    : compositionOptions.find((option) => option.value === item.composition_id)
+                                }
                                 onChange={(option, _action) =>
                                   handleItemChange(
                                     item.tempId,
-                                    "inventory_item_id",
+                                    item.item_type === 'inventory' ? "inventory_item_id" : "composition_id",
                                     option ? option.value : ""
                                   )
                                 }
-                                options={inventoryItemOptions}
-                                placeholder="Select an Item"
+                                options={item.item_type === 'inventory' ? inventoryItemOptions : compositionOptions}
+                                placeholder={item.item_type === 'inventory' ? "Select an Item" : "Select a Composition"}
                                 isClearable
                                 isLoading={
-                                  isLoading || inventoryItems.length === 0
+                                  isLoading || (item.item_type === 'inventory' ? inventoryItems.length === 0 : compositions.length === 0)
                                 }
                               />
-                              <button
-                                type="button"
-                                className="btn btn-sm btn-outline-primary"
-                                onClick={() => setShowCreateItemModal(true)}
-                                title="Add Item"
-                              >
-                                <i className="bi bi-plus-lg"></i>
-                              </button>
+                              {item.item_type === 'inventory' && (
+                                <button
+                                  type="button"
+                                  className="btn btn-sm btn-outline-primary"
+                                  onClick={() => setShowCreateItemModal(true)}
+                                  title="Add Item"
+                                >
+                                  <i className="bi bi-plus-lg"></i>
+                                </button>
+                              )}
                             </div>
-                            {inventoryItems.length === 0 && !isLoading && (
+                            {item.item_type === 'inventory' && inventoryItems.length === 0 && !isLoading && (
                               <div className="text-danger mt-1">
                                 No inventory items found. Please add items first.
+                              </div>
+                            )}
+                            {item.item_type === 'composition' && compositions.length === 0 && !isLoading && (
+                              <div className="text-danger mt-1">
+                                No compositions found.
                               </div>
                             )}
                           </div>
@@ -543,7 +609,7 @@ const CreateSalesOrderForm: React.FC = () => {
                               options={variantOptions}
                               placeholder="Select Variant"
                               isClearable
-                              isDisabled={!item.inventory_item_id || itemVariants.length === 0}
+                              isDisabled={item.item_type !== 'inventory' || !item.inventory_item_id || itemVariants.length === 0}
                             />
                           </div>
                           <div className="col-md-2">

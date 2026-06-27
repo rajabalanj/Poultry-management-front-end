@@ -6,8 +6,9 @@ import { BusinessPartner } from '../../types/BusinessPartner';
 import { useNavigate } from 'react-router-dom';
 import { Button } from 'react-bootstrap';
 import { toast } from 'react-toastify';
-import { salesOrderApi, inventoryItemApi } from '../../services/api';
+import { salesOrderApi, inventoryItemApi, compositionApi } from '../../services/api';
 import { InventoryItemResponse } from '../../types/InventoryItem';
+import { CompositionResponse } from '../../types/compositon';
 import { useSubscription } from '../context/SubscriptionContext';
 import CustomPagination from '../Common/CustomPagination';
 
@@ -36,24 +37,36 @@ const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, custom
   const [isExporting, setIsExporting] = useState(false);
   const [expandedRows, setExpandedRows] = useState<number[]>([]);
   const [inventoryItems, setInventoryItems] = useState<InventoryItemResponse[]>([]);
+  const [compositions, setCompositions] = useState<CompositionResponse[]>([]);
   const { isSubscriptionPaid } = useSubscription();
 
   useEffect(() => {
-    const fetchInventoryItems = async () => {
+    const fetchInventoryItemsAndCompositions = async () => {
       try {
-        const response = await inventoryItemApi.getInventoryItems();
+        const [response, comps] = await Promise.all([
+          inventoryItemApi.getInventoryItems(),
+          compositionApi.getCompositions()
+        ]);
         setInventoryItems(response);
+        setCompositions(comps);
       } catch (error) {
-        console.error('Failed to fetch inventory items', error);
-        toast.error('Failed to fetch inventory items');
+        console.error('Failed to fetch items or compositions', error);
+        toast.error('Failed to fetch items or compositions');
       }
     };
-    fetchInventoryItems();
+    fetchInventoryItemsAndCompositions();
   }, []);
 
-  const getItemName = (itemId: number) => {
-    const item = inventoryItems.find(i => i.id === itemId);
-    return item?.name || 'N/A';
+  const getItemName = (itemId: number | undefined, compId?: number) => {
+    if (itemId) {
+      const item = inventoryItems.find(i => i.id === itemId);
+      return item?.name || 'N/A';
+    }
+    if (compId) {
+      const comp = compositions.find(c => c.id === compId);
+      return comp?.name || 'N/A';
+    }
+    return 'N/A';
   };
 
   const handleViewDetails = (id: number) => {
@@ -243,7 +256,7 @@ const SalesReportTable: React.FC<SalesReportTableProps> = ({ salesOrders, custom
                               <tbody>
                                 {Array.isArray(so.items) && so.items.length > 0 ? so.items.map((it: SalesOrderItemResponse) => (
                                   <tr key={it.id}>
-                                    <td>{getItemName(it.inventory_item_id)}</td>
+                                    <td>{getItemName(it.inventory_item_id, it.composition_id)}</td>
                                     <td>{it.quantity}</td>
                                     <td>{it.price_per_unit_str}</td>
                                     <td>{it.line_total_str}</td>

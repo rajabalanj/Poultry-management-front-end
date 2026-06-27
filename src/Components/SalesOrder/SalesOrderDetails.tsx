@@ -9,9 +9,9 @@ import { BusinessPartner } from "../../types/BusinessPartner";
 import { InventoryItemResponse } from "../../types/InventoryItem"; // Add InventoryItemResponse
 import { format } from 'date-fns';
 import { Modal, Button, Form } from 'react-bootstrap';
-import { salesOrderApi, inventoryItemApi, businessPartnerApi } from "../../services/api";
+import { salesOrderApi, inventoryItemApi, businessPartnerApi, compositionApi } from "../../services/api";
 import SubscriptionWarning from "../Common/SubscriptionWarning";
-
+import { CompositionResponse } from "../../types/compositon";
 import { useSubscription } from "../context/SubscriptionContext";
 
 
@@ -37,6 +37,7 @@ const SalesOrderDetails: React.FC = () => {
   const [salesOrder, setSalesOrder] = useState<SalesOrderResponse | null>(null);
   const [customers, setCustomers] = useState<BusinessPartner[]>([]);
   const [inventoryItems, setInventoryItems] = useState<InventoryItemResponse[]>([]); // Add inventoryItems state
+  const [compositions, setCompositions] = useState<CompositionResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSharing, setIsSharing] = useState(false);
@@ -63,14 +64,16 @@ const SalesOrderDetails: React.FC = () => {
           setLoading(false);
           return;
         }
-        const [soData, customersData, inventoryItemsData] = await Promise.all([
+        const [soData, customersData, inventoryItemsData, compositionsData] = await Promise.all([
           salesOrderApi.getSalesOrder(Number(so_id)),
           businessPartnerApi.getCustomers(),
           inventoryItemApi.getInventoryItems(), // Fetch inventory items
+          compositionApi.getCompositions(),
         ]);
         setSalesOrder(soData);
         setCustomers(customersData);
         setInventoryItems(inventoryItemsData);
+        setCompositions(compositionsData);
       } catch (err: any) {
         console.error("Error fetching sales order:", err);
         setError(err?.message || "Failed to load sales order details.");
@@ -92,16 +95,29 @@ const SalesOrderDetails: React.FC = () => {
     return customer?.name || 'N/A';
   };
 
-  // Map inventory_item_id to item name
-  const getItemName = (itemId: number) => {
-    const item = inventoryItems.find(i => i.id === itemId);
-    return item?.name || 'N/A';
+  // Map inventory_item_id or composition_id to item name
+  const getItemName = (itemId: number | undefined, compId?: number) => {
+    if (itemId) {
+      const item = inventoryItems.find(i => i.id === itemId);
+      return item?.name || 'N/A';
+    }
+    if (compId) {
+      const comp = compositions.find(c => c.id === compId);
+      return comp?.name || 'N/A';
+    }
+    return 'N/A';
   };
 
-  // Map inventory_item_id to item unit
-  const getItemUnit = (itemId: number) => {
-    const item = inventoryItems.find(i => i.id === itemId);
-    return item?.unit || 'N/A';
+  // Map inventory_item_id or composition_id to item unit
+  const getItemUnit = (itemId: number | undefined, compId?: number) => {
+    if (itemId) {
+      const item = inventoryItems.find(i => i.id === itemId);
+      return item?.unit || 'N/A';
+    }
+    if (compId) {
+      return 'kg';
+    }
+    return 'N/A';
   };
 
   const handleEditPayment = (payment: PaymentResponse) => {
@@ -375,10 +391,10 @@ const SalesOrderDetails: React.FC = () => {
                     {salesOrder.items.map((item, index) => (
                       <tr key={item.id || index}>
                         <td>{index + 1}</td>
-                        <td>{getItemName(item.inventory_item_id)}</td>
+                        <td>{getItemName(item.inventory_item_id, item.composition_id)}</td>
                         <td>{item.variant_name || 'N/A'}</td>
                         <td>{item.quantity}</td>
-                        <td>{getItemUnit(item.inventory_item_id)}</td>
+                        <td>{getItemUnit(item.inventory_item_id, item.composition_id)}</td>
                         <td>{item.price_per_unit_str}</td>
                         <td>{item.line_total_str}</td>
                       </tr>

@@ -1,4 +1,4 @@
-﻿﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { dailyBatchApi, compositionApi, inventoryItemApi, getTenantId, tenantFeatureApi } from "../../../services/api";
 import { DailyBatch } from "../../../types/daily_batch";
@@ -32,7 +32,7 @@ const EditBatch: React.FC = () => {
   const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
   const [selectedItemUnit, setSelectedItemUnit] = useState<string>("");
   const [itemQuantityToUse, setItemQuantityToUse] = useState<number | "">("");
-  const [timesToUse, setTimesToUse] = useState(1);
+  const [timesToUse, setTimesToUse] = useState<number | "">(1);
   const [usageWastagePercentage, setUsageWastagePercentage] = useState<number | string>("");
   const [usageHistory, setUsageHistory] = useState<CompositionUsage[]>([]);
   const [itemUsageHistory, setItemUsageHistory] = useState<InventoryItemUsageResponse[]>([]);
@@ -43,6 +43,8 @@ const EditBatch: React.FC = () => {
   const [showUsageHistoryModal, setShowUsageHistoryModal] = useState(false);
   const [isInventoryRestricted, setIsInventoryRestricted] = useState(false);
   const { registerShortcuts } = useShortcuts();
+  const totalFeedInputRef = useRef<HTMLInputElement>(null);
+  const [totalFeedInput, setTotalFeedInput] = useState<string>("");
 
   useEffect(() => {
     const unregister = registerShortcuts([
@@ -105,6 +107,22 @@ const EditBatch: React.FC = () => {
       setInventoryItems(res.filter((item) => item.category.toString() !== "Supplies"));
     }).catch(err => console.warn("Inventory items fetch failed:", err));
   }, []);
+
+  useEffect(() => {
+    const comp = compositions.find((c) => c.id === selectedCompositionId);
+    if (!comp) {
+      setTotalFeedInput("");
+      return;
+    }
+    if (document.activeElement !== totalFeedInputRef.current) {
+      const totalWeight = (comp as any)?.inventory_items?.reduce((sum: number, i: any) => sum + Number(i.weight || 0), 0) || 0;
+      if (timesToUse === "") {
+        setTotalFeedInput("");
+      } else {
+        setTotalFeedInput((totalWeight * Number(timesToUse)).toFixed(2));
+      }
+    }
+  }, [timesToUse, selectedCompositionId, compositions]);
 
   const handleDateChange = (newDate: Date | null) => {
     if (batchId && newDate) {
@@ -425,7 +443,7 @@ const EditBatch: React.FC = () => {
                           </div>
                           <div className="d-flex align-items-center gap-2 mb-4">
                             <span title="Number of mixes for this composition">Mixes:</span>
-                            <button type="button" className="btn btn-danger btn-sm" onClick={() => setTimesToUse((prev) => Math.max(1, Number(prev) - 1))}>
+                            <button type="button" className="btn btn-danger btn-sm" onClick={() => setTimesToUse((prev) => Math.max(0.0001, Number(prev) - 1))}>
                               -
                             </button>
                             <input
@@ -433,23 +451,67 @@ const EditBatch: React.FC = () => {
                               className="form-control form-control-sm text-center"
                               style={{ width: '80px' }}
                               value={timesToUse}
-                              onChange={(e) => setTimesToUse(e.target.value === "" ? "" as any : parseInt(e.target.value, 10))}
-                              min="1"
-                              step="1"
+                              onChange={(e) => setTimesToUse(e.target.value === "" ? "" : parseFloat(e.target.value))}
+                              min="0.0001"
+                              step="any"
                             />
                             <button type="button" className="btn btn-success btn-sm" onClick={() => setTimesToUse((prev) => Number(prev) + 1)}>
                               +
                             </button>
                             {selectedCompositionId && (
-                              <span className="ms-2 text-muted fw-bold">
-                                Total Feed: {(() => {
-                                  const comp = compositions.find((c) => c.id === selectedCompositionId);
-                                  const totalWeight = (comp as any)?.inventory_items?.reduce((sum: number, i: any) => sum + Number(i.weight || 0), 0) || 0;
-                                  return (totalWeight * timesToUse).toFixed(2);
-                                })()} kg
+                              <span className="ms-3 text-muted fw-bold d-flex align-items-center gap-1">
+                                Total Feed:
+                                <input
+                                  ref={totalFeedInputRef}
+                                  type="number"
+                                  className="form-control form-control-sm text-center"
+                                  style={{ width: '100px' }}
+                                  value={totalFeedInput}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    setTotalFeedInput(val);
+                                    if (val === "") {
+                                      setTimesToUse("");
+                                    } else {
+                                      const comp = compositions.find((c) => c.id === selectedCompositionId);
+                                      const totalWeight = (comp as any)?.inventory_items?.reduce((sum: number, i: any) => sum + Number(i.weight || 0), 0) || 0;
+                                      if (totalWeight > 0) {
+                                        const calculatedTimes = Number((parseFloat(val) / totalWeight).toFixed(4));
+                                        setTimesToUse(calculatedTimes);
+                                      }
+                                    }
+                                  }}
+                                  onBlur={() => {
+                                    const comp = compositions.find((c) => c.id === selectedCompositionId);
+                                    const totalWeight = (comp as any)?.inventory_items?.reduce((sum: number, i: any) => sum + Number(i.weight || 0), 0) || 0;
+                                    if (timesToUse !== "" && totalWeight > 0) {
+                                      setTotalFeedInput((totalWeight * Number(timesToUse)).toFixed(2));
+                                    }
+                                  }}
+                                  min="0.0001"
+                                  step="any"
+                                />
+                                kg
                               </span>
                             )}
                           </div>
+                          
+                          {selectedCompositionId && (
+                            <div className="mb-4">
+                              <label htmlFor="compWastage" className="form-label">
+                                Wastage Percentage (%):
+                              </label>
+                              <input
+                                id="compWastage"
+                                type="number"
+                                className="form-control"
+                                value={usageWastagePercentage}
+                                onChange={(e) => setUsageWastagePercentage(e.target.value)}
+                                min="0"
+                                step="any"
+                              />
+                            </div>
+                          )}
                         </div>
 
                         {!isInventoryRestricted && (
@@ -516,22 +578,6 @@ const EditBatch: React.FC = () => {
                         )}
                       </div>
                     </div>
-                    {selectedCompositionId && (
-                      <div className="mb-4">
-                        <label htmlFor="compWastage" className="form-label">
-                          Wastage Percentage (%):
-                        </label>
-                        <input
-                          id="compWastage"
-                          type="number"
-                          className="form-control"
-                          value={usageWastagePercentage}
-                          onChange={(e) => setUsageWastagePercentage(e.target.value)}
-                          min="0"
-                          step="any"
-                        />
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -562,7 +608,7 @@ const EditBatch: React.FC = () => {
 
               <div className="mt-3 mb-5 d-flex justify-content-center">
                 <button type="submit" className="btn btn-primary me-2" disabled={isSubscriptionPaid === false}>
-                  Save All Changes
+                  Save Changes
                 </button>
                 <button
                   type="button"

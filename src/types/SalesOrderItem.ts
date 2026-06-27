@@ -1,8 +1,10 @@
 // src/types/SalesOrderItem.ts
 import { InventoryItemResponse } from './InventoryItem'; // Import InventoryItemResponse
+import { CompositionResponse } from './compositon'; // Import CompositionResponse
 
 export interface SalesOrderItemBase {
-  inventory_item_id: number;
+  inventory_item_id?: number;
+  composition_id?: number;
   quantity: number;
   price_per_unit: number;
   variant_id?: number | null;
@@ -12,7 +14,8 @@ export interface SalesOrderItemBase {
 export interface SalesOrderItemCreate extends SalesOrderItemBase {}
 
 export interface SalesOrderItemUpdate {
-  inventory_item_id?: number;
+  inventory_item_id?: number | null;
+  composition_id?: number | null;
   quantity?: number;
   price_per_unit?: number;
   variant_id?: number | null;
@@ -31,4 +34,6 @@ export interface SalesOrderItemResponse extends SalesOrderItemBase {
   total_amount_words?: string;
   // Optionally include the full item details if the backend relationship is loaded
   inventory_item?: InventoryItemResponse; // The nested inventory item object
+  composition?: CompositionResponse; // The nested composition object
 }
+

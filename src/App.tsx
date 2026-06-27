@@ -176,7 +176,6 @@ const AppRoutes: React.FC = () => {
                   path="/inventory-items/:item_id/usage-history"
                   element={<InventoryUsageHistory />}
                 />
-                <Route path="/egg-room-stock" element={<EggRoomStock />} />
                 <Route path="/inventory-items" element={<InventoryItemResponsive />} />
                 <Route path="/inventory-items/create" element={<CreateInventoryItemForm />} />
                 <Route path="/inventory-items/:item_id/details" element={<InventoryItemDetails />} />
@@ -204,11 +203,12 @@ const AppRoutes: React.FC = () => {
                 <Route path="/operational-expenses/create" element={<CreateOperationalExpenseForm />} />
                 <Route path="/operational-expenses/:expense_id/edit" element={<EditOperationalExpense />} />
                 <Route path="/operational-expenses/:expense_id/details" element={<ViewOperationalExpense />} />
-                <Route element={<FeatureProtectedRoute />}>
+                 <Route element={<FeatureProtectedRoute />}>
                 <Route path="/sheds" element={<ShedIndexPage />} />
                 <Route path="/sheds/create" element={<CreateShedForm />} />
                 <Route path="/sheds/:shed_id/details" element={<ShedDetails />} />
                 <Route path="/sheds/:shed_id/edit" element={<EditShed />} />
+                <Route path="/egg-room-stock" element={<EggRoomStock />} />
                 </Route>
                 <Route path="/reports/purchases" element={<PurchaseResponsive />} />
                 <Route path="/reports/sales" element={<SalesResponsive />} />

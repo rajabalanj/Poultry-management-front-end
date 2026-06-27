@@ -66,6 +66,7 @@ export interface CompositionUsage {
   used_at: string;
   batch_id?: number;
   composition_name?: string;
+  feed_variance_weight?: number;
   items?: {
     inventory_item_id: number;
     inventory_item_name?: string;

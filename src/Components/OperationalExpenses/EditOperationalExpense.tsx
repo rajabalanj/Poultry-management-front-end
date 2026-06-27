@@ -3,8 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
-import { operationalExpenseApi } from '../../services/api';
+import { operationalExpenseApi, chartOfAccountsApi } from '../../services/api';
 import { OperationalExpense } from '../../types/operationalExpense';
+import { ChartOfAccountsResponse } from '../../types/chartOfAccounts';
 import CustomDatePicker from '../Common/CustomDatePicker';
 import { useSubscription } from '../context/SubscriptionContext';
 import SubscriptionWarning from "../Common/SubscriptionWarning"; // adjust path as needed
@@ -17,14 +18,19 @@ const EditOperationalExpense: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
 
     const [date, setDate] = useState('');
-    const [expense_type, setExpenseType] = useState('');
+    const [account_id, setAccountId] = useState<number | ''>('');
     const [amount, setAmount] = useState<number | ''>('');
+    const [accounts, setAccounts] = useState<ChartOfAccountsResponse[]>([]);
 
     const { isSubscriptionPaid } = useSubscription();
 
     useEffect(() => {
-        const fetchExpense = async () => {
+        const fetchAccountsAndExpense = async () => {
             try {
+                setLoading(true);
+                const accountsData = await chartOfAccountsApi.getChartOfAccounts();
+                setAccounts(accountsData);
+
                 if (!expense_id) {
                     setError("Expense ID is missing.");
                     setLoading(false);
@@ -35,14 +41,14 @@ const EditOperationalExpense: React.FC = () => {
                 if (expenseToEdit) {
                     setExpense(expenseToEdit);
                     setDate(expenseToEdit.expense_date);
-                    setExpenseType(expenseToEdit.expense_type);
+                    setAccountId(expenseToEdit.account_id);
                     setAmount(expenseToEdit.amount);
                 } else {
                     setError("Operational expense not found.");
                     toast.error("Operational expense not found.");
                 }
             } catch (err: any) {
-                console.error("Error fetching operational expense:", err);
+                console.error("Error fetching operational expense data:", err);
                 setError(err?.message || "Failed to load operational expense for editing.");
                 toast.error(err?.message || "Failed to load operational expense for editing.");
             } finally {
@@ -50,14 +56,14 @@ const EditOperationalExpense: React.FC = () => {
             }
         };
 
-        fetchExpense();
+        fetchAccountsAndExpense();
     }, [expense_id]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
 
-        if (!date || !expense_type.trim() || amount === '' || amount <= 0) {
+        if (!date || account_id === '' || amount === '' || amount <= 0) {
             toast.error('All fields are required and amount must be positive.');
             setLoading(false);
             return;
@@ -71,7 +77,7 @@ const EditOperationalExpense: React.FC = () => {
 
         const updatedExpense: Partial<Omit<OperationalExpense, 'id' | 'tenant_id'>> = {
             expense_date: date,
-            expense_type,
+            account_id: Number(account_id),
             amount: Number(amount),
         };
 
@@ -90,9 +96,12 @@ const EditOperationalExpense: React.FC = () => {
     if (error) return <div className="text-center text-danger mt-5">{error}</div>;
     if (!expense) return <div className="text-center mt-5">Operational expense not found.</div>;
 
+    const currentAccount = accounts.find(acc => acc.id === expense.account_id);
+    const accountLabel = currentAccount ? currentAccount.account_name : '';
+
     return (
         <>
-            <PageHeader title={`Edit Expense: ${expense.expense_type}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/operational-expenses" buttonIcon='bi-arrow-left'/>
+            <PageHeader title={`Edit Expense: ${accountLabel}`} buttonVariant="secondary" buttonLabel="Back to List" buttonLink="/operational-expenses" buttonIcon='bi-arrow-left'/>
             <div className="container">
                 <SubscriptionWarning />
                 <div className="card shadow-sm">
@@ -112,15 +121,21 @@ const EditOperationalExpense: React.FC = () => {
                                     />
                                 </div>
                                 <div className="col-md-6">
-                                    <label htmlFor="expenseType" className="form-label">Expense Type <span className="form-field-required">*</span></label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        id="expenseType"
-                                        value={expense_type}
-                                        onChange={(e) => setExpenseType(e.target.value)}
+                                    <label htmlFor="accountId" className="form-label">Account <span className="form-field-required">*</span></label>
+                                    <select
+                                        className="form-select"
+                                        id="accountId"
+                                        value={account_id}
+                                        onChange={(e) => setAccountId(e.target.value === '' ? '' : Number(e.target.value))}
                                         required
-                                    />
+                                    >
+                                        <option value="" disabled>Select an account</option>
+                                        {accounts.filter(acc => acc.account_type === 'Expense').map(acc => (
+                                            <option key={acc.id} value={acc.id}>
+                                                {acc.account_name} ({acc.account_code})
+                                            </option>
+                                        ))}
+                                    </select>
                                 </div>
                                 <div className="col-md-6">
                                     <label htmlFor="expenseAmount" className="form-label">Amount <span className="form-field-required">*</span></label>

@@ -3,8 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
-import { operationalExpenseApi } from '../../services/api';
+import { operationalExpenseApi, chartOfAccountsApi } from '../../services/api';
 import { OperationalExpense } from '../../types/operationalExpense';
+import { ChartOfAccountsResponse } from '../../types/chartOfAccounts';
 import { useSubscription } from '../context/SubscriptionContext';
 import SubscriptionWarning from "../Common/SubscriptionWarning"; // adjust path as needed
 
@@ -12,13 +13,18 @@ const ViewOperationalExpense: React.FC = () => {
     const { expense_id } = useParams<{ expense_id: string }>();
     const navigate = useNavigate();
     const [expense, setExpense] = useState<OperationalExpense | null>(null);
+    const [accounts, setAccounts] = useState<ChartOfAccountsResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const { isSubscriptionPaid } = useSubscription();
 
     useEffect(() => {
-        const fetchExpense = async () => {
+        const fetchAccountsAndExpense = async () => {
             try {
+                setLoading(true);
+                const accountsData = await chartOfAccountsApi.getChartOfAccounts();
+                setAccounts(accountsData);
+
                 if (!expense_id) {
                     setError("Expense ID is missing.");
                     setLoading(false);
@@ -41,17 +47,20 @@ const ViewOperationalExpense: React.FC = () => {
             }
         };
 
-        fetchExpense();
+        fetchAccountsAndExpense();
     }, [expense_id]);
 
-    if (loading) return <div className="text-center mt-5">Loading expense data...</div>;
+    if (loading && !expense) return <div className="text-center mt-5">Loading expense data...</div>;
     if (error) return <div className="text-center text-danger mt-5">{error}</div>;
     if (!expense) return <div className="text-center mt-5">Operational expense not found.</div>;
+
+    const matchedAccount = accounts.find(acc => acc.id === expense.account_id);
+    const accountLabel = matchedAccount ? matchedAccount.account_name : '';
 
     return (
         <>
             <PageHeader 
-                title={`Expense Details: ${expense.expense_type}`} 
+                title={`Expense Details: ${accountLabel}`} 
                 buttonVariant="secondary" 
                 buttonLabel="Back to List" 
                 buttonLink="/operational-expenses" 
@@ -67,8 +76,8 @@ const ViewOperationalExpense: React.FC = () => {
                                 <div className="form-control-plaintext">{expense.expense_date}</div>
                             </div>
                             <div className="col-md-6">
-                                <label className="form-label fw-bold">Expense Type</label>
-                                <div className="form-control-plaintext">{expense.expense_type}</div>
+                                <label className="form-label fw-bold">Account</label>
+                                <div className="form-control-plaintext">{accountLabel || `ID: ${expense.account_id}`}</div>
                             </div>
                             <div className="col-md-6">
                                 <label className="form-label fw-bold">Amount</label>

@@ -1,10 +1,11 @@
 // src/components/OperationalExpenses/CreateOperationalExpenseForm.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import PageHeader from '../Layout/PageHeader';
-import { operationalExpenseApi } from '../../services/api';
+import { operationalExpenseApi, chartOfAccountsApi } from '../../services/api';
 import { OperationalExpense } from '../../types/operationalExpense';
+import { ChartOfAccountsResponse } from '../../types/chartOfAccounts';
 import CustomDatePicker from '../Common/CustomDatePicker';
 import { useSubscription } from '../context/SubscriptionContext';
 import SubscriptionWarning from "../Common/SubscriptionWarning"; // adjust path as needed
@@ -12,17 +13,30 @@ import SubscriptionWarning from "../Common/SubscriptionWarning"; // adjust path 
 
 const CreateOperationalExpenseForm: React.FC = () => {
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-    const [expense_type, setExpenseType] = useState('');
+    const [account_id, setAccountId] = useState<number | ''>('');
     const [amount, setAmount] = useState<number | ''>('');
+    const [accounts, setAccounts] = useState<ChartOfAccountsResponse[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
     const { isSubscriptionPaid } = useSubscription();
+
+    useEffect(() => {
+        const fetchAccounts = async () => {
+            try {
+                const accountsData = await chartOfAccountsApi.getChartOfAccounts();
+                setAccounts(accountsData);
+            } catch (error) {
+                toast.error('Failed to fetch chart of accounts.');
+            }
+        };
+        fetchAccounts();
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
 
-        if (!date || !expense_type.trim() || amount === '' || amount <= 0) {
+        if (!date || account_id === '' || amount === '' || amount <= 0) {
             toast.error('All fields are required and amount must be positive.');
             setIsLoading(false);
             return;
@@ -30,7 +44,7 @@ const CreateOperationalExpenseForm: React.FC = () => {
 
         const newExpense: Omit<OperationalExpense, 'id' | 'tenant_id'> = {
             expense_date: date,
-            expense_type,
+            account_id: Number(account_id),
             amount: Number(amount),
         };
 
@@ -67,16 +81,21 @@ const CreateOperationalExpenseForm: React.FC = () => {
                                     />
                                 </div>
                                 <div className="col-md-6">
-                                    <label htmlFor="expenseType" className="form-label">Expense Type <span className="form-field-required">*</span></label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        id="expenseType"
-                                        value={expense_type}
-                                        onChange={(e) => setExpenseType(e.target.value)}
-                                        placeholder="e.g., Electricity Bill"
+                                    <label htmlFor="accountId" className="form-label">Account <span className="form-field-required">*</span></label>
+                                    <select
+                                        className="form-select"
+                                        id="accountId"
+                                        value={account_id}
+                                        onChange={(e) => setAccountId(e.target.value === '' ? '' : Number(e.target.value))}
                                         required
-                                    />
+                                    >
+                                        <option value="" disabled>Select an account</option>
+                                        {accounts.filter(acc => acc.account_type === 'Expense').map(acc => (
+                                            <option key={acc.id} value={acc.id}>
+                                                {acc.account_name} ({acc.account_code})
+                                            </option>
+                                        ))}
+                                    </select>
                                 </div>
                                 <div className="col-md-6">
                                     <label htmlFor="expenseAmount" className="form-label">Amount <span className="form-field-required">*</span></label>

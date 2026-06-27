@@ -13,7 +13,7 @@ interface ItemsModalProps {
   onHide: () => void;
   items: OrderItem[];
   title: string;
-  getItemName?: (itemId: number) => string;
+  getItemName?: (itemId: number | undefined, compId?: number) => string;
 }
 
 const ItemsModal: React.FC<ItemsModalProps> = ({ show, onHide, items, title, getItemName: propGetItemName }) => {
@@ -41,20 +41,35 @@ const ItemsModal: React.FC<ItemsModalProps> = ({ show, onHide, items, title, get
     }
   }, [show, propGetItemName]);
 
-  const getItemName = (itemId: number) => {
+  const getItemName = (itemId: number | undefined, compId?: number, item?: OrderItem) => {
     // Use the provided getItemName function if available
     if (propGetItemName) {
-      return propGetItemName(itemId);
+      return propGetItemName(itemId, compId);
     }
 
     // Otherwise, use the internal implementation
-    const item = inventoryItems.find(i => i.id === itemId);
-    return item?.name || 'N/A';
+    if (itemId) {
+      const invItem = inventoryItems.find(i => i.id === itemId);
+      return invItem?.name || 'N/A';
+    }
+    if (item && 'composition' in item && item.composition) {
+      return item.composition.name;
+    }
+    return 'N/A';
   };
 
-  const getItemUnit = (itemId: number) => {
-    const item = inventoryItems.find(i => i.id === itemId);
-    return item?.unit || 'N/A';
+  const getItemUnit = (itemId: number | undefined, compId?: number, item?: OrderItem) => {
+    if (itemId) {
+      const invItem = inventoryItems.find(i => i.id === itemId);
+      return invItem?.unit || 'N/A';
+    }
+    if (compId) {
+      return 'kg';
+    }
+    if (item && 'composition' in item && item.composition) {
+      return 'kg';
+    }
+    return 'N/A';
   };
 
   return (
@@ -82,9 +97,9 @@ const ItemsModal: React.FC<ItemsModalProps> = ({ show, onHide, items, title, get
                 {items.map((item, index) => (
                   <tr key={item.id || index}>
                     <td>{index + 1}</td>
-                    <td>{getItemName(item.inventory_item_id)}</td>
+                    <td>{getItemName(item.inventory_item_id, (item as any).composition_id, item)}</td>
                     <td>{item.quantity}</td>
-                    <td>{getItemUnit(item.inventory_item_id)}</td>
+                    <td>{getItemUnit(item.inventory_item_id, (item as any).composition_id, item)}</td>
                     <td>{(Number(item.price_per_unit) || 0).toFixed(2)}</td>
                     <td>{(Number(item.line_total) || 0).toFixed(2)}</td>
                   </tr>

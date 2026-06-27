@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { OperationalExpense } from "../../types/operationalExpense";
+import { ChartOfAccountsResponse } from "../../types/chartOfAccounts";
+import { chartOfAccountsApi } from "../../services/api";
 import { Button } from "react-bootstrap";
 import { useSubscription } from "../context/SubscriptionContext";
 import CustomPagination from "../Common/CustomPagination";
@@ -17,6 +19,7 @@ interface OperationalExpensesTableProps {
 const OperationalExpensesTable: React.FC<OperationalExpensesTableProps> = ({ expenses, loading, error, onDelete }) => {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
+  const [accounts, setAccounts] = useState<ChartOfAccountsResponse[]>([]);
   const ITEMS_PER_PAGE = 10;
 
   const tableContainerRef = useRef<HTMLDivElement>(null);
@@ -25,6 +28,18 @@ const OperationalExpensesTable: React.FC<OperationalExpensesTableProps> = ({ exp
   useEffect(() => {
     setCurrentPage(1);
   }, [expenses]);
+
+  useEffect(() => {
+    const fetchAccounts = async () => {
+      try {
+        const data = await chartOfAccountsApi.getChartOfAccounts();
+        setAccounts(data);
+      } catch (err) {
+        console.error("Failed to load accounts for mapping:", err);
+      }
+    };
+    fetchAccounts();
+  }, []);
 
   const getPaginatedExpenses = useCallback(() => {
     return expenses.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
@@ -95,37 +110,42 @@ const OperationalExpensesTable: React.FC<OperationalExpensesTableProps> = ({ exp
         <thead className="thead-dark">
           <tr>
             <th>Date</th>
-            <th>Expense Type</th>
+            <th>Account</th>
             <th>Amount</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {paginatedExpenses.map((expense, index) => (
-            <tr 
-              key={expense.id} 
-              data-row-index={index}
-              onClick={() => {
-                setFocusedRowIndex(index);
-                setSelectedIndex(index);
-                handleView(expense.id);
-              }} 
-              className={focusedRowIndex === index ? 'table-primary' : ''}
-              style={{ cursor: 'pointer' }}
-            >
-              <td>{formatDate(expense.expense_date)}</td>
-              <td>{expense.expense_type}</td>
-              <td>{expense.amount_str || (typeof expense.amount === 'number' ? expense.amount.toFixed(2) : parseFloat(expense.amount || '0').toFixed(2))}</td>
-              <td>
-                <Button variant="outline-primary" size="sm" className="ms-2" onClick={(e) => { e.stopPropagation(); handleEdit(expense.id); }} disabled={isSubscriptionPaid === false}>
-                  <i className="bi bi-pencil-fill"></i>
-                </Button>
-                <Button variant="outline-danger" size="sm" className="ms-2" onClick={(e) => { e.stopPropagation(); onDelete(expense.id); }} disabled={isSubscriptionPaid === false}>
-                  <i className="bi bi-trash-fill"></i>
-                </Button>
-              </td>
-            </tr>
-          ))}
+          {paginatedExpenses.map((expense, index) => {
+            const matchedAccount = accounts.find(acc => acc.id === expense.account_id);
+            const accountLabel = matchedAccount ? matchedAccount.account_name : `Loading... (ID: ${expense.account_id})`;
+
+            return (
+              <tr 
+                key={expense.id} 
+                data-row-index={index}
+                onClick={() => {
+                  setFocusedRowIndex(index);
+                  setSelectedIndex(index);
+                  handleView(expense.id);
+                }} 
+                className={focusedRowIndex === index ? 'table-primary' : ''}
+                style={{ cursor: 'pointer' }}
+              >
+                <td>{formatDate(expense.expense_date)}</td>
+                <td>{accountLabel}</td>
+                <td>{expense.amount_str || (typeof expense.amount === 'number' ? expense.amount.toFixed(2) : parseFloat(expense.amount || '0').toFixed(2))}</td>
+                <td>
+                  <Button variant="outline-primary" size="sm" className="ms-2" onClick={(e) => { e.stopPropagation(); handleEdit(expense.id); }} disabled={isSubscriptionPaid === false}>
+                    <i className="bi bi-pencil-fill"></i>
+                  </Button>
+                  <Button variant="outline-danger" size="sm" className="ms-2" onClick={(e) => { e.stopPropagation(); onDelete(expense.id); }} disabled={isSubscriptionPaid === false}>
+                    <i className="bi bi-trash-fill"></i>
+                  </Button>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
       </div>

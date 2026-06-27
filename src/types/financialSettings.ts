@@ -7,6 +7,7 @@ export interface FinancialSettings {
   default_operational_expense_account_id: number;
   default_accounts_payable_account_id: number;
   default_accounts_receivable_account_id: number;
+  default_feed_variance_account_id: number;
   tenant_id: string;
   last_closed_date?: string | null;
 }
@@ -19,4 +20,5 @@ export interface UpdateFinancialSettings {
   default_operational_expense_account_id: number;
   default_accounts_payable_account_id: number;
   default_accounts_receivable_account_id: number;
+  default_feed_variance_account_id: number;
 }

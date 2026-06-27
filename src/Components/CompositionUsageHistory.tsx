@@ -221,6 +221,7 @@ const CompositionUsageHistory = () => {
                 {!compositionId && <th>Composition</th>}
                 <th>Times Used</th>
                 <th>Total Weight (kg)</th>
+                <th>Variance Weight (kg)</th>
                 {!isBatchRestricted && <th>Batch</th>}
                 <th>Actions</th>
               </tr>
@@ -228,15 +229,16 @@ const CompositionUsageHistory = () => {
             <tbody>
               {history.length === 0 ? (
                 <tr>
-                  <td colSpan={compositionId ? (isBatchRestricted ? 4 : 5) : (isBatchRestricted ? 5 : 6)} className="text-center">No usage history found.</td>
+                  <td colSpan={compositionId ? (isBatchRestricted ? 5 : 6) : (isBatchRestricted ? 6 : 7)} className="text-center">No usage history found.</td>
                 </tr>
               ) : (
                 history.map((item) => (
                   <tr key={item.id}>
                     <td>{new Date(item.used_at).toLocaleDateString()}</td>
                     {!compositionId && <td>{item.composition_name}</td>}
-                    <td>{item.times}</td>
-                    <td>{getCompositionWeight(item) * item.times}</td>
+                    <td>{Number(item.times)}</td>
+                    <td>{(getCompositionWeight(item) * Number(item.times)).toFixed(2)}</td>
+                    <td>{item.feed_variance_weight ? (Number(item.feed_variance_weight) > 0 ? '+' : '') + Number(item.feed_variance_weight).toFixed(2) : '0.00'}</td>
                     {!isBatchRestricted && <td>{getBatchNumber(item.batch_id)}</td>}
                     <td>
                       <button

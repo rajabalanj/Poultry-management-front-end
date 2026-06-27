@@ -68,6 +68,7 @@ const Configurations: React.FC = () => {
     default_operational_expense_account_id: 0,
     default_accounts_payable_account_id: 0,
     default_accounts_receivable_account_id: 0,
+    default_feed_variance_account_id: 0,
   });
   const [financialSettingsSaving, setFinancialSettingsSaving] = useState(false);
   const { isSubscriptionPaid } = useSubscription();
@@ -133,6 +134,7 @@ const Configurations: React.FC = () => {
             default_operational_expense_account_id: settingsData.default_operational_expense_account_id,
             default_accounts_payable_account_id: settingsData.default_accounts_payable_account_id,
             default_accounts_receivable_account_id: settingsData.default_accounts_receivable_account_id,
+            default_feed_variance_account_id: settingsData.default_feed_variance_account_id,
           });
         } catch (error) {
           console.error("Failed to fetch financial settings:", error);
@@ -400,7 +402,8 @@ const Configurations: React.FC = () => {
     'default_cogs_account_id': 'Expense',
     'default_operational_expense_account_id': 'Expense',
     'default_accounts_payable_account_id': 'Liability',
-    'default_accounts_receivable_account_id': 'Asset'
+    'default_accounts_receivable_account_id': 'Asset',
+    'default_feed_variance_account_id': 'Expense'
   };
   
   const handleSaveFinancialSettings = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -756,6 +759,25 @@ return (
                                         </select>
                                     </div>
 
+                                    <div className="mb-3">
+                                        <label htmlFor="default_feed_variance_account_id" className="form-label">Default Feed Variance Account</label>
+                                        <select
+                                            className="form-select form-select-sm"
+                                            id="default_feed_variance_account_id"
+                                            name="default_feed_variance_account_id"
+                                            value={financialSettingsFormData.default_feed_variance_account_id}
+                                            onChange={handleFinancialSettingsInputChange}
+                                            required
+                                        >
+                                            <option value="">Select an account</option>
+                                            {getAccountsByType(expectedTypes.default_feed_variance_account_id).map(account => (
+                                                <option key={account.id} value={account.id}>
+                                                    {account.account_name} ({account.account_code})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
                                     <div className="mt-3 text-end">
                                         <button
                                             className="btn btn-primary"
@@ -780,6 +802,7 @@ return (
         </div>
 
         {/* Egg Room Initial Setup Accordion Item */}
+        {!isBatchRestricted && (
         <div className="accordion-item mb-3">
           <h2 className="accordion-header text-light bg-primary" id="egg-room-setup-heading">
             <button
@@ -885,6 +908,7 @@ return (
             </div>
           </div>
         </div>
+        )}
 
         {/* Batch Configuration Accordion Item */}
         {!isBatchRestricted && (

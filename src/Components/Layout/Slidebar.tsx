@@ -50,7 +50,7 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
 
 
   // State to manage which sub-menu is open
-  const [openMenu, setOpenMenu] = useState<string | null>(null); // 'batch', 'egg', 'feed', 'finance' etc.
+  const [openMenu, setOpenMenu] = useState<string | null>(null); // 'batch', 'egg', 'feed', 'finance', 'purchase', 'sales' etc.
 
   useEffect(() => {
     if (!isDesktop) {
@@ -97,6 +97,14 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
       location.pathname.startsWith("/swap-sheds")
     ) {
       setOpenMenu("shed");
+    } else if (
+      location.pathname.startsWith("/purchase")
+    ) {
+      setOpenMenu("purchase");
+    } else if (
+      location.pathname.startsWith("/sales")
+    ) {
+      setOpenMenu("sales");
     } else {
       setOpenMenu(null); // No sub-menu related path, so close any open sub-menus
     }
@@ -372,19 +380,21 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                     </ul>
                   </li>
                 )}
-                <li className="nav-menu-item">
-                  <Link
-                    to="/egg-room-stock"
-                    className={`nav-menu-link ${location.pathname === "/egg-room-stock"
-                      ? "active-link"
-                      : ""
-                      }`}
-                    onClick={closeSidebarMobile}
-                  >
-                    <i className="bi bi-egg me-2 sidebar-icon"></i>
-                    <span className="sidebar-text">Egg Room Stock</span>
-                  </Link>
-                </li>
+                {!checkingRestriction && !isBatchRestricted && (
+                  <li className="nav-menu-item">
+                    <Link
+                      to="/egg-room-stock"
+                      className={`nav-menu-link ${location.pathname === "/egg-room-stock"
+                        ? "active-link"
+                        : ""
+                        }`}
+                      onClick={closeSidebarMobile}
+                    >
+                      <i className="bi bi-egg me-2 sidebar-icon"></i>
+                      <span className="sidebar-text">Egg Room Stock</span>
+                    </Link>
+                  </li>
+                )}
 
                 <li className="nav-menu-item">
                   <Link
@@ -482,31 +492,87 @@ const Slidebar: React.FC<SlidebarProps> = ({ onToggle }) => {
                 </li>
 
                 <li className="nav-menu-item">
-                  <Link
-                    to="/purchase-orders"
-                    className={`nav-menu-link ${location.pathname.startsWith("/purchase-orders")
-                      ? "active-link"
-                      : ""
-                      }`}
-                    onClick={closeSidebarMobile}
+                  <div
+                    className={`nav-menu-link expandable ${openMenu === "purchase" ? "active" : ""}`}
+                    onClick={() => toggleMenu("purchase")}
+                    tabIndex={0}
                   >
                     <i className="bi bi-cart4 me-2 sidebar-icon"></i>
                     <span className="sidebar-text">Purchase</span>
-                  </Link>
+                    <i
+                      className={`bi bi-chevron-right chevron-icon sidebar-icon ${openMenu === "purchase" ? "rotated" : ""}`}
+                    ></i>
+                  </div>
+                  <ul
+                    className={`sub-menu ${openMenu === "purchase" ? "open" : ""}`}
+                  >
+                    <li className="sub-menu-item">
+                      <Link
+                        to="/purchase-orders/create"
+                        className={`nav-menu-link ${location.pathname.startsWith("/purchase/create")
+                          ? "active-link"
+                          : ""
+                          }`}
+                        onClick={closeSidebarMobile}
+                      >
+                        <span className="sidebar-text">Create Purchase Order</span>
+                      </Link>
+                    </li>
+                    <li className="sub-menu-item">
+                      <Link
+                        to="/purchase-orders"
+                        className={`nav-menu-link ${location.pathname === "/purchase"
+                          ? "active-link"
+                          : ""
+                          }`}
+                        onClick={closeSidebarMobile}
+                      >
+                        <span className="sidebar-text">Purchase Report</span>
+                      </Link>
+                    </li>
+                  </ul>
                 </li>
 
                 <li className="nav-menu-item">
-                  <Link
-                    to="/sales-orders"
-                    className={`nav-menu-link ${location.pathname.startsWith("/sales-orders")
-                      ? "active-link"
-                      : ""
-                      }`}
-                    onClick={closeSidebarMobile}
+                  <div
+                    className={`nav-menu-link expandable ${openMenu === "sales" ? "active" : ""}`}
+                    onClick={() => toggleMenu("sales")}
+                    tabIndex={0}
                   >
                     <i className="bi bi-receipt me-2 sidebar-icon"></i>
                     <span className="sidebar-text">Sales</span>
-                  </Link>
+                    <i
+                      className={`bi bi-chevron-right chevron-icon sidebar-icon ${openMenu === "sales" ? "rotated" : ""}`}
+                    ></i>
+                  </div>
+                  <ul
+                    className={`sub-menu ${openMenu === "sales" ? "open" : ""}`}
+                  >
+                    <li className="sub-menu-item">
+                      <Link
+                        to="/sales-orders/create"
+                        className={`nav-menu-link ${location.pathname.startsWith("/sales/create")
+                          ? "active-link"
+                          : ""
+                          }`}
+                        onClick={closeSidebarMobile}
+                      >
+                        <span className="sidebar-text">Create Sales Order</span>
+                      </Link>
+                    </li>
+                    <li className="sub-menu-item">
+                      <Link
+                        to="/sales-orders"
+                        className={`nav-menu-link ${location.pathname === "/sales"
+                          ? "active-link"
+                          : ""
+                          }`}
+                        onClick={closeSidebarMobile}
+                      >
+                        <span className="sidebar-text">Sales Report</span>
+                      </Link>
+                    </li>
+                  </ul>
                 </li>
 
                 <li className="nav-menu-item">
