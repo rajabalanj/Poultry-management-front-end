@@ -18,6 +18,7 @@ export const usePurchaseOrders = () => {
   const [filterStatus, setFilterStatus] = useState<PurchaseOrderStatus | ''>('');
   const [filterStartDate, setFilterStartDate] = useState<Date | null>(null);
   const [filterEndDate, setFilterEndDate] = useState<Date | null>(null);
+  const [filterPoNumber, setFilterPoNumber] = useState<string>('');
 
   // Delete modal state
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -47,6 +48,7 @@ export const usePurchaseOrders = () => {
         filterStatus === '' ? undefined : filterStatus,
         filterStartDate ? format(filterStartDate, 'yyyy-MM-dd') : undefined,
         filterEndDate ? format(filterEndDate, 'yyyy-MM-dd') : undefined,
+        filterPoNumber ? parseInt(filterPoNumber, 10) : undefined,
       );
       setPurchaseOrders(response);
     } catch (error: any) {
@@ -56,7 +58,7 @@ export const usePurchaseOrders = () => {
     } finally {
       setLoading(false);
     }
-  }, [filterVendorId, filterStatus, filterStartDate, filterEndDate]);
+  }, [filterVendorId, filterStatus, filterStartDate, filterEndDate, filterPoNumber]);
 
   useEffect(() => {
     fetchPurchaseOrderList();
@@ -104,12 +106,14 @@ export const usePurchaseOrders = () => {
       status: filterStatus,
       startDate: filterStartDate,
       endDate: filterEndDate,
+      poNumber: filterPoNumber,
     },
     setFilters: {
       setVendorId: (value: string) => setFilterVendorId(value),
       setStatus: setFilterStatus,
       setStartDate: setFilterStartDate,
       setEndDate: setFilterEndDate,
+      setPoNumber: setFilterPoNumber,
     },
     deleteModal: {
       show: showDeleteModal,

@@ -61,6 +61,10 @@ const PurchaseResponsive: React.FC = () => {
       originalSetFilters.setEndDate(value);
       setCurrentPage(1);
     },
+    setPoNumber: (value: string) => {
+      originalSetFilters.setPoNumber(value);
+      setCurrentPage(1);
+    },
   }), [originalSetFilters]);
 
   // Calculate pagination

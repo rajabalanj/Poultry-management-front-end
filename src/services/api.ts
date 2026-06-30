@@ -1235,6 +1235,7 @@ export const purchaseOrderApi = {
     status?: PurchaseOrderStatus,
     startDate?: string, // YYYY-MM-DD
     endDate?: string,   // YYYY-MM-DD
+    poNumber?: number,
   ): Promise<PurchaseOrderResponse[]> => {
     try {
       const params: { [key: string]: any } = { skip, limit };
@@ -1242,6 +1243,7 @@ export const purchaseOrderApi = {
       if (status) params.status = status;
       if (startDate) params.start_date = startDate;
       if (endDate) params.end_date = endDate;
+      if (poNumber !== undefined && poNumber !== null) params.po_number = poNumber;
 
       const response = await api.get<PurchaseOrderResponse[]>(`/purchase-orders`, { params });
       return response.data.map(parsePurchaseOrderResponse);
@@ -1457,6 +1459,7 @@ export const salesOrderApi = {
     status?: SalesOrderStatus,
     startDate?: string, // YYYY-MM-DD
     endDate?: string,   // YYYY-MM-DD
+    soNumber?: number,
   ): Promise<SalesOrderResponse[]> => {
     try {
       const params: { [key: string]: any } = { skip, limit };
@@ -1464,6 +1467,7 @@ export const salesOrderApi = {
       if (status) params.status = status;
       if (startDate) params.start_date = startDate;
       if (endDate) params.end_date = endDate;
+      if (soNumber !== undefined && soNumber !== null) params.so_number = soNumber;
 
       const response = await api.get<SalesOrderResponse[]>(`/sales-orders`, { params });
       return response.data.map(parseSalesOrderResponse);

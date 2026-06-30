@@ -66,6 +66,10 @@ const SalesResponsive: React.FC = () => {
       originalSetFilters.setEndDate(value);
       setCurrentPage(1);
     },
+    setSoNumber: (value: string) => {
+      originalSetFilters.setSoNumber(value);
+      setCurrentPage(1);
+    },
   }), [originalSetFilters]);
 
   // Calculate pagination

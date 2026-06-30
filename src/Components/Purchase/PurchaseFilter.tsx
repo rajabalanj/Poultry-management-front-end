@@ -12,12 +12,14 @@ interface PurchaseFilterProps {
     status: PurchaseOrderStatus | '';
     startDate: Date | null;
     endDate: Date | null;
+    poNumber: string;
   };
   setFilters: {
     setVendorId: (value: string) => void;
     setStatus: (value: PurchaseOrderStatus | '') => void;
     setStartDate: (value: Date | null) => void;
     setEndDate: (value: Date | null) => void;
+    setPoNumber: (value: string) => void;
   };
 }
 
@@ -70,7 +72,23 @@ const PurchaseFilter: React.FC<PurchaseFilterProps> = ({ vendors, filters, setFi
             placeholder="All Statuses"
           />
         </div>
-        <div className="col-md-3">
+        <div className="col-md-2">
+          <label htmlFor="poNumberFilter" className="form-label">PO Number:</label>
+          <input
+            type="text"
+            id="poNumberFilter"
+            className="form-control"
+            placeholder="PO Number"
+            value={filters.poNumber}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === '' || /^\d+$/.test(val)) {
+                setFilters.setPoNumber(val);
+              }
+            }}
+          />
+        </div>
+        <div className="col-md-2">
           <label htmlFor="startDateFilter" className="form-label">Start Date:</label>
           <div>
             <CustomDatePicker
@@ -88,7 +106,7 @@ const PurchaseFilter: React.FC<PurchaseFilterProps> = ({ vendors, filters, setFi
               />
           </div>
         </div>
-        <div className="col-md-3">
+        <div className="col-md-2">
           <label htmlFor="endDateFilter" className="form-label">End Date:</label>
           <div>
             <CustomDatePicker

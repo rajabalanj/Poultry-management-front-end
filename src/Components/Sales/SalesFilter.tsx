@@ -11,12 +11,14 @@ interface SalesFilterProps {
     status: SalesOrderStatus | '';
     startDate: Date | null;
     endDate: Date | null;
+    soNumber: string;
   };
   setFilters: {
     setCustomerId: (value: string) => void;
     setStatus: (value: SalesOrderStatus | '') => void;
     setStartDate: (value: Date | null) => void;
     setEndDate: (value: Date | null) => void;
+    setSoNumber: (value: string) => void;
   };
 }
 
@@ -70,7 +72,23 @@ const SalesFilter: React.FC<SalesFilterProps> = ({ customers, filters, setFilter
             placeholder="All Statuses"
           />
         </div>
-        <div className="col-md-3">
+        <div className="col-md-2">
+          <label htmlFor="soNumberFilter" className="form-label">SO Number:</label>
+          <input
+            type="text"
+            id="soNumberFilter"
+            className="form-control"
+            placeholder="SO Number"
+            value={filters.soNumber}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === '' || /^\d+$/.test(val)) {
+                setFilters.setSoNumber(val);
+              }
+            }}
+          />
+        </div>
+        <div className="col-md-2">
           <label htmlFor="startDateFilter" className="form-label">Start Date:</label>
           <div>
           <CustomDatePicker
@@ -88,7 +106,7 @@ const SalesFilter: React.FC<SalesFilterProps> = ({ customers, filters, setFilter
             />
             </div>
         </div>
-        <div className="col-md-3">
+        <div className="col-md-2">
           <label htmlFor="endDateFilter" className="form-label">End Date:</label>
           <div>
           <CustomDatePicker

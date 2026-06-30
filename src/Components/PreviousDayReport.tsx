@@ -774,84 +774,118 @@ const PreviousDayReport = () => {
             )}
             {summaryData && !weekData && (
               <div className="mt-4 p-4 border rounded bg-light">
-                <h5 className="mb-3 text-dark fw-bold">Report Summary</h5>
-                <div className="row g-3">
-                  <div className="col-6 col-md-3">
-                    <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
-                      <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Opening</span>
-                      <span className="fw-bold fs-5 text-dark">{summaryData.opening_count}</span>
+                <h5 className="mb-4 text-dark fw-bold border-bottom pb-2">Report Summary</h5>
+                
+                {/* Birds Section */}
+                <div className="mb-4">
+                  <div className="d-flex align-items-center mb-3">
+                    <h6 className="text-primary fw-bold text-uppercase mb-0" style={{ letterSpacing: '0.05em', fontSize: '0.85rem' }}>
+                      Birds
+                    </h6>
+                    <div className="flex-grow-1 ms-3 border-bottom opacity-25"></div>
+                  </div>
+                  <div className="row g-3 row-cols-2 row-cols-sm-3 row-cols-lg-5">
+                    <div className="col">
+                      <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                        <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Opening</span>
+                        <span className="fw-bold fs-5 text-dark">{summaryData.opening_count}</span>
+                      </div>
+                    </div>
+                    <div className="col">
+                      <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                        <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Birds Added</span>
+                        <span className="fw-bold fs-5 text-dark">{summaryData.birds_added}</span>
+                      </div>
+                    </div>
+                    <div className="col">
+                      <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                        <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Total Mortality</span>
+                        <span className="fw-bold fs-5 text-dark">{summaryData.mortality}</span>
+                      </div>
+                    </div>
+                    <div className="col">
+                      <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                        <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Total Culls</span>
+                        <span className="fw-bold fs-5 text-dark">{summaryData.culls}</span>
+                      </div>
+                    </div>
+                    <div className="col">
+                      <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                        <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Closing</span>
+                        <span className="fw-bold fs-5 text-dark">{summaryData.closing_count}</span>
+                      </div>
                     </div>
                   </div>
-                  <div className="col-6 col-md-3">
-                    <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
-                      <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Birds Added</span>
-                      <span className="fw-bold fs-5 text-dark">{summaryData.birds_added}</span>
+                </div>
+
+                {/* Eggs Section */}
+                <div className="mb-4">
+                  <div className="d-flex align-items-center mb-3">
+                    <h6 className="text-success fw-bold text-uppercase mb-0" style={{ letterSpacing: '0.05em', fontSize: '0.85rem' }}>
+                      Eggs
+                    </h6>
+                    <div className="flex-grow-1 ms-3 border-bottom opacity-25"></div>
+                  </div>
+                  <div className="row g-3 row-cols-2 row-cols-sm-2 row-cols-md-4">
+                    <div className="col">
+                      <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                        <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Total Table Eggs</span>
+                        <span className="fw-bold fs-5 text-dark">{summaryData.table_eggs}</span>
+                      </div>
+                    </div>
+                    <div className="col">
+                      <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                        <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Total Jumbo</span>
+                        <span className="fw-bold fs-5 text-dark">{summaryData.jumbo}</span>
+                      </div>
+                    </div>
+                    <div className="col">
+                      <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                        <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Total Crack</span>
+                        <span className="fw-bold fs-5 text-dark">{summaryData.cr}</span>
+                      </div>
+                    </div>
+                    <div className="col">
+                      <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                        <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Total Eggs</span>
+                        <span className="fw-bold fs-5 text-dark">{summaryData.total_eggs}</span>
+                      </div>
                     </div>
                   </div>
-                  <div className="col-6 col-md-3">
-                    <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
-                      <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Total Mortality</span>
-                      <span className="fw-bold fs-5 text-dark">{summaryData.mortality}</span>
-                    </div>
+                </div>
+
+                {/* Performance & Feed Section */}
+                <div>
+                  <div className="d-flex align-items-center mb-3">
+                    <h6 className="text-info fw-bold text-uppercase mb-0" style={{ letterSpacing: '0.05em', fontSize: '0.85rem' }}>
+                      Performance & Feed
+                    </h6>
+                    <div className="flex-grow-1 ms-3 border-bottom opacity-25"></div>
                   </div>
-                  <div className="col-6 col-md-3">
-                    <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
-                      <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Total Culls</span>
-                      <span className="fw-bold fs-5 text-dark">{summaryData.culls}</span>
+                  <div className="row g-3 row-cols-2 row-cols-sm-2 row-cols-md-4">
+                    <div className="col">
+                      <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                        <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Avg HD</span>
+                        <span className="fw-bold fs-5 text-dark">{summaryData.hd != null ? (Number(summaryData.hd) * 100).toFixed(2) : 'N/A'}%</span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="col-6 col-md-3">
-                    <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
-                      <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Closing</span>
-                      <span className="fw-bold fs-5 text-dark">{summaryData.closing_count}</span>
+                    <div className="col">
+                      <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                        <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Avg Std HD</span>
+                        <span className="fw-bold fs-5 text-dark">{summaryData.standard_hen_day_percentage != null ? Number(summaryData.standard_hen_day_percentage).toFixed(2) : 'N/A'}%</span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="col-6 col-md-3">
-                    <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
-                      <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Total Table Eggs</span>
-                      <span className="fw-bold fs-5 text-dark">{summaryData.table_eggs}</span>
+                    <div className="col">
+                      <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                        <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Actual Feed</span>
+                        <span className="fw-bold fs-5 text-dark">{summaryData.actual_feed_consumed != null ? Number(summaryData.actual_feed_consumed).toFixed(2) : 'N/A'}</span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="col-6 col-md-3">
-                    <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
-                      <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Total Jumbo</span>
-                      <span className="fw-bold fs-5 text-dark">{summaryData.jumbo}</span>
-                    </div>
-                  </div>
-                  <div className="col-6 col-md-3">
-                    <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
-                      <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Total Crack</span>
-                      <span className="fw-bold fs-5 text-dark">{summaryData.cr}</span>
-                    </div>
-                  </div>
-                  <div className="col-6 col-md-3">
-                    <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
-                      <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Total Eggs</span>
-                      <span className="fw-bold fs-5 text-dark">{summaryData.total_eggs}</span>
-                    </div>
-                  </div>
-                  <div className="col-6 col-md-3">
-                    <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
-                      <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Avg HD</span>
-                      <span className="fw-bold fs-5 text-dark">{summaryData.hd != null ? (Number(summaryData.hd) * 100).toFixed(2) : 'N/A'}%</span>
-                    </div>
-                  </div>
-                  <div className="col-6 col-md-3">
-                    <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
-                      <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Avg Std HD</span>
-                      <span className="fw-bold fs-5 text-dark">{summaryData.standard_hen_day_percentage != null ? Number(summaryData.standard_hen_day_percentage).toFixed(2) : 'N/A'}%</span>
-                    </div>
-                  </div>
-                  <div className="col-6 col-md-3">
-                    <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
-                      <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Actual Feed</span>
-                      <span className="fw-bold fs-5 text-dark">{summaryData.actual_feed_consumed != null ? Number(summaryData.actual_feed_consumed).toFixed(2) : 'N/A'}</span>
-                    </div>
-                  </div>
-                  <div className="col-6 col-md-3">
-                    <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
-                      <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Standard Feed</span>
-                      <span className="fw-bold fs-5 text-dark">{summaryData.standard_feed_consumption != null ? Number(summaryData.standard_feed_consumption).toFixed(2) : 'N/A'}</span>
+                    <div className="col">
+                      <div className="p-3 bg-white border rounded shadow-sm h-100 d-flex flex-column justify-content-between">
+                        <span className="text-muted small text-uppercase fw-semibold d-block mb-1">Standard Feed</span>
+                        <span className="fw-bold fs-5 text-dark">{summaryData.standard_feed_consumption != null ? Number(summaryData.standard_feed_consumption).toFixed(2) : 'N/A'}</span>
+                      </div>
                     </div>
                   </div>
                 </div>

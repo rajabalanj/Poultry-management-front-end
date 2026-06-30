@@ -18,6 +18,7 @@ export const useSalesOrders = () => {
   const [filterStatus, setFilterStatus] = useState<SalesOrderStatus | ''>('');
   const [filterStartDate, setFilterStartDate] = useState<Date | null>(null);
   const [filterEndDate, setFilterEndDate] = useState<Date | null>(null);
+  const [filterSoNumber, setFilterSoNumber] = useState<string>('');
 
   // Delete modal state
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -47,6 +48,7 @@ export const useSalesOrders = () => {
         filterStatus === '' ? undefined : filterStatus,
         filterStartDate ? format(filterStartDate, 'yyyy-MM-dd') : undefined,
         filterEndDate ? format(filterEndDate, 'yyyy-MM-dd') : undefined,
+        filterSoNumber ? parseInt(filterSoNumber, 10) : undefined,
       );
       setSalesOrders(response);
     } catch (error: any) {
@@ -56,7 +58,7 @@ export const useSalesOrders = () => {
     } finally {
       setLoading(false);
     }
-  }, [filterCustomerId, filterStatus, filterStartDate, filterEndDate]);
+  }, [filterCustomerId, filterStatus, filterStartDate, filterEndDate, filterSoNumber]);
 
   useEffect(() => {
     fetchSalesOrderList();
@@ -104,12 +106,14 @@ export const useSalesOrders = () => {
       status: filterStatus,
       startDate: filterStartDate,
       endDate: filterEndDate,
+      soNumber: filterSoNumber,
     },
     setFilters: {
       setCustomerId: (value: string) => setFilterCustomerId(value),
       setStatus: setFilterStatus,
       setStartDate: setFilterStartDate,
       setEndDate: setFilterEndDate,
+      setSoNumber: setFilterSoNumber,
     },
     deleteModal: {
       show: showDeleteModal,
